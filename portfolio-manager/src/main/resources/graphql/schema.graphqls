@@ -1,0 +1,33 @@
+type User {
+    id: ID!
+    email: String!
+    username: String!
+    role: String!
+}
+
+type StockPrice {
+    symbol: String!
+    price: Float!
+}
+
+type Query{
+    me: User
+    stockPrice(symbol: String!): StockPrice
+}
+
+type PricePoint {
+    price: Float!
+    date: String!
+}
+extend type Query {
+    priceHistory(symbol: String!, days: Int!): [PricePoint]
+}
+
+type AuthResult {
+    token: String!
+    refreshToken: String!
+    user: User!
+}
+type Mutation {
+    login(email: String!, password: String!): AuthResult
+}

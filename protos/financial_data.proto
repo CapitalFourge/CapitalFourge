@@ -11,6 +11,8 @@ service FinancialDataService {
   rpc GetStockPrice (StockRequest) returns (StockPriceResponse);
   
   rpc GetBatchPrices (BatchStockRequest) returns (BatchStockResponse);
+
+  rpc GetPriceHistory (HistoryRequest) returns (HistoryResponse);
 }
 
 message StockRequest {
@@ -29,4 +31,17 @@ message BatchStockRequest {
 
 message BatchStockResponse {
   map<string, double> prices = 1;
+}
+
+message HistoryRequest {
+  string symbol = 1;
+  int32 days = 2; // Número de días atrás
+}
+message PricePoint {
+  double price = 1;
+  string date = 2;
+}
+message HistoryResponse {
+  string symbol = 1;
+  repeated PricePoint history = 2;
 }

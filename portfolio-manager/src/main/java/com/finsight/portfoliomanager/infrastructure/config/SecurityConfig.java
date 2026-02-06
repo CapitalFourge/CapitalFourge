@@ -32,6 +32,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/metrics/**").permitAll()
+                        .requestMatchers("/graphql/**").permitAll()
+                        .requestMatchers("/graphiql.html").permitAll()
+                        .requestMatchers("/favicon.ico", "/error", "/static/**").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();

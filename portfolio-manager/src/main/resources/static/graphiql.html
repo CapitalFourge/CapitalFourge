@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>GraphiQL - Finsight</title>
+    <link href="https://cdn.jsdelivr.net/npm/graphiql@3.0.6/graphiql.min.css" rel="stylesheet" />
+</head>
+
+<body style="margin: 0;">
+    <div id="graphiql" style="height: 100vh;"></div>
+    <!-- Carga de React y GraphiQL desde jsDelivr -->
+    <script crossorigin src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script crossorigin src="https://cdn.jsdelivr.net/npm/graphiql@3.0.6/graphiql.min.js"></script>
+    <script>
+        // Configuramos el fetcher para que apunte a nuestro endpoint de Spring
+        const fetcher = GraphiQL.createFetcher({ url: '/graphql' });
+
+        const root = ReactDOM.createRoot(document.getElementById('graphiql'));
+        root.render(
+            React.createElement(GraphiQL, {
+                fetcher: fetcher,
+                defaultQuery: 'query { me { username } }'
+            })
+        );
+    </script>
+</body>
+
+</html>

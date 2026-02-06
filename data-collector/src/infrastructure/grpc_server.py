@@ -32,6 +32,22 @@ class FinancialDataServicer(financial_data_pb2_grpc.FinancialDataServiceServicer
 
         return financial_data_pb2.BatchStockResponse(prices=result) 
 
+    def GetPriceHistory(self, request, context):
+        ticker = yf.Ticker(request.symbol)
+        hist = ticker.history(period=f"{request.days}d")
+        
+        points = []
+        for date, row in hist.iterrows():
+            points.append(financial_data_pb2.PricePoint(
+                price=float(row['Close']),
+                date=date.strftime('%Y-%m-%d')
+            ))
+            
+        return financial_data_pb2.HistoryResponse(
+            symbol=request.symbol,
+            history=points
+        )
+
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     financial_data_pb2_grpc.add_FinancialDataServiceServicer_to_server(

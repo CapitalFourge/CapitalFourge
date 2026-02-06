@@ -45,4 +45,20 @@ public class GrpcFinancialDataClient {
             return Map.of();
         }
     }
+
+    public List<PricePoint> getPriceHistory(String symbol, int days) {
+        try {
+            HistoryRequest request = HistoryResponse.newBuilder()
+                    .setSymbol(symbol)
+                    .setDays(days)
+                    .build();
+
+            HistoryResponse response = financialDataClient.getPriceHistory(request);
+
+            return response.getHistoryList();
+        } catch (Exception e) {
+            System.err.println("gRPC History Error: " + e.getMessage());
+            return List.of();
+        }
+    }
 }

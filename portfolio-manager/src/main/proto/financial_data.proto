@@ -28,7 +28,5 @@ message BatchStockRequest {
 }
 
 message BatchStockResponse {
-  repeated StockPriceResponse prices = 1;
-  int32 success_count = 2;
-  int32 failed_count = 3;
+  map<string, double> prices = 1;
 }

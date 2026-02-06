@@ -1,15 +1,17 @@
 package com.finsight.portfoliomanager.infrastructure.grpc;
 
+import java.util.Map;
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
-import com.finsight.proto.FinancialDataServiceGrpc;
-import com.finsight.proto.StockRequest;
-import com.finsight.proto.StockPriceResponse;
+import com.finsight.proto.*;
 
 import net.devh.boot.grpc.client.inject.GrpcClient;
 
 @Service
 public class GrpcFinancialDataClient {
+
     @GrpcClient("local-grpc-server")
     private FinancialDataServiceGrpc.FinancialDataServiceBlockingStub financialDataClient;
 
@@ -26,6 +28,21 @@ public class GrpcFinancialDataClient {
         } catch (Exception e) {
             System.err.println("❌ gRPC Error: " + e.getMessage());
             return 0.0;
+        }
+    }
+
+    public Map<String, Double> getBatchPrices(List<String> symbols) {
+        try {
+            BatchStockRequest request = BatchStockRequest.newBuilder()
+                    .addAllSymbols(symbols)
+                    .build();
+
+            BatchStockResponse response = financialDataClient.getBatchPrices(request);
+
+            return response.getPricesMap();
+        } catch (Exception e) {
+            System.err.println("gRPC Batch Error: " + e.getMessage());
+            return Map.of();
         }
     }
 }

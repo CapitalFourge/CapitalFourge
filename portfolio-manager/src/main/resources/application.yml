@@ -22,14 +22,14 @@ spring:
       port: 6379
       password: mi_redis_pass_seguro
 
-  grpc:
-    client:
-      local-grpc-server:
-        address: 'static://localhost:50051'
-        negotiation-type: plaintext
+grpc:
+  client:
+    local-grpc-server:
+      address: 'static://localhost:50051'
+      negotiation-type: plaintext
 
-  jwt:
-    secret: "pon_un_secreto_largo_64+_chars"
-    issuer: "finsight"
-    access-expiration-ms: 3600000
-    refresh-expiration-ms: 604800000
+jwt:
+  secret: "f2c3b4a5d6e7f8g9h0i1j2k3l4m5n6o7p8q9r0s1t2u3v4w5x6y7z8a9b0c1d2e3"
+  issuer: "finsight"
+  access-expiration-ms: 3600000
+  refresh-expiration-ms: 604800000

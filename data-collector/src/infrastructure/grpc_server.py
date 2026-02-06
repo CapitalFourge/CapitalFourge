@@ -11,8 +11,10 @@ from src.infrastructure import financial_data_pb2
 from src.infrastructure import financial_data_pb2_grpc
 from src.application.price_oracle import PriceOracle
 class FinancialDataServicer(financial_data_pb2_grpc.FinancialDataServiceServicer):
+    
     def __init__(self):
         self.oracle = PriceOracle()
+
     def GetStockPrice(self, request, context):
         symbol = request.symbol
         print(f"💰 gRPC Request received for: {symbol}")
@@ -23,25 +25,13 @@ class FinancialDataServicer(financial_data_pb2_grpc.FinancialDataServiceServicer
             timestamp=datetime.now().isoformat()
         )
     def GetBatchPrices(self, request, context):
-        prices = []
-        success = 0
-        failed = 0
-        
+        result = {}
         for symbol in request.symbols:
             price = self.oracle.fetch_and_cache(symbol)
-            if price > 0:
-                prices.append(financial_data_pb2.StockPriceResponse(
-                    symbol=symbol, price=price, timestamp=datetime.now().isoformat()
-                ))
-                success += 1
-            else:
-                failed += 1
-        
-        return financial_data_pb2.BatchStockResponse(
-            prices=prices,
-            success_count=success,
-            failed_count=failed
-        )
+            result[symbol] = price
+
+        return financial_data_pb2.BatchStockResponse(prices=result) 
+
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     financial_data_pb2_grpc.add_FinancialDataServiceServicer_to_server(

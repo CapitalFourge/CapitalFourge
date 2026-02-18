@@ -3,7 +3,12 @@
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from "recharts";
 import { format } from "date-fns";
 
-export function BalanceChart({ transactions }: { transactions: any[] }) {
+interface Transaction {
+    timestamp: string;
+    balanceTransaction: number | string;
+}
+
+export function BalanceChart({ transactions }: { transactions: Transaction[] }) {
     // Ordenamos y formateamos los datos para Recharts
     const data = transactions
         ?.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())

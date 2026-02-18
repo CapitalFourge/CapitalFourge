@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Wallet, ArrowUpRight, ArrowDownLeft, History, PieChart, List } from "lucide-react";
+import { History, PieChart, List } from "lucide-react";
 import { OrdersDialog } from "@/components/trading/orders-dialog";
 
 const PORTFOLIO_DETAIL_QUERY = gql`
@@ -34,11 +34,34 @@ const PORTFOLIO_DETAIL_QUERY = gql`
         price
         totalAmount
         timestamp
-        balanceTransaction
       }
     }
   }
 `;
+
+interface Position {
+    symbol: string;
+    quantity: number;
+    currentPrice: number;
+    averagePurchasePrice: number;
+}
+
+interface Transaction {
+    id: string;
+    symbol: string;
+    type: string;
+    quantity: number;
+    price: number;
+    totalAmount: number;
+    timestamp: string;
+}
+
+interface Portfolio {
+    id: string;
+    name: string;
+    positions: Position[];
+    transactions: Transaction[];
+}
 
 export default function PortfolioDetailPage() {
     const { id } = useParams();
@@ -52,18 +75,18 @@ export default function PortfolioDetailPage() {
     if (error) return <div className="p-10 text-red-500 font-mono">ERROR: {error.message}</div>;
     if (!portfolioId) return <div className="p-10 text-red-500 font-mono">ERROR: Portfolio ID not found</div>;
 
-    const portfolio = data?.portfolio;
+    const portfolio = data?.portfolio as Portfolio;
     const userCashBalance = data?.me?.cashBalance || 0;
 
     // Calculate total portfolio value (cash + assets) using currentPrice from GraphQL
-    const positionsUsdValue = portfolio?.positions?.reduce((total: number, pos: any) => {
+    const positionsUsdValue = portfolio?.positions?.reduce((total: number, pos: Position) => {
         const currentPrice = pos.currentPrice || 0;
         return total + (pos.quantity * currentPrice);
     }, 0) || 0;
     const totalPortfolioValue = userCashBalance + positionsUsdValue;
 
     // Calculate total cost basis and performance using averagePurchasePrice from GraphQL
-    const totalCostBasis = portfolio?.positions?.reduce((total: number, pos: any) => {
+    const totalCostBasis = portfolio?.positions?.reduce((total: number, pos: Position) => {
         const avgCost = pos.averagePurchasePrice || 0;
         return total + (avgCost * pos.quantity);
     }, 0) || 0;
@@ -121,7 +144,7 @@ export default function PortfolioDetailPage() {
                         {portfolio.positions.length === 0 ? (
                             <p className="text-slate-600 text-sm italic py-4 text-center">Sin posiciones abiertas.</p>
                         ) : (
-                            portfolio.positions.map((pos: any) => {
+                            portfolio.positions.map((pos: Position) => {
                                 const currentPrice = pos.currentPrice || 0;
                                 const avgCost = pos.averagePurchasePrice || 0;
                                 const usdValue = pos.quantity * currentPrice;
@@ -181,23 +204,22 @@ export default function PortfolioDetailPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {portfolio.transactions.map((tx: any) => (
+                                {portfolio.transactions.map((tx: Transaction) => (
                                     <TableRow key={tx.id} className="border-white/5 hover:bg-white/5">
                                         <TableCell className="text-[10px] text-slate-500 font-mono">
                                             {new Date(tx.timestamp).toLocaleDateString()}
                                         </TableCell>
                                         <TableCell>
-                                            <Badge className={`uppercase text-[8px] font-bold ${
-                                                tx.type === "BUY" ? "bg-green-500/10 text-green-400 border-green-500/20" :
-                                                tx.type === "SELL" ? "bg-red-500/10 text-red-400 border-red-500/20" :
-                                                tx.type === "DEPOSIT" ? "bg-blue-500/10 text-blue-400 border-blue-500/20" :
-                                                tx.type === "WITHDRAWAL" ? "bg-orange-500/10 text-orange-400 border-orange-500/20" :
-                                                "bg-slate-500/10 text-slate-400 border-slate-500/20"
-                                            }`}>
+                                            <Badge className={`uppercase text-[8px] font-bold ${tx.type === "BUY" ? "bg-green-500/10 text-green-400 border-green-500/20" :
+                                                    tx.type === "SELL" ? "bg-red-500/10 text-red-400 border-red-500/20" :
+                                                        tx.type === "DEPOSIT" ? "bg-blue-500/10 text-blue-400 border-blue-500/20" :
+                                                            tx.type === "WITHDRAWAL" ? "bg-orange-500/10 text-orange-400 border-orange-500/20" :
+                                                                "bg-slate-500/10 text-slate-400 border-slate-500/20"
+                                                }`}>
                                                 {tx.type === "BUY" ? "COMPRA" :
-                                                 tx.type === "SELL" ? "VENTA" :
-                                                 tx.type === "DEPOSIT" ? "DEPÓSITO" :
-                                                 tx.type === "WITHDRAWAL" ? "RETIRO" : tx.type}
+                                                    tx.type === "SELL" ? "VENTA" :
+                                                        tx.type === "DEPOSIT" ? "DEPÓSITO" :
+                                                            tx.type === "WITHDRAWAL" ? "RETIRO" : tx.type}
                                             </Badge>
                                         </TableCell>
                                         <TableCell className="font-bold text-xs italic">{tx.symbol}</TableCell>

@@ -23,6 +23,20 @@ const PORTFOLIOS_QUERY = gql`
   }
 `;
 
+interface Position {
+    symbol: string;
+    quantity: number;
+    averagePurchasePrice: number;
+    currentPrice?: number;
+}
+
+interface Portfolio {
+    id: string;
+    name: string;
+    performance: number;
+    positions: Position[];
+}
+
 export default function PortfoliosPage() {
     const { data, loading, error } = useQuery(PORTFOLIOS_QUERY);
 
@@ -52,7 +66,7 @@ export default function PortfoliosPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {portfolios.map((p: any) => (
+                {portfolios.map((p: Portfolio) => (
                     <Link key={p.id} href={`/portfolio/${p.id}`} className="relative group">
                         <Card className="glass border-none hover:bg-white/[0.05] transition-all cursor-pointer h-full group">
                             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -68,7 +82,7 @@ export default function PortfoliosPage() {
                                 <div>
                                     <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-1">Valor Invertido</p>
                                     <p className="text-3xl font-mono text-white font-bold">
-                                        ${(p.positions?.reduce((sum: number, pos: any) => sum + (pos.quantity * (pos.currentPrice || pos.averagePurchasePrice)), 0) || 0)
+                                        ${(p.positions?.reduce((sum: number, pos: Position) => sum + (pos.quantity * (pos.currentPrice || pos.averagePurchasePrice)), 0) || 0)
                                             .toLocaleString(undefined, { minimumFractionDigits: 2 })}
                                     </p>
                                 </div>

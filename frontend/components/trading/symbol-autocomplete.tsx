@@ -14,6 +14,11 @@ const SEARCH_SYMBOLS_QUERY = gql`
     }
 `;
 
+interface Symbol {
+    symbol: string;
+    name?: string;
+}
+
 interface SymbolAutocompleteProps {
     value: string;
     onChange: (value: string) => void;
@@ -123,13 +128,12 @@ export function SymbolAutocomplete({
 
             {showSuggestions && suggestions.length > 0 && (
                 <div className="absolute z-50 w-full mt-1 bg-black/95 border border-white/10 rounded-lg shadow-xl overflow-hidden">
-                    {suggestions.map((suggestion: any, index: number) => (
+                    {suggestions.map((suggestion: Symbol, index: number) => (
                         <button
                             key={suggestion.symbol}
                             onClick={() => handleSelectSuggestion(suggestion.symbol)}
-                            className={`w-full px-4 py-3 text-left hover:bg-white/10 transition-colors ${
-                                index === selectedIndex ? "bg-white/10" : ""
-                            }`}
+                            className={`w-full px-4 py-3 text-left hover:bg-white/10 transition-colors ${index === selectedIndex ? "bg-white/10" : ""
+                                }`}
                         >
                             <div className="flex items-center justify-between">
                                 <span className="font-bold text-white">{suggestion.symbol}</span>
@@ -144,7 +148,7 @@ export function SymbolAutocomplete({
 
             {showSuggestions && query.length >= 2 && !loading && suggestions.length === 0 && (
                 <div className="absolute z-50 w-full mt-1 bg-black/95 border border-white/10 rounded-lg shadow-xl p-4 text-center text-slate-400">
-                    No se encontraron resultados para "{query}"
+                    No se encontraron resultados para &quot;{query}&quot;
                 </div>
             )}
         </div>

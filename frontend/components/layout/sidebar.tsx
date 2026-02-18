@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Briefcase, ShieldCheck, Settings, LogOut } from "lucide-react";
+import { LayoutDashboard, Briefcase, ShieldCheck, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils"; // Esta es una utilidad que instaló Shadcn automáticamente
 
 const menuItems = [
@@ -23,7 +23,7 @@ export function Sidebar() {
             <nav className="flex-1 px-4 space-y-2">
                 {/* Usamos un truco de React: recorremos la lista de menú para no repetir código */}
                 {menuItems.map((item) => {
-                    const Icon = item.iconComponent || item.icon;
+                    const Icon = item.icon;
                     const isActive = pathname === item.href;
 
                     return (

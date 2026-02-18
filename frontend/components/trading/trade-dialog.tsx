@@ -77,10 +77,23 @@ const STOCK_PRICE_QUERY = gql`
   }
 `;
 
+interface Position {
+    symbol: string;
+    quantity: number;
+    averagePurchasePrice: number;
+    currentPrice?: number;
+}
+
+interface Portfolio {
+    id: string;
+    name: string;
+    positions: Position[];
+}
+
 interface TradeDialogProps {
-    portfolios: any[];
+    portfolios: Portfolio[];
     defaultType?: "buy" | "sell";
-    portfolioPositions?: Map<string, any[]>;
+    portfolioPositions?: Map<string, Position[]>;
 }
 
 export function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions }: TradeDialogProps) {
@@ -107,26 +120,28 @@ export function TradeDialog({ portfolios, defaultType = "buy", portfolioPosition
     });
 
     // Update price when market price is fetched (FIXED BUG)
-    useEffect(() => {
+    // Removed setPrice from useEffect to avoid cascading renders
+    const effectivePrice = useMemo(() => {
         if (priceType === "market" && priceData?.stockPrice) {
-            setPrice(priceData.stockPrice.price.toString());
+            return priceData.stockPrice.price.toString();
         }
-    }, [priceData, priceType]);
+        return price;
+    }, [priceData, priceType, price]);
 
     // Real-time calculation
     const calculatedQuantity = useMemo(() => {
-        if (tradingMode === "usd" && price && usdAmount) {
-            return (parseFloat(usdAmount) / parseFloat(price)).toFixed(8);
+        if (tradingMode === "usd" && effectivePrice && usdAmount) {
+            return (parseFloat(usdAmount) / parseFloat(effectivePrice)).toFixed(8);
         }
         return quantity;
-    }, [tradingMode, price, usdAmount, quantity]);
+    }, [tradingMode, effectivePrice, usdAmount, quantity]);
 
     const calculatedUSD = useMemo(() => {
-        if (tradingMode === "quantity" && price && quantity) {
-            return (parseFloat(quantity) * parseFloat(price)).toFixed(2);
+        if (tradingMode === "quantity" && effectivePrice && quantity) {
+            return (parseFloat(quantity) * parseFloat(effectivePrice)).toFixed(2);
         }
         return usdAmount;
-    }, [tradingMode, price, quantity, usdAmount]);
+    }, [tradingMode, effectivePrice, quantity, usdAmount]);
 
     const [buyAsset, { loading: buyLoading }] = useMutation(BUY_ASSET_MUTATION, {
         onCompleted: () => {
@@ -176,15 +191,15 @@ export function TradeDialog({ portfolios, defaultType = "buy", portfolioPosition
     const loading = buyLoading || sellLoading || buyLoadingUSD || sellLoadingUSD || limitOrderLoading;
 
     const handleTrade = async () => {
-        if (!portfolioId || !symbol || !price) {
+        if (!portfolioId || !symbol || !effectivePrice) {
             toast.error("Por favor, completa todos los campos.");
             return;
         }
 
-        const variables = {
+        const variables: any = {
             portfolioId,
             symbol,
-            price: parseFloat(price),
+            price: parseFloat(effectivePrice),
         };
 
         if (orderType === "market") {
@@ -238,7 +253,7 @@ export function TradeDialog({ portfolios, defaultType = "buy", portfolioPosition
                 variables.usdAmount = parseFloat(usdAmount);
             }
             variables.type = type === "buy" ? "BUY_LIMIT" : "SELL_LIMIT";
-            variables.targetPrice = parseFloat(price);
+            variables.targetPrice = parseFloat(effectivePrice);
             await createLimitOrder({ variables });
         }
     };
@@ -251,7 +266,9 @@ export function TradeDialog({ portfolios, defaultType = "buy", portfolioPosition
     };
 
     // Get current portfolio positions
-    const currentPortfolioPositions = portfolioPositions?.get(portfolioId) || [];
+    const currentPortfolioPositions = useMemo(() => {
+        return portfolioPositions?.get(portfolioId) || [];
+    }, [portfolioPositions, portfolioId]);
 
     // Debug logging
     useEffect(() => {
@@ -354,7 +371,7 @@ export function TradeDialog({ portfolios, defaultType = "buy", portfolioPosition
                                     >
                                         <option value="">Seleccionar activo...</option>
                                         {currentPortfolioPositions.length > 0 ? (
-                                            currentPortfolioPositions.map((pos: any) => (
+                                            currentPortfolioPositions.map((pos: Position) => (
                                                 <option key={pos.symbol} value={pos.symbol}>
                                                     {pos.symbol} ({pos.quantity.toFixed(4)} disponibles)
                                                 </option>
@@ -366,7 +383,7 @@ export function TradeDialog({ portfolios, defaultType = "buy", portfolioPosition
                                         )}
                                     </select>
                                     {symbol && currentPortfolioPositions.length > 0 && (() => {
-                                        const position = currentPortfolioPositions.find((pos: any) => pos.symbol === symbol);
+                                        const position = currentPortfolioPositions.find((pos: Position) => pos.symbol === symbol);
                                         if (position) {
                                             return (
                                                 <p className="text-[10px] text-slate-500">
@@ -400,14 +417,14 @@ export function TradeDialog({ portfolios, defaultType = "buy", portfolioPosition
                                 placeholder={tradingMode === "quantity" ? "0.00" : "0.00"}
                                 value={tradingMode === "quantity" ? quantity : usdAmount}
                                 onChange={(e) => tradingMode === "quantity" ? setQuantity(e.target.value) : setUsdAmount(e.target.value)}
-                                max={type === "sell" && symbol && tradingMode === "quantity" ? currentPortfolioPositions.find((pos: any) => pos.symbol === symbol)?.quantity : undefined}
+                                max={type === "sell" && symbol && tradingMode === "quantity" ? currentPortfolioPositions.find((pos: Position) => pos.symbol === symbol)?.quantity : undefined}
                                 step="any"
                                 className="bg-black/40 border-white/10 text-white"
                             />
                             {price && (tradingMode === "quantity" ? quantity : usdAmount) && (
                                 <p className="text-[10px] text-slate-500">
-                                    {tradingMode === "quantity" 
-                                        ? `Valor total: $${calculatedUSD}` 
+                                    {tradingMode === "quantity"
+                                        ? `Valor total: $${calculatedUSD}`
                                         : `Cantidad estimada: ${calculatedQuantity}`}
                                 </p>
                             )}
@@ -421,7 +438,7 @@ export function TradeDialog({ portfolios, defaultType = "buy", portfolioPosition
                         <Input
                             type="number"
                             placeholder={orderType === "market" ? "Cargando precio..." : "0.00"}
-                            value={price}
+                            value={effectivePrice}
                             onChange={(e) => setPrice(e.target.value)}
                             disabled={orderType === "market"}
                             className="bg-black/40 border-white/10 text-white"
@@ -438,14 +455,13 @@ export function TradeDialog({ portfolios, defaultType = "buy", portfolioPosition
                     <Button
                         onClick={handleTrade}
                         disabled={loading}
-                        className={`w-full font-bold uppercase tracking-widest ${
-                            orderType === "market" 
+                        className={`w-full font-bold uppercase tracking-widest ${orderType === "market"
                                 ? (type === "buy" ? "bg-green-500 hover:bg-green-600" : "bg-red-500 hover:bg-red-600")
                                 : "bg-blue-500 hover:bg-blue-600"
-                        } text-white`}
+                            } text-white`}
                     >
                         {loading ? "EJECUTANDO..." : (
-                            orderType === "market" 
+                            orderType === "market"
                                 ? `CONFIRMAR ${type === "buy" ? "COMPRA" : "VENTA"}`
                                 : `CREAR ORDEN ${type === "buy" ? "COMPRA" : "VENTA"}`
                         )}

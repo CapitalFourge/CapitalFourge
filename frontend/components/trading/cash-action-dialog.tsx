@@ -26,7 +26,13 @@ const WITHDRAW_CASH_MUTATION = gql`
   }
 `;
 
-export function CashActionDialog({ portfolios, initialType = "deposit" }: { portfolios: any[], initialType?: "deposit" | "withdraw" }) {
+interface Portfolio {
+    id: string;
+    name: string;
+    balance: number;
+}
+
+export function CashActionDialog({ portfolios, initialType = "deposit" }: { portfolios: Portfolio[], initialType?: "deposit" | "withdraw" }) {
     const [open, setOpen] = useState(false);
     const [type, setType] = useState<"deposit" | "withdraw">(initialType);
     const [portfolioId, setPortfolioId] = useState(portfolios[0]?.id || "");
@@ -65,7 +71,7 @@ export function CashActionDialog({ portfolios, initialType = "deposit" }: { port
             return;
         }
 
-        const selectedPortfolio = portfolios.find((p: any) => p.id === portfolioId);
+        const selectedPortfolio = portfolios.find((p: Portfolio) => p.id === portfolioId);
         const currentBalance = selectedPortfolio?.balance || 0;
 
         if (type === "withdraw" && Number(amount) > currentBalance) {
@@ -140,7 +146,7 @@ export function CashActionDialog({ portfolios, initialType = "deposit" }: { port
                         />
                         {type === "withdraw" && portfolioId && (
                             <p className="text-[10px] text-slate-500">
-                                Balance disponible: ${portfolios.find((p: any) => p.id === portfolioId)?.balance?.toLocaleString() || 0}
+                                Balance disponible: ${portfolios.find((p: Portfolio) => p.id === portfolioId)?.balance?.toLocaleString() || 0}
                             </p>
                         )}
                     </div>

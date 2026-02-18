@@ -3,6 +3,7 @@
 console.log("[DEBUG] Dashboard module loaded");
 
 import { useState, useEffect, useMemo } from "react";
+import Link from "next/link";
 import { useQuery, gql } from "@apollo/client";
 import {
     XAxis, YAxis, CartesianGrid,
@@ -10,13 +11,11 @@ import {
 } from "recharts";
 import {
     Clock, Wallet,
-    Plus, Activity, TrendingUp, TrendingDown,
-    ArrowDown, ArrowUp
+    Activity
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useRealTimePrice } from "@/lib/hooks/useRealTimePrice";
-import { toast } from "sonner";
 import { TradeDialog } from "@/components/trading/trade-dialog";
 import { CashActionDialog } from "@/components/trading/cash-action-dialog";
 import { SymbolAutocomplete } from "@/components/trading/symbol-autocomplete";
@@ -71,10 +70,23 @@ export default function DashboardPage() {
     const portfolio = data?.portfolios?.[0];
     const userCashBalance = data?.me?.cashBalance || 0;
 
+    interface Position {
+        symbol: string;
+        quantity: number;
+        averagePurchasePrice: number;
+        currentPrice?: number;
+    }
+
+    interface Portfolio {
+        id: string;
+        name: string;
+        positions: Position[];
+    }
+
     const investedTotal = useMemo(() => {
         if (!data?.portfolios) return 0;
-        return data.portfolios.reduce((total: number, p: any) => {
-            const portfolioInvested = p.positions?.reduce((sum: number, pos: any) => {
+        return (data.portfolios as Portfolio[]).reduce((total: number, p: Portfolio) => {
+            const portfolioInvested = p.positions?.reduce((sum: number, pos: Position) => {
                 return sum + (pos.quantity * (pos.currentPrice || pos.averagePurchasePrice));
             }, 0) || 0;
             return total + portfolioInvested;
@@ -85,8 +97,8 @@ export default function DashboardPage() {
 
     // Create a map of portfolio positions for TradeDialog
     const portfolioPositions = useMemo(() => {
-        const map = new Map<string, any[]>();
-        data?.portfolios?.forEach((p: any) => {
+        const map = new Map<string, Position[]>();
+        (data?.portfolios as Portfolio[])?.forEach((p: Portfolio) => {
             map.set(p.id, p.positions || []);
         });
         return map;
@@ -237,7 +249,7 @@ export default function DashboardPage() {
                                     ⚠️ No hay portafolios detectados
                                 </p>
                                 <Button asChild className="bg-white text-black hover:bg-slate-200 rounded-xl font-bold">
-                                    <a href="/portfolio">Crer Primer Portafolio</a>
+                                    <Link href="/portfolio">Crer Primer Portafolio</Link>
                                 </Button>
                             </div>
                         )}

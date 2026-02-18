@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useQuery, useMutation, gql } from "@apollo/client";
@@ -33,6 +32,18 @@ const CANCEL_ORDER_MUTATION = gql`
         }
     }
 `;
+
+interface Order {
+    id: string;
+    type: string;
+    symbol: string;
+    targetPrice: number;
+    quantity?: number;
+    usdAmount?: number;
+    status: string;
+    createdAt: string;
+    expiresAt: string;
+}
 
 interface OrdersDialogProps {
     portfolioId: string;
@@ -83,13 +94,12 @@ export function OrdersDialog({ portfolioId, open, onOpenChange }: OrdersDialogPr
                             No hay órdenes activas
                         </p>
                     ) : (
-                        data?.ordersByPortfolio?.map((order: any) => (
+                        data?.ordersByPortfolio?.map((order: Order) => (
                             <div key={order.id} className="bg-black/40 border border-white/10 rounded-lg p-4">
                                 <div className="flex justify-between items-start mb-2">
                                     <div>
-                                        <span className={`text-xs font-bold px-2 py-1 rounded ${
-                                            order.type === "BUY_LIMIT" ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"
-                                        }`}>
+                                        <span className={`text-xs font-bold px-2 py-1 rounded ${order.type === "BUY_LIMIT" ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"
+                                            }`}>
                                             {order.type === "BUY_LIMIT" ? "COMPRA" : "VENTA"}
                                         </span>
                                         <span className="ml-2 font-bold">{order.symbol}</span>

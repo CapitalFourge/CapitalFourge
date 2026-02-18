@@ -44,7 +44,7 @@ export default function RegisterPage() {
                 const errorData = await res.json().catch(() => ({}));
                 toast.error(errorData.message || "Error al crear cuenta");
             }
-        } catch (error) {
+        } catch {
             toast.error("Error de conexión con el servidor");
         } finally {
             setLoading(false);

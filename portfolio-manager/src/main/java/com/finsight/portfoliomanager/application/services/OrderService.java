@@ -17,7 +17,6 @@ import com.finsight.portfoliomanager.application.ports.out.OrderRepository;
 import com.finsight.portfoliomanager.application.ports.out.PortfolioRepository;
 import com.finsight.portfoliomanager.application.ports.out.UserRepository;
 import com.finsight.portfoliomanager.domain.Order;
-import com.finsight.portfoliomanager.domain.OrderStatus;
 import com.finsight.portfoliomanager.domain.OrderType;
 import com.finsight.portfoliomanager.domain.Portfolio;
 import com.finsight.portfoliomanager.domain.Position;
@@ -35,7 +34,7 @@ public class OrderService {
     private final PortfolioUseCase portfolioUseCase;
     private final PortfolioRepository portfolioRepository;
     private final UserRepository userRepository;
-    private final MetricRepository metricRepository;
+    private final UserRepository userRepository;
     private final RedisTemplate<String, String> redisTemplate;
 
     @Transactional

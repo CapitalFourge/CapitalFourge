@@ -69,6 +69,7 @@ class OrderServiceTest {
                                 .targetPrice(new BigDecimal("150"))
                                 .quantity(new BigDecimal("1"))
                                 .status(com.finsight.portfoliomanager.domain.OrderStatus.PENDING)
+                                .expiresAt(java.time.LocalDateTime.now().plusDays(1))
                                 .build();
         }
 

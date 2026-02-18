@@ -17,6 +17,7 @@ import com.finsight.portfoliomanager.application.ports.out.OrderRepository;
 import com.finsight.portfoliomanager.application.ports.out.PortfolioRepository;
 import com.finsight.portfoliomanager.application.ports.out.UserRepository;
 import com.finsight.portfoliomanager.domain.Order;
+import com.finsight.portfoliomanager.domain.OrderStatus;
 import com.finsight.portfoliomanager.domain.OrderType;
 import com.finsight.portfoliomanager.domain.Portfolio;
 import com.finsight.portfoliomanager.domain.Position;

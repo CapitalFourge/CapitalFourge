@@ -78,6 +78,7 @@ class OrderServiceTest {
                 BigDecimal currentPrice = new BigDecimal("145"); // Better than target price
                 when(portfolioRepository.findById(order.getPortfolioId())).thenReturn(Optional.of(portfolio));
                 when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+                when(orderRepository.findById(any())).thenReturn(Optional.of(order));
                 when(orderRepository.save(any())).thenReturn(order);
 
                 // When

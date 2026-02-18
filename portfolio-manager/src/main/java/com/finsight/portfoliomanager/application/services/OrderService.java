@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.finsight.portfoliomanager.application.ports.in.PortfolioUseCase;
-import com.finsight.portfoliomanager.application.ports.out.MetricRepository;
 import com.finsight.portfoliomanager.application.ports.out.OrderRepository;
 import com.finsight.portfoliomanager.application.ports.out.PortfolioRepository;
 import com.finsight.portfoliomanager.application.ports.out.UserRepository;

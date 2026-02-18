@@ -34,7 +34,6 @@ public class OrderService {
     private final PortfolioUseCase portfolioUseCase;
     private final PortfolioRepository portfolioRepository;
     private final UserRepository userRepository;
-    private final UserRepository userRepository;
     private final RedisTemplate<String, String> redisTemplate;
 
     @Transactional

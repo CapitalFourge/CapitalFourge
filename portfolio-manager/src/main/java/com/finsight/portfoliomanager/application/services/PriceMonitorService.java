@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 
 import com.finsight.portfoliomanager.application.ports.out.OrderRepository;
 import com.finsight.portfoliomanager.domain.Order;
-import com.finsight.portfoliomanager.domain.OrderStatus;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;

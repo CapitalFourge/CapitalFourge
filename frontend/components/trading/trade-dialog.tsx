@@ -90,6 +90,16 @@ interface Portfolio {
     positions: Position[];
 }
 
+interface TradeVariables {
+    portfolioId: string;
+    symbol: string;
+    price?: number;
+    quantity?: number;
+    usdAmount?: number;
+    targetPrice?: number;
+    type?: string;
+}
+
 interface TradeDialogProps {
     portfolios: Portfolio[];
     defaultType?: "buy" | "sell";
@@ -196,7 +206,7 @@ export function TradeDialog({ portfolios, defaultType = "buy", portfolioPosition
             return;
         }
 
-        const variables: any = {
+        const variables: TradeVariables = {
             portfolioId,
             symbol,
             price: parseFloat(effectivePrice),
@@ -456,8 +466,8 @@ export function TradeDialog({ portfolios, defaultType = "buy", portfolioPosition
                         onClick={handleTrade}
                         disabled={loading}
                         className={`w-full font-bold uppercase tracking-widest ${orderType === "market"
-                                ? (type === "buy" ? "bg-green-500 hover:bg-green-600" : "bg-red-500 hover:bg-red-600")
-                                : "bg-blue-500 hover:bg-blue-600"
+                            ? (type === "buy" ? "bg-green-500 hover:bg-green-600" : "bg-red-500 hover:bg-red-600")
+                            : "bg-blue-500 hover:bg-blue-600"
                             } text-white`}
                     >
                         {loading ? "EJECUTANDO..." : (

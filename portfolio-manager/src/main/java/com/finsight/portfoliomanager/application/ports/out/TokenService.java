@@ -5,6 +5,7 @@ import java.util.UUID;
 import com.finsight.portfoliomanager.domain.User;
 
 public interface TokenService {
+
     String createAccessToken(User user);
 
     String createRefreshToken(User user);

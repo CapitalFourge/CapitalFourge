@@ -4,6 +4,8 @@ from typing import List
 import os
 from fastapi import FastAPI
 from dotenv import load_dotenv
+import threading
+from src.infrastructure.grpc_server import serve
 from src.infrastructure.mongo_repository import MongoFinancialDataRepository
 from src.infrastructure.polars_processor import PolarsDataProcessor
 from src.application.services import FinancialDataService
@@ -21,6 +23,9 @@ repo = MongoFinancialDataRepository(connection_string=uri, database_name="finsig
 processor = PolarsDataProcessor()
 service = FinancialDataService(repository=repo, processor=processor)
 oracle = PriceOracle()
+print("🛰️ Iniciando servidor gRPC en hilo secundario...")
+grpc_thread = threading.Thread(target=serve, daemon=True)
+grpc_thread.start()
 
 @app.get("/health")
 def health_check():
@@ -44,3 +49,7 @@ def sync_price(symbol: str):
     if price > 0:
         return {"symbol": symbol, "price": price, "status": "synchronized"}
     return {"error": "Symbol not found", "status": 404}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

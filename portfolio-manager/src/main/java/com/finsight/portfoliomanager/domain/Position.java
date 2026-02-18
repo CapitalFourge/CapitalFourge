@@ -13,12 +13,14 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Position {
+
     private UUID id;
     private UUID portfolioId;
     private String symbol;
     private BigDecimal quantity;
     private BigDecimal averagePurchasePrice;
     private BigDecimal currentPrice;
+    private BigDecimal lockedQuantity;
 
     public BigDecimal getTotalValue() {
         return currentPrice.multiply(quantity);
@@ -26,5 +28,9 @@ public class Position {
 
     public BigDecimal getProfitLoss() {
         return currentPrice.subtract(averagePurchasePrice).multiply(quantity);
+    }
+
+    public BigDecimal getAvailableQuantity() {
+        return quantity.subtract(lockedQuantity != null ? lockedQuantity : BigDecimal.ZERO);
     }
 }

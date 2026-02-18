@@ -15,6 +15,7 @@ import com.finsight.portfoliomanager.domain.Transaction;
 import com.finsight.portfoliomanager.infrastructure.adapters.out.persistence.Entities.PortfolioEntity;
 import com.finsight.portfoliomanager.infrastructure.adapters.out.persistence.Entities.PositionEntity;
 import com.finsight.portfoliomanager.infrastructure.adapters.out.persistence.Entities.TransactionEntity;
+import com.finsight.portfoliomanager.infrastructure.adapters.out.persistence.Repositories.JpaPortfolioRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -53,7 +54,6 @@ public class PortfolioPersistenceAdapter implements PortfolioRepository {
                 .name(domain.getName())
                 .description(domain.getDescription())
                 .userId(domain.getUserId())
-                .balance(domain.getBalance())
                 .cumulativeDeposits(domain.getCumulativeDeposits())
                 .cumulativeWithdrawals(domain.getCumulativeWithdrawals())
                 .performance(domain.getPerformance())
@@ -111,12 +111,11 @@ public class PortfolioPersistenceAdapter implements PortfolioRepository {
                 .name(entity.getName())
                 .description(entity.getDescription())
                 .userId(entity.getUserId())
-                .balance(entity.getBalance())
                 .positions(domainPositions)
                 .transactions(domainTransactions)
                 .cumulativeDeposits(entity.getCumulativeDeposits())
                 .cumulativeWithdrawals(entity.getCumulativeWithdrawals())
-                .performance(entity.getPerformance())
+                .performance(entity.getPerformance() != null ? entity.getPerformance() : 0.0)
                 .build();
     }
 

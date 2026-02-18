@@ -12,9 +12,15 @@
 - **Frontend**: Vitest + React Testing Library.
 
 ### Integration Testing
-- Test gRPC communication between `portfolio-manager` and `data-collector`.
-- Test repository persistence with Testcontainers (PostgreSQL).
+- Test gRPC communication and batch price fetching.
+- Test GraphQL resolvers and security filters.
+- Verify WebSocket STOMP connectivity and message broadcasting.
+- Test repository persistence with Testcontainers.
 
 ### E2E Testing
 - Focus on critical flows: Registration -> Portfolio Creation -> Trade execution.
 - Tool: Playwright.
+### CI/CD Pipeline
+- Fully automated via GitHub Actions.
+- Parallel jobs for all microservices.
+- See [CI/CD Documentation](ci-cd.md) for details.

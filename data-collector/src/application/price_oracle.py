@@ -1,6 +1,9 @@
 import yfinance as yf
 import redis
 import os
+import json
+
+from datetime import datetime
 
 class PriceOracle:
     def __init__(self):
@@ -11,8 +14,27 @@ class PriceOracle:
     def fetch_and_cache(self, symbol: str):
         try:
             ticker = yf.Ticker(symbol)
-            price = ticker.fast_info['last_price']
+            fast_info = ticker.fast_info
+            if fast_info is None:
+                print(f"Oracle Warning: fast_info is None for {symbol}")
+                return 0.0
+            
+            price = fast_info.get('last_price')
+            if price is None:
+                # Try alternative method to get price
+                price = ticker.history(period='1d').iloc[-1]['Close'] if len(ticker.history(period='1d')) > 0 else None
+            
+            if price is None:
+                print(f"Oracle Warning: Could not fetch price for {symbol}")
+                return 0.0
+            
             self.r.set(f"price:{symbol}", price, ex=300)
+            update_msg = {
+                "symbol": symbol,
+                "price": price,
+                "timestamp": datetime.now().isoformat()
+            }
+            self.r.publish("market.prices", json.dumps(update_msg))
             return float(price)
         except Exception as e:
             print(f"Oracle Error for {symbol}: {e}")

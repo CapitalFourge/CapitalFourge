@@ -1,4 +1,4 @@
-package com.finsight.portfoliomanager.infrastructure.adapters.out.persistence;
+package com.finsight.portfoliomanager.infrastructure.adapters.out.persistence.Repositories;
 
 import java.util.Optional;
 import java.util.UUID;

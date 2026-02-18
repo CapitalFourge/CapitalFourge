@@ -14,4 +14,14 @@
 
 ## Environment Management
 - `.env.example`: Template for all required environment variables.
-- Production secrets should be managed via GitHub Secrets or a Vault.
+
+## Port Reference 📡
+| Service | Port | Protocol |
+|---------|------|----------|
+| portfolio-manager | 8080 | HTTP/GraphQL/WS |
+| data-collector (API) | 8000 | HTTP |
+| data-collector (gRPC) | 50051 | gRPC |
+| frontend | 3000 | HTTP (Next.js) |
+| PostgreSQL | 5433 | DB |
+| Redis | 6379 | NoSQL/PubSub |
+| MongoDB | 27017 | NoSQL |

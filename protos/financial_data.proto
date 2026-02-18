@@ -7,12 +7,10 @@ option java_package = "com.finsight.proto";
 option java_outer_classname = "FinancialDataProto";
 
 service FinancialDataService {
-
   rpc GetStockPrice (StockRequest) returns (StockPriceResponse);
-  
   rpc GetBatchPrices (BatchStockRequest) returns (BatchStockResponse);
-
   rpc GetPriceHistory (HistoryRequest) returns (HistoryResponse);
+  rpc GetAvailableSymbols (EmptyRequest) returns (SymbolsResponse);
 }
 
 message StockRequest {
@@ -37,11 +35,19 @@ message HistoryRequest {
   string symbol = 1;
   int32 days = 2; // Número de días atrás
 }
+
 message PricePoint {
   double price = 1;
   string date = 2;
 }
+
 message HistoryResponse {
   string symbol = 1;
   repeated PricePoint history = 2;
+}
+
+message EmptyRequest {}
+
+message SymbolsResponse {
+  repeated string symbols = 1;
 }

@@ -13,6 +13,7 @@
 ## Redis
 - **Role**: High-speed cache and real-time state.
 - **Usage**: 
+  - Real-time Price Pub/Sub (market.prices channel) 🚀
   - Pricing cache
   - JWT blacklist (future)
   - Shared performance metrics

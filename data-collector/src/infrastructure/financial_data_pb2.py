@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x14\x66inancial_data.proto\x12\tfinancial\"\x1e\n\x0cStockRequest\x12\x0e\n\x06symbol\x18\x01 \x01(\t\"F\n\x12StockPriceResponse\x12\x0e\n\x06symbol\x18\x01 \x01(\t\x12\r\n\x05price\x18\x02 \x01(\x01\x12\x11\n\ttimestamp\x18\x03 \x01(\t\"$\n\x11\x42\x61tchStockRequest\x12\x0f\n\x07symbols\x18\x01 \x03(\t\"~\n\x12\x42\x61tchStockResponse\x12\x39\n\x06prices\x18\x01 \x03(\x0b\x32).financial.BatchStockResponse.PricesEntry\x1a-\n\x0bPricesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x01:\x02\x38\x01\x32\xae\x01\n\x14\x46inancialDataService\x12G\n\rGetStockPrice\x12\x17.financial.StockRequest\x1a\x1d.financial.StockPriceResponse\x12M\n\x0eGetBatchPrices\x12\x1c.financial.BatchStockRequest\x1a\x1d.financial.BatchStockResponseB*\n\x12\x63om.finsight.protoB\x12\x46inancialDataProtoP\x01\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x14\x66inancial_data.proto\x12\tfinancial\"\x1e\n\x0cStockRequest\x12\x0e\n\x06symbol\x18\x01 \x01(\t\"F\n\x12StockPriceResponse\x12\x0e\n\x06symbol\x18\x01 \x01(\t\x12\r\n\x05price\x18\x02 \x01(\x01\x12\x11\n\ttimestamp\x18\x03 \x01(\t\"$\n\x11\x42\x61tchStockRequest\x12\x0f\n\x07symbols\x18\x01 \x03(\t\"~\n\x12\x42\x61tchStockResponse\x12\x39\n\x06prices\x18\x01 \x03(\x0b\x32).financial.BatchStockResponse.PricesEntry\x1a-\n\x0bPricesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x01:\x02\x38\x01\".\n\x0eHistoryRequest\x12\x0e\n\x06symbol\x18\x01 \x01(\t\x12\x0c\n\x04\x64\x61ys\x18\x02 \x01(\x05\")\n\nPricePoint\x12\r\n\x05price\x18\x01 \x01(\x01\x12\x0c\n\x04\x64\x61te\x18\x02 \x01(\t\"I\n\x0fHistoryResponse\x12\x0e\n\x06symbol\x18\x01 \x01(\t\x12&\n\x07history\x18\x02 \x03(\x0b\x32\x15.financial.PricePoint\"\x0e\n\x0c\x45mptyRequest\"\"\n\x0fSymbolsResponse\x12\x0f\n\x07symbols\x18\x01 \x03(\t2\xc4\x02\n\x14\x46inancialDataService\x12G\n\rGetStockPrice\x12\x17.financial.StockRequest\x1a\x1d.financial.StockPriceResponse\x12M\n\x0eGetBatchPrices\x12\x1c.financial.BatchStockRequest\x1a\x1d.financial.BatchStockResponse\x12H\n\x0fGetPriceHistory\x12\x19.financial.HistoryRequest\x1a\x1a.financial.HistoryResponse\x12J\n\x13GetAvailableSymbols\x12\x17.financial.EmptyRequest\x1a\x1a.financial.SymbolsResponseB*\n\x12\x63om.finsight.protoB\x12\x46inancialDataProtoP\x01\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -44,6 +44,16 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_BATCHSTOCKRESPONSE']._serialized_end=303
   _globals['_BATCHSTOCKRESPONSE_PRICESENTRY']._serialized_start=258
   _globals['_BATCHSTOCKRESPONSE_PRICESENTRY']._serialized_end=303
-  _globals['_FINANCIALDATASERVICE']._serialized_start=306
-  _globals['_FINANCIALDATASERVICE']._serialized_end=480
+  _globals['_HISTORYREQUEST']._serialized_start=305
+  _globals['_HISTORYREQUEST']._serialized_end=351
+  _globals['_PRICEPOINT']._serialized_start=353
+  _globals['_PRICEPOINT']._serialized_end=394
+  _globals['_HISTORYRESPONSE']._serialized_start=396
+  _globals['_HISTORYRESPONSE']._serialized_end=469
+  _globals['_EMPTYREQUEST']._serialized_start=471
+  _globals['_EMPTYREQUEST']._serialized_end=485
+  _globals['_SYMBOLSRESPONSE']._serialized_start=487
+  _globals['_SYMBOLSRESPONSE']._serialized_end=521
+  _globals['_FINANCIALDATASERVICE']._serialized_start=524
+  _globals['_FINANCIALDATASERVICE']._serialized_end=848
 # @@protoc_insertion_point(module_scope)

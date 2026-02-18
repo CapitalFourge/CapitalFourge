@@ -102,11 +102,13 @@ The entire project follows these principles:
 
 ### Implemented
 - Core domain models (User, Role, Portfolio)
-- REST & FastAPI APIs
+- REST & FastAPI (Inbound data)
 - JWT authentication (Spring Security)
-- gRPC communication (Java Client -> Python Server)
-- Docker Compose for local development
-- Frontend UI foundation
+- gRPC communication (Internal Price Data)
+- GraphQL API (Frontend-to-Backend Orchestration) 🚀
+- Real-time WebSockets (Live market prices) 🛰️
+- Docker Compose infrastructure
+- Premium Next.js Trading Terminal
 
 ### Pending / Improvements
 - Comprehensive test coverage

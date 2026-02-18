@@ -30,12 +30,13 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/metrics/**").permitAll()
-                        .requestMatchers("/graphql/**").permitAll()
-                        .requestMatchers("/graphiql.html").permitAll()
-                        .requestMatchers("/favicon.ico", "/error", "/static/**").permitAll()
-                        .anyRequest().authenticated())
+                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/metrics/**").permitAll()
+                .requestMatchers("/graphql/**").permitAll()
+                .requestMatchers("/graphiql.html").permitAll()
+                .requestMatchers("/ws-prices/**").permitAll()
+                .requestMatchers("/favicon.ico", "/error", "/static/**").permitAll()
+                .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }

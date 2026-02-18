@@ -1,5 +1,6 @@
 package com.finsight.portfoliomanager.infrastructure.adapters.out.persistence;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Component;
 import com.finsight.portfoliomanager.application.ports.out.UserRepository;
 import com.finsight.portfoliomanager.domain.User;
 import com.finsight.portfoliomanager.infrastructure.adapters.out.persistence.Entities.UserEntity;
+import com.finsight.portfoliomanager.infrastructure.adapters.out.persistence.Repositories.JpaUserRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -49,6 +51,7 @@ public class UserPersistenceAdapter implements UserRepository {
                 .active(domain.isActive())
                 .createdAt(domain.getCreatedAt())
                 .lastLoginAt(domain.getLastLoginAt())
+                .cashBalance(domain.getCashBalance())
                 .build();
     }
 
@@ -62,6 +65,7 @@ public class UserPersistenceAdapter implements UserRepository {
                 .active(entity.isActive())
                 .createdAt(entity.getCreatedAt())
                 .lastLoginAt(entity.getLastLoginAt())
+                .cashBalance(entity.getCashBalance())
                 .build();
     }
 

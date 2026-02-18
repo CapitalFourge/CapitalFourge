@@ -18,7 +18,6 @@ public class Portfolio {
     private String name;
     private String description;
     private UUID userId;
-    private BigDecimal balance;
     private List<Position> positions;
     private List<Transaction> transactions;
     private BigDecimal cumulativeDeposits;
@@ -26,9 +25,8 @@ public class Portfolio {
     private Double performance;
 
     public BigDecimal getTotalAccountValue() {
-        BigDecimal positionValue = positions == null ? BigDecimal.ZERO
+        return positions == null ? BigDecimal.ZERO
                 : positions.stream().map(Position::getTotalValue)
                         .reduce(BigDecimal.ZERO, BigDecimal::add);
-        return balance.add(positionValue);
     }
 }

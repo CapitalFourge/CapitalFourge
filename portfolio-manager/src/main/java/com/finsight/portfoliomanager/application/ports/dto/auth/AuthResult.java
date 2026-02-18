@@ -1,17 +1,15 @@
 package com.finsight.portfoliomanager.application.ports.dto.auth;
 
-import java.util.UUID;
-import com.finsight.portfoliomanager.domain.Role;
+import com.finsight.portfoliomanager.domain.User;
 
-import lombok.Builder;
+import lombok.*;
 
+@Getter
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class AuthResult {
-    UUID userId;
-    String email;
-    String username;
-    Role role;
-
-    String accessToken;
-    String refreshToken;
+    private String token;
+    private String refreshToken;
+    private User user;
 }

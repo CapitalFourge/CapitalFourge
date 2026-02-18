@@ -44,6 +44,16 @@ class FinancialDataServiceStub(object):
                 request_serializer=financial__data__pb2.BatchStockRequest.SerializeToString,
                 response_deserializer=financial__data__pb2.BatchStockResponse.FromString,
                 _registered_method=True)
+        self.GetPriceHistory = channel.unary_unary(
+                '/financial.FinancialDataService/GetPriceHistory',
+                request_serializer=financial__data__pb2.HistoryRequest.SerializeToString,
+                response_deserializer=financial__data__pb2.HistoryResponse.FromString,
+                _registered_method=True)
+        self.GetAvailableSymbols = channel.unary_unary(
+                '/financial.FinancialDataService/GetAvailableSymbols',
+                request_serializer=financial__data__pb2.EmptyRequest.SerializeToString,
+                response_deserializer=financial__data__pb2.SymbolsResponse.FromString,
+                _registered_method=True)
 
 
 class FinancialDataServiceServicer(object):
@@ -61,6 +71,18 @@ class FinancialDataServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def GetPriceHistory(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetAvailableSymbols(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_FinancialDataServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -73,6 +95,16 @@ def add_FinancialDataServiceServicer_to_server(servicer, server):
                     servicer.GetBatchPrices,
                     request_deserializer=financial__data__pb2.BatchStockRequest.FromString,
                     response_serializer=financial__data__pb2.BatchStockResponse.SerializeToString,
+            ),
+            'GetPriceHistory': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetPriceHistory,
+                    request_deserializer=financial__data__pb2.HistoryRequest.FromString,
+                    response_serializer=financial__data__pb2.HistoryResponse.SerializeToString,
+            ),
+            'GetAvailableSymbols': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetAvailableSymbols,
+                    request_deserializer=financial__data__pb2.EmptyRequest.FromString,
+                    response_serializer=financial__data__pb2.SymbolsResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -129,6 +161,60 @@ class FinancialDataService(object):
             '/financial.FinancialDataService/GetBatchPrices',
             financial__data__pb2.BatchStockRequest.SerializeToString,
             financial__data__pb2.BatchStockResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetPriceHistory(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/financial.FinancialDataService/GetPriceHistory',
+            financial__data__pb2.HistoryRequest.SerializeToString,
+            financial__data__pb2.HistoryResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetAvailableSymbols(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/financial.FinancialDataService/GetAvailableSymbols',
+            financial__data__pb2.EmptyRequest.SerializeToString,
+            financial__data__pb2.SymbolsResponse.FromString,
             options,
             channel_credentials,
             insecure,

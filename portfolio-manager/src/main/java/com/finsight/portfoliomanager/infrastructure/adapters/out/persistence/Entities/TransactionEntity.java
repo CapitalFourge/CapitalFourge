@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import com.finsight.portfoliomanager.domain.TransactionType;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -31,16 +32,26 @@ public class TransactionEntity {
     @Id
     private UUID id;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(name = "portfolio_id")
     private PortfolioEntity portfolio;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private TransactionType type;
 
+    @Column(nullable = false)
     private String symbol;
+
+    @Column(nullable = false, precision = 19, scale = 4)
     private BigDecimal quantity;
+
+    @Column(nullable = false, precision = 19, scale = 4)
     private BigDecimal price;
+
+    @Column(nullable = false)
     private LocalDateTime timestamp;
+
+    @Column(nullable = false, precision = 19, scale = 4)
     private BigDecimal balanceTransaction;
 }

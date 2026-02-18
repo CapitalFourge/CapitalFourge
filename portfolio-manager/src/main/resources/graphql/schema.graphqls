@@ -1,33 +1,152 @@
 type User {
-    id: ID!
-    email: String!
-    username: String!
-    role: String!
+  id: ID!
+  email: String!
+  username: String!
+  role: String!
+  cashBalance: Float!
 }
 
 type StockPrice {
-    symbol: String!
-    price: Float!
+  symbol: String!
+  price: Float!
 }
 
-type Query{
-    me: User
-    stockPrice(symbol: String!): StockPrice
+type Portfolio {
+  id: ID!
+  name: String!
+  description: String
+  userId: ID!
+  positions: [Position]
+  performance: Float!
+  transactions: [Transaction]
+}
+
+type Position {
+  id: ID!
+  symbol: String!
+  quantity: Float!
+  averagePurchasePrice: Float!
+  currentPrice: Float!
+}
+
+type Transaction {
+  id: ID!
+  type: String!
+  symbol: String!
+  quantity: Float!
+  price: Float!
+  totalAmount: Float!
+  timestamp: String!
+  balanceTransaction: Float!
+}
+
+enum OrderType {
+  BUY_LIMIT
+  SELL_LIMIT
+}
+
+enum OrderStatus {
+  PENDING
+  FILLED
+  CANCELLED
+  EXPIRED
+  REJECTED
+}
+
+type Order {
+  id: ID!
+  portfolioId: ID!
+  userId: ID!
+  type: OrderType!
+  symbol: String!
+  targetPrice: Float!
+  quantity: Float
+  usdAmount: Float
+  status: OrderStatus!
+  createdAt: String!
+  filledAt: String
+  expiresAt: String!
+  filledPrice: Float
+  filledQuantity: Float
+  rejectionReason: String
+}
+
+type AssetSuggestion {
+  symbol: String!
+  name: String
+}
+
+type Query {
+  me: User
+  stockPrice(symbol: String!): StockPrice
+  portfolio(id: ID!): Portfolio
+  portfolios: [Portfolio]
+  notifications: [Notification]
+  orders: [Order]
+  ordersByPortfolio(portfolioId: ID!): [Order]
+  order(id: ID!): Order
+  searchSymbols(query: String!, limit: Int): [AssetSuggestion]
 }
 
 type PricePoint {
-    price: Float!
-    date: String!
+  price: Float!
+  date: String!
 }
 extend type Query {
-    priceHistory(symbol: String!, days: Int!): [PricePoint]
+  priceHistory(symbol: String!, days: Int!): [PricePoint]
+}
+
+type Notification {
+  id: ID!
+  message: String!
+  type: String!
+  read: Boolean!
+  timestamp: String!
 }
 
 type AuthResult {
-    token: String!
-    refreshToken: String!
-    user: User!
+  token: String!
+  refreshToken: String!
+  user: User!
 }
 type Mutation {
-    login(email: String!, password: String!): AuthResult
+  login(email: String!, password: String!): AuthResult
+  createPortfolio(name: String!, description: String): Portfolio
+  buyAsset(
+    portfolioId: ID!
+    symbol: String!
+    quantity: Float!
+    price: Float!
+  ): Portfolio
+  sellAsset(
+    portfolioId: ID!
+    symbol: String!
+    quantity: Float!
+    price: Float!
+  ): Portfolio
+  buyAssetByUSD(
+    portfolioId: ID!
+    symbol: String!
+    usdAmount: Float!
+    price: Float!
+  ): Portfolio
+  sellAssetByUSD(
+    portfolioId: ID!
+    symbol: String!
+    usdAmount: Float!
+    price: Float!
+  ): Portfolio
+  addCash(portfolioId: ID!, amount: Float!): Portfolio
+  withdrawCash(portfolioId: ID!, amount: Float!): Portfolio
+  deletePortfolio(id: ID!): Boolean
+  createLimitOrder(
+    portfolioId: ID!
+    type: OrderType!
+    symbol: String!
+    targetPrice: Float!
+    quantity: Float
+    usdAmount: Float
+    expiresAt: String
+  ): Order
+  cancelOrder(orderId: ID!): Order
 }

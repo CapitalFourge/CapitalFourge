@@ -4,6 +4,7 @@
 - Hexagonal Architecture
 - Domain-driven boundaries
 - Adapter-based infrastructure
+- **Centralized Balance**: Investable funds managed at User level, while Portfolios track position-based performance.
 
 ## Services Overview
 - **data-collector** (Python / FastAPI): High-speed data ingestion and market oracle.
@@ -11,8 +12,10 @@
 - **frontend** (Next.js / React): Real-time trading terminal.
 
 ## Communication
-- **REST**: External exposure and frontend-to-backend communication.
-- **gRPC**: Internal high-performance service-to-service communication (e.g., Price Oracle).
+- **GraphQL**: Primary frontend-to-backend API for flexible data fetching.
+- **gRPC**: Internal high-performance service-to-service communication.
+- **WebSockets (STOMP)**: Real-time price streaming to the frontend.
+- **REST**: Authentication and legacy endpoint exposure.
 
 ## Patterns
 - **Ports & Adapters**: Decoupling domain from infrastructure.

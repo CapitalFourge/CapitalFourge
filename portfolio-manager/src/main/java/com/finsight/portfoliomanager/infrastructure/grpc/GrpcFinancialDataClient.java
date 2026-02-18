@@ -48,7 +48,7 @@ public class GrpcFinancialDataClient {
 
     public List<PricePoint> getPriceHistory(String symbol, int days) {
         try {
-            HistoryRequest request = HistoryResponse.newBuilder()
+            HistoryRequest request = HistoryRequest.newBuilder()
                     .setSymbol(symbol)
                     .setDays(days)
                     .build();
@@ -60,5 +60,34 @@ public class GrpcFinancialDataClient {
             System.err.println("gRPC History Error: " + e.getMessage());
             return List.of();
         }
+    }
+
+    public List<String> getAllAvailableSymbols() {
+        try {
+            EmptyRequest request = EmptyRequest.newBuilder().build();
+            SymbolsResponse response = financialDataClient.getAvailableSymbols(request);
+            return response.getSymbolsList();
+        } catch (Exception e) {
+            System.err.println("gRPC Get Symbols Error: " + e.getMessage());
+            // Fallback to static list if gRPC call fails
+            return List.of(
+                    // Stocks
+                    "AAPL", "GOOGL", "MSFT", "AMZN", "TSLA", "META", "NVDA", "JPM", "V", "WMT",
+                    "DIS", "NFLX", "INTC", "AMD", "PYPL", "ADBE", "CRM", "ORCL", "IBM",
+                    "BA", "GS", "HD", "LOW", "NKE", "PFE", "T", "VZ", "WFC",
+                    // Crypto (simple format)
+                    "BTC", "ETH", "SOL", "ADA", "DOT", "XRP", "DOGE", "SHIB", "MATIC", "AVAX",
+                    "LINK", "UNI", "AAVE",
+                    // Crypto (USD format for Yahoo Finance)
+                    "BTC-USD", "ETH-USD", "SOL-USD", "ADA-USD", "DOT-USD", "XRP-USD",
+                    "DOGE-USD", "SHIB-USD", "MATIC-USD", "AVAX-USD", "LINK-USD", "UNI-USD", "AAVE-USD"
+            );
+        }
+    }
+
+    public String getAssetName(String symbol) {
+        // Por ahora, devolver el símbolo mismo
+        // En el futuro, esto debería consultar al data-collector
+        return symbol;
     }
 }

@@ -1,5 +1,6 @@
 package com.finsight.portfoliomanager.infrastructure.adapters.out.persistence.Entities;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -41,6 +42,9 @@ public class UserEntity {
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
+
+    @Column(name = "cash_balance")
+    private BigDecimal cashBalance;
 
     private LocalDateTime lastLoginAt;
 }

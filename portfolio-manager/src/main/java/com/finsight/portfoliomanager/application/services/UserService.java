@@ -59,12 +59,9 @@ public class UserService implements UserUseCase {
         refreshTokenRepository.save(saved.getId(), refresh, REFRESH_TTL_SECONDS);
 
         return AuthResult.builder()
-                .userId(saved.getId())
-                .email(saved.getEmail())
-                .username(saved.getUsername())
-                .role(saved.getRole())
-                .accessToken(access)
+                .token(access)
                 .refreshToken(refresh)
+                .user(saved)
                 .build();
     }
 
@@ -90,12 +87,9 @@ public class UserService implements UserUseCase {
         refreshTokenRepository.save(saved.getId(), refresh, REFRESH_TTL_SECONDS);
 
         return AuthResult.builder()
-                .userId(saved.getId())
-                .email(saved.getEmail())
-                .username(saved.getUsername())
-                .role(saved.getRole())
-                .accessToken(access)
+                .token(access)
                 .refreshToken(refresh)
+                .user(saved)
                 .build();
     }
 
@@ -129,12 +123,9 @@ public class UserService implements UserUseCase {
         refreshTokenRepository.save(user.getId(), newRefresh, REFRESH_TTL_SECONDS);
 
         return AuthResult.builder()
-                .userId(user.getId())
-                .email(user.getEmail())
-                .username(user.getUsername())
-                .role(user.getRole())
-                .accessToken(newAccess)
+                .token(newAccess)
                 .refreshToken(newRefresh)
+                .user(user)
                 .build();
     }
 

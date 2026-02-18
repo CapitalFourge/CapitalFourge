@@ -1,8 +1,10 @@
 package com.finsight.portfoliomanager.application.ports.dto.auth;
 
-import lombok.Value;
+import lombok.*;
 
-@Value
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class RegisterCommand {
     String email;
     String password;

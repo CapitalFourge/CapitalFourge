@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class User {
+
     private UUID id;
     private String email;
     private String password;
@@ -22,6 +23,7 @@ public class User {
     private boolean active;
     private LocalDateTime createdAt;
     private LocalDateTime lastLoginAt;
+    private BigDecimal cashBalance;
 
     public boolean isActive() {
         return this.active;

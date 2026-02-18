@@ -54,3 +54,7 @@ node_modules/
 dist/
 build/
 .eslintcache
+
+
+#eclipse
+bin/

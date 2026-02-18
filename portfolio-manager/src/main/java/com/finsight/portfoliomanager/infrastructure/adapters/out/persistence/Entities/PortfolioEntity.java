@@ -20,7 +20,6 @@ public class PortfolioEntity {
     private String name;
     private String description;
     private UUID userId;
-    private BigDecimal balance;
     private BigDecimal cumulativeDeposits;
     private BigDecimal cumulativeWithdrawals;
     private Double performance;

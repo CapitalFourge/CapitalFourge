@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { LayoutDashboard, Wallet, LogOut, Settings, History } from "lucide-react";
+import { LayoutDashboard, Wallet, LogOut, Settings, History, Compass } from "lucide-react";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     return (
@@ -19,6 +19,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     </Link>
                     <Link href="/portfolio" className="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white transition-colors text-sm font-medium rounded-xl hover:bg-white/5">
                         <Wallet size={18} /> Portafolios
+                    </Link>
+                    <Link href="/explorer" className="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white transition-colors text-sm font-medium rounded-xl hover:bg-white/5">
+                        <Compass size={18} /> Mercados
                     </Link>
                     <Link href="/transactions" className="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white transition-colors text-sm font-medium rounded-xl hover:bg-white/5">
                         <History size={18} /> Transacciones

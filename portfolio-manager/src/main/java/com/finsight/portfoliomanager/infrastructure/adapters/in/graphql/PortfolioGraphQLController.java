@@ -54,16 +54,19 @@ public class PortfolioGraphQLController {
                         .cashBalance(java.math.BigDecimal.ZERO)
                         .build());
 
-        // Ensure cashBalance is never null (default to 0 if null)
+        // Ensure cashBalance and lockedBalance are never null
         if (user.getCashBalance() == null) {
             user.setCashBalance(java.math.BigDecimal.ZERO);
+        }
+        if (user.getLockedBalance() == null) {
+            user.setLockedBalance(java.math.BigDecimal.ZERO);
         }
 
         return user;
     }
 
     @QueryMapping
-    public StockPriceResponse stockPrice(@Argument String symbol) {
+    public StockPriceResponse stockPrice(@Argument("symbol") String symbol) {
         double price = grpcClient.getStockPrice(symbol);
         return StockPriceResponse.newBuilder()
                 .setSymbol(symbol)
@@ -77,12 +80,12 @@ public class PortfolioGraphQLController {
     }
 
     @QueryMapping
-    public List<PricePoint> priceHistory(@Argument String symbol, @Argument int days) {
+    public List<PricePoint> priceHistory(@Argument("symbol") String symbol, @Argument("days") int days) {
         return grpcClient.getPriceHistory(symbol, days);
     }
 
     @QueryMapping
-    public Portfolio portfolio(@Argument UUID id) {
+    public Portfolio portfolio(@Argument("id") UUID id) {
         return portfolioUseCase.getPortfolio(id);
     }
 
@@ -93,12 +96,18 @@ public class PortfolioGraphQLController {
 
     @QueryMapping
     public List<com.finsight.portfoliomanager.application.services.AssetSearchService.AssetSuggestion> searchSymbols(
-            @Argument String query, @Argument Integer limit) {
+            @Argument("query") String query, @Argument("limit") Integer limit) {
         return assetSearchService.searchSymbols(query, limit != null ? limit : 5);
     }
 
+    @QueryMapping
+    public List<com.finsight.portfoliomanager.application.services.AssetSearchService.AssetInfo> assetsByCategory(
+            @Argument("category") String category) {
+        return assetSearchService.getCategorizedAssets(category);
+    }
+
     @MutationMapping
-    public Portfolio createPortfolio(@Argument String name, @Argument String description,
+    public Portfolio createPortfolio(@Argument("name") String name, @Argument("description") String description,
             @AuthenticationPrincipal UUID userId) {
         if (userId == null) {
             throw new RuntimeException(
@@ -112,41 +121,59 @@ public class PortfolioGraphQLController {
     }
 
     @MutationMapping
-    public Portfolio buyAsset(@Argument UUID portfolioId, @Argument String symbol, @Argument BigDecimal quantity,
-            @Argument BigDecimal price) {
+    public Portfolio buyAsset(@Argument("portfolioId") UUID portfolioId, @Argument("symbol") String symbol,
+            @Argument("quantity") BigDecimal quantity,
+            @Argument("price") BigDecimal price) {
         return portfolioUseCase.buyAsset(portfolioId, symbol, quantity, price);
     }
 
     @MutationMapping
-    public Portfolio sellAsset(@Argument UUID portfolioId, @Argument String symbol, @Argument BigDecimal quantity,
-            @Argument BigDecimal price) {
+    public Portfolio sellAsset(@Argument("portfolioId") UUID portfolioId, @Argument("symbol") String symbol,
+            @Argument("quantity") BigDecimal quantity,
+            @Argument("price") BigDecimal price) {
         return portfolioUseCase.sellAsset(portfolioId, symbol, quantity, price);
     }
 
     @MutationMapping
-    public Portfolio buyAssetByUSD(@Argument UUID portfolioId, @Argument String symbol, @Argument BigDecimal usdAmount,
-            @Argument BigDecimal price) {
+    public Portfolio buyAssetByUSD(@Argument("portfolioId") UUID portfolioId, @Argument("symbol") String symbol,
+            @Argument("usdAmount") BigDecimal usdAmount,
+            @Argument("price") BigDecimal price) {
         return portfolioUseCase.buyAssetByUSD(portfolioId, symbol, usdAmount, price);
     }
 
     @MutationMapping
-    public Portfolio sellAssetByUSD(@Argument UUID portfolioId, @Argument String symbol, @Argument BigDecimal usdAmount,
-            @Argument BigDecimal price) {
+    public Portfolio sellAssetByUSD(@Argument("portfolioId") UUID portfolioId, @Argument("symbol") String symbol,
+            @Argument("usdAmount") BigDecimal usdAmount,
+            @Argument("price") BigDecimal price) {
         return portfolioUseCase.sellAssetByUSD(portfolioId, symbol, usdAmount, price);
     }
 
     @MutationMapping
-    public Portfolio addCash(@Argument UUID portfolioId, @Argument BigDecimal amount) {
+    public Portfolio addCash(@Argument("portfolioId") UUID portfolioId, @Argument("amount") BigDecimal amount) {
         return portfolioUseCase.addCash(portfolioId, amount);
     }
 
     @MutationMapping
-    public Portfolio withdrawCash(@Argument UUID portfolioId, @Argument BigDecimal amount) {
+    public Portfolio withdrawCash(@Argument("portfolioId") UUID portfolioId, @Argument("amount") BigDecimal amount) {
         return portfolioUseCase.withdrawCash(portfolioId, amount);
     }
 
     @MutationMapping
-    public Boolean deletePortfolio(@Argument UUID id) {
+    public User deposit(@Argument("amount") BigDecimal amount, @AuthenticationPrincipal UUID userId) {
+        if (userId == null)
+            throw new RuntimeException("Unauthorized");
+        return userUseCase.deposit(userId, amount);
+    }
+
+    @MutationMapping
+    public User withdraw(@Argument("amount") BigDecimal amount, @AuthenticationPrincipal UUID userId) {
+        if (userId == null)
+            throw new RuntimeException("Unauthorized");
+        return userUseCase.withdraw(userId, amount);
+    }
+
+    @MutationMapping
+    public Boolean deletePortfolio(@Argument("id") UUID id) {
         portfolioUseCase.deletePortfolio(id);
         return true;
     }

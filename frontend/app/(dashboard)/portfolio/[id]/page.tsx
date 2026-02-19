@@ -15,11 +15,11 @@ const PORTFOLIO_DETAIL_QUERY = gql`
     me {
       id
       cashBalance
+      lockedBalance
     }
     portfolio(id: $id) {
       id
       name
-      balance
       positions {
         symbol
         quantity
@@ -77,13 +77,14 @@ export default function PortfolioDetailPage() {
 
     const portfolio = data?.portfolio as Portfolio;
     const userCashBalance = data?.me?.cashBalance || 0;
+    const userLockedBalance = data?.me?.lockedBalance || 0;
 
     // Calculate total portfolio value (cash + assets) using currentPrice from GraphQL
     const positionsUsdValue = portfolio?.positions?.reduce((total: number, pos: Position) => {
         const currentPrice = pos.currentPrice || 0;
         return total + (pos.quantity * currentPrice);
     }, 0) || 0;
-    const totalPortfolioValue = userCashBalance + positionsUsdValue;
+    const totalPortfolioValue = userCashBalance + userLockedBalance + positionsUsdValue;
 
     // Calculate total cost basis and performance using averagePurchasePrice from GraphQL
     const totalCostBasis = portfolio?.positions?.reduce((total: number, pos: Position) => {
@@ -123,6 +124,10 @@ export default function PortfolioDetailPage() {
                             <div className="border-l border-slate-700 pl-4">
                                 <p className="text-[10px] text-slate-500 uppercase tracking-widest">Saldo_Efectivo</p>
                                 <p className="text-lg font-bold text-slate-300 font-mono">${userCashBalance.toLocaleString()}</p>
+                            </div>
+                            <div className="border-l border-slate-700 pl-4">
+                                <p className="text-[10px] text-slate-500 uppercase tracking-widest">Bloqueado</p>
+                                <p className="text-lg font-bold text-orange-400 font-mono">${userLockedBalance.toLocaleString()}</p>
                             </div>
                             <div className="border-l border-slate-700 pl-4">
                                 <p className="text-[10px] text-slate-500 uppercase tracking-widest">En_Activos</p>
@@ -166,8 +171,8 @@ export default function PortfolioDetailPage() {
                                             </div>
                                         </div>
                                         <div className="text-right space-y-1">
-                                            <div className="font-mono font-bold text-sm">
-                                                {pos.quantity} x ${currentPrice.toFixed(2)}
+                                            <div className="font-mono font-bold text-sm text-slate-400">
+                                                {pos.quantity}
                                             </div>
                                             <div className={`font-mono font-bold text-xs ${hasPrice ? 'text-emerald-400' : 'text-slate-500'}`}>
                                                 ${usdValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -211,21 +216,27 @@ export default function PortfolioDetailPage() {
                                         </TableCell>
                                         <TableCell>
                                             <Badge className={`uppercase text-[8px] font-bold ${tx.type === "BUY" ? "bg-green-500/10 text-green-400 border-green-500/20" :
-                                                    tx.type === "SELL" ? "bg-red-500/10 text-red-400 border-red-500/20" :
-                                                        tx.type === "DEPOSIT" ? "bg-blue-500/10 text-blue-400 border-blue-500/20" :
-                                                            tx.type === "WITHDRAWAL" ? "bg-orange-500/10 text-orange-400 border-orange-500/20" :
-                                                                "bg-slate-500/10 text-slate-400 border-slate-500/20"
+                                                tx.type === "SELL" ? "bg-red-500/10 text-red-400 border-red-500/20" :
+                                                    tx.type === "DEPOSIT" ? "bg-blue-500/10 text-blue-400 border-blue-500/20" :
+                                                        tx.type === "WITHDRAWAL" ? "bg-orange-500/10 text-orange-400 border-orange-500/20" :
+                                                            tx.type === "CANCELLED" ? "bg-red-500/20 text-red-500 border-red-500/40 font-bold italic" :
+                                                                tx.type === "EXPIRED" ? "bg-zinc-500/10 text-zinc-400 border-zinc-500/20 font-mono" :
+                                                                    "bg-slate-500/10 text-slate-400 border-slate-500/20"
                                                 }`}>
                                                 {tx.type === "BUY" ? "COMPRA" :
                                                     tx.type === "SELL" ? "VENTA" :
                                                         tx.type === "DEPOSIT" ? "DEPÓSITO" :
-                                                            tx.type === "WITHDRAWAL" ? "RETIRO" : tx.type}
+                                                            tx.type === "WITHDRAWAL" ? "RETIRO" :
+                                                                tx.type === "CANCELLED" ? "CANCELADA" :
+                                                                    tx.type === "EXPIRED" ? "EXPIRADA" : tx.type}
                                             </Badge>
                                         </TableCell>
                                         <TableCell className="font-bold text-xs italic">{tx.symbol}</TableCell>
                                         <TableCell className="font-mono text-xs">{tx.quantity}</TableCell>
                                         <TableCell className="font-mono text-xs text-white">${tx.price?.toLocaleString()}</TableCell>
-                                        <TableCell className={`font-mono text-xs font-bold ${tx.type === 'BUY' ? 'text-red-400' : 'text-green-400'}`}>
+                                        <TableCell className={`font-mono text-xs font-bold ${tx.type === 'BUY' ? 'text-red-400' :
+                                            tx.type === 'CANCELLED' || tx.type === 'EXPIRED' ? 'text-slate-500 line-through' :
+                                                'text-green-400'}`}>
                                             ${tx.totalAmount?.toLocaleString() || '--'}
                                         </TableCell>
                                     </TableRow>

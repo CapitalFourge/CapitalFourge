@@ -4,6 +4,7 @@ type User {
   username: String!
   role: String!
   cashBalance: Float!
+  lockedBalance: Float!
 }
 
 type StockPrice {
@@ -76,6 +77,12 @@ type AssetSuggestion {
   name: String
 }
 
+type Asset {
+  symbol: String!
+  name: String
+  category: String
+}
+
 type Query {
   me: User
   stockPrice(symbol: String!): StockPrice
@@ -86,6 +93,7 @@ type Query {
   ordersByPortfolio(portfolioId: ID!): [Order]
   order(id: ID!): Order
   searchSymbols(query: String!, limit: Int): [AssetSuggestion]
+  assetsByCategory(category: String): [Asset]
 }
 
 type PricePoint {
@@ -149,4 +157,6 @@ type Mutation {
     expiresAt: String
   ): Order
   cancelOrder(orderId: ID!): Order
+  deposit(amount: Float!): User
+  withdraw(amount: Float!): User
 }

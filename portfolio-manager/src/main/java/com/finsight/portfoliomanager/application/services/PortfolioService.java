@@ -136,6 +136,9 @@ public class PortfolioService implements PortfolioUseCase {
         transactionRepository.save(transaction);
         portfolio.getTransactions().add(transaction);
 
+        // Implicitly fund the portfolio from global cash for performance tracking
+        portfolio.setCumulativeDeposits(portfolio.getCumulativeDeposits().add(totalCost));
+
         metricRepository.incrementAssetVolume(symbol, quantity.doubleValue());
         updatePerformance(portfolio);
 
@@ -174,6 +177,10 @@ public class PortfolioService implements PortfolioUseCase {
 
         transactionRepository.save(transaction);
         portfolio.getTransactions().add(transaction);
+
+        // Implicitly withdraw funds from the portfolio to global cash for performance
+        // tracking
+        portfolio.setCumulativeWithdrawals(portfolio.getCumulativeWithdrawals().add(totalAmount));
 
         metricRepository.incrementAssetVolume(symbol, quantity.doubleValue());
         updatePerformance(portfolio);

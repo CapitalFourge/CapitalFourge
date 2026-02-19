@@ -51,6 +51,7 @@ public class UserPersistenceAdapter implements UserRepository {
                 .createdAt(domain.getCreatedAt())
                 .lastLoginAt(domain.getLastLoginAt())
                 .cashBalance(domain.getCashBalance())
+                .lockedBalance(domain.getLockedBalance())
                 .build();
     }
 
@@ -65,6 +66,7 @@ public class UserPersistenceAdapter implements UserRepository {
                 .createdAt(entity.getCreatedAt())
                 .lastLoginAt(entity.getLastLoginAt())
                 .cashBalance(entity.getCashBalance())
+                .lockedBalance(entity.getLockedBalance())
                 .build();
     }
 

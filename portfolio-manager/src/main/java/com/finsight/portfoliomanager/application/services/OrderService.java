@@ -14,12 +14,15 @@ import org.springframework.transaction.annotation.Transactional;
 import com.finsight.portfoliomanager.application.ports.in.PortfolioUseCase;
 import com.finsight.portfoliomanager.application.ports.out.OrderRepository;
 import com.finsight.portfoliomanager.application.ports.out.PortfolioRepository;
+import com.finsight.portfoliomanager.application.ports.out.TransactionRepository;
 import com.finsight.portfoliomanager.application.ports.out.UserRepository;
 import com.finsight.portfoliomanager.domain.Order;
 import com.finsight.portfoliomanager.domain.OrderStatus;
 import com.finsight.portfoliomanager.domain.OrderType;
 import com.finsight.portfoliomanager.domain.Portfolio;
 import com.finsight.portfoliomanager.domain.Position;
+import com.finsight.portfoliomanager.domain.Transaction;
+import com.finsight.portfoliomanager.domain.TransactionType;
 import com.finsight.portfoliomanager.domain.User;
 
 import lombok.RequiredArgsConstructor;
@@ -34,6 +37,7 @@ public class OrderService {
     private final PortfolioUseCase portfolioUseCase;
     private final PortfolioRepository portfolioRepository;
     private final UserRepository userRepository;
+    private final TransactionRepository transactionRepository;
     private final RedisTemplate<String, String> redisTemplate;
 
     @Transactional
@@ -73,12 +77,16 @@ public class OrderService {
                     .orElseThrow(() -> new IllegalArgumentException("User not found"));
             BigDecimal userCashBalance = user.getCashBalance() != null ? user.getCashBalance() : BigDecimal.ZERO;
 
+            BigDecimal userLockedBalance = user.getLockedBalance() != null ? user.getLockedBalance() : BigDecimal.ZERO;
+
             if (userCashBalance.compareTo(orderAmount) < 0) {
                 throw new IllegalArgumentException("Insufficient balance for buy order");
             }
             user.setCashBalance(userCashBalance.subtract(orderAmount));
+            user.setLockedBalance(userLockedBalance.add(orderAmount));
             userRepository.save(user);
-            log.info("Deducted {} from user {} balance for buy order", orderAmount, portfolio.getUserId());
+            log.info("Deducted {} from cash and added to locked balance for user {}", orderAmount,
+                    portfolio.getUserId());
         } // Handle SELL_LIMIT: lock quantity in position
         else if (order.getType() == OrderType.SELL_LIMIT) {
             BigDecimal quantityToLock = order.getQuantity() != null
@@ -156,9 +164,21 @@ public class OrderService {
             User user = userRepository.findById(portfolio.getUserId())
                     .orElseThrow(() -> new IllegalArgumentException("User not found"));
             BigDecimal userCashBalance = user.getCashBalance() != null ? user.getCashBalance() : BigDecimal.ZERO;
+            BigDecimal userLockedBalance = user.getLockedBalance() != null ? user.getLockedBalance() : BigDecimal.ZERO;
+
             user.setCashBalance(userCashBalance.add(orderAmount));
+            user.setLockedBalance(userLockedBalance.subtract(orderAmount));
             userRepository.save(user);
-            log.info("Returned {} to user {} balance for cancelled buy order", orderAmount, portfolio.getUserId());
+
+            Transaction transaction = Transaction.builder()
+                    .id(UUID.randomUUID()).portfolioId(portfolio.getId()).type(TransactionType.CANCELLED)
+                    .symbol(order.getSymbol())
+                    .quantity(order.getQuantity() != null ? order.getQuantity() : BigDecimal.ONE)
+                    .price(order.getTargetPrice()).totalAmount(orderAmount).timestamp(LocalDateTime.now())
+                    .balanceTransaction(user.getCashBalance()).build();
+            transactionRepository.save(transaction);
+
+            log.info("Returned {} from locked to cash balance for user {}", orderAmount, portfolio.getUserId());
         } // Handle SELL_LIMIT: unlock quantity in position
         else if (order.getType() == OrderType.SELL_LIMIT) {
             BigDecimal quantityToUnlock = order.getQuantity() != null
@@ -175,6 +195,17 @@ public class OrderService {
                         : BigDecimal.ZERO;
                 position.setLockedQuantity(currentLocked.subtract(quantityToUnlock));
                 portfolioRepository.save(portfolio);
+
+                User user = userRepository.findById(portfolio.getUserId())
+                        .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+                Transaction transaction = Transaction.builder()
+                        .id(UUID.randomUUID()).portfolioId(portfolio.getId()).type(TransactionType.CANCELLED)
+                        .symbol(order.getSymbol()).quantity(quantityToUnlock).price(order.getTargetPrice())
+                        .totalAmount(BigDecimal.ZERO).timestamp(LocalDateTime.now())
+                        .balanceTransaction(user.getCashBalance()).build();
+                transactionRepository.save(transaction);
+
                 log.info("Unlocked {} of {} in portfolio {} for cancelled sell order", quantityToUnlock,
                         order.getSymbol(), order.getPortfolioId());
             }
@@ -236,6 +267,11 @@ public class OrderService {
                         .orElseThrow(() -> new IllegalArgumentException("User not found"));
                 BigDecimal reserved = order.getUsdAmount() != null ? order.getUsdAmount()
                         : order.getQuantity().multiply(order.getTargetPrice());
+
+                BigDecimal userLockedBalance = user_ref.getLockedBalance() != null ? user_ref.getLockedBalance()
+                        : BigDecimal.ZERO;
+                user_ref.setLockedBalance(userLockedBalance.subtract(reserved));
+
                 user_ref.setCashBalance(
                         (user_ref.getCashBalance() != null ? user_ref.getCashBalance() : BigDecimal.ZERO)
                                 .add(reserved));
@@ -298,10 +334,24 @@ public class OrderService {
                     : order.getQuantity().multiply(order.getTargetPrice());
             User user = userRepository.findById(portfolio.getUserId())
                     .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
             BigDecimal userCashBalance = user.getCashBalance() != null ? user.getCashBalance() : BigDecimal.ZERO;
+            BigDecimal userLockedBalance = user.getLockedBalance() != null ? user.getLockedBalance() : BigDecimal.ZERO;
+
             user.setCashBalance(userCashBalance.add(orderAmount));
+            user.setLockedBalance(userLockedBalance.subtract(orderAmount));
+
             userRepository.save(user);
-            log.info("Returned {} to user {} balance for expired/rejected buy order", orderAmount,
+
+            Transaction transaction = Transaction.builder()
+                    .id(UUID.randomUUID()).portfolioId(portfolio.getId()).type(TransactionType.EXPIRED)
+                    .symbol(order.getSymbol())
+                    .quantity(order.getQuantity() != null ? order.getQuantity() : BigDecimal.ONE)
+                    .price(order.getTargetPrice()).totalAmount(orderAmount).timestamp(LocalDateTime.now())
+                    .balanceTransaction(user.getCashBalance()).build();
+            transactionRepository.save(transaction);
+
+            log.info("Returned {} from locked to cash for user {} on expired/rejected order", orderAmount,
                     portfolio.getUserId());
         } // Handle SELL_LIMIT: unlock quantity in position
         else if (order.getType() == OrderType.SELL_LIMIT) {

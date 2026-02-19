@@ -13,7 +13,6 @@ const BUY_ASSET_MUTATION = gql`
   mutation BuyAsset($portfolioId: ID!, $symbol: String!, $quantity: Float!, $price: Float!) {
     buyAsset(portfolioId: $portfolioId, symbol: $symbol, quantity: $quantity, price: $price) {
       id
-      balance
     }
   }
 `;
@@ -22,7 +21,6 @@ const SELL_ASSET_MUTATION = gql`
   mutation SellAsset($portfolioId: ID!, $symbol: String!, $quantity: Float!, $price: Float!) {
     sellAsset(portfolioId: $portfolioId, symbol: $symbol, quantity: $quantity, price: $price) {
       id
-      balance
     }
   }
 `;
@@ -31,7 +29,6 @@ const BUY_ASSET_BY_USD_MUTATION = gql`
   mutation BuyAssetByUSD($portfolioId: ID!, $symbol: String!, $usdAmount: Float!, $price: Float!) {
     buyAssetByUSD(portfolioId: $portfolioId, symbol: $symbol, usdAmount: $usdAmount, price: $price) {
       id
-      balance
     }
   }
 `;
@@ -40,7 +37,6 @@ const SELL_ASSET_BY_USD_MUTATION = gql`
   mutation SellAssetByUSD($portfolioId: ID!, $symbol: String!, $usdAmount: Float!, $price: Float!) {
     sellAssetByUSD(portfolioId: $portfolioId, symbol: $symbol, usdAmount: $usdAmount, price: $price) {
       id
-      balance
     }
   }
 `;
@@ -104,9 +100,10 @@ interface TradeDialogProps {
     portfolios: Portfolio[];
     defaultType?: "buy" | "sell";
     portfolioPositions?: Map<string, Position[]>;
+    initialSymbol?: string;
 }
 
-export function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions }: TradeDialogProps) {
+export function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions, initialSymbol = "" }: TradeDialogProps) {
     const [open, setOpen] = useState(false);
     const [type, setType] = useState<"buy" | "sell">(defaultType);
     const [orderType, setOrderType] = useState<"market" | "limit">("market");
@@ -114,7 +111,7 @@ export function TradeDialog({ portfolios, defaultType = "buy", portfolioPosition
 
     // Form state
     const [portfolioId, setPortfolioId] = useState(portfolios[0]?.id || "");
-    const [symbol, setSymbol] = useState("");
+    const [symbol, setSymbol] = useState(initialSymbol);
     const [quantity, setQuantity] = useState("");
     const [usdAmount, setUsdAmount] = useState("");
     const [price, setPrice] = useState("");

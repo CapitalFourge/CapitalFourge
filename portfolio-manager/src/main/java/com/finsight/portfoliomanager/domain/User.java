@@ -23,7 +23,10 @@ public class User {
     private boolean active;
     private LocalDateTime createdAt;
     private LocalDateTime lastLoginAt;
-    private BigDecimal cashBalance;
+    @Builder.Default
+    private BigDecimal cashBalance = BigDecimal.ZERO;
+    @Builder.Default
+    private BigDecimal lockedBalance = BigDecimal.ZERO;
 
     public boolean isActive() {
         return this.active;

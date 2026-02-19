@@ -88,6 +88,24 @@ function DashboardLayout({ children }) {
                                 columnNumber: 21
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
+                                href: "/explorer",
+                                className: "flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white transition-colors text-sm font-medium rounded-xl hover:bg-white/5",
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(Compass, {
+                                        size: 18
+                                    }, void 0, false, {
+                                        fileName: "[project]/app/(dashboard)/layout.tsx",
+                                        lineNumber: 24,
+                                        columnNumber: 25
+                                    }, this),
+                                    " Mercados"
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/app/(dashboard)/layout.tsx",
+                                lineNumber: 23,
+                                columnNumber: 21
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
                                 href: "/transactions",
                                 className: "flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white transition-colors text-sm font-medium rounded-xl hover:bg-white/5",
                                 children: [
@@ -95,14 +113,14 @@ function DashboardLayout({ children }) {
                                         size: 18
                                     }, void 0, false, {
                                         fileName: "[project]/app/(dashboard)/layout.tsx",
-                                        lineNumber: 24,
+                                        lineNumber: 27,
                                         columnNumber: 25
                                     }, this),
                                     " Transacciones"
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/(dashboard)/layout.tsx",
-                                lineNumber: 23,
+                                lineNumber: 26,
                                 columnNumber: 21
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
@@ -113,14 +131,14 @@ function DashboardLayout({ children }) {
                                         size: 18
                                     }, void 0, false, {
                                         fileName: "[project]/app/(dashboard)/layout.tsx",
-                                        lineNumber: 27,
+                                        lineNumber: 30,
                                         columnNumber: 25
                                     }, this),
                                     " Config. Terminal"
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/(dashboard)/layout.tsx",
-                                lineNumber: 26,
+                                lineNumber: 29,
                                 columnNumber: 21
                             }, this)
                         ]
@@ -141,14 +159,14 @@ function DashboardLayout({ children }) {
                                 className: "group-hover:translate-x-1 transition-transform"
                             }, void 0, false, {
                                 fileName: "[project]/app/(dashboard)/layout.tsx",
-                                lineNumber: 35,
+                                lineNumber: 38,
                                 columnNumber: 21
                             }, this),
                             " Cerrar Sesión"
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/(dashboard)/layout.tsx",
-                        lineNumber: 31,
+                        lineNumber: 34,
                         columnNumber: 17
                     }, this)
                 ]
@@ -162,7 +180,7 @@ function DashboardLayout({ children }) {
                 children: children
             }, void 0, false, {
                 fileName: "[project]/app/(dashboard)/layout.tsx",
-                lineNumber: 40,
+                lineNumber: 43,
                 columnNumber: 13
             }, this)
         ]

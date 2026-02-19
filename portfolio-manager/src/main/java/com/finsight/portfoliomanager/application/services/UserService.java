@@ -183,4 +183,30 @@ public class UserService implements UserUseCase {
         userRepository.save(user);
     }
 
+    @Override
+    public User deposit(UUID userId, java.math.BigDecimal amount) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        java.math.BigDecimal current = user.getCashBalance() != null ? user.getCashBalance()
+                : java.math.BigDecimal.ZERO;
+        user.setCashBalance(current.add(amount));
+        return userRepository.save(user);
+    }
+
+    @Override
+    public User withdraw(UUID userId, java.math.BigDecimal amount) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        java.math.BigDecimal current = user.getCashBalance() != null ? user.getCashBalance()
+                : java.math.BigDecimal.ZERO;
+        if (current.compareTo(amount) < 0) {
+            throw new RuntimeException("Insufficient global balance");
+        }
+
+        user.setCashBalance(current.subtract(amount));
+        return userRepository.save(user);
+    }
+
 }

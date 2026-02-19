@@ -68,20 +68,60 @@ class FinancialDataServicer(financial_data_pb2_grpc.FinancialDataServiceServicer
             history=points
         )
 
-    def GetAvailableSymbols(self, request, context):
-        # Lista de símbolos disponibles - esto podría extenderse para consultar
-        # una base de datos o API externa en el futuro
-        available_symbols = [
+    def GetCategorizedAssets(self, request, context):
+        # Lista de activos categorizados
+        assets = [
             # Stocks
-            "AAPL", "GOOGL", "MSFT", "AMZN", "TSLA", "META", "NVDA", "JPM", "V", "WMT",
-            "DIS", "NFLX", "INTC", "AMD", "PYPL", "ADBE", "CRM", "ORCL", "IBM",
-            "BA", "GS", "HD", "LOW", "NKE", "PFE", "T", "VZ", "WFC",
-            # Crypto (simple format)
-            "BTC", "ETH", "SOL", "ADA", "DOT", "XRP", "DOGE", "SHIB", "MATIC", "AVAX",
-            "LINK", "UNI", "AAVE",
-            # Crypto (USD format for Yahoo Finance)
+            {"symbol": "AAPL", "name": "Apple Inc.", "category": "STOCKS"},
+            {"symbol": "GOOGL", "name": "Alphabet Inc.", "category": "STOCKS"},
+            {"symbol": "MSFT", "name": "Microsoft Corp.", "category": "STOCKS"},
+            {"symbol": "AMZN", "name": "Amazon.com Inc.", "category": "STOCKS"},
+            {"symbol": "TSLA", "name": "Tesla, Inc.", "category": "STOCKS"},
+            {"symbol": "NVDA", "name": "NVIDIA Corporation", "category": "STOCKS"},
+            {"symbol": "NFLX", "name": "Netflix, Inc.", "category": "STOCKS"},
+            {"symbol": "AMD", "name": "Advanced Micro Devices", "category": "STOCKS"},
+            {"symbol": "META", "name": "Meta Platforms, Inc.", "category": "STOCKS"},
+            
+            # Crypto
+            {"symbol": "BTC-USD", "name": "Bitcoin", "category": "CRYPTO"},
+            {"symbol": "ETH-USD", "name": "Ethereum", "category": "CRYPTO"},
+            {"symbol": "SOL-USD", "name": "Solana", "category": "CRYPTO"},
+            {"symbol": "ADA-USD", "name": "Cardano", "category": "CRYPTO"},
+            {"symbol": "DOT-USD", "name": "Polkadot", "category": "CRYPTO"},
+            {"symbol": "XRP-USD", "name": "XRP", "category": "CRYPTO"},
+            
+            # Commodities
+            {"symbol": "XAUUSD=C", "name": "Gold", "category": "COMMODITIES"},
+            {"symbol": "XAGUSD=C", "name": "Silver", "category": "COMMODITIES"},
+            {"symbol": "CL=F", "name": "Crude Oil", "category": "COMMODITIES"},
+            {"symbol": "NG=F", "name": "Natural Gas", "category": "COMMODITIES"},
+            {"symbol": "GC=F", "name": "Gold Futures", "category": "COMMODITIES"},
+            
+            # Forex
+            {"symbol": "EURUSD=X", "name": "EUR/USD", "category": "FOREX"},
+            {"symbol": "GBPUSD=X", "name": "GBP/USD", "category": "FOREX"},
+            {"symbol": "JPY=X", "name": "USD/JPY", "category": "FOREX"},
+            {"symbol": "MXN=X", "name": "USD/MXN", "category": "FOREX"}
+        ]
+        
+        print(f"📋 gRPC Request: GetCategorizedAssets")
+        
+        proto_assets = [
+            financial_data_pb2.Asset(
+                symbol=a["symbol"],
+                name=a["name"],
+                category=a["category"]
+            ) for a in assets
+        ]
+        
+        return financial_data_pb2.CategorizedAssetsResponse(assets=proto_assets)
+
+    def GetAvailableSymbols(self, request, context):
+        # Para compatibilidad, extraemos solo los símbolos de la lista anterior
+        available_symbols = [
+            "AAPL", "GOOGL", "MSFT", "AMZN", "TSLA", "META", "NVDA", "NFLX", "AMD",
             "BTC-USD", "ETH-USD", "SOL-USD", "ADA-USD", "DOT-USD", "XRP-USD",
-            "DOGE-USD", "SHIB-USD", "MATIC-USD", "AVAX-USD", "LINK-USD", "UNI-USD", "AAVE-USD"
+            "XAUUSD=C", "XAGUSD=C", "CL=F", "NG=F", "EURUSD=X", "GBPUSD=X"
         ]
         print(f"📋 gRPC Request received for available symbols")
         return financial_data_pb2.SymbolsResponse(symbols=available_symbols)

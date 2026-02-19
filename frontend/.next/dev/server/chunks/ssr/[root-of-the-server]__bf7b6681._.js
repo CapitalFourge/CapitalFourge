@@ -666,12 +666,12 @@ function OrdersDialog({ portfolioId, open, onOpenChange }) {
                         children: "Órdenes Limitadas"
                     }, void 0, false, {
                         fileName: "[project]/components/trading/orders-dialog.tsx",
-                        lineNumber: 75,
+                        lineNumber: 86,
                         columnNumber: 21
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/components/trading/orders-dialog.tsx",
-                    lineNumber: 74,
+                    lineNumber: 85,
                     columnNumber: 17
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -681,9 +681,9 @@ function OrdersDialog({ portfolioId, open, onOpenChange }) {
                         children: "No hay órdenes activas"
                     }, void 0, false, {
                         fileName: "[project]/components/trading/orders-dialog.tsx",
-                        lineNumber: 82,
+                        lineNumber: 93,
                         columnNumber: 25
-                    }, this) : data?.ordersByPortfolio?.map((order)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                    }, this) : data?.ordersByPortfolio?.filter((o)=>o.status === "PENDING").map((order)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                             className: "bg-black/40 border border-white/10 rounded-lg p-4",
                             children: [
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -696,7 +696,7 @@ function OrdersDialog({ portfolioId, open, onOpenChange }) {
                                                     children: order.type === "BUY_LIMIT" ? "COMPRA" : "VENTA"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/trading/orders-dialog.tsx",
-                                                    lineNumber: 90,
+                                                    lineNumber: 101,
                                                     columnNumber: 41
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -704,13 +704,13 @@ function OrdersDialog({ portfolioId, open, onOpenChange }) {
                                                     children: order.symbol
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/trading/orders-dialog.tsx",
-                                                    lineNumber: 95,
+                                                    lineNumber: 105,
                                                     columnNumber: 41
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/trading/orders-dialog.tsx",
-                                            lineNumber: 89,
+                                            lineNumber: 100,
                                             columnNumber: 37
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$badge$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Badge"], {
@@ -718,13 +718,13 @@ function OrdersDialog({ portfolioId, open, onOpenChange }) {
                                             children: order.status
                                         }, void 0, false, {
                                             fileName: "[project]/components/trading/orders-dialog.tsx",
-                                            lineNumber: 97,
+                                            lineNumber: 107,
                                             columnNumber: 37
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/trading/orders-dialog.tsx",
-                                    lineNumber: 88,
+                                    lineNumber: 99,
                                     columnNumber: 33
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -737,7 +737,7 @@ function OrdersDialog({ portfolioId, open, onOpenChange }) {
                                                     children: "Precio objetivo:"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/trading/orders-dialog.tsx",
-                                                    lineNumber: 104,
+                                                    lineNumber: 114,
                                                     columnNumber: 41
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -748,13 +748,13 @@ function OrdersDialog({ portfolioId, open, onOpenChange }) {
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/components/trading/orders-dialog.tsx",
-                                                    lineNumber: 105,
+                                                    lineNumber: 115,
                                                     columnNumber: 41
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/trading/orders-dialog.tsx",
-                                            lineNumber: 103,
+                                            lineNumber: 113,
                                             columnNumber: 37
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -764,7 +764,7 @@ function OrdersDialog({ portfolioId, open, onOpenChange }) {
                                                     children: "Cantidad:"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/trading/orders-dialog.tsx",
-                                                    lineNumber: 108,
+                                                    lineNumber: 118,
                                                     columnNumber: 41
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -772,13 +772,13 @@ function OrdersDialog({ portfolioId, open, onOpenChange }) {
                                                     children: order.quantity || order.usdAmount
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/trading/orders-dialog.tsx",
-                                                    lineNumber: 109,
+                                                    lineNumber: 119,
                                                     columnNumber: 41
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/trading/orders-dialog.tsx",
-                                            lineNumber: 107,
+                                            lineNumber: 117,
                                             columnNumber: 37
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -788,7 +788,7 @@ function OrdersDialog({ portfolioId, open, onOpenChange }) {
                                                     children: "Creada:"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/trading/orders-dialog.tsx",
-                                                    lineNumber: 112,
+                                                    lineNumber: 122,
                                                     columnNumber: 41
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -796,13 +796,13 @@ function OrdersDialog({ portfolioId, open, onOpenChange }) {
                                                     children: new Date(order.createdAt).toLocaleDateString()
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/trading/orders-dialog.tsx",
-                                                    lineNumber: 113,
+                                                    lineNumber: 123,
                                                     columnNumber: 41
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/trading/orders-dialog.tsx",
-                                            lineNumber: 111,
+                                            lineNumber: 121,
                                             columnNumber: 37
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -812,7 +812,7 @@ function OrdersDialog({ portfolioId, open, onOpenChange }) {
                                                     children: "Expira:"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/trading/orders-dialog.tsx",
-                                                    lineNumber: 116,
+                                                    lineNumber: 126,
                                                     columnNumber: 41
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -820,19 +820,19 @@ function OrdersDialog({ portfolioId, open, onOpenChange }) {
                                                     children: new Date(order.expiresAt).toLocaleDateString()
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/trading/orders-dialog.tsx",
-                                                    lineNumber: 117,
+                                                    lineNumber: 127,
                                                     columnNumber: 41
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/trading/orders-dialog.tsx",
-                                            lineNumber: 115,
+                                            lineNumber: 125,
                                             columnNumber: 37
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/trading/orders-dialog.tsx",
-                                    lineNumber: 102,
+                                    lineNumber: 112,
                                     columnNumber: 33
                                 }, this),
                                 order.status === "PENDING" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
@@ -842,29 +842,29 @@ function OrdersDialog({ portfolioId, open, onOpenChange }) {
                                     children: "Cancelar Orden"
                                 }, void 0, false, {
                                     fileName: "[project]/components/trading/orders-dialog.tsx",
-                                    lineNumber: 122,
+                                    lineNumber: 132,
                                     columnNumber: 37
                                 }, this)
                             ]
                         }, order.id, true, {
                             fileName: "[project]/components/trading/orders-dialog.tsx",
-                            lineNumber: 87,
+                            lineNumber: 98,
                             columnNumber: 29
                         }, this))
                 }, void 0, false, {
                     fileName: "[project]/components/trading/orders-dialog.tsx",
-                    lineNumber: 80,
+                    lineNumber: 91,
                     columnNumber: 17
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/components/trading/orders-dialog.tsx",
-            lineNumber: 73,
+            lineNumber: 84,
             columnNumber: 13
         }, this)
     }, void 0, false, {
         fileName: "[project]/components/trading/orders-dialog.tsx",
-        lineNumber: 72,
+        lineNumber: 83,
         columnNumber: 9
     }, this);
 }
@@ -905,11 +905,11 @@ const PORTFOLIO_DETAIL_QUERY = __TURBOPACK__imported__module__$5b$project$5d2f$n
     me {
       id
       cashBalance
+      lockedBalance
     }
     portfolio(id: $id) {
       id
       name
-      balance
       positions {
         symbol
         quantity
@@ -924,7 +924,6 @@ const PORTFOLIO_DETAIL_QUERY = __TURBOPACK__imported__module__$5b$project$5d2f$n
         price
         totalAmount
         timestamp
-        balanceTransaction
       }
     }
   }
@@ -947,7 +946,7 @@ function PortfolioDetailPage() {
         ]
     }, void 0, true, {
         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-        lineNumber: 51,
+        lineNumber: 74,
         columnNumber: 25
     }, this);
     if (error) return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -958,7 +957,7 @@ function PortfolioDetailPage() {
         ]
     }, void 0, true, {
         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-        lineNumber: 52,
+        lineNumber: 75,
         columnNumber: 23
     }, this);
     if (!portfolioId) return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -966,17 +965,18 @@ function PortfolioDetailPage() {
         children: "ERROR: Portfolio ID not found"
     }, void 0, false, {
         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-        lineNumber: 53,
+        lineNumber: 76,
         columnNumber: 30
     }, this);
     const portfolio = data?.portfolio;
     const userCashBalance = data?.me?.cashBalance || 0;
+    const userLockedBalance = data?.me?.lockedBalance || 0;
     // Calculate total portfolio value (cash + assets) using currentPrice from GraphQL
     const positionsUsdValue = portfolio?.positions?.reduce((total, pos)=>{
         const currentPrice = pos.currentPrice || 0;
         return total + pos.quantity * currentPrice;
     }, 0) || 0;
-    const totalPortfolioValue = userCashBalance + positionsUsdValue;
+    const totalPortfolioValue = userCashBalance + userLockedBalance + positionsUsdValue;
     // Calculate total cost basis and performance using averagePurchasePrice from GraphQL
     const totalCostBasis = portfolio?.positions?.reduce((total, pos)=>{
         const avgCost = pos.averagePurchasePrice || 0;
@@ -998,7 +998,7 @@ function PortfolioDetailPage() {
                                 children: portfolio.name
                             }, void 0, false, {
                                 fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                lineNumber: 78,
+                                lineNumber: 102,
                                 columnNumber: 21
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1010,13 +1010,13 @@ function PortfolioDetailPage() {
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                lineNumber: 79,
+                                lineNumber: 103,
                                 columnNumber: 21
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                        lineNumber: 77,
+                        lineNumber: 101,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1032,14 +1032,14 @@ function PortfolioDetailPage() {
                                         className: "mr-2"
                                     }, void 0, false, {
                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                        lineNumber: 87,
+                                        lineNumber: 111,
                                         columnNumber: 25
                                     }, this),
                                     "Ver Órdenes"
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                lineNumber: 82,
+                                lineNumber: 106,
                                 columnNumber: 21
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1050,7 +1050,7 @@ function PortfolioDetailPage() {
                                         children: "Valor_Total_Portafolio"
                                     }, void 0, false, {
                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                        lineNumber: 91,
+                                        lineNumber: 115,
                                         columnNumber: 25
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1061,7 +1061,7 @@ function PortfolioDetailPage() {
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                        lineNumber: 92,
+                                        lineNumber: 116,
                                         columnNumber: 25
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1074,7 +1074,7 @@ function PortfolioDetailPage() {
                                                         children: "Rendimiento"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                        lineNumber: 95,
+                                                        lineNumber: 119,
                                                         columnNumber: 33
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1087,13 +1087,13 @@ function PortfolioDetailPage() {
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                        lineNumber: 96,
+                                                        lineNumber: 120,
                                                         columnNumber: 33
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                lineNumber: 94,
+                                                lineNumber: 118,
                                                 columnNumber: 29
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1104,7 +1104,7 @@ function PortfolioDetailPage() {
                                                         children: "Saldo_Efectivo"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                        lineNumber: 101,
+                                                        lineNumber: 125,
                                                         columnNumber: 33
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1115,13 +1115,41 @@ function PortfolioDetailPage() {
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                        lineNumber: 102,
+                                                        lineNumber: 126,
                                                         columnNumber: 33
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                lineNumber: 100,
+                                                lineNumber: 124,
+                                                columnNumber: 29
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                className: "border-l border-slate-700 pl-4",
+                                                children: [
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                        className: "text-[10px] text-slate-500 uppercase tracking-widest",
+                                                        children: "Bloqueado"
+                                                    }, void 0, false, {
+                                                        fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
+                                                        lineNumber: 129,
+                                                        columnNumber: 33
+                                                    }, this),
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                        className: "text-lg font-bold text-orange-400 font-mono",
+                                                        children: [
+                                                            "$",
+                                                            userLockedBalance.toLocaleString()
+                                                        ]
+                                                    }, void 0, true, {
+                                                        fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
+                                                        lineNumber: 130,
+                                                        columnNumber: 33
+                                                    }, this)
+                                                ]
+                                            }, void 0, true, {
+                                                fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
+                                                lineNumber: 128,
                                                 columnNumber: 29
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1132,7 +1160,7 @@ function PortfolioDetailPage() {
                                                         children: "En_Activos"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                        lineNumber: 105,
+                                                        lineNumber: 133,
                                                         columnNumber: 33
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1143,37 +1171,37 @@ function PortfolioDetailPage() {
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                        lineNumber: 106,
+                                                        lineNumber: 134,
                                                         columnNumber: 33
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                lineNumber: 104,
+                                                lineNumber: 132,
                                                 columnNumber: 29
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                        lineNumber: 93,
+                                        lineNumber: 117,
                                         columnNumber: 25
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                lineNumber: 90,
+                                lineNumber: 114,
                                 columnNumber: 21
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                        lineNumber: 81,
+                        lineNumber: 105,
                         columnNumber: 17
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                lineNumber: 76,
+                lineNumber: 100,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1190,19 +1218,19 @@ function PortfolioDetailPage() {
                                             size: 14
                                         }, void 0, false, {
                                             fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                            lineNumber: 117,
+                                            lineNumber: 145,
                                             columnNumber: 29
                                         }, this),
                                         " Posiciones_Activas"
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                    lineNumber: 116,
+                                    lineNumber: 144,
                                     columnNumber: 25
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                lineNumber: 115,
+                                lineNumber: 143,
                                 columnNumber: 21
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -1212,7 +1240,7 @@ function PortfolioDetailPage() {
                                     children: "Sin posiciones abiertas."
                                 }, void 0, false, {
                                     fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                    lineNumber: 122,
+                                    lineNumber: 150,
                                     columnNumber: 29
                                 }, this) : portfolio.positions.map((pos)=>{
                                     const currentPrice = pos.currentPrice || 0;
@@ -1234,7 +1262,7 @@ function PortfolioDetailPage() {
                                                         children: pos.symbol.substring(0, 2)
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                        lineNumber: 137,
+                                                        lineNumber: 165,
                                                         columnNumber: 45
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1244,7 +1272,7 @@ function PortfolioDetailPage() {
                                                                 children: pos.symbol
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                                lineNumber: 141,
+                                                                lineNumber: 169,
                                                                 columnNumber: 49
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1252,34 +1280,30 @@ function PortfolioDetailPage() {
                                                                 children: "En cartera"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                                lineNumber: 142,
+                                                                lineNumber: 170,
                                                                 columnNumber: 49
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                        lineNumber: 140,
+                                                        lineNumber: 168,
                                                         columnNumber: 45
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                lineNumber: 136,
+                                                lineNumber: 164,
                                                 columnNumber: 41
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                 className: "text-right space-y-1",
                                                 children: [
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                        className: "font-mono font-bold text-sm",
-                                                        children: [
-                                                            pos.quantity,
-                                                            " x $",
-                                                            currentPrice.toFixed(2)
-                                                        ]
-                                                    }, void 0, true, {
+                                                        className: "font-mono font-bold text-sm text-slate-400",
+                                                        children: pos.quantity
+                                                    }, void 0, false, {
                                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                        lineNumber: 146,
+                                                        lineNumber: 174,
                                                         columnNumber: 45
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1293,7 +1317,7 @@ function PortfolioDetailPage() {
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                        lineNumber: 149,
+                                                        lineNumber: 177,
                                                         columnNumber: 45
                                                     }, this),
                                                     hasCost && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1306,31 +1330,31 @@ function PortfolioDetailPage() {
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                        lineNumber: 153,
+                                                        lineNumber: 181,
                                                         columnNumber: 49
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                lineNumber: 145,
+                                                lineNumber: 173,
                                                 columnNumber: 41
                                             }, this)
                                         ]
                                     }, pos.symbol, true, {
                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                        lineNumber: 135,
+                                        lineNumber: 163,
                                         columnNumber: 37
                                     }, this);
                                 })
                             }, void 0, false, {
                                 fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                lineNumber: 120,
+                                lineNumber: 148,
                                 columnNumber: 21
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                        lineNumber: 114,
+                        lineNumber: 142,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Card"], {
@@ -1344,19 +1368,19 @@ function PortfolioDetailPage() {
                                             size: 14
                                         }, void 0, false, {
                                             fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                            lineNumber: 168,
+                                            lineNumber: 196,
                                             columnNumber: 29
                                         }, this),
                                         " Registro_de_Transacciones"
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                    lineNumber: 167,
+                                    lineNumber: 195,
                                     columnNumber: 25
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                lineNumber: 166,
+                                lineNumber: 194,
                                 columnNumber: 21
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -1372,7 +1396,7 @@ function PortfolioDetailPage() {
                                                         children: "Fecha"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                        lineNumber: 175,
+                                                        lineNumber: 203,
                                                         columnNumber: 37
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$table$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["TableHead"], {
@@ -1380,7 +1404,7 @@ function PortfolioDetailPage() {
                                                         children: "Operación"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                        lineNumber: 176,
+                                                        lineNumber: 204,
                                                         columnNumber: 37
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$table$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["TableHead"], {
@@ -1388,7 +1412,7 @@ function PortfolioDetailPage() {
                                                         children: "Símbolo"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                        lineNumber: 177,
+                                                        lineNumber: 205,
                                                         columnNumber: 37
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$table$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["TableHead"], {
@@ -1396,7 +1420,7 @@ function PortfolioDetailPage() {
                                                         children: "Cant."
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                        lineNumber: 178,
+                                                        lineNumber: 206,
                                                         columnNumber: 37
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$table$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["TableHead"], {
@@ -1404,7 +1428,7 @@ function PortfolioDetailPage() {
                                                         children: "Precio"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                        lineNumber: 179,
+                                                        lineNumber: 207,
                                                         columnNumber: 37
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$table$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["TableHead"], {
@@ -1412,18 +1436,18 @@ function PortfolioDetailPage() {
                                                         children: "Total"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                        lineNumber: 180,
+                                                        lineNumber: 208,
                                                         columnNumber: 37
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                lineNumber: 174,
+                                                lineNumber: 202,
                                                 columnNumber: 33
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                            lineNumber: 173,
+                                            lineNumber: 201,
                                             columnNumber: 29
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$table$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["TableBody"], {
@@ -1435,21 +1459,21 @@ function PortfolioDetailPage() {
                                                             children: new Date(tx.timestamp).toLocaleDateString()
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                            lineNumber: 186,
+                                                            lineNumber: 214,
                                                             columnNumber: 41
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$table$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["TableCell"], {
                                                             children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$badge$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Badge"], {
-                                                                className: `uppercase text-[8px] font-bold ${tx.type === "BUY" ? "bg-green-500/10 text-green-400 border-green-500/20" : tx.type === "SELL" ? "bg-red-500/10 text-red-400 border-red-500/20" : tx.type === "DEPOSIT" ? "bg-blue-500/10 text-blue-400 border-blue-500/20" : tx.type === "WITHDRAWAL" ? "bg-orange-500/10 text-orange-400 border-orange-500/20" : "bg-slate-500/10 text-slate-400 border-slate-500/20"}`,
-                                                                children: tx.type === "BUY" ? "COMPRA" : tx.type === "SELL" ? "VENTA" : tx.type === "DEPOSIT" ? "DEPÓSITO" : tx.type === "WITHDRAWAL" ? "RETIRO" : tx.type
+                                                                className: `uppercase text-[8px] font-bold ${tx.type === "BUY" ? "bg-green-500/10 text-green-400 border-green-500/20" : tx.type === "SELL" ? "bg-red-500/10 text-red-400 border-red-500/20" : tx.type === "DEPOSIT" ? "bg-blue-500/10 text-blue-400 border-blue-500/20" : tx.type === "WITHDRAWAL" ? "bg-orange-500/10 text-orange-400 border-orange-500/20" : tx.type === "CANCELLED" ? "bg-red-500/20 text-red-500 border-red-500/40 font-bold italic" : tx.type === "EXPIRED" ? "bg-zinc-500/10 text-zinc-400 border-zinc-500/20 font-mono" : "bg-slate-500/10 text-slate-400 border-slate-500/20"}`,
+                                                                children: tx.type === "BUY" ? "COMPRA" : tx.type === "SELL" ? "VENTA" : tx.type === "DEPOSIT" ? "DEPÓSITO" : tx.type === "WITHDRAWAL" ? "RETIRO" : tx.type === "CANCELLED" ? "CANCELADA" : tx.type === "EXPIRED" ? "EXPIRADA" : tx.type
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                                lineNumber: 190,
+                                                                lineNumber: 218,
                                                                 columnNumber: 45
                                                             }, this)
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                            lineNumber: 189,
+                                                            lineNumber: 217,
                                                             columnNumber: 41
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$table$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["TableCell"], {
@@ -1457,7 +1481,7 @@ function PortfolioDetailPage() {
                                                             children: tx.symbol
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                            lineNumber: 203,
+                                                            lineNumber: 234,
                                                             columnNumber: 41
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$table$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["TableCell"], {
@@ -1465,7 +1489,7 @@ function PortfolioDetailPage() {
                                                             children: tx.quantity
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                            lineNumber: 204,
+                                                            lineNumber: 235,
                                                             columnNumber: 41
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$table$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["TableCell"], {
@@ -1476,52 +1500,52 @@ function PortfolioDetailPage() {
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                            lineNumber: 205,
+                                                            lineNumber: 236,
                                                             columnNumber: 41
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$table$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["TableCell"], {
-                                                            className: `font-mono text-xs font-bold ${tx.type === 'BUY' ? 'text-red-400' : 'text-green-400'}`,
+                                                            className: `font-mono text-xs font-bold ${tx.type === 'BUY' ? 'text-red-400' : tx.type === 'CANCELLED' || tx.type === 'EXPIRED' ? 'text-slate-500 line-through' : 'text-green-400'}`,
                                                             children: [
                                                                 "$",
                                                                 tx.totalAmount?.toLocaleString() || '--'
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                            lineNumber: 206,
+                                                            lineNumber: 237,
                                                             columnNumber: 41
                                                         }, this)
                                                     ]
                                                 }, tx.id, true, {
                                                     fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                    lineNumber: 185,
+                                                    lineNumber: 213,
                                                     columnNumber: 37
                                                 }, this))
                                         }, void 0, false, {
                                             fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                            lineNumber: 183,
+                                            lineNumber: 211,
                                             columnNumber: 29
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                    lineNumber: 172,
+                                    lineNumber: 200,
                                     columnNumber: 25
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                lineNumber: 171,
+                                lineNumber: 199,
                                 columnNumber: 21
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                        lineNumber: 165,
+                        lineNumber: 193,
                         columnNumber: 17
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                lineNumber: 113,
+                lineNumber: 141,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$trading$2f$orders$2d$dialog$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["OrdersDialog"], {
@@ -1530,13 +1554,13 @@ function PortfolioDetailPage() {
                 onOpenChange: setOrdersDialogOpen
             }, void 0, false, {
                 fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                lineNumber: 217,
+                lineNumber: 250,
                 columnNumber: 13
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-        lineNumber: 75,
+        lineNumber: 99,
         columnNumber: 9
     }, this);
 }

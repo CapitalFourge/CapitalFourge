@@ -94,7 +94,7 @@ export function OrdersDialog({ portfolioId, open, onOpenChange }: OrdersDialogPr
                             No hay órdenes activas
                         </p>
                     ) : (
-                        data?.ordersByPortfolio?.map((order: Order) => (
+                        data?.ordersByPortfolio?.filter((o: Order) => o.status === "PENDING").map((order: Order) => (
                             <div key={order.id} className="bg-black/40 border border-white/10 rounded-lg p-4">
                                 <div className="flex justify-between items-start mb-2">
                                     <div>

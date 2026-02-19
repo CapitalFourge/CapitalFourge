@@ -8,39 +8,32 @@ import { useMutation, gql } from "@apollo/client";
 import { Banknote } from "lucide-react";
 import { toast } from "sonner";
 
-const ADD_CASH_MUTATION = gql`
-  mutation AddCash($portfolioId: ID!, $amount: Float!) {
-    addCash(portfolioId: $portfolioId, amount: $amount) {
+const DEPOSIT_MUTATION = gql`
+  mutation Deposit($amount: Float!) {
+    deposit(amount: $amount) {
       id
-      balance
+      cashBalance
     }
   }
 `;
 
-const WITHDRAW_CASH_MUTATION = gql`
-  mutation WithdrawCash($portfolioId: ID!, $amount: Float!) {
-    withdrawCash(portfolioId: $portfolioId, amount: $amount) {
+const WITHDRAW_MUTATION = gql`
+  mutation Withdraw($amount: Float!) {
+    withdraw(amount: $amount) {
       id
-      balance
+      cashBalance
     }
   }
 `;
 
-interface Portfolio {
-    id: string;
-    name: string;
-    balance: number;
-}
-
-export function CashActionDialog({ portfolios, initialType = "deposit" }: { portfolios: Portfolio[], initialType?: "deposit" | "withdraw" }) {
+export function CashActionDialog({ initialType = "deposit" }: { initialType?: "deposit" | "withdraw" }) {
     const [open, setOpen] = useState(false);
     const [type, setType] = useState<"deposit" | "withdraw">(initialType);
-    const [portfolioId, setPortfolioId] = useState(portfolios[0]?.id || "");
     const [amount, setAmount] = useState("");
 
-    const [addCash, { loading: addLoading }] = useMutation(ADD_CASH_MUTATION, {
+    const [deposit, { loading: depositLoading }] = useMutation(DEPOSIT_MUTATION, {
         onCompleted: () => {
-            toast.success("¡Depósito realizado con éxito!");
+            toast.success("¡Depósito global realizado con éxito!");
             setOpen(false);
             setAmount("");
             window.location.reload();
@@ -48,9 +41,9 @@ export function CashActionDialog({ portfolios, initialType = "deposit" }: { port
         onError: (err) => toast.error(`Error en depósito: ${err.message}`)
     });
 
-    const [withdrawCash, { loading: withdrawLoading }] = useMutation(WITHDRAW_CASH_MUTATION, {
+    const [withdraw, { loading: withdrawLoading }] = useMutation(WITHDRAW_MUTATION, {
         onCompleted: () => {
-            toast.success("¡Retiro realizado con éxito!");
+            toast.success("¡Retiro global realizado con éxito!");
             setOpen(false);
             setAmount("");
             window.location.reload();
@@ -58,36 +51,22 @@ export function CashActionDialog({ portfolios, initialType = "deposit" }: { port
         onError: (err) => toast.error(`Error en retiro: ${err.message}`)
     });
 
-    const loading = addLoading || withdrawLoading;
+    const loading = depositLoading || withdrawLoading;
 
     const handleAction = async () => {
-        if (!portfolioId) {
-            toast.error("Por favor, selecciona un portafolio.");
-            return;
-        }
-
         if (!amount || Number(amount) <= 0) {
             toast.error("Por favor, ingresa un monto válido.");
             return;
         }
 
-        const selectedPortfolio = portfolios.find((p: Portfolio) => p.id === portfolioId);
-        const currentBalance = selectedPortfolio?.balance || 0;
-
-        if (type === "withdraw" && Number(amount) > currentBalance) {
-            toast.error(`Saldo insuficiente. Balance actual: $${currentBalance.toLocaleString()}`);
-            return;
-        }
-
         const variables = {
-            portfolioId,
             amount: parseFloat(amount)
         };
 
         if (type === "deposit") {
-            await addCash({ variables });
+            await deposit({ variables });
         } else {
-            await withdrawCash({ variables });
+            await withdraw({ variables });
         }
     };
 
@@ -101,7 +80,7 @@ export function CashActionDialog({ portfolios, initialType = "deposit" }: { port
             <DialogContent className="glass border-none text-white sm:max-w-md">
                 <DialogHeader>
                     <DialogTitle className="text-2xl font-bold tracking-tighter uppercase italic">
-                        Transferencia de Fondos
+                        Billetera Global
                     </DialogTitle>
                 </DialogHeader>
 
@@ -121,20 +100,9 @@ export function CashActionDialog({ portfolios, initialType = "deposit" }: { port
                 </div>
 
                 <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                        <label className="text-xs uppercase tracking-[0.2em] text-slate-500">Portafolio</label>
-                        <select
-                            value={portfolioId}
-                            onChange={(e) => setPortfolioId(e.target.value)}
-                            className="w-full bg-black/40 border border-white/10 rounded-md p-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-slate-400"
-                        >
-                            {portfolios.map(p => (
-                                <option key={p.id} value={p.id}>
-                                    {p.name || `Estrategia_${p.id.substring(0, 4)}`} - Balance: ${p.balance?.toLocaleString()}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
+                    <p className="text-[10px] text-slate-500 uppercase tracking-widest text-center mb-2">
+                        Los fondos se gestionan a nivel de cuenta global
+                    </p>
                     <div className="space-y-2">
                         <label className="text-xs uppercase tracking-[0.2em] text-slate-500">Monto (USD)</label>
                         <Input
@@ -144,11 +112,6 @@ export function CashActionDialog({ portfolios, initialType = "deposit" }: { port
                             onChange={(e) => setAmount(e.target.value)}
                             className="bg-black/40 border-white/10 text-white placeholder:text-slate-700"
                         />
-                        {type === "withdraw" && portfolioId && (
-                            <p className="text-[10px] text-slate-500">
-                                Balance disponible: ${portfolios.find((p: Portfolio) => p.id === portfolioId)?.balance?.toLocaleString() || 0}
-                            </p>
-                        )}
                     </div>
                 </div>
 

@@ -31,12 +31,12 @@ public class OrderGraphQLController {
     }
 
     @QueryMapping
-    public List<Order> ordersByPortfolio(@Argument UUID portfolioId) {
+    public List<Order> ordersByPortfolio(@Argument("portfolioId") UUID portfolioId) {
         return orderService.getPortfolioOrders(portfolioId);
     }
 
     @QueryMapping
-    public Order order(@Argument UUID id) {
+    public Order order(@Argument("id") UUID id) {
         return orderService.getUserOrders(null).stream()
                 .filter(order -> order.getId().equals(id))
                 .findFirst()
@@ -45,13 +45,13 @@ public class OrderGraphQLController {
 
     @MutationMapping
     public Order createLimitOrder(
-            @Argument UUID portfolioId,
-            @Argument OrderType type,
-            @Argument String symbol,
-            @Argument Double targetPrice,
-            @Argument Double quantity,
-            @Argument Double usdAmount,
-            @Argument String expiresAt,
+            @Argument("portfolioId") UUID portfolioId,
+            @Argument("type") OrderType type,
+            @Argument("symbol") String symbol,
+            @Argument("targetPrice") Double targetPrice,
+            @Argument("quantity") Double quantity,
+            @Argument("usdAmount") Double usdAmount,
+            @Argument("expiresAt") String expiresAt,
             @AuthenticationPrincipal UUID userId) {
 
         if (userId == null) {
@@ -73,7 +73,7 @@ public class OrderGraphQLController {
     }
 
     @MutationMapping
-    public Order cancelOrder(@Argument UUID orderId) {
+    public Order cancelOrder(@Argument("orderId") UUID orderId) {
         return orderService.cancelOrder(orderId);
     }
 }

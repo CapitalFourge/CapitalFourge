@@ -695,8 +695,13 @@ const PORTFOLIOS_QUERY = __TURBOPACK__imported__module__$5b$project$5d2f$node_mo
     portfolios {
       id
       name
-      balance
       performance
+      positions {
+        symbol
+        quantity
+        averagePurchasePrice
+        currentPrice
+      }
     }
   }
 `;
@@ -707,7 +712,7 @@ function PortfoliosPage() {
         children: "CARGANDO_PORTAFOLIOS..."
     }, void 0, false, {
         fileName: "[project]/app/(dashboard)/portfolio/page.tsx",
-        lineNumber: 25,
+        lineNumber: 44,
         columnNumber: 9
     }, this);
     if (error) return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -718,7 +723,7 @@ function PortfoliosPage() {
                 children: "ERROR_DE_CONEXIÓN"
             }, void 0, false, {
                 fileName: "[project]/app/(dashboard)/portfolio/page.tsx",
-                lineNumber: 32,
+                lineNumber: 51,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -726,13 +731,13 @@ function PortfoliosPage() {
                 children: error.message
             }, void 0, false, {
                 fileName: "[project]/app/(dashboard)/portfolio/page.tsx",
-                lineNumber: 33,
+                lineNumber: 52,
                 columnNumber: 13
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/app/(dashboard)/portfolio/page.tsx",
-        lineNumber: 31,
+        lineNumber: 50,
         columnNumber: 9
     }, this);
     const portfolios = data?.portfolios || [];
@@ -749,7 +754,7 @@ function PortfoliosPage() {
                                 children: "Centro de Estrategias"
                             }, void 0, false, {
                                 fileName: "[project]/app/(dashboard)/portfolio/page.tsx",
-                                lineNumber: 43,
+                                lineNumber: 62,
                                 columnNumber: 21
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -757,24 +762,24 @@ function PortfoliosPage() {
                                 children: "Aislamiento de Workspaces y Despliegue de Capital"
                             }, void 0, false, {
                                 fileName: "[project]/app/(dashboard)/portfolio/page.tsx",
-                                lineNumber: 44,
+                                lineNumber: 63,
                                 columnNumber: 21
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/(dashboard)/portfolio/page.tsx",
-                        lineNumber: 42,
+                        lineNumber: 61,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$trading$2f$create$2d$portfolio$2d$dialog$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CreatePortfolioDialog"], {}, void 0, false, {
                         fileName: "[project]/app/(dashboard)/portfolio/page.tsx",
-                        lineNumber: 46,
+                        lineNumber: 65,
                         columnNumber: 17
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/(dashboard)/portfolio/page.tsx",
-                lineNumber: 41,
+                lineNumber: 60,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -794,7 +799,7 @@ function PortfoliosPage() {
                                                 children: p.name || `Strategy_${p.id.substring(0, 4)}`
                                             }, void 0, false, {
                                                 fileName: "[project]/app/(dashboard)/portfolio/page.tsx",
-                                                lineNumber: 54,
+                                                lineNumber: 73,
                                                 columnNumber: 33
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -804,26 +809,26 @@ function PortfoliosPage() {
                                                         id: p.id
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/(dashboard)/portfolio/page.tsx",
-                                                        lineNumber: 58,
+                                                        lineNumber: 77,
                                                         columnNumber: 37
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$arrow$2d$up$2d$right$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__ArrowUpRight$3e$__["ArrowUpRight"], {
                                                         className: "w-4 h-4 text-slate-600 group-hover:text-white transition-all transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/(dashboard)/portfolio/page.tsx",
-                                                        lineNumber: 59,
+                                                        lineNumber: 78,
                                                         columnNumber: 37
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/(dashboard)/portfolio/page.tsx",
-                                                lineNumber: 57,
+                                                lineNumber: 76,
                                                 columnNumber: 33
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/(dashboard)/portfolio/page.tsx",
-                                        lineNumber: 53,
+                                        lineNumber: 72,
                                         columnNumber: 29
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -833,29 +838,29 @@ function PortfoliosPage() {
                                                 children: [
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                                         className: "text-[10px] text-slate-500 uppercase tracking-widest mb-1",
-                                                        children: "Balance Líquido"
+                                                        children: "Valor Invertido"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/(dashboard)/portfolio/page.tsx",
-                                                        lineNumber: 64,
+                                                        lineNumber: 83,
                                                         columnNumber: 37
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                                         className: "text-3xl font-mono text-white font-bold",
                                                         children: [
                                                             "$",
-                                                            Number(p.balance || 0).toLocaleString(undefined, {
+                                                            (p.positions?.reduce((sum, pos)=>sum + pos.quantity * (pos.currentPrice || pos.averagePurchasePrice), 0) || 0).toLocaleString(undefined, {
                                                                 minimumFractionDigits: 2
                                                             })
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/(dashboard)/portfolio/page.tsx",
-                                                        lineNumber: 65,
+                                                        lineNumber: 84,
                                                         columnNumber: 37
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/(dashboard)/portfolio/page.tsx",
-                                                lineNumber: 63,
+                                                lineNumber: 82,
                                                 columnNumber: 33
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -869,7 +874,7 @@ function PortfoliosPage() {
                                                                 className: "text-slate-500"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/(dashboard)/portfolio/page.tsx",
-                                                                lineNumber: 69,
+                                                                lineNumber: 91,
                                                                 columnNumber: 41
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -877,13 +882,13 @@ function PortfoliosPage() {
                                                                 children: "Rendimiento Hist."
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/(dashboard)/portfolio/page.tsx",
-                                                                lineNumber: 70,
+                                                                lineNumber: 92,
                                                                 columnNumber: 41
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/(dashboard)/portfolio/page.tsx",
-                                                        lineNumber: 68,
+                                                        lineNumber: 90,
                                                         columnNumber: 37
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -895,19 +900,19 @@ function PortfoliosPage() {
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/(dashboard)/portfolio/page.tsx",
-                                                        lineNumber: 72,
+                                                        lineNumber: 94,
                                                         columnNumber: 37
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/(dashboard)/portfolio/page.tsx",
-                                                lineNumber: 67,
+                                                lineNumber: 89,
                                                 columnNumber: 33
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/(dashboard)/portfolio/page.tsx",
-                                        lineNumber: 62,
+                                        lineNumber: 81,
                                         columnNumber: 29
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardFooter"], {
@@ -920,14 +925,14 @@ function PortfoliosPage() {
                                                         className: "w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/(dashboard)/portfolio/page.tsx",
-                                                        lineNumber: 79,
+                                                        lineNumber: 101,
                                                         columnNumber: 37
                                                     }, this),
                                                     "ESTADO: ACTIVO"
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/(dashboard)/portfolio/page.tsx",
-                                                lineNumber: 78,
+                                                lineNumber: 100,
                                                 columnNumber: 33
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -938,24 +943,24 @@ function PortfoliosPage() {
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/(dashboard)/portfolio/page.tsx",
-                                                lineNumber: 82,
+                                                lineNumber: 104,
                                                 columnNumber: 33
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/(dashboard)/portfolio/page.tsx",
-                                        lineNumber: 77,
+                                        lineNumber: 99,
                                         columnNumber: 29
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/(dashboard)/portfolio/page.tsx",
-                                lineNumber: 52,
+                                lineNumber: 71,
                                 columnNumber: 25
                             }, this)
                         }, p.id, false, {
                             fileName: "[project]/app/(dashboard)/portfolio/page.tsx",
-                            lineNumber: 51,
+                            lineNumber: 70,
                             columnNumber: 21
                         }, this)),
                     portfolios.length === 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -966,7 +971,7 @@ function PortfoliosPage() {
                                 className: "mb-4 opacity-20"
                             }, void 0, false, {
                                 fileName: "[project]/app/(dashboard)/portfolio/page.tsx",
-                                lineNumber: 90,
+                                lineNumber: 112,
                                 columnNumber: 25
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -974,7 +979,7 @@ function PortfoliosPage() {
                                 children: "Sin Despliegues Activos"
                             }, void 0, false, {
                                 fileName: "[project]/app/(dashboard)/portfolio/page.tsx",
-                                lineNumber: 91,
+                                lineNumber: 113,
                                 columnNumber: 25
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -983,26 +988,26 @@ function PortfoliosPage() {
                                     "Tus workspaces de trading seguro aparecerán aquí",
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("br", {}, void 0, false, {
                                         fileName: "[project]/app/(dashboard)/portfolio/page.tsx",
-                                        lineNumber: 93,
+                                        lineNumber: 115,
                                         columnNumber: 77
                                     }, this),
                                     "una vez inicializados los modelos."
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/(dashboard)/portfolio/page.tsx",
-                                lineNumber: 92,
+                                lineNumber: 114,
                                 columnNumber: 25
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/(dashboard)/portfolio/page.tsx",
-                        lineNumber: 89,
+                        lineNumber: 111,
                         columnNumber: 21
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/(dashboard)/portfolio/page.tsx",
-                lineNumber: 49,
+                lineNumber: 68,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1012,7 +1017,7 @@ function PortfoliosPage() {
                         className: "h-px w-20 bg-white"
                     }, void 0, false, {
                         fileName: "[project]/app/(dashboard)/portfolio/page.tsx",
-                        lineNumber: 100,
+                        lineNumber: 122,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1020,26 +1025,26 @@ function PortfoliosPage() {
                         children: "FINSIGHT_PORTFOLIO_ENGINE"
                     }, void 0, false, {
                         fileName: "[project]/app/(dashboard)/portfolio/page.tsx",
-                        lineNumber: 101,
+                        lineNumber: 123,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                         className: "h-px w-20 bg-white"
                     }, void 0, false, {
                         fileName: "[project]/app/(dashboard)/portfolio/page.tsx",
-                        lineNumber: 102,
+                        lineNumber: 124,
                         columnNumber: 17
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/(dashboard)/portfolio/page.tsx",
-                lineNumber: 99,
+                lineNumber: 121,
                 columnNumber: 13
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/app/(dashboard)/portfolio/page.tsx",
-        lineNumber: 40,
+        lineNumber: 59,
         columnNumber: 9
     }, this);
 }

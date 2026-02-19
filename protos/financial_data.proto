@@ -11,6 +11,17 @@ service FinancialDataService {
   rpc GetBatchPrices (BatchStockRequest) returns (BatchStockResponse);
   rpc GetPriceHistory (HistoryRequest) returns (HistoryResponse);
   rpc GetAvailableSymbols (EmptyRequest) returns (SymbolsResponse);
+  rpc GetCategorizedAssets (EmptyRequest) returns (CategorizedAssetsResponse);
+}
+
+message Asset {
+  string symbol = 1;
+  string name = 2;
+  string category = 3;
+}
+
+message CategorizedAssetsResponse {
+  repeated Asset assets = 1;
 }
 
 message StockRequest {

@@ -28,6 +28,7 @@ const DASHBOARD_QUERY = gql`
       id
       username
       cashBalance
+      lockedBalance
     }
     portfolios {
       id
@@ -69,6 +70,7 @@ export default function DashboardPage() {
 
     const portfolio = data?.portfolios?.[0];
     const userCashBalance = data?.me?.cashBalance || 0;
+    const userLockedBalance = data?.me?.lockedBalance || 0;
 
     interface Position {
         symbol: string;
@@ -93,7 +95,7 @@ export default function DashboardPage() {
         }, 0);
     }, [data?.portfolios]);
 
-    const totalBalance = userCashBalance + investedTotal;
+    const totalBalance = userCashBalance + userLockedBalance + investedTotal;
 
     // Create a map of portfolio positions for TradeDialog
     const portfolioPositions = useMemo(() => {
@@ -170,6 +172,12 @@ export default function DashboardPage() {
                                 ${investedTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                             </p>
                         </div>
+                        <div className="text-right border-r border-white/10 pr-4">
+                            <p className="text-slate-500 text-[10px] uppercase tracking-widest font-bold">Bloqueado</p>
+                            <p className="text-lg font-mono font-bold text-orange-400">
+                                ${userLockedBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                            </p>
+                        </div>
                         <div className="text-right">
                             <p className="text-green-500/60 text-[10px] uppercase tracking-widest font-bold">Total_Neto</p>
                             <p className="text-xl font-mono font-bold text-white">
@@ -240,8 +248,8 @@ export default function DashboardPage() {
                             <>
                                 <TradeDialog portfolios={data.portfolios} defaultType="buy" portfolioPositions={portfolioPositions} />
                                 <TradeDialog portfolios={data.portfolios} defaultType="sell" portfolioPositions={portfolioPositions} />
-                                <CashActionDialog portfolios={data.portfolios} initialType="deposit" />
-                                <CashActionDialog portfolios={data.portfolios} initialType="withdraw" />
+                                <CashActionDialog initialType="deposit" />
+                                <CashActionDialog initialType="withdraw" />
                             </>
                         ) : (
                             <div className="col-span-4 p-8 bg-white/5 border border-white/5 rounded-3xl text-center">

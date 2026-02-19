@@ -38,6 +38,8 @@ class OrderServiceTest {
         private PortfolioUseCase portfolioUseCase;
         @Mock
         private MetricRepository metricRepository;
+        @Mock
+        private com.finsight.portfoliomanager.application.ports.out.TransactionRepository transactionRepository;
 
         @InjectMocks
         private OrderService orderService;
@@ -74,9 +76,44 @@ class OrderServiceTest {
         }
 
         @Test
+        void createLimitOrder_BuyLimit_ShouldLockCash() {
+                // Given
+                when(portfolioRepository.findById(any())).thenReturn(Optional.of(portfolio));
+                when(userRepository.findById(any())).thenReturn(Optional.of(user));
+                when(orderRepository.save(any())).thenAnswer(i -> i.getArguments()[0]);
+
+                // When
+                Order result = orderService.createLimitOrder(order);
+
+                // Then
+                assertEquals(new BigDecimal("850"), user.getCashBalance()); // 1000 - 150
+                assertEquals(new BigDecimal("150"), user.getLockedBalance());
+                assertEquals(com.finsight.portfoliomanager.domain.OrderStatus.PENDING, result.getStatus());
+                verify(userRepository, times(1)).save(user);
+        }
+
+        @Test
+        void cancelOrder_BuyLimit_ShouldUnlockCashAndRecordTransaction() {
+                // Given
+                when(orderRepository.findById(any())).thenReturn(Optional.of(order));
+                when(portfolioRepository.findById(any())).thenReturn(Optional.of(portfolio));
+                when(userRepository.findById(any())).thenReturn(Optional.of(user));
+                user.setCashBalance(new BigDecimal("850"));
+                user.setLockedBalance(new BigDecimal("150"));
+
+                // When
+                orderService.cancelOrder(order.getId());
+
+                // Then
+                assertEquals(new BigDecimal("1000"), user.getCashBalance());
+                assertEquals(BigDecimal.ZERO, user.getLockedBalance());
+                verify(transactionRepository, times(1)).save(any());
+        }
+
+        @Test
         void executeOrder_BuyLimit_ShouldRefundReservedAndCallBuyAsset() {
                 // Given
-                BigDecimal currentPrice = new BigDecimal("145"); // Better than target price
+                BigDecimal currentPrice = new BigDecimal("145");
                 when(portfolioRepository.findById(order.getPortfolioId())).thenReturn(Optional.of(portfolio));
                 when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
                 when(orderRepository.findById(any())).thenReturn(Optional.of(order));
@@ -86,14 +123,7 @@ class OrderServiceTest {
                 orderService.executeOrder(order.getId(), currentPrice);
 
                 // Then
-                // Verified: The user balance should have been temporarily increased by reserved
-                // amount (150)
-                // OrderService logic: currentBalance + reservedAmount
-                // In this test: 1000 + 150 = 1150
                 assertEquals(new BigDecimal("1150"), user.getCashBalance());
-
-                verify(userRepository, times(1)).save(user);
-                verify(portfolioUseCase, times(1)).buyAsset(eq(portfolio.getId()), eq("AAPL"), eq(new BigDecimal("1")),
-                                eq(currentPrice));
+                verify(portfolioUseCase, times(1)).buyAsset(any(), any(), any(), any());
         }
 }

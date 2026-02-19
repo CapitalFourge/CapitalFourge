@@ -18,6 +18,23 @@ public class AssetSearchService {
 
     private final GrpcFinancialDataClient grpcClient;
 
+    public List<AssetInfo> getCategorizedAssets(String category) {
+        try {
+            List<com.finsight.proto.Asset> allAssets = grpcClient.getCategorizedAssets();
+            return allAssets.stream()
+                    .filter(a -> category == null || a.getCategory().equalsIgnoreCase(category))
+                    .map(a -> AssetInfo.builder()
+                            .symbol(a.getSymbol())
+                            .name(a.getName())
+                            .category(a.getCategory())
+                            .build())
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("Error getting categorized assets: {}", e.getMessage());
+            return List.of();
+        }
+    }
+
     public List<AssetSuggestion> searchSymbols(String query, int limit) {
         if (query == null || query.trim().length() < 2) {
             return List.of();
@@ -66,9 +83,9 @@ public class AssetSearchService {
                     })
                     .limit(limit)
                     .map(symbol -> AssetSuggestion.builder()
-                    .symbol(symbol)
-                    .name(getAssetName(symbol))
-                    .build())
+                            .symbol(symbol)
+                            .name(getAssetName(symbol))
+                            .build())
                     .collect(Collectors.toList());
 
             log.info("✅ Found {} results for query '{}': {}", results.size(), query,
@@ -88,6 +105,16 @@ public class AssetSearchService {
             log.debug("Could not fetch name for symbol {}: {}", symbol, e.getMessage());
             return null;
         }
+    }
+
+    @Data
+    @lombok.Builder
+    @lombok.NoArgsConstructor
+    @lombok.AllArgsConstructor
+    public static class AssetInfo {
+        private String symbol;
+        private String name;
+        private String category;
     }
 
     @Data

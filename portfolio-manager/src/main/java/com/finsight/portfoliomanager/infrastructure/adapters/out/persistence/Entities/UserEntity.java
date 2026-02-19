@@ -46,5 +46,8 @@ public class UserEntity {
     @Column(name = "cash_balance")
     private BigDecimal cashBalance;
 
+    @Column(name = "locked_balance")
+    private BigDecimal lockedBalance;
+
     private LocalDateTime lastLoginAt;
 }

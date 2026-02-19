@@ -652,7 +652,7 @@ function SymbolAutocomplete({ value, onChange, placeholder = "Buscar activo...",
                         className: "absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400"
                     }, void 0, false, {
                         fileName: "[project]/components/trading/symbol-autocomplete.tsx",
-                        lineNumber: 107,
+                        lineNumber: 112,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -667,20 +667,20 @@ function SymbolAutocomplete({ value, onChange, placeholder = "Buscar activo...",
                         className: `bg-black/40 border-white/10 text-white pl-10 ${inputClassName}`
                     }, void 0, false, {
                         fileName: "[project]/components/trading/symbol-autocomplete.tsx",
-                        lineNumber: 108,
+                        lineNumber: 113,
                         columnNumber: 17
                     }, this),
                     loading && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$loader$2d$circle$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Loader2$3e$__["Loader2"], {
                         className: "absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400 animate-spin"
                     }, void 0, false, {
                         fileName: "[project]/components/trading/symbol-autocomplete.tsx",
-                        lineNumber: 120,
+                        lineNumber: 125,
                         columnNumber: 21
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/components/trading/symbol-autocomplete.tsx",
-                lineNumber: 106,
+                lineNumber: 111,
                 columnNumber: 13
             }, this),
             showSuggestions && suggestions.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -696,7 +696,7 @@ function SymbolAutocomplete({ value, onChange, placeholder = "Buscar activo...",
                                     children: suggestion.symbol
                                 }, void 0, false, {
                                     fileName: "[project]/components/trading/symbol-autocomplete.tsx",
-                                    lineNumber: 135,
+                                    lineNumber: 139,
                                     columnNumber: 33
                                 }, this),
                                 suggestion.name && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -704,23 +704,23 @@ function SymbolAutocomplete({ value, onChange, placeholder = "Buscar activo...",
                                     children: suggestion.name
                                 }, void 0, false, {
                                     fileName: "[project]/components/trading/symbol-autocomplete.tsx",
-                                    lineNumber: 137,
+                                    lineNumber: 141,
                                     columnNumber: 37
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/trading/symbol-autocomplete.tsx",
-                            lineNumber: 134,
+                            lineNumber: 138,
                             columnNumber: 29
                         }, this)
                     }, suggestion.symbol, false, {
                         fileName: "[project]/components/trading/symbol-autocomplete.tsx",
-                        lineNumber: 127,
+                        lineNumber: 132,
                         columnNumber: 25
                     }, this))
             }, void 0, false, {
                 fileName: "[project]/components/trading/symbol-autocomplete.tsx",
-                lineNumber: 125,
+                lineNumber: 130,
                 columnNumber: 17
             }, this),
             showSuggestions && query.length >= 2 && !loading && suggestions.length === 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -732,13 +732,13 @@ function SymbolAutocomplete({ value, onChange, placeholder = "Buscar activo...",
                 ]
             }, void 0, true, {
                 fileName: "[project]/components/trading/symbol-autocomplete.tsx",
-                lineNumber: 146,
+                lineNumber: 150,
                 columnNumber: 17
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/components/trading/symbol-autocomplete.tsx",
-        lineNumber: 105,
+        lineNumber: 110,
         columnNumber: 9
     }, this);
 }
@@ -788,7 +788,6 @@ const BUY_ASSET_MUTATION = __TURBOPACK__imported__module__$5b$project$5d2f$node_
   mutation BuyAsset($portfolioId: ID!, $symbol: String!, $quantity: Float!, $price: Float!) {
     buyAsset(portfolioId: $portfolioId, symbol: $symbol, quantity: $quantity, price: $price) {
       id
-      balance
     }
   }
 `;
@@ -796,7 +795,6 @@ const SELL_ASSET_MUTATION = __TURBOPACK__imported__module__$5b$project$5d2f$node
   mutation SellAsset($portfolioId: ID!, $symbol: String!, $quantity: Float!, $price: Float!) {
     sellAsset(portfolioId: $portfolioId, symbol: $symbol, quantity: $quantity, price: $price) {
       id
-      balance
     }
   }
 `;
@@ -804,7 +802,6 @@ const BUY_ASSET_BY_USD_MUTATION = __TURBOPACK__imported__module__$5b$project$5d2
   mutation BuyAssetByUSD($portfolioId: ID!, $symbol: String!, $usdAmount: Float!, $price: Float!) {
     buyAssetByUSD(portfolioId: $portfolioId, symbol: $symbol, usdAmount: $usdAmount, price: $price) {
       id
-      balance
     }
   }
 `;
@@ -812,7 +809,6 @@ const SELL_ASSET_BY_USD_MUTATION = __TURBOPACK__imported__module__$5b$project$5d
   mutation SellAssetByUSD($portfolioId: ID!, $symbol: String!, $usdAmount: Float!, $price: Float!) {
     sellAssetByUSD(portfolioId: $portfolioId, symbol: $symbol, usdAmount: $usdAmount, price: $price) {
       id
-      balance
     }
   }
 `;
@@ -846,7 +842,7 @@ const STOCK_PRICE_QUERY = __TURBOPACK__imported__module__$5b$project$5d2f$node_m
     }
   }
 `;
-function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions }) {
+function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions, initialSymbol = "" }) {
     _s();
     const [open, setOpen] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
     const [type, setType] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(defaultType);
@@ -854,7 +850,7 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions }) {
     const [tradingMode, setTradingMode] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("quantity");
     // Form state
     const [portfolioId, setPortfolioId] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(portfolios[0]?.id || "");
-    const [symbol, setSymbol] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("");
+    const [symbol, setSymbol] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(initialSymbol);
     const [quantity, setQuantity] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("");
     const [usdAmount, setUsdAmount] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("");
     const [price, setPrice] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("");
@@ -869,40 +865,43 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions }) {
         fetchPolicy: "network-only"
     });
     // Update price when market price is fetched (FIXED BUG)
-    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
-        "TradeDialog.useEffect": ()=>{
+    // Removed setPrice from useEffect to avoid cascading renders
+    const effectivePrice = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMemo"])({
+        "TradeDialog.useMemo[effectivePrice]": ()=>{
             if (priceType === "market" && priceData?.stockPrice) {
-                setPrice(priceData.stockPrice.price.toString());
+                return priceData.stockPrice.price.toString();
             }
+            return price;
         }
-    }["TradeDialog.useEffect"], [
+    }["TradeDialog.useMemo[effectivePrice]"], [
         priceData,
-        priceType
+        priceType,
+        price
     ]);
     // Real-time calculation
     const calculatedQuantity = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMemo"])({
         "TradeDialog.useMemo[calculatedQuantity]": ()=>{
-            if (tradingMode === "usd" && price && usdAmount) {
-                return (parseFloat(usdAmount) / parseFloat(price)).toFixed(8);
+            if (tradingMode === "usd" && effectivePrice && usdAmount) {
+                return (parseFloat(usdAmount) / parseFloat(effectivePrice)).toFixed(8);
             }
             return quantity;
         }
     }["TradeDialog.useMemo[calculatedQuantity]"], [
         tradingMode,
-        price,
+        effectivePrice,
         usdAmount,
         quantity
     ]);
     const calculatedUSD = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMemo"])({
         "TradeDialog.useMemo[calculatedUSD]": ()=>{
-            if (tradingMode === "quantity" && price && quantity) {
-                return (parseFloat(quantity) * parseFloat(price)).toFixed(2);
+            if (tradingMode === "quantity" && effectivePrice && quantity) {
+                return (parseFloat(quantity) * parseFloat(effectivePrice)).toFixed(2);
             }
             return usdAmount;
         }
     }["TradeDialog.useMemo[calculatedUSD]"], [
         tradingMode,
-        price,
+        effectivePrice,
         quantity,
         usdAmount
     ]);
@@ -968,14 +967,14 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions }) {
     });
     const loading = buyLoading || sellLoading || buyLoadingUSD || sellLoadingUSD || limitOrderLoading;
     const handleTrade = async ()=>{
-        if (!portfolioId || !symbol || !price) {
+        if (!portfolioId || !symbol || !effectivePrice) {
             __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$sonner$2f$dist$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["toast"].error("Por favor, completa todos los campos.");
             return;
         }
         const variables = {
             portfolioId,
             symbol,
-            price: parseFloat(price)
+            price: parseFloat(effectivePrice)
         };
         if (orderType === "market") {
             // Execute market order
@@ -1036,7 +1035,7 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions }) {
                 variables.usdAmount = parseFloat(usdAmount);
             }
             variables.type = type === "buy" ? "BUY_LIMIT" : "SELL_LIMIT";
-            variables.targetPrice = parseFloat(price);
+            variables.targetPrice = parseFloat(effectivePrice);
             await createLimitOrder({
                 variables
             });
@@ -1049,7 +1048,14 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions }) {
         }
     };
     // Get current portfolio positions
-    const currentPortfolioPositions = portfolioPositions?.get(portfolioId) || [];
+    const currentPortfolioPositions = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMemo"])({
+        "TradeDialog.useMemo[currentPortfolioPositions]": ()=>{
+            return portfolioPositions?.get(portfolioId) || [];
+        }
+    }["TradeDialog.useMemo[currentPortfolioPositions]"], [
+        portfolioPositions,
+        portfolioId
+    ]);
     // Debug logging
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
         "TradeDialog.useEffect": ()=>{
@@ -1078,25 +1084,25 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions }) {
                             className: "w-4 h-4"
                         }, void 0, false, {
                             fileName: "[project]/components/trading/trade-dialog.tsx",
-                            lineNumber: 269,
+                            lineNumber: 293,
                             columnNumber: 46
                         }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$trending$2d$down$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__TrendingDown$3e$__["TrendingDown"], {
                             className: "w-4 h-4"
                         }, void 0, false, {
                             fileName: "[project]/components/trading/trade-dialog.tsx",
-                            lineNumber: 269,
+                            lineNumber: 293,
                             columnNumber: 85
                         }, this),
                         defaultType === "buy" ? "COMPRAR" : "VENDER"
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/trading/trade-dialog.tsx",
-                    lineNumber: 268,
+                    lineNumber: 292,
                     columnNumber: 17
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/components/trading/trade-dialog.tsx",
-                lineNumber: 267,
+                lineNumber: 291,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DialogContent"], {
@@ -1108,12 +1114,12 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions }) {
                             children: "Inicializar Operación"
                         }, void 0, false, {
                             fileName: "[project]/components/trading/trade-dialog.tsx",
-                            lineNumber: 275,
+                            lineNumber: 299,
                             columnNumber: 21
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/components/trading/trade-dialog.tsx",
-                        lineNumber: 274,
+                        lineNumber: 298,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1125,7 +1131,7 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions }) {
                                 children: "COMPRA"
                             }, void 0, false, {
                                 fileName: "[project]/components/trading/trade-dialog.tsx",
-                                lineNumber: 281,
+                                lineNumber: 305,
                                 columnNumber: 21
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1134,13 +1140,13 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions }) {
                                 children: "VENTA"
                             }, void 0, false, {
                                 fileName: "[project]/components/trading/trade-dialog.tsx",
-                                lineNumber: 287,
+                                lineNumber: 311,
                                 columnNumber: 21
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/trading/trade-dialog.tsx",
-                        lineNumber: 280,
+                        lineNumber: 304,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1152,7 +1158,7 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions }) {
                                 children: "MERCADO"
                             }, void 0, false, {
                                 fileName: "[project]/components/trading/trade-dialog.tsx",
-                                lineNumber: 296,
+                                lineNumber: 320,
                                 columnNumber: 21
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1161,13 +1167,13 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions }) {
                                 children: "LÍMITE"
                             }, void 0, false, {
                                 fileName: "[project]/components/trading/trade-dialog.tsx",
-                                lineNumber: 302,
+                                lineNumber: 326,
                                 columnNumber: 21
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/trading/trade-dialog.tsx",
-                        lineNumber: 295,
+                        lineNumber: 319,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1179,7 +1185,7 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions }) {
                                 children: "POR CANTIDAD"
                             }, void 0, false, {
                                 fileName: "[project]/components/trading/trade-dialog.tsx",
-                                lineNumber: 311,
+                                lineNumber: 335,
                                 columnNumber: 21
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1188,13 +1194,13 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions }) {
                                 children: "POR USD"
                             }, void 0, false, {
                                 fileName: "[project]/components/trading/trade-dialog.tsx",
-                                lineNumber: 317,
+                                lineNumber: 341,
                                 columnNumber: 21
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/trading/trade-dialog.tsx",
-                        lineNumber: 310,
+                        lineNumber: 334,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1208,7 +1214,7 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions }) {
                                         children: "Portafolio de Destino"
                                     }, void 0, false, {
                                         fileName: "[project]/components/trading/trade-dialog.tsx",
-                                        lineNumber: 327,
+                                        lineNumber: 351,
                                         columnNumber: 25
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("select", {
@@ -1223,18 +1229,18 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions }) {
                                                 children: p.name || `Estrategia_${p.id.substring(0, 4)}`
                                             }, p.id, false, {
                                                 fileName: "[project]/components/trading/trade-dialog.tsx",
-                                                lineNumber: 337,
+                                                lineNumber: 361,
                                                 columnNumber: 33
                                             }, this))
                                     }, void 0, false, {
                                         fileName: "[project]/components/trading/trade-dialog.tsx",
-                                        lineNumber: 328,
+                                        lineNumber: 352,
                                         columnNumber: 25
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/trading/trade-dialog.tsx",
-                                lineNumber: 326,
+                                lineNumber: 350,
                                 columnNumber: 21
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1248,7 +1254,7 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions }) {
                                                 children: "Símbolo (Ticker)"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/trading/trade-dialog.tsx",
-                                                lineNumber: 344,
+                                                lineNumber: 368,
                                                 columnNumber: 29
                                             }, this),
                                             type === "sell" ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1267,7 +1273,7 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions }) {
                                                                 children: "Seleccionar activo..."
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/trading/trade-dialog.tsx",
-                                                                lineNumber: 355,
+                                                                lineNumber: 379,
                                                                 columnNumber: 41
                                                             }, this),
                                                             currentPortfolioPositions.length > 0 ? currentPortfolioPositions.map((pos)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -1280,7 +1286,7 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions }) {
                                                                     ]
                                                                 }, pos.symbol, true, {
                                                                     fileName: "[project]/components/trading/trade-dialog.tsx",
-                                                                    lineNumber: 358,
+                                                                    lineNumber: 382,
                                                                     columnNumber: 49
                                                                 }, this)) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
                                                                 value: "",
@@ -1288,13 +1294,13 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions }) {
                                                                 children: "No hay activos disponibles en este portafolio"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/trading/trade-dialog.tsx",
-                                                                lineNumber: 363,
+                                                                lineNumber: 387,
                                                                 columnNumber: 45
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/components/trading/trade-dialog.tsx",
-                                                        lineNumber: 347,
+                                                        lineNumber: 371,
                                                         columnNumber: 37
                                                     }, this),
                                                     symbol && currentPortfolioPositions.length > 0 && (()=>{
@@ -1310,7 +1316,7 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions }) {
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/components/trading/trade-dialog.tsx",
-                                                                lineNumber: 372,
+                                                                lineNumber: 396,
                                                                 columnNumber: 49
                                                             }, this);
                                                         }
@@ -1321,13 +1327,13 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions }) {
                                                         children: "Este portafolio no tiene activos para vender"
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/trading/trade-dialog.tsx",
-                                                        lineNumber: 380,
+                                                        lineNumber: 404,
                                                         columnNumber: 41
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/components/trading/trade-dialog.tsx",
-                                                lineNumber: 346,
+                                                lineNumber: 370,
                                                 columnNumber: 33
                                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$trading$2f$symbol$2d$autocomplete$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SymbolAutocomplete"], {
                                                 value: symbol,
@@ -1336,13 +1342,13 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions }) {
                                                 inputClassName: "w-full"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/trading/trade-dialog.tsx",
-                                                lineNumber: 386,
+                                                lineNumber: 410,
                                                 columnNumber: 33
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/trading/trade-dialog.tsx",
-                                        lineNumber: 343,
+                                        lineNumber: 367,
                                         columnNumber: 25
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1353,7 +1359,7 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions }) {
                                                 children: tradingMode === "quantity" ? "Cantidad" : "Monto USD"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/trading/trade-dialog.tsx",
-                                                lineNumber: 395,
+                                                lineNumber: 419,
                                                 columnNumber: 29
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -1366,7 +1372,7 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions }) {
                                                 className: "bg-black/40 border-white/10 text-white"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/trading/trade-dialog.tsx",
-                                                lineNumber: 398,
+                                                lineNumber: 422,
                                                 columnNumber: 29
                                             }, this),
                                             price && (tradingMode === "quantity" ? quantity : usdAmount) && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1374,19 +1380,19 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions }) {
                                                 children: tradingMode === "quantity" ? `Valor total: $${calculatedUSD}` : `Cantidad estimada: ${calculatedQuantity}`
                                             }, void 0, false, {
                                                 fileName: "[project]/components/trading/trade-dialog.tsx",
-                                                lineNumber: 408,
+                                                lineNumber: 432,
                                                 columnNumber: 33
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/trading/trade-dialog.tsx",
-                                        lineNumber: 394,
+                                        lineNumber: 418,
                                         columnNumber: 25
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/trading/trade-dialog.tsx",
-                                lineNumber: 342,
+                                lineNumber: 366,
                                 columnNumber: 21
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1397,19 +1403,19 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions }) {
                                         children: orderType === "market" ? "Precio de Mercado ($)" : "Precio Objetivo ($)"
                                     }, void 0, false, {
                                         fileName: "[project]/components/trading/trade-dialog.tsx",
-                                        lineNumber: 418,
+                                        lineNumber: 442,
                                         columnNumber: 25
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
                                         type: "number",
                                         placeholder: orderType === "market" ? "Cargando precio..." : "0.00",
-                                        value: price,
+                                        value: effectivePrice,
                                         onChange: (e)=>setPrice(e.target.value),
                                         disabled: orderType === "market",
                                         className: "bg-black/40 border-white/10 text-white"
                                     }, void 0, false, {
                                         fileName: "[project]/components/trading/trade-dialog.tsx",
-                                        lineNumber: 421,
+                                        lineNumber: 445,
                                         columnNumber: 25
                                     }, this),
                                     orderType === "market" && priceData?.stockPrice && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1420,19 +1426,19 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions }) {
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/trading/trade-dialog.tsx",
-                                        lineNumber: 430,
+                                        lineNumber: 454,
                                         columnNumber: 29
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/trading/trade-dialog.tsx",
-                                lineNumber: 417,
+                                lineNumber: 441,
                                 columnNumber: 21
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/trading/trade-dialog.tsx",
-                        lineNumber: 325,
+                        lineNumber: 349,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DialogFooter"], {
@@ -1444,28 +1450,28 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions }) {
                             children: loading ? "EJECUTANDO..." : orderType === "market" ? `CONFIRMAR ${type === "buy" ? "COMPRA" : "VENTA"}` : `CREAR ORDEN ${type === "buy" ? "COMPRA" : "VENTA"}`
                         }, void 0, false, {
                             fileName: "[project]/components/trading/trade-dialog.tsx",
-                            lineNumber: 438,
+                            lineNumber: 462,
                             columnNumber: 21
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/components/trading/trade-dialog.tsx",
-                        lineNumber: 437,
+                        lineNumber: 461,
                         columnNumber: 17
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/components/trading/trade-dialog.tsx",
-                lineNumber: 273,
+                lineNumber: 297,
                 columnNumber: 13
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/components/trading/trade-dialog.tsx",
-        lineNumber: 266,
+        lineNumber: 290,
         columnNumber: 9
     }, this);
 }
-_s(TradeDialog, "KhQIJDVHHLRmYDSqOZQuKXzh3q0=", false, function() {
+_s(TradeDialog, "qPoEPESxrHdlede9MlYYKAeKjNg=", false, function() {
     return [
         __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$apollo$2f$client$2f$react$2f$hooks$2f$useQuery$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useQuery"],
         __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$apollo$2f$client$2f$react$2f$hooks$2f$useMutation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMutation"],
@@ -1508,32 +1514,31 @@ var _s = __turbopack_context__.k.signature();
 ;
 ;
 ;
-const ADD_CASH_MUTATION = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$graphql$2d$tag$2f$lib$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["gql"]`
-  mutation AddCash($portfolioId: ID!, $amount: Float!) {
-    addCash(portfolioId: $portfolioId, amount: $amount) {
+const DEPOSIT_MUTATION = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$graphql$2d$tag$2f$lib$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["gql"]`
+  mutation Deposit($amount: Float!) {
+    deposit(amount: $amount) {
       id
-      balance
+      cashBalance
     }
   }
 `;
-const WITHDRAW_CASH_MUTATION = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$graphql$2d$tag$2f$lib$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["gql"]`
-  mutation WithdrawCash($portfolioId: ID!, $amount: Float!) {
-    withdrawCash(portfolioId: $portfolioId, amount: $amount) {
+const WITHDRAW_MUTATION = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$graphql$2d$tag$2f$lib$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["gql"]`
+  mutation Withdraw($amount: Float!) {
+    withdraw(amount: $amount) {
       id
-      balance
+      cashBalance
     }
   }
 `;
-function CashActionDialog({ portfolios, initialType = "deposit" }) {
+function CashActionDialog({ initialType = "deposit" }) {
     _s();
     const [open, setOpen] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
     const [type, setType] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(initialType);
-    const [portfolioId, setPortfolioId] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(portfolios[0]?.id || "");
     const [amount, setAmount] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("");
-    const [addCash, { loading: addLoading }] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$apollo$2f$client$2f$react$2f$hooks$2f$useMutation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMutation"])(ADD_CASH_MUTATION, {
+    const [deposit, { loading: depositLoading }] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$apollo$2f$client$2f$react$2f$hooks$2f$useMutation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMutation"])(DEPOSIT_MUTATION, {
         onCompleted: {
             "CashActionDialog.useMutation": ()=>{
-                __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$sonner$2f$dist$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["toast"].success("¡Depósito realizado con éxito!");
+                __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$sonner$2f$dist$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["toast"].success("¡Depósito global realizado con éxito!");
                 setOpen(false);
                 setAmount("");
                 window.location.reload();
@@ -1543,10 +1548,10 @@ function CashActionDialog({ portfolios, initialType = "deposit" }) {
             "CashActionDialog.useMutation": (err)=>__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$sonner$2f$dist$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["toast"].error(`Error en depósito: ${err.message}`)
         }["CashActionDialog.useMutation"]
     });
-    const [withdrawCash, { loading: withdrawLoading }] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$apollo$2f$client$2f$react$2f$hooks$2f$useMutation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMutation"])(WITHDRAW_CASH_MUTATION, {
+    const [withdraw, { loading: withdrawLoading }] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$apollo$2f$client$2f$react$2f$hooks$2f$useMutation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMutation"])(WITHDRAW_MUTATION, {
         onCompleted: {
             "CashActionDialog.useMutation": ()=>{
-                __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$sonner$2f$dist$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["toast"].success("¡Retiro realizado con éxito!");
+                __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$sonner$2f$dist$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["toast"].success("¡Retiro global realizado con éxito!");
                 setOpen(false);
                 setAmount("");
                 window.location.reload();
@@ -1556,32 +1561,21 @@ function CashActionDialog({ portfolios, initialType = "deposit" }) {
             "CashActionDialog.useMutation": (err)=>__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$sonner$2f$dist$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["toast"].error(`Error en retiro: ${err.message}`)
         }["CashActionDialog.useMutation"]
     });
-    const loading = addLoading || withdrawLoading;
+    const loading = depositLoading || withdrawLoading;
     const handleAction = async ()=>{
-        if (!portfolioId) {
-            __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$sonner$2f$dist$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["toast"].error("Por favor, selecciona un portafolio.");
-            return;
-        }
         if (!amount || Number(amount) <= 0) {
             __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$sonner$2f$dist$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["toast"].error("Por favor, ingresa un monto válido.");
             return;
         }
-        const selectedPortfolio = portfolios.find((p)=>p.id === portfolioId);
-        const currentBalance = selectedPortfolio?.balance || 0;
-        if (type === "withdraw" && Number(amount) > currentBalance) {
-            __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$sonner$2f$dist$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["toast"].error(`Saldo insuficiente. Balance actual: $${currentBalance.toLocaleString()}`);
-            return;
-        }
         const variables = {
-            portfolioId,
             amount: parseFloat(amount)
         };
         if (type === "deposit") {
-            await addCash({
+            await deposit({
                 variables
             });
         } else {
-            await withdrawCash({
+            await withdraw({
                 variables
             });
         }
@@ -1600,7 +1594,7 @@ function CashActionDialog({ portfolios, initialType = "deposit" }) {
                             className: "w-4 h-4"
                         }, void 0, false, {
                             fileName: "[project]/components/trading/cash-action-dialog.tsx",
-                            lineNumber: 92,
+                            lineNumber: 77,
                             columnNumber: 21
                         }, this),
                         " ",
@@ -1608,12 +1602,12 @@ function CashActionDialog({ portfolios, initialType = "deposit" }) {
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/trading/cash-action-dialog.tsx",
-                    lineNumber: 91,
+                    lineNumber: 76,
                     columnNumber: 17
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/components/trading/cash-action-dialog.tsx",
-                lineNumber: 90,
+                lineNumber: 75,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DialogContent"], {
@@ -1622,15 +1616,15 @@ function CashActionDialog({ portfolios, initialType = "deposit" }) {
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DialogHeader"], {
                         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DialogTitle"], {
                             className: "text-2xl font-bold tracking-tighter uppercase italic",
-                            children: "Transferencia de Fondos"
+                            children: "Billetera Global"
                         }, void 0, false, {
                             fileName: "[project]/components/trading/cash-action-dialog.tsx",
-                            lineNumber: 97,
+                            lineNumber: 82,
                             columnNumber: 21
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/components/trading/cash-action-dialog.tsx",
-                        lineNumber: 96,
+                        lineNumber: 81,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1642,7 +1636,7 @@ function CashActionDialog({ portfolios, initialType = "deposit" }) {
                                 children: "DEPÓSITO"
                             }, void 0, false, {
                                 fileName: "[project]/components/trading/cash-action-dialog.tsx",
-                                lineNumber: 103,
+                                lineNumber: 88,
                                 columnNumber: 21
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1651,54 +1645,24 @@ function CashActionDialog({ portfolios, initialType = "deposit" }) {
                                 children: "RETIRO"
                             }, void 0, false, {
                                 fileName: "[project]/components/trading/cash-action-dialog.tsx",
-                                lineNumber: 109,
+                                lineNumber: 94,
                                 columnNumber: 21
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/trading/cash-action-dialog.tsx",
-                        lineNumber: 102,
+                        lineNumber: 87,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                         className: "space-y-4 py-4",
                         children: [
-                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                className: "space-y-2",
-                                children: [
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
-                                        className: "text-xs uppercase tracking-[0.2em] text-slate-500",
-                                        children: "Portafolio"
-                                    }, void 0, false, {
-                                        fileName: "[project]/components/trading/cash-action-dialog.tsx",
-                                        lineNumber: 119,
-                                        columnNumber: 25
-                                    }, this),
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("select", {
-                                        value: portfolioId,
-                                        onChange: (e)=>setPortfolioId(e.target.value),
-                                        className: "w-full bg-black/40 border border-white/10 rounded-md p-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-slate-400",
-                                        children: portfolios.map((p)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
-                                                value: p.id,
-                                                children: [
-                                                    p.name || `Estrategia_${p.id.substring(0, 4)}`,
-                                                    " - Balance: $",
-                                                    p.balance?.toLocaleString()
-                                                ]
-                                            }, p.id, true, {
-                                                fileName: "[project]/components/trading/cash-action-dialog.tsx",
-                                                lineNumber: 126,
-                                                columnNumber: 33
-                                            }, this))
-                                    }, void 0, false, {
-                                        fileName: "[project]/components/trading/cash-action-dialog.tsx",
-                                        lineNumber: 120,
-                                        columnNumber: 25
-                                    }, this)
-                                ]
-                            }, void 0, true, {
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                className: "text-[10px] text-slate-500 uppercase tracking-widest text-center mb-2",
+                                children: "Los fondos se gestionan a nivel de cuenta global"
+                            }, void 0, false, {
                                 fileName: "[project]/components/trading/cash-action-dialog.tsx",
-                                lineNumber: 118,
+                                lineNumber: 103,
                                 columnNumber: 21
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1709,7 +1673,7 @@ function CashActionDialog({ portfolios, initialType = "deposit" }) {
                                         children: "Monto (USD)"
                                     }, void 0, false, {
                                         fileName: "[project]/components/trading/cash-action-dialog.tsx",
-                                        lineNumber: 133,
+                                        lineNumber: 107,
                                         columnNumber: 25
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -1720,30 +1684,19 @@ function CashActionDialog({ portfolios, initialType = "deposit" }) {
                                         className: "bg-black/40 border-white/10 text-white placeholder:text-slate-700"
                                     }, void 0, false, {
                                         fileName: "[project]/components/trading/cash-action-dialog.tsx",
-                                        lineNumber: 134,
+                                        lineNumber: 108,
                                         columnNumber: 25
-                                    }, this),
-                                    type === "withdraw" && portfolioId && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                        className: "text-[10px] text-slate-500",
-                                        children: [
-                                            "Balance disponible: $",
-                                            portfolios.find((p)=>p.id === portfolioId)?.balance?.toLocaleString() || 0
-                                        ]
-                                    }, void 0, true, {
-                                        fileName: "[project]/components/trading/cash-action-dialog.tsx",
-                                        lineNumber: 142,
-                                        columnNumber: 29
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/trading/cash-action-dialog.tsx",
-                                lineNumber: 132,
+                                lineNumber: 106,
                                 columnNumber: 21
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/trading/cash-action-dialog.tsx",
-                        lineNumber: 117,
+                        lineNumber: 102,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DialogFooter"], {
@@ -1754,28 +1707,28 @@ function CashActionDialog({ portfolios, initialType = "deposit" }) {
                             children: loading ? "PROCESANDO..." : `CONFIRMAR ${type === "deposit" ? "DEPÓSITO" : "RETIRO"}`
                         }, void 0, false, {
                             fileName: "[project]/components/trading/cash-action-dialog.tsx",
-                            lineNumber: 150,
+                            lineNumber: 119,
                             columnNumber: 21
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/components/trading/cash-action-dialog.tsx",
-                        lineNumber: 149,
+                        lineNumber: 118,
                         columnNumber: 17
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/components/trading/cash-action-dialog.tsx",
-                lineNumber: 95,
+                lineNumber: 80,
                 columnNumber: 13
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/components/trading/cash-action-dialog.tsx",
-        lineNumber: 89,
+        lineNumber: 74,
         columnNumber: 9
     }, this);
 }
-_s(CashActionDialog, "ZBu1wSABym19qracjF4AhKh/KfU=", false, function() {
+_s(CashActionDialog, "TsCLFH7Y3yaTGwaL8br+zXgczLA=", false, function() {
     return [
         __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$apollo$2f$client$2f$react$2f$hooks$2f$useMutation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMutation"],
         __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$apollo$2f$client$2f$react$2f$hooks$2f$useMutation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMutation"]
@@ -1797,6 +1750,7 @@ __turbopack_context__.s([
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/compiled/react/jsx-dev-runtime.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/compiled/react/index.js [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/client/app-dir/link.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$apollo$2f$client$2f$react$2f$hooks$2f$useQuery$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@apollo/client/react/hooks/useQuery.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$graphql$2d$tag$2f$lib$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/graphql-tag/lib/index.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$cartesian$2f$XAxis$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/recharts/es6/cartesian/XAxis.js [app-client] (ecmascript)");
@@ -1829,6 +1783,7 @@ console.log("[DEBUG] Dashboard module loaded");
 ;
 ;
 ;
+;
 console.log("[DEBUG] All imports completed");
 const DASHBOARD_QUERY = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$graphql$2d$tag$2f$lib$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["gql"]`
   query GetDashboardData($symbol: String!, $days: Int!) {
@@ -1836,15 +1791,17 @@ const DASHBOARD_QUERY = __TURBOPACK__imported__module__$5b$project$5d2f$node_mod
       id
       username
       cashBalance
+      lockedBalance
     }
     portfolios {
       id
       name
-      balance
       performance
       positions {
         symbol
         quantity
+        averagePurchasePrice
+        currentPrice
       }
     }
     priceHistory(symbol: $symbol, days: $days) {
@@ -1881,7 +1838,25 @@ function DashboardPage() {
     const currentPrice = realTimePrice[activeSymbol] ?? (data?.priceHistory?.length > 0 ? data.priceHistory[data.priceHistory.length - 1].price : 0);
     const portfolio = data?.portfolios?.[0];
     const userCashBalance = data?.me?.cashBalance || 0;
-    const totalBalance = userCashBalance;
+    const userLockedBalance = data?.me?.lockedBalance || 0;
+    const investedTotal = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMemo"])({
+        "DashboardPage.useMemo[investedTotal]": ()=>{
+            if (!data?.portfolios) return 0;
+            return data.portfolios.reduce({
+                "DashboardPage.useMemo[investedTotal]": (total, p)=>{
+                    const portfolioInvested = p.positions?.reduce({
+                        "DashboardPage.useMemo[investedTotal]": (sum, pos)=>{
+                            return sum + pos.quantity * (pos.currentPrice || pos.averagePurchasePrice);
+                        }
+                    }["DashboardPage.useMemo[investedTotal]"], 0) || 0;
+                    return total + portfolioInvested;
+                }
+            }["DashboardPage.useMemo[investedTotal]"], 0);
+        }
+    }["DashboardPage.useMemo[investedTotal]"], [
+        data?.portfolios
+    ]);
+    const totalBalance = userCashBalance + userLockedBalance + investedTotal;
     // Create a map of portfolio positions for TradeDialog
     const portfolioPositions = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMemo"])({
         "DashboardPage.useMemo[portfolioPositions]": ()=>{
@@ -1915,7 +1890,7 @@ function DashboardPage() {
                 children: "ERROR_DE_TERMINAL"
             }, void 0, false, {
                 fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                lineNumber: 92,
+                lineNumber: 118,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1923,13 +1898,13 @@ function DashboardPage() {
                 children: error.message
             }, void 0, false, {
                 fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                lineNumber: 93,
+                lineNumber: 119,
                 columnNumber: 13
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-        lineNumber: 91,
+        lineNumber: 117,
         columnNumber: 9
     }, this);
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1945,7 +1920,7 @@ function DashboardPage() {
                                 children: "TERMINAL_CENTRAL"
                             }, void 0, false, {
                                 fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                lineNumber: 102,
+                                lineNumber: 128,
                                 columnNumber: 21
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1955,7 +1930,7 @@ function DashboardPage() {
                                         className: "w-2 h-2 rounded-full bg-green-500 animate-pulse"
                                     }, void 0, false, {
                                         fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                        lineNumber: 104,
+                                        lineNumber: 130,
                                         columnNumber: 25
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1963,19 +1938,19 @@ function DashboardPage() {
                                         children: "Sistema_Online // Feed: En Vivo"
                                     }, void 0, false, {
                                         fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                        lineNumber: 105,
+                                        lineNumber: 131,
                                         columnNumber: 25
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                lineNumber: 103,
+                                lineNumber: 129,
                                 columnNumber: 21
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                        lineNumber: 101,
+                        lineNumber: 127,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1994,7 +1969,7 @@ function DashboardPage() {
                                 inputClassName: "bg-white/5 border-white/5 py-6 rounded-2xl text-xs font-bold tracking-widest"
                             }, void 0, false, {
                                 fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                lineNumber: 111,
+                                lineNumber: 137,
                                 columnNumber: 21
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2008,7 +1983,7 @@ function DashboardPage() {
                                                 children: "Ticker_Activo"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                                lineNumber: 126,
+                                                lineNumber: 152,
                                                 columnNumber: 29
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2016,20 +1991,20 @@ function DashboardPage() {
                                                 children: activeSymbol
                                             }, void 0, false, {
                                                 fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                                lineNumber: 127,
+                                                lineNumber: 153,
                                                 columnNumber: 29
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                        lineNumber: 125,
+                                        lineNumber: 151,
                                         columnNumber: 25
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         className: "h-8 w-px bg-white/10 mx-1"
                                     }, void 0, false, {
                                         fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                        lineNumber: 129,
+                                        lineNumber: 155,
                                         columnNumber: 25
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2040,7 +2015,7 @@ function DashboardPage() {
                                                 children: "Último_Precio"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                                lineNumber: 131,
+                                                lineNumber: 157,
                                                 columnNumber: 29
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2053,37 +2028,127 @@ function DashboardPage() {
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                                lineNumber: 132,
+                                                lineNumber: 158,
                                                 columnNumber: 29
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                        lineNumber: 130,
+                                        lineNumber: 156,
                                         columnNumber: 25
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                lineNumber: 124,
+                                lineNumber: 150,
                                 columnNumber: 21
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                className: "flex items-center gap-4 bg-green-500/10 p-4 py-3 rounded-2xl border border-green-500/20",
+                                className: "flex items-center gap-6 bg-white/5 p-4 py-3 rounded-2xl border border-white/5",
                                 children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        className: "text-right border-r border-white/10 pr-4",
+                                        children: [
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                className: "text-slate-500 text-[10px] uppercase tracking-widest font-bold",
+                                                children: "Cash_Disponible"
+                                            }, void 0, false, {
+                                                fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
+                                                lineNumber: 164,
+                                                columnNumber: 29
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                className: "text-lg font-mono font-bold text-green-400",
+                                                children: [
+                                                    "$",
+                                                    userCashBalance.toLocaleString(undefined, {
+                                                        minimumFractionDigits: 2
+                                                    })
+                                                ]
+                                            }, void 0, true, {
+                                                fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
+                                                lineNumber: 165,
+                                                columnNumber: 29
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
+                                        lineNumber: 163,
+                                        columnNumber: 25
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        className: "text-right border-r border-white/10 pr-4",
+                                        children: [
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                className: "text-slate-500 text-[10px] uppercase tracking-widest font-bold",
+                                                children: "Invertido"
+                                            }, void 0, false, {
+                                                fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
+                                                lineNumber: 170,
+                                                columnNumber: 29
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                className: "text-lg font-mono font-bold text-blue-400",
+                                                children: [
+                                                    "$",
+                                                    investedTotal.toLocaleString(undefined, {
+                                                        minimumFractionDigits: 2
+                                                    })
+                                                ]
+                                            }, void 0, true, {
+                                                fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
+                                                lineNumber: 171,
+                                                columnNumber: 29
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
+                                        lineNumber: 169,
+                                        columnNumber: 25
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        className: "text-right border-r border-white/10 pr-4",
+                                        children: [
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                className: "text-slate-500 text-[10px] uppercase tracking-widest font-bold",
+                                                children: "Bloqueado"
+                                            }, void 0, false, {
+                                                fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
+                                                lineNumber: 176,
+                                                columnNumber: 29
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                className: "text-lg font-mono font-bold text-orange-400",
+                                                children: [
+                                                    "$",
+                                                    userLockedBalance.toLocaleString(undefined, {
+                                                        minimumFractionDigits: 2
+                                                    })
+                                                ]
+                                            }, void 0, true, {
+                                                fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
+                                                lineNumber: 177,
+                                                columnNumber: 29
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
+                                        lineNumber: 175,
+                                        columnNumber: 25
+                                    }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         className: "text-right",
                                         children: [
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                                 className: "text-green-500/60 text-[10px] uppercase tracking-widest font-bold",
-                                                children: "Balance_Total"
+                                                children: "Total_Neto"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                                lineNumber: 138,
+                                                lineNumber: 182,
                                                 columnNumber: 29
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                className: "text-xl font-mono font-bold text-green-400",
+                                                className: "text-xl font-mono font-bold text-white",
                                                 children: [
                                                     "$",
                                                     totalBalance.toLocaleString(undefined, {
@@ -2092,38 +2157,38 @@ function DashboardPage() {
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                                lineNumber: 139,
+                                                lineNumber: 183,
                                                 columnNumber: 29
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                        lineNumber: 137,
+                                        lineNumber: 181,
                                         columnNumber: 25
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$wallet$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Wallet$3e$__["Wallet"], {
                                         className: "text-green-500 w-5 h-5 ml-2"
                                     }, void 0, false, {
                                         fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                        lineNumber: 143,
+                                        lineNumber: 187,
                                         columnNumber: 25
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                lineNumber: 136,
+                                lineNumber: 162,
                                 columnNumber: 21
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                        lineNumber: 109,
+                        lineNumber: 135,
                         columnNumber: 17
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                lineNumber: 100,
+                lineNumber: 126,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2143,7 +2208,7 @@ function DashboardPage() {
                                                 children: "Historial_Precios_30D"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                                lineNumber: 152,
+                                                lineNumber: 196,
                                                 columnNumber: 29
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$clock$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Clock$3e$__["Clock"], {
@@ -2151,13 +2216,13 @@ function DashboardPage() {
                                                 className: "text-slate-500"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                                lineNumber: 155,
+                                                lineNumber: 199,
                                                 columnNumber: 29
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                        lineNumber: 151,
+                                        lineNumber: 195,
                                         columnNumber: 25
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -2169,12 +2234,12 @@ function DashboardPage() {
                                                 size: 40
                                             }, void 0, false, {
                                                 fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                                lineNumber: 160,
+                                                lineNumber: 204,
                                                 columnNumber: 37
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                            lineNumber: 159,
+                                            lineNumber: 203,
                                             columnNumber: 33
                                         }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$component$2f$ResponsiveContainer$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["ResponsiveContainer"], {
                                             width: "100%",
@@ -2196,7 +2261,7 @@ function DashboardPage() {
                                                                     stopOpacity: 0.1
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                                                    lineNumber: 167,
+                                                                    lineNumber: 211,
                                                                     columnNumber: 49
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("stop", {
@@ -2205,18 +2270,18 @@ function DashboardPage() {
                                                                     stopOpacity: 0
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                                                    lineNumber: 168,
+                                                                    lineNumber: 212,
                                                                     columnNumber: 49
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                                            lineNumber: 166,
+                                                            lineNumber: 210,
                                                             columnNumber: 45
                                                         }, this)
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                                        lineNumber: 165,
+                                                        lineNumber: 209,
                                                         columnNumber: 41
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$cartesian$2f$CartesianGrid$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CartesianGrid"], {
@@ -2225,7 +2290,7 @@ function DashboardPage() {
                                                         stroke: "rgba(255,255,255,0.05)"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                                        lineNumber: 171,
+                                                        lineNumber: 215,
                                                         columnNumber: 41
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$cartesian$2f$XAxis$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["XAxis"], {
@@ -2239,7 +2304,7 @@ function DashboardPage() {
                                                         minTickGap: 30
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                                        lineNumber: 172,
+                                                        lineNumber: 216,
                                                         columnNumber: 41
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$cartesian$2f$YAxis$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["YAxis"], {
@@ -2250,7 +2315,7 @@ function DashboardPage() {
                                                         ]
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                                        lineNumber: 179,
+                                                        lineNumber: 223,
                                                         columnNumber: 41
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$component$2f$Tooltip$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Tooltip"], {
@@ -2265,7 +2330,7 @@ function DashboardPage() {
                                                         }
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                                        lineNumber: 183,
+                                                        lineNumber: 227,
                                                         columnNumber: 41
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$cartesian$2f$Area$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Area"], {
@@ -2278,29 +2343,29 @@ function DashboardPage() {
                                                         animationDuration: 1500
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                                        lineNumber: 187,
+                                                        lineNumber: 231,
                                                         columnNumber: 41
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                                lineNumber: 164,
+                                                lineNumber: 208,
                                                 columnNumber: 37
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                            lineNumber: 163,
+                                            lineNumber: 207,
                                             columnNumber: 33
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                        lineNumber: 157,
+                                        lineNumber: 201,
                                         columnNumber: 25
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                lineNumber: 150,
+                                lineNumber: 194,
                                 columnNumber: 21
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2313,7 +2378,7 @@ function DashboardPage() {
                                             portfolioPositions: portfolioPositions
                                         }, void 0, false, {
                                             fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                            lineNumber: 205,
+                                            lineNumber: 249,
                                             columnNumber: 33
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$trading$2f$trade$2d$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["TradeDialog"], {
@@ -2322,23 +2387,21 @@ function DashboardPage() {
                                             portfolioPositions: portfolioPositions
                                         }, void 0, false, {
                                             fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                            lineNumber: 206,
+                                            lineNumber: 250,
                                             columnNumber: 33
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$trading$2f$cash$2d$action$2d$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CashActionDialog"], {
-                                            portfolios: data.portfolios,
                                             initialType: "deposit"
                                         }, void 0, false, {
                                             fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                            lineNumber: 207,
+                                            lineNumber: 251,
                                             columnNumber: 33
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$trading$2f$cash$2d$action$2d$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CashActionDialog"], {
-                                            portfolios: data.portfolios,
                                             initialType: "withdraw"
                                         }, void 0, false, {
                                             fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                            lineNumber: 208,
+                                            lineNumber: 252,
                                             columnNumber: 33
                                         }, this)
                                     ]
@@ -2350,40 +2413,40 @@ function DashboardPage() {
                                             children: "⚠️ No hay portafolios detectados"
                                         }, void 0, false, {
                                             fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                            lineNumber: 212,
+                                            lineNumber: 256,
                                             columnNumber: 33
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
                                             asChild: true,
                                             className: "bg-white text-black hover:bg-slate-200 rounded-xl font-bold",
-                                            children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("a", {
+                                            children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
                                                 href: "/portfolio",
                                                 children: "Crer Primer Portafolio"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                                lineNumber: 216,
+                                                lineNumber: 260,
                                                 columnNumber: 37
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                            lineNumber: 215,
+                                            lineNumber: 259,
                                             columnNumber: 33
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                    lineNumber: 211,
+                                    lineNumber: 255,
                                     columnNumber: 29
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                lineNumber: 202,
+                                lineNumber: 246,
                                 columnNumber: 21
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                        lineNumber: 149,
+                        lineNumber: 193,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2394,7 +2457,7 @@ function DashboardPage() {
                                 children: "Lista_de_Seguimiento"
                             }, void 0, false, {
                                 fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                lineNumber: 224,
+                                lineNumber: 268,
                                 columnNumber: 21
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2408,7 +2471,7 @@ function DashboardPage() {
                                                 children: symbol
                                             }, void 0, false, {
                                                 fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                                lineNumber: 235,
+                                                lineNumber: 279,
                                                 columnNumber: 33
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$activity$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Activity$3e$__["Activity"], {
@@ -2416,18 +2479,18 @@ function DashboardPage() {
                                                 className: activeSymbol === symbol ? "opacity-100" : "opacity-20"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                                lineNumber: 236,
+                                                lineNumber: 280,
                                                 columnNumber: 33
                                             }, this)
                                         ]
                                     }, symbol, true, {
                                         fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                        lineNumber: 227,
+                                        lineNumber: 271,
                                         columnNumber: 29
                                     }, this))
                             }, void 0, false, {
                                 fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                lineNumber: 225,
+                                lineNumber: 269,
                                 columnNumber: 21
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
@@ -2442,19 +2505,19 @@ function DashboardPage() {
                                                     size: 12
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                                    lineNumber: 244,
+                                                    lineNumber: 288,
                                                     columnNumber: 33
                                                 }, this),
                                                 " Estado_del_Mercado"
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                            lineNumber: 243,
+                                            lineNumber: 287,
                                             columnNumber: 29
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                        lineNumber: 242,
+                                        lineNumber: 286,
                                         columnNumber: 25
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -2468,7 +2531,7 @@ function DashboardPage() {
                                                         children: "Liquidez_H24"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                                        lineNumber: 249,
+                                                        lineNumber: 293,
                                                         columnNumber: 33
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -2476,13 +2539,13 @@ function DashboardPage() {
                                                         children: "ALTA"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                                        lineNumber: 250,
+                                                        lineNumber: 294,
                                                         columnNumber: 33
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                                lineNumber: 248,
+                                                lineNumber: 292,
                                                 columnNumber: 29
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2493,7 +2556,7 @@ function DashboardPage() {
                                                         children: "Volatilidad"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                                        lineNumber: 253,
+                                                        lineNumber: 297,
                                                         columnNumber: 33
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -2501,20 +2564,20 @@ function DashboardPage() {
                                                         children: "MEDIA"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                                        lineNumber: 254,
+                                                        lineNumber: 298,
                                                         columnNumber: 33
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                                lineNumber: 252,
+                                                lineNumber: 296,
                                                 columnNumber: 29
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                 className: "h-px bg-white/5"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                                lineNumber: 256,
+                                                lineNumber: 300,
                                                 columnNumber: 29
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2522,31 +2585,31 @@ function DashboardPage() {
                                                 children: "Motor de ejecución optimizado para baja latencia"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                                lineNumber: 257,
+                                                lineNumber: 301,
                                                 columnNumber: 29
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                        lineNumber: 247,
+                                        lineNumber: 291,
                                         columnNumber: 25
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                                lineNumber: 241,
+                                lineNumber: 285,
                                 columnNumber: 21
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                        lineNumber: 223,
+                        lineNumber: 267,
                         columnNumber: 17
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                lineNumber: 148,
+                lineNumber: 192,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2556,22 +2619,22 @@ function DashboardPage() {
                     children: "Finsight_Quant_Engine_v1.0.8"
                 }, void 0, false, {
                     fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                    lineNumber: 264,
+                    lineNumber: 308,
                     columnNumber: 17
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-                lineNumber: 263,
+                lineNumber: 307,
                 columnNumber: 13
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/app/(dashboard)/dashboard/page.tsx",
-        lineNumber: 98,
+        lineNumber: 124,
         columnNumber: 9
     }, this);
 }
-_s(DashboardPage, "E3a3tkAo6iJC5EaQF5tc0f/nbl0=", false, function() {
+_s(DashboardPage, "5mQ7UM8uSv5HLk7s5aMWq8E/ZRw=", false, function() {
     return [
         __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$hooks$2f$useRealTimePrice$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRealTimePrice"],
         __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$apollo$2f$client$2f$react$2f$hooks$2f$useQuery$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useQuery"]

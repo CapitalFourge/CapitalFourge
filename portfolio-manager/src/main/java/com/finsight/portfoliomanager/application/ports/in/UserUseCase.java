@@ -26,4 +26,8 @@ public interface UserUseCase {
     void changePassword(ChangePasswordCommand command);
 
     void changeEmail(ChangeEmailCommand command);
+
+    User deposit(UUID userId, java.math.BigDecimal amount);
+
+    User withdraw(UUID userId, java.math.BigDecimal amount);
 }

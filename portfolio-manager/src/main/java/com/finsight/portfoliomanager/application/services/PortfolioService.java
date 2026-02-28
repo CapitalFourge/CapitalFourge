@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import com.finsight.portfoliomanager.application.ports.in.PortfolioUseCase;
 import com.finsight.portfoliomanager.application.ports.out.MetricRepository;
+import com.finsight.portfoliomanager.application.ports.out.OrderRepository;
 import com.finsight.portfoliomanager.application.ports.out.PortfolioRepository;
 import com.finsight.portfoliomanager.application.ports.out.TransactionRepository;
 import com.finsight.portfoliomanager.application.ports.out.UserRepository;
@@ -21,17 +22,23 @@ import com.finsight.portfoliomanager.domain.Position;
 import com.finsight.portfoliomanager.domain.Transaction;
 import com.finsight.portfoliomanager.domain.TransactionType;
 import com.finsight.portfoliomanager.domain.User;
+import com.finsight.portfoliomanager.domain.Order;
+import com.finsight.portfoliomanager.domain.OrderStatus;
+import com.finsight.portfoliomanager.domain.OrderType;
 import com.finsight.portfoliomanager.infrastructure.grpc.GrpcFinancialDataClient;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PortfolioService implements PortfolioUseCase {
 
     private final PortfolioRepository portfolioRepository;
     private final MetricRepository metricRepository;
     private final TransactionRepository transactionRepository;
+    private final OrderRepository orderRepository;
     private final UserRepository userRepository;
     private final GrpcFinancialDataClient grpcFinancialDataClient;
 
@@ -258,6 +265,33 @@ public class PortfolioService implements PortfolioUseCase {
 
     @Override
     public void deletePortfolio(UUID id) {
+        Portfolio portfolio = portfolioRepository.findById(id).orElse(null);
+        if (portfolio == null)
+            return;
+
+        // 1. Get all orders for this portfolio and cancel pending ones
+        List<Order> orders = orderRepository.findByPortfolioId(id);
+        User user = userRepository.findById(portfolio.getUserId()).orElse(null);
+
+        if (user != null) {
+            for (Order order : orders) {
+                if (order.getStatus() == OrderStatus.PENDING) {
+                    BigDecimal amountToReturn = BigDecimal.ZERO;
+                    if (order.getType() == OrderType.BUY_LIMIT) {
+                        amountToReturn = order.getUsdAmount() != null ? order.getUsdAmount()
+                                : order.getQuantity().multiply(order.getTargetPrice());
+
+                        user.setCashBalance(user.getCashBalance().add(amountToReturn));
+                        user.setLockedBalance(user.getLockedBalance().subtract(amountToReturn));
+                    }
+                    order.setStatus(OrderStatus.CANCELLED);
+                    orderRepository.save(order);
+                }
+            }
+            userRepository.save(user);
+        }
+
+        // 2. Delete the portfolio (cascade will handle positions/transactions)
         portfolioRepository.deleteById(id);
     }
 
@@ -269,6 +303,62 @@ public class PortfolioService implements PortfolioUseCase {
     public Portfolio sellAssetByUSD(UUID portfolioId, String symbol, BigDecimal usdAmount, BigDecimal price) {
         BigDecimal quantity = usdAmount.divide(price, 8, RoundingMode.UP);
         return sellAsset(portfolioId, symbol, quantity, price);
+    }
+
+    @Override
+    public void repairUserBalance(UUID userId) {
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null)
+            return;
+
+        List<Order> userOrders = orderRepository.findByUserId(userId);
+
+        // 1. Identify and cancel orders for deleted portfolios
+        BigDecimal recoveredBalance = BigDecimal.ZERO;
+        for (Order order : userOrders) {
+            if (order.getStatus() == OrderStatus.PENDING) {
+                boolean portfolioExists = portfolioRepository.findById(order.getPortfolioId()).isPresent();
+                if (!portfolioExists) {
+                    // This is an orphan!
+                    BigDecimal amount = order.getUsdAmount() != null ? order.getUsdAmount()
+                            : order.getQuantity().multiply(order.getTargetPrice());
+                    recoveredBalance = recoveredBalance.add(amount);
+                    order.setStatus(OrderStatus.CANCELLED);
+                    orderRepository.save(order);
+                    log.info("Recovered {} from orphaned order {} for user {}", amount, order.getId(), userId);
+                }
+            }
+        }
+
+        if (recoveredBalance.compareTo(BigDecimal.ZERO) > 0) {
+            user.setCashBalance((user.getCashBalance() != null ? user.getCashBalance() : BigDecimal.ZERO)
+                    .add(recoveredBalance));
+            user.setLockedBalance((user.getLockedBalance() != null ? user.getLockedBalance() : BigDecimal.ZERO)
+                    .subtract(recoveredBalance));
+            userRepository.save(user);
+        }
+
+        // 2. Extra safety: Recalculate locked balance based on ALL remaining PENDING
+        // orders
+        List<Order> remainingPending = orderRepository.findByUserId(userId).stream()
+                .filter(o -> o.getStatus() == OrderStatus.PENDING && o.getType() == OrderType.BUY_LIMIT)
+                .toList();
+
+        BigDecimal actualLocked = remainingPending.stream()
+                .map(o -> o.getUsdAmount() != null ? o.getUsdAmount() : o.getQuantity().multiply(o.getTargetPrice()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal currentLocked = user.getLockedBalance() != null ? user.getLockedBalance() : BigDecimal.ZERO;
+
+        if (currentLocked.compareTo(actualLocked) != 0) {
+            log.warn("Balance mismatch detected for user {}. DB Locked: {}, Actual Orders: {}",
+                    userId, currentLocked, actualLocked);
+            // We prioritize the actual orders as the source of truth for "locked"
+            BigDecimal diff = currentLocked.subtract(actualLocked);
+            user.setLockedBalance(actualLocked);
+            user.setCashBalance((user.getCashBalance() != null ? user.getCashBalance() : BigDecimal.ZERO).add(diff));
+            userRepository.save(user);
+        }
     }
 
     private void updatePerformance(Portfolio portfolio) {

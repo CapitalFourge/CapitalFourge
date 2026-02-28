@@ -27,4 +27,6 @@ public interface PortfolioUseCase {
     Portfolio sellAssetByUSD(UUID portfolioId, String symbol, BigDecimal usdAmount, BigDecimal price);
 
     void deletePortfolio(UUID id);
+
+    void repairUserBalance(UUID userId);
 }

@@ -40,10 +40,12 @@ public class PortfolioGraphQLController {
 
     @QueryMapping
     public User me(@AuthenticationPrincipal UUID userId) {
-
         if (userId == null) {
             return null;
         }
+
+        // Automatically repair and sync balance (recover orphaned funds if any)
+        portfolioUseCase.repairUserBalance(userId);
 
         // Get the actual user from the database to return real cash balance
         User user = userRepository.findById(userId)

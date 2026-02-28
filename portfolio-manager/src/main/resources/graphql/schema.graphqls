@@ -5,6 +5,7 @@ type User {
   role: String!
   cashBalance: Float!
   lockedBalance: Float!
+  language: String!
 }
 
 type StockPrice {
@@ -159,4 +160,7 @@ type Mutation {
   cancelOrder(orderId: ID!): Order
   deposit(amount: Float!): User
   withdraw(amount: Float!): User
+  updateProfile(username: String, email: String, language: String): User
+  changePassword(oldPassword: String!, newPassword: String!): Boolean
+  repairMyBalance: Boolean
 }

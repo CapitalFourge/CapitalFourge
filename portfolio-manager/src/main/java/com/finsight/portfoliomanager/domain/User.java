@@ -24,6 +24,8 @@ public class User {
     private LocalDateTime createdAt;
     private LocalDateTime lastLoginAt;
     @Builder.Default
+    private String language = "ES";
+    @Builder.Default
     private BigDecimal cashBalance = BigDecimal.ZERO;
     @Builder.Default
     private BigDecimal lockedBalance = BigDecimal.ZERO;

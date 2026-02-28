@@ -198,6 +198,41 @@
             </plugin>
         </plugins>
 
+        <pluginManagement>
+            <plugins>
+                <!-- Suppress Eclipse m2e warnings and errors from protobuf-maven-plugin.
+                     This does NOT affect the normal Maven CLI build. It only prevents
+                     the Eclipse IDE from failing when trying to run the plugin,
+                     which requires a local 'protoc' executable to be available.
+                     The actual protobuf generation happens during the Maven CLI build (mvn package). -->
+                <plugin>
+                    <groupId>org.eclipse.m2e</groupId>
+                    <artifactId>lifecycle-mapping</artifactId>
+                    <version>1.0.0</version>
+                    <configuration>
+                        <lifecycleMappingMetadata>
+                            <pluginExecutions>
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                                        <groupId>org.xolstice.maven.plugins</groupId>
+                                        <artifactId>protobuf-maven-plugin</artifactId>
+                                        <versionRange>[0.6.1,)</versionRange>
+                                        <goals>
+                                            <goal>compile</goal>
+                                            <goal>compile-custom</goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <ignore/>
+                                    </action>
+                                </pluginExecution>
+                            </pluginExecutions>
+                        </lifecycleMappingMetadata>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
         <extensions>
             <extension>
                 <groupId>kr.motd.maven</groupId>

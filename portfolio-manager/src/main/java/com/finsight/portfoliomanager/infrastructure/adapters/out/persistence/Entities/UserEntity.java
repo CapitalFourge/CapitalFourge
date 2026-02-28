@@ -50,4 +50,8 @@ public class UserEntity {
     private BigDecimal lockedBalance;
 
     private LocalDateTime lastLoginAt;
+
+    @Column(name = "language", length = 2, nullable = false)
+    @Builder.Default
+    private String language = "ES";
 }

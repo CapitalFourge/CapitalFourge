@@ -809,7 +809,7 @@ const STOCK_PRICE_QUERY = __TURBOPACK__imported__module__$5b$project$5d2f$node_m
     }
   }
 `;
-function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions, initialSymbol = "" }) {
+function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions, initialSymbol = "", children }) {
     const [open, setOpen] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
     const [type, setType] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(defaultType);
     const [orderType, setOrderType] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])("market");
@@ -1013,32 +1013,32 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions, init
         children: [
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["DialogTrigger"], {
                 asChild: true,
-                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
+                children: children ? children : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
                     className: `h-16 rounded-2xl font-bold gap-2 ${defaultType === "buy" ? "bg-white text-black hover:bg-slate-200" : "bg-transparent border-white/10 hover:bg-white/5 text-white"}`,
                     children: [
                         defaultType === "buy" ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$shopping$2d$cart$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__ShoppingCart$3e$__["ShoppingCart"], {
                             className: "w-4 h-4"
                         }, void 0, false, {
                             fileName: "[project]/components/trading/trade-dialog.tsx",
-                            lineNumber: 293,
-                            columnNumber: 46
+                            lineNumber: 295,
+                            columnNumber: 50
                         }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$trending$2d$down$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__TrendingDown$3e$__["TrendingDown"], {
                             className: "w-4 h-4"
                         }, void 0, false, {
                             fileName: "[project]/components/trading/trade-dialog.tsx",
-                            lineNumber: 293,
-                            columnNumber: 85
+                            lineNumber: 295,
+                            columnNumber: 89
                         }, this),
                         defaultType === "buy" ? "COMPRAR" : "VENDER"
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/trading/trade-dialog.tsx",
-                    lineNumber: 292,
-                    columnNumber: 17
+                    lineNumber: 294,
+                    columnNumber: 21
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/components/trading/trade-dialog.tsx",
-                lineNumber: 291,
+                lineNumber: 292,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["DialogContent"], {
@@ -1050,12 +1050,12 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions, init
                             children: "Inicializar Operación"
                         }, void 0, false, {
                             fileName: "[project]/components/trading/trade-dialog.tsx",
-                            lineNumber: 299,
+                            lineNumber: 302,
                             columnNumber: 21
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/components/trading/trade-dialog.tsx",
-                        lineNumber: 298,
+                        lineNumber: 301,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1067,7 +1067,7 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions, init
                                 children: "COMPRA"
                             }, void 0, false, {
                                 fileName: "[project]/components/trading/trade-dialog.tsx",
-                                lineNumber: 305,
+                                lineNumber: 308,
                                 columnNumber: 21
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1076,13 +1076,13 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions, init
                                 children: "VENTA"
                             }, void 0, false, {
                                 fileName: "[project]/components/trading/trade-dialog.tsx",
-                                lineNumber: 311,
+                                lineNumber: 314,
                                 columnNumber: 21
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/trading/trade-dialog.tsx",
-                        lineNumber: 304,
+                        lineNumber: 307,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1094,7 +1094,7 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions, init
                                 children: "MERCADO"
                             }, void 0, false, {
                                 fileName: "[project]/components/trading/trade-dialog.tsx",
-                                lineNumber: 320,
+                                lineNumber: 323,
                                 columnNumber: 21
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1103,13 +1103,13 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions, init
                                 children: "LÍMITE"
                             }, void 0, false, {
                                 fileName: "[project]/components/trading/trade-dialog.tsx",
-                                lineNumber: 326,
+                                lineNumber: 329,
                                 columnNumber: 21
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/trading/trade-dialog.tsx",
-                        lineNumber: 319,
+                        lineNumber: 322,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1121,7 +1121,7 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions, init
                                 children: "POR CANTIDAD"
                             }, void 0, false, {
                                 fileName: "[project]/components/trading/trade-dialog.tsx",
-                                lineNumber: 335,
+                                lineNumber: 338,
                                 columnNumber: 21
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1130,13 +1130,13 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions, init
                                 children: "POR USD"
                             }, void 0, false, {
                                 fileName: "[project]/components/trading/trade-dialog.tsx",
-                                lineNumber: 341,
+                                lineNumber: 344,
                                 columnNumber: 21
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/trading/trade-dialog.tsx",
-                        lineNumber: 334,
+                        lineNumber: 337,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1150,7 +1150,7 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions, init
                                         children: "Portafolio de Destino"
                                     }, void 0, false, {
                                         fileName: "[project]/components/trading/trade-dialog.tsx",
-                                        lineNumber: 351,
+                                        lineNumber: 354,
                                         columnNumber: 25
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("select", {
@@ -1165,18 +1165,18 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions, init
                                                 children: p.name || `Estrategia_${p.id.substring(0, 4)}`
                                             }, p.id, false, {
                                                 fileName: "[project]/components/trading/trade-dialog.tsx",
-                                                lineNumber: 361,
+                                                lineNumber: 364,
                                                 columnNumber: 33
                                             }, this))
                                     }, void 0, false, {
                                         fileName: "[project]/components/trading/trade-dialog.tsx",
-                                        lineNumber: 352,
+                                        lineNumber: 355,
                                         columnNumber: 25
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/trading/trade-dialog.tsx",
-                                lineNumber: 350,
+                                lineNumber: 353,
                                 columnNumber: 21
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1190,7 +1190,7 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions, init
                                                 children: "Símbolo (Ticker)"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/trading/trade-dialog.tsx",
-                                                lineNumber: 368,
+                                                lineNumber: 371,
                                                 columnNumber: 29
                                             }, this),
                                             type === "sell" ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1209,7 +1209,7 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions, init
                                                                 children: "Seleccionar activo..."
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/trading/trade-dialog.tsx",
-                                                                lineNumber: 379,
+                                                                lineNumber: 382,
                                                                 columnNumber: 41
                                                             }, this),
                                                             currentPortfolioPositions.length > 0 ? currentPortfolioPositions.map((pos)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -1222,7 +1222,7 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions, init
                                                                     ]
                                                                 }, pos.symbol, true, {
                                                                     fileName: "[project]/components/trading/trade-dialog.tsx",
-                                                                    lineNumber: 382,
+                                                                    lineNumber: 385,
                                                                     columnNumber: 49
                                                                 }, this)) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
                                                                 value: "",
@@ -1230,13 +1230,13 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions, init
                                                                 children: "No hay activos disponibles en este portafolio"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/trading/trade-dialog.tsx",
-                                                                lineNumber: 387,
+                                                                lineNumber: 390,
                                                                 columnNumber: 45
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/components/trading/trade-dialog.tsx",
-                                                        lineNumber: 371,
+                                                        lineNumber: 374,
                                                         columnNumber: 37
                                                     }, this),
                                                     symbol && currentPortfolioPositions.length > 0 && (()=>{
@@ -1252,7 +1252,7 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions, init
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/components/trading/trade-dialog.tsx",
-                                                                lineNumber: 396,
+                                                                lineNumber: 399,
                                                                 columnNumber: 49
                                                             }, this);
                                                         }
@@ -1263,13 +1263,13 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions, init
                                                         children: "Este portafolio no tiene activos para vender"
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/trading/trade-dialog.tsx",
-                                                        lineNumber: 404,
+                                                        lineNumber: 407,
                                                         columnNumber: 41
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/components/trading/trade-dialog.tsx",
-                                                lineNumber: 370,
+                                                lineNumber: 373,
                                                 columnNumber: 33
                                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$trading$2f$symbol$2d$autocomplete$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["SymbolAutocomplete"], {
                                                 value: symbol,
@@ -1278,13 +1278,13 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions, init
                                                 inputClassName: "w-full"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/trading/trade-dialog.tsx",
-                                                lineNumber: 410,
+                                                lineNumber: 413,
                                                 columnNumber: 33
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/trading/trade-dialog.tsx",
-                                        lineNumber: 367,
+                                        lineNumber: 370,
                                         columnNumber: 25
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1295,7 +1295,7 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions, init
                                                 children: tradingMode === "quantity" ? "Cantidad" : "Monto USD"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/trading/trade-dialog.tsx",
-                                                lineNumber: 419,
+                                                lineNumber: 422,
                                                 columnNumber: 29
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Input"], {
@@ -1308,7 +1308,7 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions, init
                                                 className: "bg-black/40 border-white/10 text-white"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/trading/trade-dialog.tsx",
-                                                lineNumber: 422,
+                                                lineNumber: 425,
                                                 columnNumber: 29
                                             }, this),
                                             price && (tradingMode === "quantity" ? quantity : usdAmount) && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1316,19 +1316,19 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions, init
                                                 children: tradingMode === "quantity" ? `Valor total: $${calculatedUSD}` : `Cantidad estimada: ${calculatedQuantity}`
                                             }, void 0, false, {
                                                 fileName: "[project]/components/trading/trade-dialog.tsx",
-                                                lineNumber: 432,
+                                                lineNumber: 435,
                                                 columnNumber: 33
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/trading/trade-dialog.tsx",
-                                        lineNumber: 418,
+                                        lineNumber: 421,
                                         columnNumber: 25
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/trading/trade-dialog.tsx",
-                                lineNumber: 366,
+                                lineNumber: 369,
                                 columnNumber: 21
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1339,7 +1339,7 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions, init
                                         children: orderType === "market" ? "Precio de Mercado ($)" : "Precio Objetivo ($)"
                                     }, void 0, false, {
                                         fileName: "[project]/components/trading/trade-dialog.tsx",
-                                        lineNumber: 442,
+                                        lineNumber: 445,
                                         columnNumber: 25
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Input"], {
@@ -1351,7 +1351,7 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions, init
                                         className: "bg-black/40 border-white/10 text-white"
                                     }, void 0, false, {
                                         fileName: "[project]/components/trading/trade-dialog.tsx",
-                                        lineNumber: 445,
+                                        lineNumber: 448,
                                         columnNumber: 25
                                     }, this),
                                     orderType === "market" && priceData?.stockPrice && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1362,19 +1362,19 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions, init
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/trading/trade-dialog.tsx",
-                                        lineNumber: 454,
+                                        lineNumber: 457,
                                         columnNumber: 29
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/trading/trade-dialog.tsx",
-                                lineNumber: 441,
+                                lineNumber: 444,
                                 columnNumber: 21
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/trading/trade-dialog.tsx",
-                        lineNumber: 349,
+                        lineNumber: 352,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["DialogFooter"], {
@@ -1386,24 +1386,24 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions, init
                             children: loading ? "EJECUTANDO..." : orderType === "market" ? `CONFIRMAR ${type === "buy" ? "COMPRA" : "VENTA"}` : `CREAR ORDEN ${type === "buy" ? "COMPRA" : "VENTA"}`
                         }, void 0, false, {
                             fileName: "[project]/components/trading/trade-dialog.tsx",
-                            lineNumber: 462,
+                            lineNumber: 465,
                             columnNumber: 21
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/components/trading/trade-dialog.tsx",
-                        lineNumber: 461,
+                        lineNumber: 464,
                         columnNumber: 17
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/components/trading/trade-dialog.tsx",
-                lineNumber: 297,
+                lineNumber: 300,
                 columnNumber: 13
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/components/trading/trade-dialog.tsx",
-        lineNumber: 290,
+        lineNumber: 291,
         columnNumber: 9
     }, this);
 }

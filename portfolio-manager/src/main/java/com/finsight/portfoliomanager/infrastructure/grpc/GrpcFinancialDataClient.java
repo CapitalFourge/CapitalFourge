@@ -2,6 +2,9 @@ package com.finsight.portfoliomanager.infrastructure.grpc;
 
 import java.util.Map;
 import java.util.List;
+import java.util.ArrayList;
+import org.springframework.beans.factory.annotation.Value;
+import com.google.protobuf.Empty;
 
 import org.springframework.stereotype.Service;
 
@@ -14,6 +17,8 @@ public class GrpcFinancialDataClient {
 
     @GrpcClient("local-grpc-server")
     private FinancialDataServiceGrpc.FinancialDataServiceBlockingStub financialDataClient;
+    @Value("${grpc.fallback-assets-enabled:true}")
+    private boolean fallbackAssetsEnabled;
 
     public Double getStockPrice(String symbol) {
         try {
@@ -69,7 +74,20 @@ public class GrpcFinancialDataClient {
             return response.getAssetsList();
         } catch (Exception e) {
             System.err.println("gRPC Get Categorized Assets Error: " + e.getMessage());
-            // Fallback to minimal list if gRPC call fails
+            if (fallbackAssetsEnabled) {
+                // Category names MUST match the gRPC server and frontend (uppercase)
+                List<Asset> fallback = new ArrayList<>();
+                fallback.add(Asset.newBuilder().setSymbol("BTC-USD").setName("Bitcoin").setCategory("CRYPTO").build());
+                fallback.add(Asset.newBuilder().setSymbol("ETH-USD").setName("Ethereum").setCategory("CRYPTO").build());
+                fallback.add(Asset.newBuilder().setSymbol("SOL-USD").setName("Solana").setCategory("CRYPTO").build());
+                fallback.add(Asset.newBuilder().setSymbol("AAPL").setName("Apple Inc.").setCategory("STOCKS").build());
+                fallback.add(
+                        Asset.newBuilder().setSymbol("MSFT").setName("Microsoft Corp.").setCategory("STOCKS").build());
+                fallback.add(
+                        Asset.newBuilder().setSymbol("XAUUSD=C").setName("Gold").setCategory("COMMODITIES").build());
+                fallback.add(Asset.newBuilder().setSymbol("EURUSD=X").setName("EUR/USD").setCategory("FOREX").build());
+                return fallback;
+            }
             return List.of();
         }
     }

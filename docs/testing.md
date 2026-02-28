@@ -11,6 +11,10 @@
 - **Backend**: JUnit 5 + Mockito for Java; Pytest for Python.
 - **Frontend**: Vitest + React Testing Library.
 
+- New: PDF report generator tests
+  - Unit test for report generator Python script (generator.py) with sample portfolio data.
+  - Integration test for ReportController REST endpoint to trigger the Python script and return a PDF (mocking portfolio data).
+
 ### Integration Testing
 - Test gRPC communication and batch price fetching.
 - Test GraphQL resolvers and security filters.

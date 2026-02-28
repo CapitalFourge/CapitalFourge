@@ -1,22 +1,26 @@
 package com.finsight.portfoliomanager.application.services;
 
 import java.util.List;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
 import com.finsight.portfoliomanager.infrastructure.grpc.GrpcFinancialDataClient;
 
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.util.Collections;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class AssetSearchService {
+    private static final Logger log = LoggerFactory.getLogger(AssetSearchService.class);
 
     private final GrpcFinancialDataClient grpcClient;
+
+    public AssetSearchService(GrpcFinancialDataClient grpcClient) {
+        this.grpcClient = grpcClient;
+    }
 
     public List<AssetInfo> getCategorizedAssets(String category) {
         try {
@@ -31,7 +35,25 @@ public class AssetSearchService {
                     .collect(Collectors.toList());
         } catch (Exception e) {
             log.error("Error getting categorized assets: {}", e.getMessage());
-            return List.of();
+            // Fallback to a small static asset set if gRPC is unavailable.
+            // Category names MUST match those used by the gRPC server and the frontend
+            // (uppercase).
+            List<AssetInfo> fallback = new ArrayList<>();
+            fallback.add(AssetInfo.builder().symbol("BTC-USD").name("Bitcoin").category("CRYPTO").build());
+            fallback.add(AssetInfo.builder().symbol("ETH-USD").name("Ethereum").category("CRYPTO").build());
+            fallback.add(AssetInfo.builder().symbol("SOL-USD").name("Solana").category("CRYPTO").build());
+            fallback.add(AssetInfo.builder().symbol("AAPL").name("Apple Inc.").category("STOCKS").build());
+            fallback.add(AssetInfo.builder().symbol("MSFT").name("Microsoft Corp.").category("STOCKS").build());
+            fallback.add(AssetInfo.builder().symbol("XAUUSD=C").name("Gold").category("COMMODITIES").build());
+            fallback.add(AssetInfo.builder().symbol("EURUSD=X").name("EUR/USD").category("FOREX").build());
+
+            if (category == null) {
+                return fallback;
+            } else {
+                return fallback.stream()
+                        .filter(a -> category.equalsIgnoreCase(a.getCategory()))
+                        .collect(Collectors.toList());
+            }
         }
     }
 
@@ -107,23 +129,97 @@ public class AssetSearchService {
         }
     }
 
-    @Data
-    @lombok.Builder
-    @lombok.NoArgsConstructor
-    @lombok.AllArgsConstructor
     public static class AssetInfo {
         private String symbol;
         private String name;
         private String category;
+
+        private AssetInfo(String symbol, String name, String category) {
+            this.symbol = symbol;
+            this.name = name;
+            this.category = category;
+        }
+
+        public static Builder builder() {
+            return new Builder();
+        }
+
+        public static class Builder {
+            private String symbol;
+            private String name;
+            private String category;
+
+            public Builder symbol(String s) {
+                this.symbol = s;
+                return this;
+            }
+
+            public Builder name(String n) {
+                this.name = n;
+                return this;
+            }
+
+            public Builder category(String c) {
+                this.category = c;
+                return this;
+            }
+
+            public AssetInfo build() {
+                return new AssetInfo(symbol, name, category);
+            }
+        }
+
+        public String getSymbol() {
+            return symbol;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getCategory() {
+            return category;
+        }
     }
 
-    @Data
-    @lombok.Builder
-    @lombok.NoArgsConstructor
-    @lombok.AllArgsConstructor
     public static class AssetSuggestion {
-
         private String symbol;
         private String name;
+
+        public static Builder builder() {
+            return new Builder();
+        }
+
+        public static class Builder {
+            private String symbol;
+            private String name;
+
+            public Builder symbol(String s) {
+                this.symbol = s;
+                return this;
+            }
+
+            public Builder name(String n) {
+                this.name = n;
+                return this;
+            }
+
+            public AssetSuggestion build() {
+                return new AssetSuggestion(symbol, name);
+            }
+        }
+
+        private AssetSuggestion(String symbol, String name) {
+            this.symbol = symbol;
+            this.name = name;
+        }
+
+        public String getSymbol() {
+            return symbol;
+        }
+
+        public String getName() {
+            return name;
+        }
     }
 }

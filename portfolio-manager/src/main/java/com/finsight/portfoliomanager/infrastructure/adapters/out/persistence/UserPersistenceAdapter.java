@@ -13,10 +13,18 @@ import com.finsight.portfoliomanager.infrastructure.adapters.out.persistence.Rep
 import lombok.RequiredArgsConstructor;
 
 @Component
-@RequiredArgsConstructor
 public class UserPersistenceAdapter implements UserRepository {
 
     private final JpaUserRepository jpaRepository;
+
+    public UserPersistenceAdapter(JpaUserRepository jpaRepository) {
+        this.jpaRepository = jpaRepository;
+    }
+
+    // Map a potentially-null language to a safe default
+    public static String mapLanguage(String language) {
+        return language != null ? language : "ES";
+    }
 
     @Override
     public Optional<User> findById(UUID userId) {
@@ -41,33 +49,35 @@ public class UserPersistenceAdapter implements UserRepository {
     }
 
     private UserEntity toEntity(User domain) {
-        return UserEntity.builder()
-                .id(domain.getId())
-                .email(domain.getEmail())
-                .password(domain.getPassword())
-                .username(domain.getUsername())
-                .role(domain.getRole())
-                .active(domain.isActive())
-                .createdAt(domain.getCreatedAt())
-                .lastLoginAt(domain.getLastLoginAt())
-                .cashBalance(domain.getCashBalance())
-                .lockedBalance(domain.getLockedBalance())
-                .build();
+        UserEntity entity = new UserEntity();
+        entity.setId(domain.getId());
+        entity.setEmail(domain.getEmail());
+        entity.setPassword(domain.getPassword());
+        entity.setUsername(domain.getUsername());
+        entity.setRole(domain.getRole());
+        entity.setActive(domain.isActive());
+        entity.setCreatedAt(domain.getCreatedAt());
+        entity.setLastLoginAt(domain.getLastLoginAt());
+        entity.setCashBalance(domain.getCashBalance());
+        entity.setLockedBalance(domain.getLockedBalance());
+        entity.setLanguage(domain.getLanguage());
+        return entity;
     }
 
     private User toDomain(UserEntity entity) {
-        return User.builder()
-                .id(entity.getId())
-                .email(entity.getEmail())
-                .password(entity.getPassword())
-                .username(entity.getUsername())
-                .role(entity.getRole())
-                .active(entity.isActive())
-                .createdAt(entity.getCreatedAt())
-                .lastLoginAt(entity.getLastLoginAt())
-                .cashBalance(entity.getCashBalance())
-                .lockedBalance(entity.getLockedBalance())
-                .build();
+        User user = new User();
+        user.setId(entity.getId());
+        user.setEmail(entity.getEmail());
+        user.setPassword(entity.getPassword());
+        user.setUsername(entity.getUsername());
+        user.setRole(entity.getRole());
+        user.setActive(entity.isActive());
+        user.setCreatedAt(entity.getCreatedAt());
+        user.setLastLoginAt(entity.getLastLoginAt());
+        user.setCashBalance(entity.getCashBalance());
+        user.setLockedBalance(entity.getLockedBalance());
+        user.setLanguage(entity.getLanguage() != null ? entity.getLanguage() : mapLanguage(null));
+        return user;
     }
 
 }

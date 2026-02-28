@@ -27,6 +27,8 @@ public interface UserUseCase {
 
     void changeEmail(ChangeEmailCommand command);
 
+    User updateProfile(UUID userId, String username, String email, String language);
+
     User deposit(UUID userId, java.math.BigDecimal amount);
 
     User withdraw(UUID userId, java.math.BigDecimal amount);

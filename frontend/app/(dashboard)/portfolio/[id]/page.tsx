@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { History, PieChart, List } from "lucide-react";
 import { OrdersDialog } from "@/components/trading/orders-dialog";
+import { PositionActionDialog } from "@/components/trading/position-action-dialog";
 
 const PORTFOLIO_DETAIL_QUERY = gql`
   query GetPortfolioDetail($id: ID!) {
@@ -20,6 +21,7 @@ const PORTFOLIO_DETAIL_QUERY = gql`
     portfolio(id: $id) {
       id
       name
+      performance
       positions {
         symbol
         quantity
@@ -59,6 +61,7 @@ interface Transaction {
 interface Portfolio {
     id: string;
     name: string;
+    performance: number;
     positions: Position[];
     transactions: Transaction[];
 }
@@ -66,6 +69,8 @@ interface Portfolio {
 export default function PortfolioDetailPage() {
     const { id } = useParams();
     const [ordersDialogOpen, setOrdersDialogOpen] = useState(false);
+    const [selectedPosition, setSelectedPosition] = useState<Position | null>(null);
+    const [positionActionDialogOpen, setPositionActionDialogOpen] = useState(false);
     const portfolioId = Array.isArray(id) ? id[0] : id;
     const { data, loading, error } = useQuery(PORTFOLIO_DETAIL_QUERY, {
         variables: { id: portfolioId },
@@ -91,7 +96,12 @@ export default function PortfolioDetailPage() {
         const avgCost = pos.averagePurchasePrice || 0;
         return total + (avgCost * pos.quantity);
     }, 0) || 0;
-    const totalPerformance = totalCostBasis > 0 ? ((positionsUsdValue - totalCostBasis) / totalCostBasis) * 100 : 0;
+    // If there are active positions, calculate live performance; otherwise fall back to
+    // the backend's stored historical performance (same value shown on the portfolio list page)
+    const hasActivePositions = (portfolio?.positions?.length ?? 0) > 0 && totalCostBasis > 0;
+    const livePerformance = hasActivePositions ? ((positionsUsdValue - totalCostBasis) / totalCostBasis) * 100 : null;
+    const totalPerformance = livePerformance ?? (portfolio?.performance ?? 0);
+    const totalPerformanceUsd = hasActivePositions ? positionsUsdValue - totalCostBasis : 0;
     const performanceColor = totalPerformance >= 0 ? "text-emerald-400" : "text-red-400";
     const performanceSign = totalPerformance >= 0 ? "↑" : "↓";
 
@@ -113,13 +123,18 @@ export default function PortfolioDetailPage() {
                     </Button>
                     <div className="text-right space-y-1">
                         <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Valor_Total_Portafolio</p>
-                        <p className="text-4xl font-black text-white font-mono italic">${totalPortfolioValue.toLocaleString()}</p>
+                        <p className="text-4xl font-black text-white font-mono italic">${totalPortfolioValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                         <div className="flex items-center justify-end gap-4 mt-2">
                             <div>
-                                <p className="text-[10px] text-slate-500 uppercase tracking-widest">Rendimiento</p>
-                                <p className={`text-lg font-bold font-mono ${performanceColor}`}>
-                                    {performanceSign} {Math.abs(totalPerformance).toFixed(2)}%
-                                </p>
+                                <p className="text-[10px] text-slate-500 uppercase tracking-widest text-right">Rendimiento</p>
+                                <div className="flex items-center gap-2 justify-end">
+                                    <p className={`text-lg font-bold font-mono ${performanceColor}`}>
+                                        ${Math.abs(totalPerformanceUsd).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                    </p>
+                                    <p className={`text-sm font-bold font-mono ${performanceColor} bg-white/5 px-2 py-0.5 rounded-lg`}>
+                                        {performanceSign} {Math.abs(totalPerformance).toFixed(2)}%
+                                    </p>
+                                </div>
                             </div>
                             <div className="border-l border-slate-700 pl-4">
                                 <p className="text-[10px] text-slate-500 uppercase tracking-widest">Saldo_Efectivo</p>
@@ -160,7 +175,14 @@ export default function PortfolioDetailPage() {
                                 const perfSign = performance >= 0 ? "↑" : "↓";
 
                                 return (
-                                    <div key={pos.symbol} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-white/10 transition-colors">
+                                    <div
+                                        key={pos.symbol}
+                                        onClick={() => {
+                                            setSelectedPosition(pos);
+                                            setPositionActionDialogOpen(true);
+                                        }}
+                                        className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-white/10 transition-colors cursor-pointer group"
+                                    >
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center font-bold text-xs italic">
                                                 {pos.symbol.substring(0, 2)}
@@ -251,6 +273,14 @@ export default function PortfolioDetailPage() {
                 portfolioId={portfolioId}
                 open={ordersDialogOpen}
                 onOpenChange={setOrdersDialogOpen}
+            />
+
+            <PositionActionDialog
+                position={selectedPosition}
+                portfolio={portfolio}
+                allPortfolios={[portfolio]} // In this page we focus on current portfolio
+                open={positionActionDialogOpen}
+                onOpenChange={setPositionActionDialogOpen}
             />
         </div>
     );

@@ -184,6 +184,29 @@ public class UserService implements UserUseCase {
     }
 
     @Override
+    public User updateProfile(UUID userId, String username, String email, String language) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (username != null && !username.isBlank()) {
+            user.setUsername(username);
+        }
+
+        if (email != null && !email.isBlank() && !email.equalsIgnoreCase(user.getEmail())) {
+            if (userRepository.existsByEmail(email)) {
+                throw new RuntimeException("Email already in use");
+            }
+            user.setEmail(email);
+        }
+
+        if (language != null && !language.isBlank()) {
+            user.setLanguage(language);
+        }
+
+        return userRepository.save(user);
+    }
+
+    @Override
     public User deposit(UUID userId, java.math.BigDecimal amount) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));

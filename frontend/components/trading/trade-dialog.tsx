@@ -101,9 +101,10 @@ interface TradeDialogProps {
     defaultType?: "buy" | "sell";
     portfolioPositions?: Map<string, Position[]>;
     initialSymbol?: string;
+    children?: React.ReactNode;
 }
 
-export function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions, initialSymbol = "" }: TradeDialogProps) {
+export function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions, initialSymbol = "", children }: TradeDialogProps) {
     const [open, setOpen] = useState(false);
     const [type, setType] = useState<"buy" | "sell">(defaultType);
     const [orderType, setOrderType] = useState<"market" | "limit">("market");
@@ -289,10 +290,12 @@ export function TradeDialog({ portfolios, defaultType = "buy", portfolioPosition
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button className={`h-16 rounded-2xl font-bold gap-2 ${defaultType === "buy" ? "bg-white text-black hover:bg-slate-200" : "bg-transparent border-white/10 hover:bg-white/5 text-white"}`}>
-                    {defaultType === "buy" ? <ShoppingCart className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-                    {defaultType === "buy" ? "COMPRAR" : "VENDER"}
-                </Button>
+                {children ? children : (
+                    <Button className={`h-16 rounded-2xl font-bold gap-2 ${defaultType === "buy" ? "bg-white text-black hover:bg-slate-200" : "bg-transparent border-white/10 hover:bg-white/5 text-white"}`}>
+                        {defaultType === "buy" ? <ShoppingCart className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+                        {defaultType === "buy" ? "COMPRAR" : "VENDER"}
+                    </Button>
+                )}
             </DialogTrigger>
             <DialogContent className="glass border-none text-white sm:max-w-md">
                 <DialogHeader>

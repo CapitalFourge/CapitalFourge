@@ -89,8 +89,14 @@ public class GrpcFinancialDataClient {
                 fallback.add(Asset.newBuilder().setSymbol("SI=F").setName("Silver").setCategory("COMMODITIES").build());
                 fallback.add(
                         Asset.newBuilder().setSymbol("CL=F").setName("Crude Oil").setCategory("COMMODITIES").build());
+                fallback.add(
+                        Asset.newBuilder().setSymbol("NG=F").setName("Natural Gas").setCategory("COMMODITIES").build());
+                fallback.add(Asset.newBuilder().setSymbol("HG=F").setName("Copper").setCategory("COMMODITIES").build());
+                fallback.add(Asset.newBuilder().setSymbol("BZ=F").setName("Brent Crude Oil").setCategory("COMMODITIES")
+                        .build());
                 fallback.add(Asset.newBuilder().setSymbol("EURUSD=X").setName("EUR/USD").setCategory("FOREX").build());
                 fallback.add(Asset.newBuilder().setSymbol("GBPUSD=X").setName("GBP/USD").setCategory("FOREX").build());
+                fallback.add(Asset.newBuilder().setSymbol("USDJPY=X").setName("USD/JPY").setCategory("FOREX").build());
                 return fallback;
             }
             return List.of();

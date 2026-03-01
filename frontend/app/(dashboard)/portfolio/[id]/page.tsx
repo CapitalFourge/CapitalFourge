@@ -7,7 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { History, PieChart, List } from "lucide-react";
+import Link from "next/link";
+import { History, PieChart, List, ShoppingCart, ArrowUpRight } from "lucide-react";
 import { OrdersDialog } from "@/components/trading/orders-dialog";
 import { PositionActionDialog } from "@/components/trading/position-action-dialog";
 
@@ -120,6 +121,12 @@ export default function PortfolioDetailPage() {
                     >
                         <List size={16} className="mr-2" />
                         Ver Órdenes
+                    </Button>
+                    <Button asChild className="bg-white text-black hover:bg-slate-200">
+                        <Link href="/dashboard">
+                            <ShoppingCart size={16} className="mr-2" />
+                            Comprar Activos
+                        </Link>
                     </Button>
                     <div className="text-right space-y-1">
                         <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Valor_Total_Portafolio</p>

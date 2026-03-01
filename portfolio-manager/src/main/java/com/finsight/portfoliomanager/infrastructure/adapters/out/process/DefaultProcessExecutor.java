@@ -13,15 +13,23 @@ import com.finsight.portfoliomanager.application.ports.out.ProcessExecutor;
 public class DefaultProcessExecutor implements ProcessExecutor {
     @Override
     public int execute(List<String> command) throws IOException, InterruptedException {
+        return executeWithOutput(command).exitCode;
+    }
+
+    @Override
+    public ExecutionResult executeWithOutput(List<String> command) throws IOException, InterruptedException {
         ProcessBuilder pb = new ProcessBuilder(command);
         pb.redirectErrorStream(true);
         Process process = pb.start();
+        StringBuilder output = new StringBuilder();
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 System.out.println(line);
+                output.append(line).append(System.lineSeparator());
             }
         }
-        return process.waitFor();
+        int exitCode = process.waitFor();
+        return new ExecutionResult(exitCode, output.toString());
     }
 }

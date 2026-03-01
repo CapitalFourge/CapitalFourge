@@ -23,10 +23,11 @@ public class AssetSearchServiceFallbackTest {
         AssetSearchService service = new AssetSearchService(mockGrpc);
         List<AssetSearchService.AssetInfo> assets = service.getCategorizedAssets(null);
 
-        // Expect all 7 fallback assets (BTC-USD, ETH-USD, SOL-USD, AAPL, MSFT,
-        // XAUUSD=C, EURUSD=X)
-        assertEquals(7, assets.size());
+        // Expect all 15 fallback assets
+        assertEquals(15, assets.size());
         boolean hasBTC = assets.stream().anyMatch(a -> "BTC-USD".equals(a.getSymbol()));
+        boolean hasGold = assets.stream().anyMatch(a -> "GC=F".equals(a.getSymbol()));
         assertTrue(hasBTC);
+        assertTrue(hasGold);
     }
 }

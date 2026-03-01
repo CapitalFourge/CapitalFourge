@@ -81,6 +81,11 @@ class FinancialDataServicer(financial_data_pb2_grpc.FinancialDataServiceServicer
             {"symbol": "NFLX", "name": "Netflix, Inc.", "category": "STOCKS"},
             {"symbol": "AMD", "name": "Advanced Micro Devices", "category": "STOCKS"},
             {"symbol": "META", "name": "Meta Platforms, Inc.", "category": "STOCKS"},
+            {"symbol": "BRK-B", "name": "Berkshire Hathaway", "category": "STOCKS"},
+            {"symbol": "V", "name": "Visa Inc.", "category": "STOCKS"},
+            {"symbol": "JPM", "name": "JPMorgan Chase & Co.", "category": "STOCKS"},
+            {"symbol": "DIS", "name": "The Walt Disney Co.", "category": "STOCKS"},
+            {"symbol": "MA", "name": "Mastercard Inc.", "category": "STOCKS"},
             
             # Crypto
             {"symbol": "BTC-USD", "name": "Bitcoin", "category": "CRYPTO"},
@@ -89,19 +94,32 @@ class FinancialDataServicer(financial_data_pb2_grpc.FinancialDataServiceServicer
             {"symbol": "ADA-USD", "name": "Cardano", "category": "CRYPTO"},
             {"symbol": "DOT-USD", "name": "Polkadot", "category": "CRYPTO"},
             {"symbol": "XRP-USD", "name": "XRP", "category": "CRYPTO"},
+            {"symbol": "DOGE-USD", "name": "Dogecoin", "category": "CRYPTO"},
+            {"symbol": "MATIC-USD", "name": "Polygon", "category": "CRYPTO"},
+            {"symbol": "LINK-USD", "name": "Chainlink", "category": "CRYPTO"},
+            {"symbol": "AVAX-USD", "name": "Avalanche", "category": "CRYPTO"},
             
             # Commodities
-            {"symbol": "XAUUSD=C", "name": "Gold", "category": "COMMODITIES"},
-            {"symbol": "XAGUSD=C", "name": "Silver", "category": "COMMODITIES"},
+            {"symbol": "GC=F", "name": "Gold", "category": "COMMODITIES"},
+            {"symbol": "SI=F", "name": "Silver", "category": "COMMODITIES"},
             {"symbol": "CL=F", "name": "Crude Oil", "category": "COMMODITIES"},
             {"symbol": "NG=F", "name": "Natural Gas", "category": "COMMODITIES"},
-            {"symbol": "GC=F", "name": "Gold Futures", "category": "COMMODITIES"},
+            {"symbol": "HG=F", "name": "Copper", "category": "COMMODITIES"},
+            {"symbol": "BZ=F", "name": "Brent Crude Oil", "category": "COMMODITIES"},
+            {"symbol": "PL=F", "name": "Platinum", "category": "COMMODITIES"},
+            {"symbol": "PA=F", "name": "Palladium", "category": "COMMODITIES"},
             
             # Forex
             {"symbol": "EURUSD=X", "name": "EUR/USD", "category": "FOREX"},
             {"symbol": "GBPUSD=X", "name": "GBP/USD", "category": "FOREX"},
             {"symbol": "JPY=X", "name": "USD/JPY", "category": "FOREX"},
-            {"symbol": "MXN=X", "name": "USD/MXN", "category": "FOREX"}
+            {"symbol": "MXN=X", "name": "USD/MXN", "category": "FOREX"},
+            {"symbol": "CAD=X", "name": "USD/CAD", "category": "FOREX"},
+            {"symbol": "AUDUSD=X", "name": "AUD/USD", "category": "FOREX"},
+            {"symbol": "CHF=X", "name": "USD/CHF", "category": "FOREX"},
+            {"symbol": "NZDUSD=X", "name": "NZD/USD", "category": "FOREX"},
+            {"symbol": "EURGBP=X", "name": "EUR/GBP", "category": "FOREX"},
+            {"symbol": "EURJPY=X", "name": "EUR/JPY", "category": "FOREX"}
         ]
         
         print(f"📋 gRPC Request: GetCategorizedAssets")
@@ -117,12 +135,11 @@ class FinancialDataServicer(financial_data_pb2_grpc.FinancialDataServiceServicer
         return financial_data_pb2.CategorizedAssetsResponse(assets=proto_assets)
 
     def GetAvailableSymbols(self, request, context):
-        # Para compatibilidad, extraemos solo los símbolos de la lista anterior
-        available_symbols = [
-            "AAPL", "GOOGL", "MSFT", "AMZN", "TSLA", "META", "NVDA", "NFLX", "AMD",
-            "BTC-USD", "ETH-USD", "SOL-USD", "ADA-USD", "DOT-USD", "XRP-USD",
-            "XAUUSD=C", "XAGUSD=C", "CL=F", "NG=F", "EURUSD=X", "GBPUSD=X"
-        ]
+        # Para mantener consistencia, extraemos los símbolos de la lista de activos categorizados
+        # En un sistema real, esto vendría de una base de datos o archivo de configuración
+        categorized_assets = self.GetCategorizedAssets(None, None).assets
+        available_symbols = [a.symbol for a in categorized_assets]
+        
         print(f"📋 gRPC Request received for available symbols")
         return financial_data_pb2.SymbolsResponse(symbols=available_symbols)
 

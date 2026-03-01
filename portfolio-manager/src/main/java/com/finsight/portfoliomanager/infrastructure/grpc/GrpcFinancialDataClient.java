@@ -84,8 +84,13 @@ public class GrpcFinancialDataClient {
                 fallback.add(
                         Asset.newBuilder().setSymbol("MSFT").setName("Microsoft Corp.").setCategory("STOCKS").build());
                 fallback.add(
-                        Asset.newBuilder().setSymbol("XAUUSD=C").setName("Gold").setCategory("COMMODITIES").build());
+                        Asset.newBuilder().setSymbol("NVDA").setName("NVIDIA Corp.").setCategory("STOCKS").build());
+                fallback.add(Asset.newBuilder().setSymbol("GC=F").setName("Gold").setCategory("COMMODITIES").build());
+                fallback.add(Asset.newBuilder().setSymbol("SI=F").setName("Silver").setCategory("COMMODITIES").build());
+                fallback.add(
+                        Asset.newBuilder().setSymbol("CL=F").setName("Crude Oil").setCategory("COMMODITIES").build());
                 fallback.add(Asset.newBuilder().setSymbol("EURUSD=X").setName("EUR/USD").setCategory("FOREX").build());
+                fallback.add(Asset.newBuilder().setSymbol("GBPUSD=X").setName("GBP/USD").setCategory("FOREX").build());
                 return fallback;
             }
             return List.of();
@@ -103,7 +108,7 @@ public class GrpcFinancialDataClient {
             return List.of(
                     "AAPL", "GOOGL", "MSFT", "AMZN", "TSLA", "META", "NVDA", "NFLX", "AMD",
                     "BTC-USD", "ETH-USD", "SOL-USD", "ADA-USD", "DOT-USD", "XRP-USD",
-                    "XAUUSD=C", "XAGUSD=C", "CL=F", "NG=F", "EURUSD=X", "GBPUSD=X");
+                    "GC=F", "SI=F", "CL=F", "NG=F", "EURUSD=X", "GBPUSD=X");
         }
     }
 

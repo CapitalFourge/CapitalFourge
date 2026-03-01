@@ -1726,7 +1726,7 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions, init
                                                                     children: [
                                                                         pos.symbol,
                                                                         " (",
-                                                                        pos.quantity.toFixed(4),
+                                                                        pos.quantity.toFixed(8).replace(/\.?0+$/, ''),
                                                                         " disponibles)"
                                                                     ]
                                                                 }, pos.symbol, true, {
@@ -1755,7 +1755,7 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions, init
                                                                 className: "text-[10px] text-slate-500",
                                                                 children: [
                                                                     "Máx. disponible: ",
-                                                                    position.quantity.toFixed(4),
+                                                                    position.quantity.toFixed(8).replace(/\.?0+$/, ''),
                                                                     " ",
                                                                     symbol
                                                                 ]
@@ -1941,7 +1941,6 @@ __turbopack_context__.s([
     ()=>PositionActionDialog
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/compiled/react/jsx-dev-runtime.js [app-client] (ecmascript)");
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/compiled/react/index.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/components/ui/dialog.tsx [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/components/ui/button.tsx [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$shopping$2d$cart$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__ShoppingCart$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/shopping-cart.js [app-client] (ecmascript) <export default as ShoppingCart>");
@@ -1950,8 +1949,6 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$re
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$arrow$2d$down$2d$right$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__ArrowDownRight$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/arrow-down-right.js [app-client] (ecmascript) <export default as ArrowDownRight>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$info$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Info$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/info.js [app-client] (ecmascript) <export default as Info>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$trading$2f$trade$2d$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/components/trading/trade-dialog.tsx [app-client] (ecmascript)");
-;
-var _s = __turbopack_context__.k.signature();
 "use client";
 ;
 ;
@@ -1959,18 +1956,12 @@ var _s = __turbopack_context__.k.signature();
 ;
 ;
 function PositionActionDialog({ position, portfolio, allPortfolios, open, onOpenChange }) {
-    _s();
-    const [tradeType, setTradeType] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null);
     if (!position || !portfolio) return null;
     const currentPrice = position.currentPrice || 0;
     const avgCost = position.averagePurchasePrice || 0;
     const usdValue = position.quantity * currentPrice;
     const performance = avgCost > 0 ? (currentPrice - avgCost) / avgCost * 100 : 0;
     const isPositive = performance >= 0;
-    const handleClose = ()=>{
-        setTradeType(null);
-        onOpenChange(false);
-    };
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Dialog"], {
         open: open,
         onOpenChange: onOpenChange,
@@ -1986,19 +1977,19 @@ function PositionActionDialog({ position, portfolio, allPortfolios, open, onOpen
                                 size: 20
                             }, void 0, false, {
                                 fileName: "[project]/components/trading/position-action-dialog.tsx",
-                                lineNumber: 57,
+                                lineNumber: 49,
                                 columnNumber: 25
                             }, this),
                             "Detalles de Posición"
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/trading/position-action-dialog.tsx",
-                        lineNumber: 56,
+                        lineNumber: 48,
                         columnNumber: 21
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/components/trading/position-action-dialog.tsx",
-                    lineNumber: 55,
+                    lineNumber: 47,
                     columnNumber: 17
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2015,7 +2006,7 @@ function PositionActionDialog({ position, portfolio, allPortfolios, open, onOpen
                                             children: position.symbol.substring(0, 2)
                                         }, void 0, false, {
                                             fileName: "[project]/components/trading/position-action-dialog.tsx",
-                                            lineNumber: 66,
+                                            lineNumber: 58,
                                             columnNumber: 29
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2025,30 +2016,30 @@ function PositionActionDialog({ position, portfolio, allPortfolios, open, onOpen
                                                     children: position.symbol
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/trading/position-action-dialog.tsx",
-                                                    lineNumber: 70,
+                                                    lineNumber: 62,
                                                     columnNumber: 33
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                                     className: "text-[10px] text-slate-500 uppercase tracking-widest font-bold font-mono",
                                                     children: [
-                                                        position.quantity.toFixed(4),
+                                                        position.quantity.toFixed(8).replace(/\.?0+$/, ''),
                                                         " UNIDADES"
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/components/trading/position-action-dialog.tsx",
-                                                    lineNumber: 71,
+                                                    lineNumber: 63,
                                                     columnNumber: 33
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/trading/position-action-dialog.tsx",
-                                            lineNumber: 69,
+                                            lineNumber: 61,
                                             columnNumber: 29
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/trading/position-action-dialog.tsx",
-                                    lineNumber: 65,
+                                    lineNumber: 57,
                                     columnNumber: 25
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2059,7 +2050,7 @@ function PositionActionDialog({ position, portfolio, allPortfolios, open, onOpen
                                             children: "Valor_Actual"
                                         }, void 0, false, {
                                             fileName: "[project]/components/trading/position-action-dialog.tsx",
-                                            lineNumber: 77,
+                                            lineNumber: 69,
                                             columnNumber: 29
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2073,19 +2064,19 @@ function PositionActionDialog({ position, portfolio, allPortfolios, open, onOpen
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/trading/position-action-dialog.tsx",
-                                            lineNumber: 78,
+                                            lineNumber: 70,
                                             columnNumber: 29
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/trading/position-action-dialog.tsx",
-                                    lineNumber: 76,
+                                    lineNumber: 68,
                                     columnNumber: 25
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/trading/position-action-dialog.tsx",
-                            lineNumber: 64,
+                            lineNumber: 56,
                             columnNumber: 21
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2099,7 +2090,7 @@ function PositionActionDialog({ position, portfolio, allPortfolios, open, onOpen
                                             children: "Precio_Mercado"
                                         }, void 0, false, {
                                             fileName: "[project]/components/trading/position-action-dialog.tsx",
-                                            lineNumber: 87,
+                                            lineNumber: 79,
                                             columnNumber: 29
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2110,13 +2101,13 @@ function PositionActionDialog({ position, portfolio, allPortfolios, open, onOpen
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/trading/position-action-dialog.tsx",
-                                            lineNumber: 88,
+                                            lineNumber: 80,
                                             columnNumber: 29
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/trading/position-action-dialog.tsx",
-                                    lineNumber: 86,
+                                    lineNumber: 78,
                                     columnNumber: 25
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2127,7 +2118,7 @@ function PositionActionDialog({ position, portfolio, allPortfolios, open, onOpen
                                             children: "Costo_Promedio"
                                         }, void 0, false, {
                                             fileName: "[project]/components/trading/position-action-dialog.tsx",
-                                            lineNumber: 91,
+                                            lineNumber: 83,
                                             columnNumber: 29
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2138,13 +2129,13 @@ function PositionActionDialog({ position, portfolio, allPortfolios, open, onOpen
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/trading/position-action-dialog.tsx",
-                                            lineNumber: 92,
+                                            lineNumber: 84,
                                             columnNumber: 29
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/trading/position-action-dialog.tsx",
-                                    lineNumber: 90,
+                                    lineNumber: 82,
                                     columnNumber: 25
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2157,7 +2148,7 @@ function PositionActionDialog({ position, portfolio, allPortfolios, open, onOpen
                                                     children: "Rendimiento_Total"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/trading/position-action-dialog.tsx",
-                                                    lineNumber: 96,
+                                                    lineNumber: 88,
                                                     columnNumber: 33
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2169,13 +2160,13 @@ function PositionActionDialog({ position, portfolio, allPortfolios, open, onOpen
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/components/trading/position-action-dialog.tsx",
-                                                    lineNumber: 97,
+                                                    lineNumber: 89,
                                                     columnNumber: 33
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/trading/position-action-dialog.tsx",
-                                            lineNumber: 95,
+                                            lineNumber: 87,
                                             columnNumber: 29
                                         }, this),
                                         isPositive ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$arrow$2d$up$2d$right$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__ArrowUpRight$3e$__["ArrowUpRight"], {
@@ -2183,26 +2174,26 @@ function PositionActionDialog({ position, portfolio, allPortfolios, open, onOpen
                                             size: 32
                                         }, void 0, false, {
                                             fileName: "[project]/components/trading/position-action-dialog.tsx",
-                                            lineNumber: 101,
+                                            lineNumber: 93,
                                             columnNumber: 43
                                         }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$arrow$2d$down$2d$right$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__ArrowDownRight$3e$__["ArrowDownRight"], {
                                             className: "text-red-400",
                                             size: 32
                                         }, void 0, false, {
                                             fileName: "[project]/components/trading/position-action-dialog.tsx",
-                                            lineNumber: 101,
+                                            lineNumber: 93,
                                             columnNumber: 101
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/trading/position-action-dialog.tsx",
-                                    lineNumber: 94,
+                                    lineNumber: 86,
                                     columnNumber: 25
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/trading/position-action-dialog.tsx",
-                            lineNumber: 85,
+                            lineNumber: 77,
                             columnNumber: 21
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2219,19 +2210,19 @@ function PositionActionDialog({ position, portfolio, allPortfolios, open, onOpen
                                                 size: 18
                                             }, void 0, false, {
                                                 fileName: "[project]/components/trading/position-action-dialog.tsx",
-                                                lineNumber: 113,
+                                                lineNumber: 105,
                                                 columnNumber: 33
                                             }, this),
                                             "Aumentar"
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/trading/position-action-dialog.tsx",
-                                        lineNumber: 112,
+                                        lineNumber: 104,
                                         columnNumber: 29
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/components/trading/position-action-dialog.tsx",
-                                    lineNumber: 107,
+                                    lineNumber: 99,
                                     columnNumber: 25
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$trading$2f$trade$2d$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["TradeDialog"], {
@@ -2245,46 +2236,45 @@ function PositionActionDialog({ position, portfolio, allPortfolios, open, onOpen
                                                 size: 18
                                             }, void 0, false, {
                                                 fileName: "[project]/components/trading/position-action-dialog.tsx",
-                                                lineNumber: 124,
+                                                lineNumber: 116,
                                                 columnNumber: 33
                                             }, this),
                                             "Vender"
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/trading/position-action-dialog.tsx",
-                                        lineNumber: 123,
+                                        lineNumber: 115,
                                         columnNumber: 29
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/components/trading/position-action-dialog.tsx",
-                                    lineNumber: 118,
+                                    lineNumber: 110,
                                     columnNumber: 25
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/trading/position-action-dialog.tsx",
-                            lineNumber: 106,
+                            lineNumber: 98,
                             columnNumber: 21
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/trading/position-action-dialog.tsx",
-                    lineNumber: 62,
+                    lineNumber: 54,
                     columnNumber: 17
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/components/trading/position-action-dialog.tsx",
-            lineNumber: 54,
+            lineNumber: 46,
             columnNumber: 13
         }, this)
     }, void 0, false, {
         fileName: "[project]/components/trading/position-action-dialog.tsx",
-        lineNumber: 53,
+        lineNumber: 45,
         columnNumber: 9
     }, this);
 }
-_s(PositionActionDialog, "UOrTAcEOnola2S2Aoh9V5TzAhN4=");
 _c = PositionActionDialog;
 var _c;
 __turbopack_context__.k.register(_c, "PositionActionDialog");
@@ -2308,14 +2298,17 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$
 var __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$table$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/components/ui/table.tsx [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$badge$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/components/ui/badge.tsx [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/components/ui/button.tsx [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/client/app-dir/link.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$history$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__History$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/history.js [app-client] (ecmascript) <export default as History>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$chart$2d$pie$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__PieChart$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/chart-pie.js [app-client] (ecmascript) <export default as PieChart>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$list$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__List$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/list.js [app-client] (ecmascript) <export default as List>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$shopping$2d$cart$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__ShoppingCart$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/shopping-cart.js [app-client] (ecmascript) <export default as ShoppingCart>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$trading$2f$orders$2d$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/components/trading/orders-dialog.tsx [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$trading$2f$position$2d$action$2d$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/components/trading/position-action-dialog.tsx [app-client] (ecmascript)");
 ;
 var _s = __turbopack_context__.k.signature();
 "use client";
+;
 ;
 ;
 ;
@@ -2336,6 +2329,7 @@ const PORTFOLIO_DETAIL_QUERY = __TURBOPACK__imported__module__$5b$project$5d2f$n
     portfolio(id: $id) {
       id
       name
+      performance
       positions {
         symbol
         quantity
@@ -2375,7 +2369,7 @@ function PortfolioDetailPage() {
         ]
     }, void 0, true, {
         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-        lineNumber: 77,
+        lineNumber: 80,
         columnNumber: 25
     }, this);
     if (error) return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2386,7 +2380,7 @@ function PortfolioDetailPage() {
         ]
     }, void 0, true, {
         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-        lineNumber: 78,
+        lineNumber: 81,
         columnNumber: 23
     }, this);
     if (!portfolioId) return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2394,7 +2388,7 @@ function PortfolioDetailPage() {
         children: "ERROR: Portfolio ID not found"
     }, void 0, false, {
         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-        lineNumber: 79,
+        lineNumber: 82,
         columnNumber: 30
     }, this);
     const portfolio = data?.portfolio;
@@ -2411,8 +2405,12 @@ function PortfolioDetailPage() {
         const avgCost = pos.averagePurchasePrice || 0;
         return total + avgCost * pos.quantity;
     }, 0) || 0;
-    const totalPerformance = totalCostBasis > 0 ? (positionsUsdValue - totalCostBasis) / totalCostBasis * 100 : 0;
-    const totalPerformanceUsd = positionsUsdValue - totalCostBasis;
+    // If there are active positions, calculate live performance; otherwise fall back to
+    // the backend's stored historical performance (same value shown on the portfolio list page)
+    const hasActivePositions = (portfolio?.positions?.length ?? 0) > 0 && totalCostBasis > 0;
+    const livePerformance = hasActivePositions ? (positionsUsdValue - totalCostBasis) / totalCostBasis * 100 : null;
+    const totalPerformance = livePerformance ?? portfolio?.performance ?? 0;
+    const totalPerformanceUsd = hasActivePositions ? positionsUsdValue - totalCostBasis : 0;
     const performanceColor = totalPerformance >= 0 ? "text-emerald-400" : "text-red-400";
     const performanceSign = totalPerformance >= 0 ? "↑" : "↓";
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2428,7 +2426,7 @@ function PortfolioDetailPage() {
                                 children: portfolio.name
                             }, void 0, false, {
                                 fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                lineNumber: 106,
+                                lineNumber: 113,
                                 columnNumber: 21
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2440,13 +2438,13 @@ function PortfolioDetailPage() {
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                lineNumber: 107,
+                                lineNumber: 114,
                                 columnNumber: 21
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                        lineNumber: 105,
+                        lineNumber: 112,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2462,14 +2460,40 @@ function PortfolioDetailPage() {
                                         className: "mr-2"
                                     }, void 0, false, {
                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                        lineNumber: 115,
+                                        lineNumber: 122,
                                         columnNumber: 25
                                     }, this),
                                     "Ver Órdenes"
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                lineNumber: 110,
+                                lineNumber: 117,
+                                columnNumber: 21
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
+                                asChild: true,
+                                className: "bg-white text-black hover:bg-slate-200",
+                                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
+                                    href: "/dashboard",
+                                    children: [
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$shopping$2d$cart$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__ShoppingCart$3e$__["ShoppingCart"], {
+                                            size: 16,
+                                            className: "mr-2"
+                                        }, void 0, false, {
+                                            fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
+                                            lineNumber: 127,
+                                            columnNumber: 29
+                                        }, this),
+                                        "Comprar Activos"
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
+                                    lineNumber: 126,
+                                    columnNumber: 25
+                                }, this)
+                            }, void 0, false, {
+                                fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
+                                lineNumber: 125,
                                 columnNumber: 21
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2480,7 +2504,7 @@ function PortfolioDetailPage() {
                                         children: "Valor_Total_Portafolio"
                                     }, void 0, false, {
                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                        lineNumber: 119,
+                                        lineNumber: 132,
                                         columnNumber: 25
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2494,7 +2518,7 @@ function PortfolioDetailPage() {
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                        lineNumber: 120,
+                                        lineNumber: 133,
                                         columnNumber: 25
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2507,7 +2531,7 @@ function PortfolioDetailPage() {
                                                         children: "Rendimiento"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                        lineNumber: 123,
+                                                        lineNumber: 136,
                                                         columnNumber: 33
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2524,7 +2548,7 @@ function PortfolioDetailPage() {
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                                lineNumber: 125,
+                                                                lineNumber: 138,
                                                                 columnNumber: 37
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2537,19 +2561,19 @@ function PortfolioDetailPage() {
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                                lineNumber: 128,
+                                                                lineNumber: 141,
                                                                 columnNumber: 37
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                        lineNumber: 124,
+                                                        lineNumber: 137,
                                                         columnNumber: 33
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                lineNumber: 122,
+                                                lineNumber: 135,
                                                 columnNumber: 29
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2560,7 +2584,7 @@ function PortfolioDetailPage() {
                                                         children: "Saldo_Efectivo"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                        lineNumber: 134,
+                                                        lineNumber: 147,
                                                         columnNumber: 33
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2571,13 +2595,13 @@ function PortfolioDetailPage() {
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                        lineNumber: 135,
+                                                        lineNumber: 148,
                                                         columnNumber: 33
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                lineNumber: 133,
+                                                lineNumber: 146,
                                                 columnNumber: 29
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2588,7 +2612,7 @@ function PortfolioDetailPage() {
                                                         children: "Bloqueado"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                        lineNumber: 138,
+                                                        lineNumber: 151,
                                                         columnNumber: 33
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2599,13 +2623,13 @@ function PortfolioDetailPage() {
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                        lineNumber: 139,
+                                                        lineNumber: 152,
                                                         columnNumber: 33
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                lineNumber: 137,
+                                                lineNumber: 150,
                                                 columnNumber: 29
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2616,7 +2640,7 @@ function PortfolioDetailPage() {
                                                         children: "En_Activos"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                        lineNumber: 142,
+                                                        lineNumber: 155,
                                                         columnNumber: 33
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2627,37 +2651,37 @@ function PortfolioDetailPage() {
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                        lineNumber: 143,
+                                                        lineNumber: 156,
                                                         columnNumber: 33
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                lineNumber: 141,
+                                                lineNumber: 154,
                                                 columnNumber: 29
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                        lineNumber: 121,
+                                        lineNumber: 134,
                                         columnNumber: 25
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                lineNumber: 118,
+                                lineNumber: 131,
                                 columnNumber: 21
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                        lineNumber: 109,
+                        lineNumber: 116,
                         columnNumber: 17
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                lineNumber: 104,
+                lineNumber: 111,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2674,19 +2698,19 @@ function PortfolioDetailPage() {
                                             size: 14
                                         }, void 0, false, {
                                             fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                            lineNumber: 154,
+                                            lineNumber: 167,
                                             columnNumber: 29
                                         }, this),
                                         " Posiciones_Activas"
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                    lineNumber: 153,
+                                    lineNumber: 166,
                                     columnNumber: 25
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                lineNumber: 152,
+                                lineNumber: 165,
                                 columnNumber: 21
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -2696,7 +2720,7 @@ function PortfolioDetailPage() {
                                     children: "Sin posiciones abiertas."
                                 }, void 0, false, {
                                     fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                    lineNumber: 159,
+                                    lineNumber: 172,
                                     columnNumber: 29
                                 }, this) : portfolio.positions.map((pos)=>{
                                     const currentPrice = pos.currentPrice || 0;
@@ -2722,7 +2746,7 @@ function PortfolioDetailPage() {
                                                         children: pos.symbol.substring(0, 2)
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                        lineNumber: 181,
+                                                        lineNumber: 194,
                                                         columnNumber: 45
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2732,7 +2756,7 @@ function PortfolioDetailPage() {
                                                                 children: pos.symbol
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                                lineNumber: 185,
+                                                                lineNumber: 198,
                                                                 columnNumber: 49
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2740,19 +2764,19 @@ function PortfolioDetailPage() {
                                                                 children: "En cartera"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                                lineNumber: 186,
+                                                                lineNumber: 199,
                                                                 columnNumber: 49
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                        lineNumber: 184,
+                                                        lineNumber: 197,
                                                         columnNumber: 45
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                lineNumber: 180,
+                                                lineNumber: 193,
                                                 columnNumber: 41
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2763,7 +2787,7 @@ function PortfolioDetailPage() {
                                                         children: pos.quantity
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                        lineNumber: 190,
+                                                        lineNumber: 203,
                                                         columnNumber: 45
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2777,7 +2801,7 @@ function PortfolioDetailPage() {
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                        lineNumber: 193,
+                                                        lineNumber: 206,
                                                         columnNumber: 45
                                                     }, this),
                                                     hasCost && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2790,31 +2814,31 @@ function PortfolioDetailPage() {
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                        lineNumber: 197,
+                                                        lineNumber: 210,
                                                         columnNumber: 49
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                lineNumber: 189,
+                                                lineNumber: 202,
                                                 columnNumber: 41
                                             }, this)
                                         ]
                                     }, pos.symbol, true, {
                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                        lineNumber: 172,
+                                        lineNumber: 185,
                                         columnNumber: 37
                                     }, this);
                                 })
                             }, void 0, false, {
                                 fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                lineNumber: 157,
+                                lineNumber: 170,
                                 columnNumber: 21
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                        lineNumber: 151,
+                        lineNumber: 164,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
@@ -2828,19 +2852,19 @@ function PortfolioDetailPage() {
                                             size: 14
                                         }, void 0, false, {
                                             fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                            lineNumber: 212,
+                                            lineNumber: 225,
                                             columnNumber: 29
                                         }, this),
                                         " Registro_de_Transacciones"
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                    lineNumber: 211,
+                                    lineNumber: 224,
                                     columnNumber: 25
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                lineNumber: 210,
+                                lineNumber: 223,
                                 columnNumber: 21
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -2856,7 +2880,7 @@ function PortfolioDetailPage() {
                                                         children: "Fecha"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                        lineNumber: 219,
+                                                        lineNumber: 232,
                                                         columnNumber: 37
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$table$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["TableHead"], {
@@ -2864,7 +2888,7 @@ function PortfolioDetailPage() {
                                                         children: "Operación"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                        lineNumber: 220,
+                                                        lineNumber: 233,
                                                         columnNumber: 37
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$table$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["TableHead"], {
@@ -2872,7 +2896,7 @@ function PortfolioDetailPage() {
                                                         children: "Símbolo"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                        lineNumber: 221,
+                                                        lineNumber: 234,
                                                         columnNumber: 37
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$table$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["TableHead"], {
@@ -2880,7 +2904,7 @@ function PortfolioDetailPage() {
                                                         children: "Cant."
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                        lineNumber: 222,
+                                                        lineNumber: 235,
                                                         columnNumber: 37
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$table$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["TableHead"], {
@@ -2888,7 +2912,7 @@ function PortfolioDetailPage() {
                                                         children: "Precio"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                        lineNumber: 223,
+                                                        lineNumber: 236,
                                                         columnNumber: 37
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$table$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["TableHead"], {
@@ -2896,18 +2920,18 @@ function PortfolioDetailPage() {
                                                         children: "Total"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                        lineNumber: 224,
+                                                        lineNumber: 237,
                                                         columnNumber: 37
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                lineNumber: 218,
+                                                lineNumber: 231,
                                                 columnNumber: 33
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                            lineNumber: 217,
+                                            lineNumber: 230,
                                             columnNumber: 29
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$table$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["TableBody"], {
@@ -2919,7 +2943,7 @@ function PortfolioDetailPage() {
                                                             children: new Date(tx.timestamp).toLocaleDateString()
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                            lineNumber: 230,
+                                                            lineNumber: 243,
                                                             columnNumber: 41
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$table$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["TableCell"], {
@@ -2928,12 +2952,12 @@ function PortfolioDetailPage() {
                                                                 children: tx.type === "BUY" ? "COMPRA" : tx.type === "SELL" ? "VENTA" : tx.type === "DEPOSIT" ? "DEPÓSITO" : tx.type === "WITHDRAWAL" ? "RETIRO" : tx.type === "CANCELLED" ? "CANCELADA" : tx.type === "EXPIRED" ? "EXPIRADA" : tx.type
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                                lineNumber: 234,
+                                                                lineNumber: 247,
                                                                 columnNumber: 45
                                                             }, this)
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                            lineNumber: 233,
+                                                            lineNumber: 246,
                                                             columnNumber: 41
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$table$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["TableCell"], {
@@ -2941,7 +2965,7 @@ function PortfolioDetailPage() {
                                                             children: tx.symbol
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                            lineNumber: 250,
+                                                            lineNumber: 263,
                                                             columnNumber: 41
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$table$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["TableCell"], {
@@ -2949,7 +2973,7 @@ function PortfolioDetailPage() {
                                                             children: tx.quantity
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                            lineNumber: 251,
+                                                            lineNumber: 264,
                                                             columnNumber: 41
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$table$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["TableCell"], {
@@ -2960,7 +2984,7 @@ function PortfolioDetailPage() {
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                            lineNumber: 252,
+                                                            lineNumber: 265,
                                                             columnNumber: 41
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$table$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["TableCell"], {
@@ -2971,41 +2995,41 @@ function PortfolioDetailPage() {
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                            lineNumber: 253,
+                                                            lineNumber: 266,
                                                             columnNumber: 41
                                                         }, this)
                                                     ]
                                                 }, tx.id, true, {
                                                     fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                                    lineNumber: 229,
+                                                    lineNumber: 242,
                                                     columnNumber: 37
                                                 }, this))
                                         }, void 0, false, {
                                             fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                            lineNumber: 227,
+                                            lineNumber: 240,
                                             columnNumber: 29
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                    lineNumber: 216,
+                                    lineNumber: 229,
                                     columnNumber: 25
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                                lineNumber: 215,
+                                lineNumber: 228,
                                 columnNumber: 21
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                        lineNumber: 209,
+                        lineNumber: 222,
                         columnNumber: 17
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                lineNumber: 150,
+                lineNumber: 163,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$trading$2f$orders$2d$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["OrdersDialog"], {
@@ -3014,7 +3038,7 @@ function PortfolioDetailPage() {
                 onOpenChange: setOrdersDialogOpen
             }, void 0, false, {
                 fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                lineNumber: 266,
+                lineNumber: 279,
                 columnNumber: 13
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$trading$2f$position$2d$action$2d$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["PositionActionDialog"], {
@@ -3027,13 +3051,13 @@ function PortfolioDetailPage() {
                 onOpenChange: setPositionActionDialogOpen
             }, void 0, false, {
                 fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-                lineNumber: 272,
+                lineNumber: 285,
                 columnNumber: 13
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/app/(dashboard)/portfolio/[id]/page.tsx",
-        lineNumber: 103,
+        lineNumber: 110,
         columnNumber: 9
     }, this);
 }

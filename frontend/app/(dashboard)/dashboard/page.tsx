@@ -48,7 +48,7 @@ const DASHBOARD_QUERY = gql`
   }
 `;
 
-const WATCHLIST = ["BTC-USD", "ETH-USD", "AAPL", "TSLA", "NVDA", "MSFT"];
+const WATCHLIST = ["BTC-USD", "ETH-USD", "AAPL", "TSLA", "NVDA", "MSFT", "GC=F", "SI=F"];
 
 export default function DashboardPage() {
     console.log("[DEBUG] DashboardPage rendering - checking auth and API connectivity...");

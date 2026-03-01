@@ -121,7 +121,7 @@ public class PortfolioService implements PortfolioUseCase {
             BigDecimal newQty = pos.getQuantity().add(quantity);
             BigDecimal totalSpent = pos.getQuantity()
                     .multiply(pos.getAveragePurchasePrice()).add(totalCost);
-            pos.setAveragePurchasePrice(totalSpent.divide(newQty, 4, RoundingMode.HALF_UP));
+            pos.setAveragePurchasePrice(totalSpent.divide(newQty, 8, RoundingMode.HALF_UP));
             pos.setQuantity(newQty);
         } else {
             portfolio.getPositions().add(Position.builder()

@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 import com.finsight.portfoliomanager.application.ports.out.OrderRepository;
 import com.finsight.portfoliomanager.domain.Order;
 import com.finsight.portfoliomanager.domain.OrderStatus;
-import com.finsight.portfoliomanager.domain.OrderType;
 import com.finsight.portfoliomanager.infrastructure.adapters.out.persistence.Entities.OrderEntity;
 import com.finsight.portfoliomanager.infrastructure.adapters.out.persistence.Repositories.JpaOrderRepository;
 

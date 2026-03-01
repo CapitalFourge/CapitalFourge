@@ -61,7 +61,7 @@ export function PositionActionDialog({
                             <div>
                                 <h3 className="text-2xl font-black italic tracking-tighter">{position.symbol}</h3>
                                 <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold font-mono">
-                                    {position.quantity.toFixed(4)} UNIDADES
+                                    {position.quantity.toFixed(8).replace(/\.?0+$/, '')} UNIDADES
                                 </p>
                             </div>
                         </div>

@@ -383,7 +383,7 @@ export function TradeDialog({ portfolios, defaultType = "buy", portfolioPosition
                                         {currentPortfolioPositions.length > 0 ? (
                                             currentPortfolioPositions.map((pos: Position) => (
                                                 <option key={pos.symbol} value={pos.symbol}>
-                                                    {pos.symbol} ({pos.quantity.toFixed(4)} disponibles)
+                                                    {pos.symbol} ({pos.quantity.toFixed(8).replace(/\.?0+$/, '')} disponibles)
                                                 </option>
                                             ))
                                         ) : (
@@ -397,7 +397,7 @@ export function TradeDialog({ portfolios, defaultType = "buy", portfolioPosition
                                         if (position) {
                                             return (
                                                 <p className="text-[10px] text-slate-500">
-                                                    Máx. disponible: {position.quantity.toFixed(4)} {symbol}
+                                                    Máx. disponible: {position.quantity.toFixed(8).replace(/\.?0+$/, '')} {symbol}
                                                 </p>
                                             );
                                         }

@@ -44,8 +44,15 @@ public class AssetSearchService {
             fallback.add(AssetInfo.builder().symbol("SOL-USD").name("Solana").category("CRYPTO").build());
             fallback.add(AssetInfo.builder().symbol("AAPL").name("Apple Inc.").category("STOCKS").build());
             fallback.add(AssetInfo.builder().symbol("MSFT").name("Microsoft Corp.").category("STOCKS").build());
-            fallback.add(AssetInfo.builder().symbol("XAUUSD=C").name("Gold").category("COMMODITIES").build());
+            fallback.add(AssetInfo.builder().symbol("NVDA").name("NVIDIA Corp.").category("STOCKS").build());
+            fallback.add(AssetInfo.builder().symbol("GC=F").name("Gold").category("COMMODITIES").build());
+            fallback.add(AssetInfo.builder().symbol("SI=F").name("Silver").category("COMMODITIES").build());
+            fallback.add(AssetInfo.builder().symbol("CL=F").name("Crude Oil").category("COMMODITIES").build());
+            fallback.add(AssetInfo.builder().symbol("NG=F").name("Natural Gas").category("COMMODITIES").build());
+            fallback.add(AssetInfo.builder().symbol("HG=F").name("Copper").category("COMMODITIES").build());
+            fallback.add(AssetInfo.builder().symbol("BZ=F").name("Brent Crude Oil").category("COMMODITIES").build());
             fallback.add(AssetInfo.builder().symbol("EURUSD=X").name("EUR/USD").category("FOREX").build());
+            fallback.add(AssetInfo.builder().symbol("GBPUSD=X").name("GBP/USD").category("FOREX").build());
 
             if (category == null) {
                 return fallback;

@@ -18,40 +18,73 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class PythonReportGeneratorAdapter implements ReportGeneratorPort {
-    private ObjectMapper objectMapper;
-    private final Path scriptPath = Paths.get("report-service", "generator.py");
-    private ProcessExecutor processExecutor;
+    private final ObjectMapper objectMapper;
+    private final ProcessExecutor processExecutor;
 
     public PythonReportGeneratorAdapter(ObjectMapper objectMapper, ProcessExecutor processExecutor) {
         this.objectMapper = objectMapper;
         this.processExecutor = processExecutor;
     }
 
+    private Path findScriptPath() throws IOException {
+        // Try relative to current working directory
+        Path path = Paths.get("report-service", "generator.py");
+        if (Files.exists(path)) {
+            return path.toAbsolutePath();
+        }
+
+        // Try in the parent directory (case where we might be running from within a
+        // submodule directory)
+        Path parentPath = Paths.get("..", "report-service", "generator.py");
+        if (Files.exists(parentPath)) {
+            return parentPath.toAbsolutePath();
+        }
+
+        // Try absolute path if we can determine repo root (hacky but useful for
+        // debugging)
+        String repoRoot = System.getProperty("user.dir");
+        if (repoRoot != null) {
+            Path rootPath = Paths.get(repoRoot, "report-service", "generator.py");
+            if (Files.exists(rootPath)) {
+                return rootPath.toAbsolutePath();
+            }
+        }
+
+        throw new IOException("Report generator script not found. Looked in: " +
+                path.toAbsolutePath() + ", " + parentPath.toAbsolutePath());
+    }
+
     @Override
     public Path generateReport(Portfolio portfolio, Path pdfPath) throws IOException {
         Path tempJson = Files.createTempFile("portfolio_", ".json");
-        objectMapper.writeValue(tempJson.toFile(), portfolio);
-
-        List<String> command = List.of(
-                "python",
-                scriptPath.toAbsolutePath().toString(),
-                tempJson.toAbsolutePath().toString(),
-                pdfPath.toAbsolutePath().toString()
-        );
-
         try {
-            int exitCode = processExecutor.execute(command);
-            if (exitCode != 0) {
-                throw new IOException("Report generator exited with code " + exitCode);
-            }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new IOException("Report generator interrupted", e);
-        }
+            objectMapper.writeValue(tempJson.toFile(), portfolio);
 
-        if (!Files.exists(pdfPath)) {
-            throw new IOException("PDF was not created by report generator");
+            Path resolvedScriptPath = findScriptPath();
+
+            List<String> command = List.of(
+                    "python",
+                    resolvedScriptPath.toString(),
+                    tempJson.toAbsolutePath().toString(),
+                    pdfPath.toAbsolutePath().toString());
+
+            try {
+                ProcessExecutor.ExecutionResult result = processExecutor.executeWithOutput(command);
+                if (result.exitCode != 0) {
+                    throw new IOException(
+                            "Report generator failed (code " + result.exitCode + "). Output: " + result.output);
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new IOException("Report generator interrupted", e);
+            }
+
+            if (!Files.exists(pdfPath)) {
+                throw new IOException("PDF was not created by report generator");
+            }
+            return pdfPath;
+        } finally {
+            Files.deleteIfExists(tempJson);
         }
-        return pdfPath;
     }
 }

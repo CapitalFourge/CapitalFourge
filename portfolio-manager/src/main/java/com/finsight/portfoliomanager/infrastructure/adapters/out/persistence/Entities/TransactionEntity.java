@@ -43,15 +43,15 @@ public class TransactionEntity {
     @Column(nullable = false)
     private String symbol;
 
-    @Column(nullable = false, precision = 19, scale = 4)
+    @Column(nullable = false, precision = 20, scale = 8)
     private BigDecimal quantity;
 
-    @Column(nullable = false, precision = 19, scale = 4)
+    @Column(nullable = false, precision = 20, scale = 8)
     private BigDecimal price;
 
     @Column(nullable = false)
     private LocalDateTime timestamp;
 
-    @Column(nullable = false, precision = 19, scale = 4)
+    @Column(nullable = false, precision = 20, scale = 8)
     private BigDecimal balanceTransaction;
 }

@@ -22,7 +22,12 @@ public class PositionEntity {
     private PortfolioEntity portfolio;
 
     private String symbol;
+    @Column(precision = 20, scale = 8)
     private BigDecimal quantity;
+
+    @Column(precision = 20, scale = 8)
     private BigDecimal averagePurchasePrice;
+
+    @Column(precision = 20, scale = 8)
     private BigDecimal currentPrice;
 }

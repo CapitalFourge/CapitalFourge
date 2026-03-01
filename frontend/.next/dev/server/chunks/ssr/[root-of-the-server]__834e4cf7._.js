@@ -1217,7 +1217,7 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions, init
                                                                     children: [
                                                                         pos.symbol,
                                                                         " (",
-                                                                        pos.quantity.toFixed(4),
+                                                                        pos.quantity.toFixed(8).replace(/\.?0+$/, ''),
                                                                         " disponibles)"
                                                                     ]
                                                                 }, pos.symbol, true, {
@@ -1246,7 +1246,7 @@ function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions, init
                                                                 className: "text-[10px] text-slate-500",
                                                                 children: [
                                                                     "Máx. disponible: ",
-                                                                    position.quantity.toFixed(4),
+                                                                    position.quantity.toFixed(8).replace(/\.?0+$/, ''),
                                                                     " ",
                                                                     symbol
                                                                 ]
@@ -1713,7 +1713,9 @@ const WATCHLIST = [
     "AAPL",
     "TSLA",
     "NVDA",
-    "MSFT"
+    "MSFT",
+    "GC=F",
+    "SI=F"
 ];
 function DashboardPage() {
     console.log("[DEBUG] DashboardPage rendering - checking auth and API connectivity...");

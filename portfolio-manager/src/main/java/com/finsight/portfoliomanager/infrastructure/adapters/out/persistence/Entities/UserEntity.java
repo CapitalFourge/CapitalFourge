@@ -43,10 +43,10 @@ public class UserEntity {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "cash_balance")
+    @Column(name = "cash_balance", precision = 20, scale = 8)
     private BigDecimal cashBalance;
 
-    @Column(name = "locked_balance")
+    @Column(name = "locked_balance", precision = 20, scale = 8)
     private BigDecimal lockedBalance;
 
     private LocalDateTime lastLoginAt;

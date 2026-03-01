@@ -285,7 +285,7 @@ function RegisterPage() {
                 const errorData = await res.json().catch(()=>({}));
                 __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$sonner$2f$dist$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["toast"].error(errorData.message || "Error al crear cuenta");
             }
-        } catch (error) {
+        } catch  {
             __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$sonner$2f$dist$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["toast"].error("Error de conexión con el servidor");
         } finally{
             setLoading(false);

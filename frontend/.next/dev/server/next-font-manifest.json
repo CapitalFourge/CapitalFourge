@@ -1,21 +1,12 @@
 {
   "app": {
-    "[project]/app/(dashboard)/dashboard/page": [
-      "static/media/1b99372b3eaef0c8-s.p.758e15a8.woff2"
-    ],
-    "[project]/app/(dashboard)/explorer/page": [
-      "static/media/1b99372b3eaef0c8-s.p.758e15a8.woff2"
-    ],
-    "[project]/app/(dashboard)/portfolio/[id]/page": [
-      "static/media/1b99372b3eaef0c8-s.p.758e15a8.woff2"
-    ],
-    "[project]/app/(dashboard)/portfolio/page": [
-      "static/media/1b99372b3eaef0c8-s.p.758e15a8.woff2"
-    ],
     "[project]/app/login/page": [
       "static/media/1b99372b3eaef0c8-s.p.758e15a8.woff2"
     ],
     "[project]/app/page": [
+      "static/media/1b99372b3eaef0c8-s.p.758e15a8.woff2"
+    ],
+    "[project]/app/register/page": [
       "static/media/1b99372b3eaef0c8-s.p.758e15a8.woff2"
     ]
   },

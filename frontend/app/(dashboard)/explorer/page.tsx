@@ -6,7 +6,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
     Search, TrendingUp, Globe, Coins,
-    BarChart3, ArrowRight, Activity,
+    BarChart3, Activity,
     ChevronRight, Info
 } from "lucide-react";
 import { TradeDialog } from "@/components/trading/trade-dialog";
@@ -39,6 +39,25 @@ const CATEGORIES = [
     { id: "FOREX", name: "Forex", icon: Activity },
 ];
 
+interface Asset {
+    symbol: string;
+    name?: string;
+    category: string;
+}
+
+interface PortfolioPosition {
+    symbol: string;
+    quantity: number;
+    averagePurchasePrice: number;
+    currentPrice: number;
+}
+
+interface Portfolio {
+    id: string;
+    name: string;
+    positions?: PortfolioPosition[];
+}
+
 export default function ExplorerPage() {
     const [selectedCategory, setSelectedCategory] = useState("ALL");
     const [searchTerm, setSearchTerm] = useState("");
@@ -47,17 +66,17 @@ export default function ExplorerPage() {
         variables: { category: selectedCategory === "ALL" ? null : selectedCategory }
     });
 
-    const assets = data?.assetsByCategory || [];
-    const portfolios = data?.portfolios || [];
+    const assets: Asset[] = data?.assetsByCategory || [];
+    const portfolios: Portfolio[] = data?.portfolios || [];
 
-    const filteredAssets = assets.filter((a: any) =>
+    const filteredAssets = assets.filter((a: Asset) =>
         a.symbol.toLowerCase().includes(searchTerm.toLowerCase()) ||
         a.name?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     // Create a map of portfolio positions for TradeDialog
-    const portfolioPositions = new Map<string, any[]>();
-    portfolios.forEach((p: any) => {
+    const portfolioPositions = new Map<string, PortfolioPosition[]>();
+    portfolios.forEach((p: Portfolio) => {
         portfolioPositions.set(p.id, p.positions || []);
     });
 
@@ -97,8 +116,8 @@ export default function ExplorerPage() {
                                 key={cat.id}
                                 onClick={() => setSelectedCategory(cat.id)}
                                 className={`flex items-center gap-2 px-5 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${selectedCategory === cat.id
-                                        ? "bg-white text-black"
-                                        : "bg-white/5 text-slate-500 hover:text-white hover:bg-white/10"
+                                    ? "bg-white text-black"
+                                    : "bg-white/5 text-slate-500 hover:text-white hover:bg-white/10"
                                     }`}
                             >
                                 <Icon size={14} />
@@ -116,7 +135,7 @@ export default function ExplorerPage() {
                         <div key={i} className="h-48 rounded-[2rem] bg-white/5 animate-pulse" />
                     ))
                 ) : (
-                    filteredAssets.map((asset: any) => (
+                    filteredAssets.map((asset: Asset) => (
                         <Card key={asset.symbol} className="glass border-none group hover:bg-white/[0.05] transition-all">
                             <CardHeader className="pb-2">
                                 <div className="flex justify-between items-start">

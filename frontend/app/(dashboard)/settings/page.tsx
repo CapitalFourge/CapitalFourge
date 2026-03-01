@@ -79,8 +79,8 @@ export default function SettingsPage() {
             await updateProfileMutation({ variables: { username, email, language } });
             setMessage({ type: 'success', text: 'Perfil actualizado correctamente' });
             refetch();
-        } catch (err: any) {
-            setMessage({ type: 'error', text: err.message });
+        } catch (err: unknown) {
+            setMessage({ type: 'error', text: (err as Error).message });
         }
     };
 
@@ -97,8 +97,8 @@ export default function SettingsPage() {
             setOldPassword('');
             setNewPassword('');
             setConfirmPassword('');
-        } catch (err: any) {
-            setMessage({ type: 'error', text: err.message });
+        } catch (err: unknown) {
+            setMessage({ type: 'error', text: (err as Error).message });
         }
     };
 
@@ -108,8 +108,8 @@ export default function SettingsPage() {
             await repairBalanceMutation();
             setMessage({ type: 'success', text: 'Balance sincronizado correctamente. Tus fondos han sido auditados.' });
             refetch();
-        } catch (err: any) {
-            setMessage({ type: 'error', text: err.message });
+        } catch (err: unknown) {
+            setMessage({ type: 'error', text: (err as Error).message });
         }
     };
 
@@ -329,7 +329,7 @@ export default function SettingsPage() {
                                 <label className="text-[10px] uppercase tracking-[0.4em] text-slate-600 font-bold ml-1 inline-block">Portafolios Disponibles</label>
                                 {data?.portfolios?.length > 0 ? (
                                     <div className="grid grid-cols-1 gap-4">
-                                        {data.portfolios.map((p: any) => (
+                                        {data.portfolios.map((p: { id: string; name: string }) => (
                                             <div key={p.id} className="flex items-center justify-between p-6 bg-white/[0.02] rounded-3xl border border-white/5 hover:bg-white/[0.05] transition-all group">
                                                 <div>
                                                     <p className="font-bold text-white text-lg tracking-tight">{p.name}</p>

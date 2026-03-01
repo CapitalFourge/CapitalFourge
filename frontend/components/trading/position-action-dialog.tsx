@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, TrendingDown, ArrowUpRight, ArrowDownRight, Info } from "lucide-react";
@@ -16,7 +15,7 @@ interface Position {
 interface Portfolio {
     id: string;
     name: string;
-    positions: any[]; // Matches TradeDialog requirement
+    positions: Position[];
 }
 
 interface PositionActionDialogProps {
@@ -34,8 +33,6 @@ export function PositionActionDialog({
     open,
     onOpenChange,
 }: PositionActionDialogProps) {
-    const [tradeType, setTradeType] = useState<"buy" | "sell" | null>(null);
-
     if (!position || !portfolio) return null;
 
     const currentPrice = position.currentPrice || 0;
@@ -43,11 +40,6 @@ export function PositionActionDialog({
     const usdValue = position.quantity * currentPrice;
     const performance = avgCost > 0 ? ((currentPrice - avgCost) / avgCost) * 100 : 0;
     const isPositive = performance >= 0;
-
-    const handleClose = () => {
-        setTradeType(null);
-        onOpenChange(false);
-    };
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>

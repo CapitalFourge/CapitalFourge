@@ -1392,16 +1392,6 @@
     }
   }
 
-  .bg-blue-500\/20 {
-    background-color: #3080ff33;
-  }
-
-  @supports (color: color-mix(in lab, red, red)) {
-    .bg-blue-500\/20 {
-      background-color: color-mix(in oklab, var(--color-blue-500) 20%, transparent);
-    }
-  }
-
   .bg-card {
     background-color: var(--card);
   }
@@ -1724,10 +1714,6 @@
 
   .pt-10 {
     padding-top: calc(var(--spacing) * 10);
-  }
-
-  .pt-20 {
-    padding-top: calc(var(--spacing) * 20);
   }
 
   .pr-4 {

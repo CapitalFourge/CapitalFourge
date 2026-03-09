@@ -2,35 +2,19 @@
 
 ## Local Setup
 
-Ensure you have Docker and pnpm installed.
+1.  **Platform Check**: Ensure you have Docker and pnpm installed.
 
 ```bash
 # Clone the repository
 git clone <repo-url>
 cd finsight
 
-# Start infrastructure (PostgreSQL, MongoDB, Redis)
-docker compose up -d postgres mongodb redis
+# Start infrastructure and all backend microservices
+# (PostgreSQL, MongoDB, Redis, data-collector, portfolio-manager)
+docker compose up -d --build
 ```
 
-## Running Services Locally
-
-### data-collector (Python)
-
-```bash
-cd data-collector
-venv\Scripts\activate
-pip install -r requirements.txt
-python main.py
-# (Starts both gRPC Server on 50051 and FastAPI on 8000)
-```
-
-### portfolio-manager (Java)
-
-```bash
-cd portfolio-manager
-mvn spring-boot:run
-```
+You do not need to manually install Java or Python dependencies to run the backend anymore, as they are fully containerized.
 
 ### frontend (Next.js)
 

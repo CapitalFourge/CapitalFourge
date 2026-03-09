@@ -155,7 +155,7 @@ export default function DashboardPage() {
                         <div className="h-8 w-px bg-white/10 mx-1" />
                         <div className="text-left">
                             <p className="text-slate-500 text-[10px] uppercase tracking-widest">Último_Precio</p>
-                            <p className="text-xl font-mono text-white">${Number(currentPrice).toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                            <p className="text-xl font-mono text-white">${Number(currentPrice).toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
                         </div>
                     </div>
 
@@ -163,25 +163,25 @@ export default function DashboardPage() {
                         <div className="text-right border-r border-white/10 pr-4">
                             <p className="text-slate-500 text-[10px] uppercase tracking-widest font-bold">Cash_Disponible</p>
                             <p className="text-lg font-mono font-bold text-green-400">
-                                ${userCashBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                ${userCashBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                             </p>
                         </div>
                         <div className="text-right border-r border-white/10 pr-4">
                             <p className="text-slate-500 text-[10px] uppercase tracking-widest font-bold">Invertido</p>
                             <p className="text-lg font-mono font-bold text-blue-400">
-                                ${investedTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                ${investedTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                             </p>
                         </div>
                         <div className="text-right border-r border-white/10 pr-4">
                             <p className="text-slate-500 text-[10px] uppercase tracking-widest font-bold">Bloqueado</p>
                             <p className="text-lg font-mono font-bold text-orange-400">
-                                ${userLockedBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                ${userLockedBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                             </p>
                         </div>
                         <div className="text-right">
                             <p className="text-green-500/60 text-[10px] uppercase tracking-widest font-bold">Total_Neto</p>
                             <p className="text-xl font-mono font-bold text-white">
-                                ${totalBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                ${totalBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                             </p>
                         </div>
                         <Wallet className="text-green-500 w-5 h-5 ml-2" />

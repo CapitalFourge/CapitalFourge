@@ -49,15 +49,57 @@ services:
         container_name: finsight-data-collector
         ports:
             - "8000:8000"
+            - "50051:50051"
         volumes:
             - ./data-collector:/app
         command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
         environment:
             - DB_MONGO_ROOT_PASSWORD=${DB_MONGO_ROOT_PASSWORD}
             - DB_MONGO_HOST=mongodb
+            - DB_REDIS_HOST=redis
+            - DB_REDIS_PASSWORD=${DB_REDIS_PASSWORD}
         depends_on:
             mongodb:
                 condition: service_healthy
+
+    frontend:
+        build:
+            context: ./frontend
+            dockerfile: Dockerfile
+        container_name: finsight-frontend
+        ports:
+            - "3000:3000"
+        volumes:
+            - ./frontend:/app
+            - /app/node_modules
+            - /app/.next
+        environment:
+            - NODE_ENV=development
+
+    portfolio-manager:
+        build: 
+            context: .
+            dockerfile: portfolio-manager/Dockerfile
+        container_name: finsight-portfolio-manager
+        ports:
+            - "8080:8080"
+        environment:
+            - DB_HOST=postgres
+            - DB_PORT=5432
+            - DB_NAME=${DB_POSTGRES_NAME}
+            - DB_USER=${DB_POSTGRES_USER}
+            - DB_PASSWORD=${DB_POSTGRES_PASSWORD}
+            - REDIS_HOST=redis
+            - REDIS_PORT=6379
+            - REDIS_PASSWORD=${DB_REDIS_PASSWORD}
+            - GRPC_DATA_COLLECTOR_HOST=data-collector
+        depends_on:
+            postgres:
+                condition: service_healthy
+            redis:
+                condition: service_healthy
+            data-collector:
+                condition: service_started
 
 volumes:
     postgres_data:

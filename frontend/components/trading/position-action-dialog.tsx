@@ -68,7 +68,7 @@ export function PositionActionDialog({
                         <div className="text-right">
                             <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Valor_Actual</p>
                             <p className="text-3xl font-black text-white font-mono italic">
-                                ${usdValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                ${usdValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </p>
                         </div>
                     </div>

@@ -83,7 +83,7 @@ export default function PortfoliosPage() {
                                     <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-1">Valor Invertido</p>
                                     <p className="text-3xl font-mono text-white font-bold">
                                         ${(p.positions?.reduce((sum: number, pos: Position) => sum + (pos.quantity * (pos.currentPrice || pos.averagePurchasePrice)), 0) || 0)
-                                            .toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                            .toLocaleString('en-US', { minimumFractionDigits: 2 })}
                                     </p>
                                 </div>
                                 <div className="flex items-center justify-between p-3 bg-white/5 rounded-2xl border border-white/5">

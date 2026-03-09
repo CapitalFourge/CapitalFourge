@@ -130,13 +130,13 @@ export default function PortfolioDetailPage() {
                     </Button>
                     <div className="text-right space-y-1">
                         <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Valor_Total_Portafolio</p>
-                        <p className="text-4xl font-black text-white font-mono italic">${totalPortfolioValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                        <p className="text-4xl font-black text-white font-mono italic">${totalPortfolioValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                         <div className="flex items-center justify-end gap-4 mt-2">
                             <div>
                                 <p className="text-[10px] text-slate-500 uppercase tracking-widest text-right">Rendimiento</p>
                                 <div className="flex items-center gap-2 justify-end">
                                     <p className={`text-lg font-bold font-mono ${performanceColor}`}>
-                                        ${Math.abs(totalPerformanceUsd).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        ${Math.abs(totalPerformanceUsd).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </p>
                                     <p className={`text-sm font-bold font-mono ${performanceColor} bg-white/5 px-2 py-0.5 rounded-lg`}>
                                         {performanceSign} {Math.abs(totalPerformance).toFixed(2)}%
@@ -204,7 +204,7 @@ export default function PortfolioDetailPage() {
                                                 {pos.quantity}
                                             </div>
                                             <div className={`font-mono font-bold text-xs ${hasPrice ? 'text-emerald-400' : 'text-slate-500'}`}>
-                                                ${usdValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                ${usdValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                             </div>
                                             {hasCost && (
                                                 <div className={`font-mono text-[10px] ${perfColor}`}>

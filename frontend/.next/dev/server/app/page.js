@@ -1,6 +1,11 @@
 var R=require("../chunks/ssr/[turbopack]_runtime.js")("server/app/page.js")
+<<<<<<< HEAD
 R.c("server/chunks/ssr/f27f0_next_dist_2a010bd4._.js")
 R.c("server/chunks/ssr/[root-of-the-server]__b78e9577._.js")
+=======
+R.c("server/chunks/ssr/node_modules__pnpm_2ffea7d0._.js")
+R.c("server/chunks/ssr/[root-of-the-server]__d33ec9dc._.js")
+>>>>>>> f40507fa720a9ec15495a6e05222ba005b95a1e9
 R.c("server/chunks/ssr/f27f0_next_dist_compiled_e893f687._.js")
 R.c("server/chunks/ssr/f27f0_next_dist_esm_a39a0691._.js")
 R.c("server/chunks/ssr/f27f0_next_dist_ddb9e4e4._.js")
@@ -8,7 +13,11 @@ R.c("server/chunks/ssr/69652_@swc_helpers_cjs__interop_require_wildcard_cjs_f6d6
 R.c("server/chunks/ssr/[externals]__e8a2741f._.js")
 R.c("server/chunks/ssr/app_b9b1292a._.js")
 R.c("server/chunks/ssr/f27f0_next_dist_client_components_builtin_global-error_0a804f8e.js")
+<<<<<<< HEAD
 R.c("server/chunks/ssr/_a858e9b8._.js")
+=======
+R.c("server/chunks/ssr/[root-of-the-server]__f61760b7._.js")
+>>>>>>> f40507fa720a9ec15495a6e05222ba005b95a1e9
 R.c("server/chunks/ssr/f27f0_next_dist_client_components_13e0da12._.js")
 R.c("server/chunks/ssr/f27f0_next_dist_client_components_builtin_forbidden_f99297fa.js")
 R.c("server/chunks/ssr/f27f0_next_dist_client_components_builtin_unauthorized_a42734e0.js")

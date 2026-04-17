@@ -39,20 +39,18 @@ We leverage Redis to power high-frequency features without stressing the relatio
 - **Persistence**: PostgreSQL 15, MongoDB 6.0, Redis 7.0.
 - **UI/UX**: Custom Monochrome-glass theme.
 
-## 🚀 Deployment Guide
+## 🚀 Quick Start Guide
 
-1.  **Environment**: Ensure `docker` and `pnpm` are installed.
-2.  **Infrastructure**: 
+1.  **Environment**: Ensure `docker` and Node.js (`pnpm`) are installed.
+2.  **Infrastructure & Backends**:
+    Starts PostgreSQL, MongoDB, Redis, the Python Data Collector, and the Java Portfolio Manager simultaneously.
     ```bash
     docker compose up -d
     ```
-3.  **Frontend**:
+3.  **Frontend (Development Terminal)**:
     ```bash
     cd frontend && pnpm install && pnpm dev
     ```
-4.  **Backend Services**:
-    - **Java**: `cd portfolio-manager && ./mvnw spring-boot:run`
-    - **Python**: `cd data-collector && uvicorn main:app --reload`
 
 ## ⚠️ Troubleshooting
 ### PostgreSQL Port Conflict

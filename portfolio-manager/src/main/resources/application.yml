@@ -3,9 +3,9 @@ spring:
     name: portfolio-manager
   
   datasource:
-    url: jdbc:postgresql://localhost:5433/finsight_db
-    username: user
-    password: mi_super_password_segura
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:finsight_db}
+    username: ${DB_USER:user}
+    password: ${DB_PASSWORD:mi_super_password_segura}
     driver-class-name: org.postgresql.Driver
   
   jpa:
@@ -18,9 +18,9 @@ spring:
   
   data:
     redis:
-      host: localhost
-      port: 6379
-      password: mi_redis_pass_seguro
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:mi_redis_pass_seguro}
 
   graphql:
     graphiql:
@@ -29,7 +29,7 @@ spring:
 grpc:
   client:
     local-grpc-server:
-      address: 'static://localhost:50051'
+      address: 'static://${GRPC_DATA_COLLECTOR_HOST:localhost}:50051'
       negotiation-type: plaintext
 
 jwt:

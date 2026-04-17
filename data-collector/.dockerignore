@@ -1,0 +1,14 @@
+venv
+__pycache__
+*.pyc
+.env*
+.pytest_cache
+.vscode
+.idea
+*.log
+.DS_Store
+.git
+
+# local testing config files
+docker-compose.yml
+docker-compose.*.yml

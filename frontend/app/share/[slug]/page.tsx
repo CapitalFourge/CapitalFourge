@@ -1,26 +1,19 @@
 "use client";
 
 import { gql, useQuery } from "@apollo/client";
-import { motion } from "framer-motion";
 import { 
   ArrowLeft, 
-  BarChart3, 
   Coins, 
   ExternalLink, 
-  Globe, 
   Landmark, 
   TrendingUp, 
-  Wallet 
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
 
-import { Button } from "@/components/ui/card"; // Wait, Button is usually in ui/button
-// Correction:
 import { Button as UIButton } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getPartnerForCategory } from "@/config/affiliates";
+import { Card, CardContent } from "@/components/ui/card";
 
 const GET_SHARED_PORTFOLIO = gql`
   query GetSharedPortfolio($slug: String!) {
@@ -40,6 +33,22 @@ const GET_SHARED_PORTFOLIO = gql`
   }
 `;
 
+interface SharedPosition {
+  symbol: string;
+  quantity: number;
+  averagePurchasePrice: number;
+  currentPrice: number;
+}
+
+interface SharedPortfolio {
+  id: string;
+  name: string;
+  description: string;
+  performance: number;
+  isPublic: boolean;
+  positions: SharedPosition[];
+}
+
 export default function SharedPortfolioPage() {
   const params = useParams();
   const slug = params.slug as string;
@@ -48,11 +57,11 @@ export default function SharedPortfolioPage() {
     variables: { slug },
   });
 
-  const portfolio = data?.sharedPortfolio;
+  const portfolio = data?.sharedPortfolio as SharedPortfolio | undefined;
 
   const totalValue = useMemo(() => {
     if (!portfolio?.positions) return 0;
-    return portfolio.positions.reduce((sum: number, pos: any) => sum + (pos.quantity * pos.currentPrice), 0);
+    return portfolio.positions.reduce((sum: number, pos: SharedPosition) => sum + (pos.quantity * pos.currentPrice), 0);
   }, [portfolio]);
 
   if (loading) return (
@@ -129,7 +138,7 @@ export default function SharedPortfolioPage() {
           <div className="space-y-6">
             <h2 className="text-2xl font-bold text-white">Asignación actual</h2>
             <div className="grid gap-4 sm:grid-cols-2">
-              {portfolio.positions.map((pos: any) => (
+              {portfolio.positions.map((pos: SharedPosition) => (
                 <div key={pos.symbol} className="panel flex items-center justify-between p-5">
                   <div>
                     <span className="text-xl font-bold text-white">{pos.symbol}</span>
@@ -155,7 +164,7 @@ export default function SharedPortfolioPage() {
               </p>
               
               <div className="space-y-3">
-                {Array.from(new Set(portfolio.positions.map((p: any) => p.symbol))).map((symbol: any) => (
+                {Array.from(new Set(portfolio.positions.map((p: SharedPosition) => p.symbol))).map((symbol) => (
                   <UIButton key={symbol} asChild variant="outline" className="w-full justify-between rounded-xl border-white/10 py-6 text-slate-200">
                     <a href="https://www.binance.com/register?ref=REFERRAL" target="_blank" className="flex items-center gap-2">
                       <span>Operar {symbol} en Binance</span>

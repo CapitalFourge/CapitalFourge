@@ -30,6 +30,18 @@ const GET_LEADERBOARD = gql`
   }
 `;
 
+interface LeaderboardPosition {
+  symbol: string;
+}
+
+interface LeaderboardEntry {
+  id: string;
+  name: string;
+  performance: number;
+  shareSlug: string;
+  positions: LeaderboardPosition[];
+}
+
 export default function LeaderboardPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const { data, loading, error } = useQuery(GET_LEADERBOARD, {
@@ -39,9 +51,9 @@ export default function LeaderboardPage() {
   const rankings = useMemo(() => {
     const list = data?.leaderboard || [];
     if (!searchTerm) return list;
-    return list.filter((p: any) => 
+    return list.filter((p: LeaderboardEntry) => 
       p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      p.positions.some((pos: any) => pos.symbol.toLowerCase().includes(searchTerm.toLowerCase()))
+      p.positions.some((pos: LeaderboardPosition) => pos.symbol.toLowerCase().includes(searchTerm.toLowerCase()))
     );
   }, [data, searchTerm]);
 
@@ -103,7 +115,7 @@ export default function LeaderboardPage() {
             <div key={i} className="panel h-24 animate-pulse" />
           ))
         ) : (
-          rankings.map((portfolio: any, index: number) => (
+          rankings.map((portfolio: LeaderboardEntry, index: number) => (
             <motion.div
               key={portfolio.id}
               initial={{ opacity: 0, x: -10 }}
@@ -127,7 +139,7 @@ export default function LeaderboardPage() {
                       {index < 3 && <Award className="h-4 w-4 text-emerald-300" />}
                     </div>
                     <div className="mt-2 flex flex-wrap gap-2">
-                      {portfolio.positions.map((pos: any) => (
+                      {portfolio.positions.map((pos: LeaderboardPosition) => (
                         <span key={pos.symbol} className="text-[10px] uppercase font-bold tracking-tighter bg-white/5 px-2 py-0.5 rounded text-slate-500 border border-white/5">
                           {pos.symbol}
                         </span>

@@ -147,8 +147,8 @@ export default function PortfolioDetailPage() {
                   variables: { portfolioId: portfolio.id, isPublic: !portfolio.isPublic }
                 });
                 toast.success(portfolio.isPublic ? "Cartera ahora es privada" : "Cartera ahora es pública");
-              } catch (e: any) {
-                toast.error(e.message);
+              } catch (e) {
+                toast.error(e instanceof Error ? e.message : "Error desconocido");
               }
             }}
             variant="outline"

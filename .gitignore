@@ -53,6 +53,7 @@ buildNumber.properties
 node_modules/
 dist/
 build/
+.next/
 .eslintcache
 
 

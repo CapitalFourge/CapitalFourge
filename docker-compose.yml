@@ -27,7 +27,7 @@ services:
         volumes:
             - mongo_data:/data/db
         healthcheck:
-            test: [ "CMD-SHELL", "mongosh --eval 'db.hello().isWritablePrimary' --quiet" ]
+            test: [ "CMD-SHELL", "mongosh -u ${DB_MONGO_ROOT_USER} -p ${DB_MONGO_ROOT_PASSWORD} --authenticationDatabase admin --eval 'db.hello().isWritablePrimary' --quiet" ]
             interval: 10s
             timeout: 5s
             retries: 5
@@ -49,12 +49,15 @@ services:
         container_name: finsight-data-collector
         ports:
             - "8000:8000"
+            - "50051:50051"
         volumes:
             - ./data-collector:/app
         command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
         environment:
             - DB_MONGO_ROOT_PASSWORD=${DB_MONGO_ROOT_PASSWORD}
             - DB_MONGO_HOST=mongodb
+            - DB_REDIS_HOST=redis
+            - DB_REDIS_PASSWORD=${DB_REDIS_PASSWORD}
         depends_on:
             mongodb:
                 condition: service_healthy

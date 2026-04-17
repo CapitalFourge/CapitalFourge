@@ -21,6 +21,8 @@ type Portfolio {
   positions: [Position]
   performance: Float!
   transactions: [Transaction]
+  isPublic: Boolean!
+  shareSlug: String
 }
 
 type Position {
@@ -95,6 +97,8 @@ type Query {
   order(id: ID!): Order
   searchSymbols(query: String!, limit: Int): [AssetSuggestion]
   assetsByCategory(category: String): [Asset]
+  leaderboard: [Portfolio]
+  sharedPortfolio(slug: String!): Portfolio
 }
 
 type PricePoint {
@@ -163,4 +167,5 @@ type Mutation {
   updateProfile(username: String, email: String, language: String): User
   changePassword(oldPassword: String!, newPassword: String!): Boolean
   repairMyBalance: Boolean
+  toggleVisibility(portfolioId: ID!, isPublic: Boolean!): Portfolio
 }

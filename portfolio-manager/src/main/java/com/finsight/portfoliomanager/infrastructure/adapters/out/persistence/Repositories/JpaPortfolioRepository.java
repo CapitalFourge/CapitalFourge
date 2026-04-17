@@ -13,4 +13,9 @@ public interface JpaPortfolioRepository extends JpaRepository<PortfolioEntity, U
     @EntityGraph(attributePaths = {"positions"})
     List<PortfolioEntity> findByUserId(UUID userId);
 
+    @EntityGraph(attributePaths = {"positions"})
+    java.util.Optional<PortfolioEntity> findByShareSlug(String shareSlug);
+
+    @EntityGraph(attributePaths = {"positions"})
+    List<PortfolioEntity> findByIsPublicTrueOrderByPerformanceDesc();
 }

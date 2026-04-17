@@ -44,6 +44,16 @@ public class PortfolioPersistenceAdapter implements PortfolioRepository {
     }
 
     @Override
+    public Optional<Portfolio> findByShareSlug(String shareSlug) {
+        return jpaRepository.findByShareSlug(shareSlug).map(this::toDomain);
+    }
+
+    @Override
+    public List<Portfolio> findPublicPortfolios() {
+        return jpaRepository.findByIsPublicTrueOrderByPerformanceDesc().stream().map(this::toDomain).toList();
+    }
+
+    @Override
     public void deleteById(UUID id) {
         jpaRepository.deleteById(id);
     }
@@ -57,6 +67,8 @@ public class PortfolioPersistenceAdapter implements PortfolioRepository {
                 .cumulativeDeposits(domain.getCumulativeDeposits())
                 .cumulativeWithdrawals(domain.getCumulativeWithdrawals())
                 .performance(domain.getPerformance())
+                .isPublic(domain.isPublic())
+                .shareSlug(domain.getShareSlug())
                 .build();
         if (domain.getPositions() != null) {
             List<PositionEntity> positions = domain.getPositions()
@@ -116,6 +128,8 @@ public class PortfolioPersistenceAdapter implements PortfolioRepository {
                 .cumulativeDeposits(entity.getCumulativeDeposits())
                 .cumulativeWithdrawals(entity.getCumulativeWithdrawals())
                 .performance(entity.getPerformance() != null ? entity.getPerformance() : 0.0)
+                .isPublic(entity.isPublic())
+                .shareSlug(entity.getShareSlug())
                 .build();
     }
 

@@ -97,6 +97,16 @@ public class PortfolioGraphQLController {
     }
 
     @QueryMapping
+    public List<Portfolio> leaderboard() {
+        return portfolioUseCase.getPublicLeaderboard();
+    }
+
+    @QueryMapping
+    public Portfolio sharedPortfolio(@Argument String slug) {
+        return portfolioUseCase.getPortfolioBySlug(slug);
+    }
+
+    @QueryMapping
     public List<com.finsight.portfoliomanager.application.services.AssetSearchService.AssetSuggestion> searchSymbols(
             @Argument("query") String query, @Argument("limit") Integer limit) {
         return assetSearchService.searchSymbols(query, limit != null ? limit : 5);
@@ -178,6 +188,11 @@ public class PortfolioGraphQLController {
     public Boolean deletePortfolio(@Argument("id") UUID id) {
         portfolioUseCase.deletePortfolio(id);
         return true;
+    }
+
+    @MutationMapping
+    public Portfolio toggleVisibility(@Argument UUID portfolioId, @Argument boolean isPublic) {
+        return portfolioUseCase.toggleVisibility(portfolioId, isPublic);
     }
 
     @GraphQlExceptionHandler

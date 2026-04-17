@@ -23,6 +23,8 @@ public class Portfolio {
     private BigDecimal cumulativeDeposits;
     private BigDecimal cumulativeWithdrawals;
     private Double performance;
+    private boolean isPublic;
+    private String shareSlug;
 
     public BigDecimal getTotalAccountValue() {
         return positions == null ? BigDecimal.ZERO

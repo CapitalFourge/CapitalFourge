@@ -57,6 +57,7 @@ public class PortfolioService implements PortfolioUseCase {
         portfolio.setCumulativeDeposits(BigDecimal.ZERO);
         portfolio.setCumulativeWithdrawals(BigDecimal.ZERO);
         portfolio.setPerformance(0.0);
+        portfolio.setPublic(false);
 
         if (portfolio.getUserId() != null) {
             metricRepository.recordUserActivity(portfolio.getUserId().toString());
@@ -73,6 +74,13 @@ public class PortfolioService implements PortfolioUseCase {
                 .orElseThrow(() -> new RuntimeException("Portfolio not found"));
         metricRepository.recordUserActivity(portfolio.getUserId().toString());
 
+        refreshPortfolioPrices(portfolio);
+        updatePerformance(portfolio);
+
+        return portfolio;
+    }
+
+    private void refreshPortfolioPrices(Portfolio portfolio) {
         // Update current prices for all positions
         if (portfolio.getPositions() != null && !portfolio.getPositions().isEmpty()) {
             List<String> symbols = portfolio.getPositions().stream()
@@ -91,8 +99,6 @@ public class PortfolioService implements PortfolioUseCase {
                 });
             }
         }
-
-        return portfolio;
     }
 
     @Override
@@ -260,7 +266,12 @@ public class PortfolioService implements PortfolioUseCase {
 
     @Override
     public List<Portfolio> getPortfoliosByUser(UUID userId) {
-        return portfolioRepository.findByUserId(userId);
+        List<Portfolio> portfolios = portfolioRepository.findByUserId(userId);
+        portfolios.forEach(portfolio -> {
+            refreshPortfolioPrices(portfolio);
+            updatePerformance(portfolio);
+        });
+        return portfolios;
     }
 
     @Override
@@ -370,5 +381,50 @@ public class PortfolioService implements PortfolioUseCase {
 
         portfolio.setPerformance(roi);
         metricRepository.updatePortfolioPerformance(portfolio.getId().toString(), roi);
+    }
+
+    @Override
+    public Portfolio toggleVisibility(UUID portfolioId, boolean isPublic) {
+        Portfolio portfolio = portfolioRepository.findById(portfolioId)
+                .orElseThrow(() -> new RuntimeException("Portfolio not found"));
+
+        portfolio.setPublic(isPublic);
+        if (isPublic && (portfolio.getShareSlug() == null || portfolio.getShareSlug().isEmpty())) {
+            // Generate a unique slug based on portfolio name and a fragment of UUID
+            String base = portfolio.getName().toLowerCase().replaceAll("[^a-z0-9]", "-");
+            String slug = base + "-" + UUID.randomUUID().toString().substring(0, 8);
+            portfolio.setShareSlug(slug);
+        }
+
+        return portfolioRepository.save(portfolio);
+    }
+
+    @Override
+    public List<Portfolio> getPublicLeaderboard() {
+        List<Portfolio> topPortfolios = portfolioRepository.findPublicPortfolios();
+        // Ensure prices are fresh for the leaderboard
+        topPortfolios.forEach(p -> {
+            refreshPortfolioPrices(p);
+            updatePerformance(p);
+        });
+        // Sort again in case ROI changed after refresh
+        return topPortfolios.stream()
+                .sorted((p1, p2) -> Double.compare(p2.getPerformance(), p1.getPerformance()))
+                .limit(20)
+                .toList();
+    }
+
+    @Override
+    public Portfolio getPortfolioBySlug(String slug) {
+        Portfolio portfolio = portfolioRepository.findByShareSlug(slug)
+                .orElseThrow(() -> new RuntimeException("Portfolio shared correctly not found or link expired"));
+
+        if (!portfolio.isPublic()) {
+            throw new RuntimeException("This portfolio is no longer public.");
+        }
+
+        refreshPortfolioPrices(portfolio);
+        updatePerformance(portfolio);
+        return portfolio;
     }
 }

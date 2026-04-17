@@ -23,6 +23,9 @@ public class PortfolioEntity {
     private BigDecimal cumulativeDeposits;
     private BigDecimal cumulativeWithdrawals;
     private Double performance;
+    private boolean isPublic;
+    @Column(unique = true)
+    private String shareSlug;
 
     @OneToMany(mappedBy = "portfolio", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<PositionEntity> positions;

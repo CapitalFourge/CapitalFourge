@@ -1,16 +1,14 @@
 import type { Metadata } from "next";
-import { Outfit } from "next/font/google";
-import "./globals.css";
 import { Toaster } from "sonner";
 
-const outfit = Outfit({ subsets: ["latin"] });
+import { ApolloWrapper } from "@/components/providers/apollo-wrapper";
+
+import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "FinSight | Quant Analysis Terminal",
-  description: "Next-generation portfolio management and market intelligence.",
+  title: "FinSight | Wealth Intelligence Platform",
+  description: "Portfolio management, market monitoring, and execution workflows in one modern financial workspace.",
 };
-
-import { ApolloWrapper } from "@/components/providers/apollo-wrapper";
 
 export default function RootLayout({
   children,
@@ -18,11 +16,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
-      <body className={`${outfit.className} bg-black text-white antialiased`}>
-        <ApolloWrapper>
-          {children}
-        </ApolloWrapper>
+    <html lang="es" className="dark">
+      <body className="bg-dashboard font-sans text-white antialiased">
+        <ApolloWrapper>{children}</ApolloWrapper>
         <Toaster position="top-right" richColors theme="dark" />
       </body>
     </html>

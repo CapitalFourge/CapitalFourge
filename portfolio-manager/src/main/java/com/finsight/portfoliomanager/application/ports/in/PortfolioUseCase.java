@@ -29,4 +29,10 @@ public interface PortfolioUseCase {
     void deletePortfolio(UUID id);
 
     void repairUserBalance(UUID userId);
+
+    Portfolio toggleVisibility(UUID portfolioId, boolean isPublic);
+
+    List<Portfolio> getPublicLeaderboard();
+
+    Portfolio getPortfolioBySlug(String slug);
 }

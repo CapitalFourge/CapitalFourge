@@ -13,5 +13,9 @@ public interface PortfolioRepository {
 
     List<Portfolio> findByUserId(UUID userId);
 
+    Optional<Portfolio> findByShareSlug(String shareSlug);
+
+    List<Portfolio> findPublicPortfolios();
+
     void deleteById(UUID id);
 }

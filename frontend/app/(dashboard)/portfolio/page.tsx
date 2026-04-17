@@ -1,11 +1,13 @@
 "use client";
 
-import { useQuery, gql } from "@apollo/client";
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
-import { ArrowUpRight, Activity, Wallet } from "lucide-react";
 import Link from "next/link";
+import { gql, useQuery } from "@apollo/client";
+import { motion } from "framer-motion";
+import { Activity, ArrowUpRight, BriefcaseBusiness, Wallet } from "lucide-react";
+
 import { CreatePortfolioDialog } from "@/components/trading/create-portfolio-dialog";
 import { DeletePortfolioButton } from "@/components/trading/delete-portfolio-button";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
 const PORTFOLIOS_QUERY = gql`
   query GetPortfolios {
@@ -24,105 +26,149 @@ const PORTFOLIOS_QUERY = gql`
 `;
 
 interface Position {
-    symbol: string;
-    quantity: number;
-    averagePurchasePrice: number;
-    currentPrice?: number;
+  symbol: string;
+  quantity: number;
+  averagePurchasePrice: number;
+  currentPrice?: number;
 }
 
 interface Portfolio {
-    id: string;
-    name: string;
-    performance: number;
-    positions: Position[];
+  id: string;
+  name: string;
+  performance: number;
+  positions: Position[];
 }
 
 export default function PortfoliosPage() {
-    const { data, loading, error } = useQuery(PORTFOLIOS_QUERY);
+  const { data, loading, error } = useQuery(PORTFOLIOS_QUERY);
 
-    if (loading) return (
-        <div className="p-10 animate-pulse text-slate-500 font-mono tracking-widest uppercase">
-            CARGANDO_PORTAFOLIOS...
-        </div>
-    );
+  if (loading) {
+    return <div className="p-8 text-sm uppercase tracking-[0.26em] text-slate-400">Cargando portafolios...</div>;
+  }
 
-    if (error) return (
-        <div className="p-10 text-red-400 font-mono bg-red-500/5 rounded-3xl border border-red-500/20">
-            <h2 className="text-xl font-bold mb-2">ERROR_DE_CONEXIÓN</h2>
-            <p className="opacity-70">{error.message}</p>
-        </div>
-    );
-
-    const portfolios = data?.portfolios || [];
-
+  if (error) {
     return (
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div>
-                    <h1 className="text-4xl font-bold tracking-tighter text-white uppercase italic">Centro de Estrategias</h1>
-                    <p className="text-slate-500 uppercase text-xs tracking-[0.3em] mt-2">Aislamiento de Workspaces y Despliegue de Capital</p>
-                </div>
-                <CreatePortfolioDialog />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {portfolios.map((p: Portfolio) => (
-                    <Link key={p.id} href={`/portfolio/${p.id}`} className="relative group">
-                        <Card className="glass border-none hover:bg-white/[0.05] transition-all cursor-pointer h-full group">
-                            <CardHeader className="flex flex-row items-center justify-between pb-2">
-                                <CardTitle className="text-xs text-slate-500 font-bold uppercase tracking-widest truncate max-w-[150px]">
-                                    {p.name || `Strategy_${p.id.substring(0, 4)}`}
-                                </CardTitle>
-                                <div className="flex items-center gap-1">
-                                    <DeletePortfolioButton id={p.id} />
-                                    <ArrowUpRight className="w-4 h-4 text-slate-600 group-hover:text-white transition-all transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                                </div>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div>
-                                    <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-1">Valor Invertido</p>
-                                    <p className="text-3xl font-mono text-white font-bold">
-                                        ${(p.positions?.reduce((sum: number, pos: Position) => sum + (pos.quantity * (pos.currentPrice || pos.averagePurchasePrice)), 0) || 0)
-                                            .toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                                    </p>
-                                </div>
-                                <div className="flex items-center justify-between p-3 bg-white/5 rounded-2xl border border-white/5">
-                                    <div className="flex items-center gap-2">
-                                        <Activity size={12} className="text-slate-500" />
-                                        <span className="text-[10px] text-slate-500 uppercase font-mono tracking-tighter">Rendimiento Hist.</span>
-                                    </div>
-                                    <span className={`text-xs font-bold font-mono ${Number(p.performance) >= 0 ? "text-green-400" : "text-red-400"}`}>
-                                        {Number(p.performance) >= 0 ? "+" : ""}{p.performance?.toFixed(2) || 0}%
-                                    </span>
-                                </div>
-                            </CardContent>
-                            <CardFooter className="pt-0 flex justify-between items-center text-[9px] font-mono border-t border-white/5 mt-2 py-4">
-                                <div className="flex items-center gap-1 text-green-500/60 uppercase">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                                    ESTADO: ACTIVO
-                                </div>
-                                <span className="text-slate-600 uppercase tracking-tighter">WS_ID: #{p.id.substring(0, 8)}</span>
-                            </CardFooter>
-                        </Card>
-                    </Link>
-                ))}
-
-                {portfolios.length === 0 && (
-                    <div className="col-span-full py-24 border-2 border-dashed border-white/5 rounded-[2rem] flex flex-col items-center justify-center text-slate-600 bg-white/[0.01]">
-                        <Wallet size={32} className="mb-4 opacity-20" />
-                        <p className="uppercase tracking-[0.4em] text-sm font-bold text-slate-400">Sin Despliegues Activos</p>
-                        <p className="text-[10px] mt-4 uppercase tracking-[0.2em] opacity-50 text-center leading-relaxed">
-                            Tus workspaces de trading seguro aparecerán aquí<br />una vez inicializados los modelos.
-                        </p>
-                    </div>
-                )}
-            </div>
-
-            <div className="pt-10 flex gap-4 opacity-20 justify-center">
-                <div className="h-px w-20 bg-white" />
-                <span className="text-[10px] uppercase font-mono tracking-[0.5em]">FINSIGHT_PORTFOLIO_ENGINE</span>
-                <div className="h-px w-20 bg-white" />
-            </div>
-        </div>
+      <div className="rounded-[1.75rem] border border-red-400/20 bg-red-500/10 p-8 text-red-200">
+        <h2 className="text-lg font-semibold">No fue posible cargar portafolios</h2>
+        <p className="mt-2 text-sm text-red-100/80">{error.message}</p>
+      </div>
     );
+  }
+
+  const portfolios = (data?.portfolios || []) as Portfolio[];
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }} className="space-y-6">
+      <section className="panel flex flex-col gap-6 p-6 sm:flex-row sm:items-end sm:justify-between sm:p-7">
+        <div>
+          <p className="eyebrow">Arquitectura de carteras</p>
+          <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] text-white sm:text-5xl">Tus portafolios activos.</h1>
+          <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
+            Organiza estrategias, revisa rendimiento histórico y entra al detalle de cada cartera sin perder contexto.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="panel-muted px-4 py-3">
+            <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Total</p>
+            <p className="mt-2 text-2xl font-semibold text-white">{portfolios.length}</p>
+          </div>
+          <CreatePortfolioDialog />
+        </div>
+      </section>
+
+      <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+        {portfolios.map((portfolio, index) => {
+          const invested =
+            portfolio.positions?.reduce((sum, position) => {
+              return sum + position.quantity * (position.currentPrice || position.averagePurchasePrice);
+            }, 0) || 0;
+
+          return (
+            <motion.div
+              key={portfolio.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.38, delay: index * 0.05 }}
+            >
+              <Link href={`/portfolio/${portfolio.id}`} className="block h-full">
+                <Card className="panel h-full border-white/10 py-0 transition duration-300 hover:-translate-y-1 hover:bg-white/[0.06]">
+                  <CardHeader className="flex flex-row items-start justify-between px-6 pt-6">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Portfolio</p>
+                      <CardTitle className="mt-3 text-2xl font-semibold tracking-[-0.03em] text-white">
+                        {portfolio.name || `Estrategia ${portfolio.id.slice(0, 4)}`}
+                      </CardTitle>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <DeletePortfolioButton id={portfolio.id} />
+                      <div className="rounded-full border border-white/10 bg-white/[0.04] p-2 text-slate-300">
+                        <ArrowUpRight className="h-4 w-4" />
+                      </div>
+                    </div>
+                  </CardHeader>
+
+                  <CardContent className="space-y-5 px-6 pb-6 pt-2">
+                    <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-4">
+                      <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Capital invertido</p>
+                      <p className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-white">
+                        ${invested.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </p>
+                    </div>
+
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="rounded-[1.35rem] border border-white/10 bg-white/[0.03] p-4">
+                        <div className="flex items-center gap-2 text-slate-400">
+                          <Activity className="h-4 w-4" />
+                          <span className="text-xs uppercase tracking-[0.22em]">Rendimiento</span>
+                        </div>
+                        <p className={`mt-3 text-2xl font-semibold ${portfolio.performance >= 0 ? "text-emerald-300" : "text-red-300"}`}>
+                          {portfolio.performance >= 0 ? "+" : ""}
+                          {portfolio.performance?.toFixed(2) || "0.00"}%
+                        </p>
+                      </div>
+
+                      <div className="rounded-[1.35rem] border border-white/10 bg-white/[0.03] p-4">
+                        <div className="flex items-center gap-2 text-slate-400">
+                          <BriefcaseBusiness className="h-4 w-4" />
+                          <span className="text-xs uppercase tracking-[0.22em]">Posiciones</span>
+                        </div>
+                        <p className="mt-3 text-2xl font-semibold text-white">{portfolio.positions?.length || 0}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+
+                  <CardFooter className="flex items-center justify-between border-t border-white/10 px-6 py-4">
+                    <div className="flex items-center gap-2 text-sm text-slate-300">
+                      <span className="status-dot" />
+                      Activo
+                    </div>
+                    <span className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">
+                      ID {portfolio.id.slice(0, 8)}
+                    </span>
+                  </CardFooter>
+                </Card>
+              </Link>
+            </motion.div>
+          );
+        })}
+
+        {portfolios.length === 0 && (
+          <div className="panel col-span-full flex min-h-[320px] flex-col items-center justify-center p-10 text-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/[0.04] text-slate-300">
+              <Wallet className="h-7 w-7" />
+            </div>
+            <h2 className="mt-6 text-2xl font-semibold text-white">Aún no hay carteras creadas.</h2>
+            <p className="mt-3 max-w-md text-sm leading-7 text-slate-400">
+              Crea una estrategia inicial para empezar a consolidar rendimiento, posiciones y reportes.
+            </p>
+            <div className="mt-6">
+              <CreatePortfolioDialog />
+            </div>
+          </div>
+        )}
+      </section>
+    </motion.div>
+  );
 }

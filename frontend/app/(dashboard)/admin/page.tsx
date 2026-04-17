@@ -1,59 +1,75 @@
+import { Trophy } from "lucide-react";
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 async function getLeaderboard() {
-    const res = await fetch('http://localhost:8080/api/metrics/leaderboard', { cache: 'no-store' });
-    if (!res.ok) return {};
-    return res.json();
+  const response = await fetch("http://localhost:8080/api/metrics/leaderboard", { cache: "no-store" });
+
+  if (!response.ok) {
+    return {};
+  }
+
+  return response.json();
 }
 
 export default async function AdminPage() {
-    const leaderboard = await getLeaderboard();
+  const leaderboard = await getLeaderboard();
+  const ranking = Object.entries(leaderboard).sort((a, b) => (b[1] as number) - (a[1] as number));
 
-    // Convertimos el objeto {uuid: roi} en una lista para poder recorrerla
-    const ranking = Object.entries(leaderboard).sort((a, b) => (b[1] as number) - (a[1] as number));
+  return (
+    <div className="space-y-6">
+      <section className="panel p-6 sm:p-7">
+        <p className="eyebrow">Control administrativo</p>
+        <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] text-white sm:text-5xl">Ranking de rendimiento.</h1>
+        <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
+          Vista consolidada de performance por portafolio para monitoreo interno.
+        </p>
+      </section>
 
-    return (
-        <div className="space-y-8">
-            <div>
-                <h1 className="text-4xl font-bold tracking-tighter text-white">ADMIN TERMINAL</h1>
-                <p className="text-slate-500 uppercase text-xs tracking-[0.3em] mt-2">Global Performance Ranking</p>
-            </div>
-
-            <Card className="glass border-none">
-                <CardHeader>
-                    <CardTitle className="text-xl font-light">ROI Leaderboard (Real-time)</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow className="border-white/10 hover:bg-transparent">
-                                <TableHead className="text-slate-400">RANK</TableHead>
-                                <TableHead className="text-slate-400">PORTFOLIO ID</TableHead>
-                                <TableHead className="text-right text-slate-400">PERFORMANCE</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {ranking.map(([id, roi], index) => (
-                                <TableRow key={id} className="border-white/5 hover:bg-white/[0.02]">
-                                    <TableCell className="font-mono text-slate-500">#0{index + 1}</TableCell>
-                                    <TableCell className="font-mono text-white text-xs">{id}</TableCell>
-                                    <TableCell className="text-right font-bold text-white">
-                                        {Number(roi).toFixed(2)}%
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                            {ranking.length === 0 && (
-                                <TableRow>
-                                    <TableCell colSpan={3} className="text-center py-8 text-slate-600 italic">
-                                        No active portfolios tracked yet
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
-        </div>
-    );
+      <Card className="panel border-white/10 py-0">
+        <CardHeader className="flex flex-row items-center justify-between px-6 pt-6">
+          <CardTitle className="flex items-center gap-2 text-xl font-semibold text-white">
+            <Trophy className="h-5 w-5 text-amber-300" />
+            ROI leaderboard
+          </CardTitle>
+          <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs uppercase tracking-[0.22em] text-slate-400">
+            {ranking.length} carteras
+          </span>
+        </CardHeader>
+        <CardContent className="px-0 pb-4 pt-2">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-white/10 hover:bg-transparent">
+                  <TableHead className="px-6 text-xs uppercase tracking-[0.22em] text-slate-400">Rank</TableHead>
+                  <TableHead className="text-xs uppercase tracking-[0.22em] text-slate-400">Portfolio ID</TableHead>
+                  <TableHead className="pr-6 text-right text-xs uppercase tracking-[0.22em] text-slate-400">Performance</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {ranking.length === 0 ? (
+                  <TableRow className="border-white/10">
+                    <TableCell colSpan={3} className="px-6 py-16 text-center text-sm text-slate-400">
+                      No hay portafolios activos en el ranking.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  ranking.map(([id, roi], index) => (
+                    <TableRow key={id} className="border-white/10 hover:bg-white/[0.03]">
+                      <TableCell className="px-6 font-mono text-sm text-slate-400">#{String(index + 1).padStart(2, "0")}</TableCell>
+                      <TableCell className="font-mono text-sm text-white">{id}</TableCell>
+                      <TableCell className="pr-6 text-right text-sm font-semibold text-white">
+                        {Number(roi).toFixed(2)}%
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
 }

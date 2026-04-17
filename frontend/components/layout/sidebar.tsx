@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Briefcase, ShieldCheck, LogOut, Compass, Settings as SettingsIcon } from "lucide-react";
+import { LayoutDashboard, Briefcase, ShieldCheck, LogOut, Compass, Trophy, Settings as SettingsIcon } from "lucide-react";
 import { cn } from "@/lib/utils"; // Esta es una utilidad que instaló Shadcn automáticamente
 
 const menuItems = [
     { name: "Resumen", icon: LayoutDashboard, href: "/dashboard" },
     { name: "Portafolios", icon: Briefcase, href: "/portfolio" },
     { name: "Mercados", icon: Compass, href: "/explorer" },
+    { name: "Ranking Global", icon: Trophy, href: "/leaderboard" },
     { name: "Configuración", icon: SettingsIcon, href: "/settings" },
     { name: "Admin", icon: ShieldCheck, href: "/admin" },
 ];

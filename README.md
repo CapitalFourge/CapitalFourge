@@ -15,6 +15,8 @@ The system is divided into specialized modules following clean architecture prin
     - **Quick Trade**: Universal dialog for BUY/SELL execution across any strategy.
     - **Strategy Hub**: Workspace isolation for different investment theses.
     - **Cash Management**: Secure Fund Transfer system for liquid capital.
+    - **Technical Indicators**: SMA, EMA, RSI, MACD, Bollinger Bands with user selection.
+    - **Multi-timeframe Analysis**: View price history from 1 day to all available data.
 
 ### 2. `portfolio-manager` (Java/Spring Boot 3)
 - **Role**: Core Business Logic & Persistence.
@@ -29,6 +31,7 @@ The system is divided into specialized modules following clean architecture prin
 - **Oracle System**: Real-time market synchronization using Redis as a high-speed shared state.
 
 ## 📊 Real-time Intelligence (The Redis Edge)
+
 We leverage Redis to power high-frequency features without stressing the relational database:
 - **Global Asset Trends**: Sorted Set tracking most traded assets by volume globally via HyperLogLog-inspired logic.
 - **Fair ROI Ranking**: Performance metrics normalized against cumulative deposits/withdrawals to ensure accurate leaderboard positions.
@@ -58,7 +61,15 @@ We use **port 5433** for the PostgreSQL container to avoid conflicts with local 
 - **App Connection**: `jdbc:postgresql://localhost:5433/finsight_db`
 - **Docker External Access**: `localhost:5433`
 
-## 🔮 Future Roadmap (Phase 6+)
+## 🔮 Recent Enhancements (Phase 6)
+- [x] **Technical Indicators Interface**: Added UI for selecting and displaying SMA, EMA, RSI, MACD, and Bollinger Bands
+- [x] **Multi-timeframe Analysis**: Added timeframe selector (1D, 1W, 1M, 3M, 6M, 1Y, YTD, ALL)
+- [x] **Indicator Limitations**: Free tier limited to 3 indicators simultaneously (upgrade path for monetization)
+- [x] **Enhanced Price Chart**: Interactive chart with multiple Y-axes for different indicator types
+
+## 🔮 Future Roadmap (Phase 7+)
 - [ ] **AI Quant Analyst**: Large Language Model integration for portfolio risk assessment.
 - [ ] **API Gateway Integration**: Unified entry point with rate limiting and JWT security.
 - [ ] **Real-time Price WebSockets**: Live asset price updates with interactive TradingView-style charts.
+- [ ] **Automated Finsight Portfolio**: Rule-based portfolio using technical indicators for buy/sell signals.
+- [ ] **Portfolio Ranking System**: Public leaderboard showcasing top-performing strategies.

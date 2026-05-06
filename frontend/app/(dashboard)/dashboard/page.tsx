@@ -89,10 +89,11 @@ const item = {
 export default function DashboardPage() {
   const [activeSymbol, setActiveSymbol] = useState("BTC-USD");
   const [searchInput, setSearchInput] = useState("");
+  const [selectedDays, setSelectedDays] = useState(30); // Default to 1M
   const realTimePrice = useRealTimePrice([activeSymbol]);
 
   const { data, loading, error } = useQuery(DASHBOARD_QUERY, {
-    variables: { symbol: activeSymbol, days: 30 },
+    variables: { symbol: activeSymbol, days: selectedDays },
     pollInterval: 60000,
   });
 
@@ -216,10 +217,7 @@ export default function DashboardPage() {
               </div>
               <div className="rounded-full border border-emerald-300/25 bg-emerald-300/10 px-3 py-1 text-xs text-emerald-200">
                 ${Number(currentPrice).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </div>
-            </div>
-
-            <SymbolAutocomplete
+              </div>\n            </div>\n            <div className=\"mt-4\">\n              <TimeframeSelector selectedDays={selectedDays} onChange={setSelectedDays} />\n            </div>\n\n            <SymbolAutocomplete
               value={searchInput}
               onChange={(value) => {
                 setSearchInput(value);
@@ -253,7 +251,7 @@ export default function DashboardPage() {
               <div>
                 <p className="eyebrow">Mercado</p>
                 <CardTitle className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-white">
-                  Precio de referencia 30 días
+                  Precio de referencia {selectedDays === null ? 'TODO' : selectedDays === 1 ? '1 día' : selectedDays === 7 ? '1 semana' : selectedDays === 30 ? '1 mes' : selectedDays === 90 ? '3 meses' : selectedDays === 180 ? '6 meses' : selectedDays === 365 ? '1 año' : 'Todo'}
                 </CardTitle>
               </div>
               <Clock3 className="h-5 w-5 text-slate-500" />

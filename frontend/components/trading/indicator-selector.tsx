@@ -8,6 +8,8 @@ const INDICATORS = [
   { id: "rsi", label: "RSI", description: "Índice de Fuerza Relativa" },
   { id: "macd", label: "MACD", description: "Convergencia/Divergencia de Medias Móviles" },
   { id: "bollinger", label: "Bollinger", description: "Bandas de Bollinger" },
+  { id: "stochastic", label: "Estocástico", description: "Oscilador Estocástico" },
+  { id: "volume", label: "Volumen", description: "Volumen de Trading" },
 ];
 
 export function IndicatorSelector({
@@ -62,7 +64,7 @@ export function IndicatorSelector({
                 variant={isActive ? "default" : "outline"}
                 size="sm"
                 onClick={() => toggleIndicator(indicator.id)}
-                className={`${isActive ? "bg-emerald-300 text-slate-950" : "w-8 h-8 flex-shrink-0"}`}
+                className={`${isActive ? "bg-emerald-300 text-slate-950" : "w-8 h-8 flex-shrink-0"`}
               >
                 {isActive ? indicator.label : ""}
               </Button>

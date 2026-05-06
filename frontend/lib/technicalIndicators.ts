@@ -1,4 +1,4 @@
-import { SMA, EMA, RSI, MACD, BollingerBands } from 'technicalindicators';
+import { SMA, EMA, RSI, MACD, BollingerBands, Stochastic, OBV } from 'technicalindicators';
 
 /**
  * Calculate Simple Moving Average
@@ -105,5 +105,58 @@ export function calculateBollingerBands(data, options = { period: 20, stdDev: 2 
     upper: bbValues[i].upper,
     middle: bbValues[i].middle,
     lower: bbValues[i].lower
+  }));
+}
+
+/**
+ * Calculate Stochastic Oscillator
+ * @param {Array<Object>} data - Array of { date: string, high: number, low: number, close: number }
+ * @param {Object} options - { k: 14, d: 3, smoothing: 3 }
+ * @returns {Array<Object>} Array of { date: string, k: number, d: number }
+ */
+export function calculateStochastic(data, options = { k: 14, d: 3, smoothing: 3 }) {
+  if (!data || data.length < options.k) return [];
+  
+  const highs = data.map(d => d.high);
+  const lows = data.map(d => d.low);
+  const closes = data.map(d => d.close);
+  
+  const stochasticValues = Stochastic.calculate({ 
+    high: highs,
+    low: lows,
+    close: closes,
+    kPeriod: options.k,
+    dPeriod: options.d,
+    smoothingPeriod: options.smoothing
+  });
+  
+  // Align the stochastic values with the dates (the first k-1 values are undefined)
+  return data.slice(options.k - 1).map((d, i) => ({
+    date: d.date,
+    k: stochasticValues[i].k,
+    d: stochasticValues[i].d
+  }));
+}
+
+/**
+ * Calculate On-Balance Volume (OBV)
+ * @param {Array<Object>} data - Array of { date: string, close: number, volume: number }
+ * @returns {Array<Object>} Array of { date: string, obv: number }
+ */
+export function calculateOBV(data) {
+  if (!data || data.length === 0) return [];
+  
+  const closes = data.map(d => d.close);
+  const volumes = data.map(d => d.volume);
+  
+  const obvValues = OBV.calculate({ 
+    close: closes,
+    volume: volumes 
+  });
+  
+  // Align the OBV values with the dates
+  return data.map((d, i) => ({
+    date: d.date,
+    obv: obvValues[i]
   }));
 }

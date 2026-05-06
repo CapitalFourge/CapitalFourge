@@ -14,6 +14,7 @@ import {
   AreaChart,
 } from "recharts";
 import { format } from "date-fns";
+import type { IndicatorData } from "@/lib/indicatorTypes";
 
 interface PricePoint {
   date: string;

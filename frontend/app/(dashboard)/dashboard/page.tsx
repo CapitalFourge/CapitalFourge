@@ -295,7 +295,20 @@ export default function DashboardPage() {
               </div>
               <div className="rounded-full border border-emerald-300/25 bg-emerald-300/10 px-3 py-1 text-xs text-emerald-200">
                 ${Number(currentPrice).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </div>\n            </div>\n            <div className=\"mt-4\">\n              <TimeframeSelector selectedDays={selectedDays} onChange={setSelectedDays} />\n            </div>\n\n            <SymbolAutocomplete
+              </div>\n            </div>\n            <div className=\"mt-4\">\n                          <div className="mt-4">
+              <TimeframeSelector 
+                selectedHours={null} 
+                selectedDays={selectedDays} 
+                onChange={(hours, days) => {
+                  if (hours !== null) {
+                    // Convert hours to approximate days for the API
+                    setSelectedDays(Math.max(1, Math.round(hours / 24)));
+                  } else {
+                    setSelectedDays(days);
+                  }
+                }} 
+              />
+            </div>\n            </div>\n\n            <SymbolAutocomplete
             </div>
             <div className="mt-4">
               <IndicatorSelector selectedIndicators={selectedIndicators} onChange={setSelectedIndicators} />

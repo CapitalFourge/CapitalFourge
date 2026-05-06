@@ -30,6 +30,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRealTimePrice } from "@/lib/hooks/useRealTimePrice";
 import { useMemo } from "react";
 import { EnhancedPriceChart } from "@/components/trading/enhanced-price-chart";
+import { LiquidityHeatmap } from "@/components/trading/liquidity-heatmap";
 import { IndicatorSelector } from "@/components/trading/indicator-selector";
 
 

@@ -28,6 +28,10 @@ import { TradeDialog } from "@/components/trading/trade-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRealTimePrice } from "@/lib/hooks/useRealTimePrice";
+import { useMemo } from "react";
+import { EnhancedPriceChart } from "@/components/trading/enhanced-price-chart";
+import { IndicatorSelector } from "@/components/trading/indicator-selector";
+
 
 const DASHBOARD_QUERY = gql`
   query GetDashboardData($symbol: String!, $days: Int!) {
@@ -87,6 +91,7 @@ const item = {
 };
 
 export default function DashboardPage() {
+  const [selectedIndicators, setSelectedIndicators] = useState<string[]>([]);
   const [activeSymbol, setActiveSymbol] = useState("BTC-USD");
   const [searchInput, setSearchInput] = useState("");
   const [selectedDays, setSelectedDays] = useState(30); // Default to 1M
@@ -130,6 +135,79 @@ export default function DashboardPage() {
   }, [portfolios]);
 
   if (error) {
+
+  }, [data?.priceHistory, selectedIndicators]);
+    return indicators;
+    
+    });
+      }
+        }
+          break;
+          };
+            type: "line"
+            });
+              lower: d.lower
+              middle: d.middle,
+              upper: d.upper,
+              date: d.date,
+            data: bbData.map(function(d) { return {
+            id: "bollinger",
+          indicators.push({
+          const bbData = calculateBollingerBands(priceData);
+        case "bollinger": {
+        }
+          break;
+          });
+            type: "line"
+            });
+              histogram: d.histogram
+              signal: d.signal,
+              macd: d.macd,
+              date: d.date,
+            data: macdData.map(function(d) { return {
+            id: "macd",
+          indicators.push({
+          const macdData = calculateMACD(priceData);
+        case "macd": {
+        }
+          break;
+          });
+            type: "line"
+            data: rsiData.map(function(d) { return { date: d.date, rsi: d.rsi }; }),
+            id: "rsi",
+          indicators.push({
+          const rsiData = calculateRSI(priceData, 14);
+        case "rsi": {
+        }
+          break;
+          });
+            type: "line"
+            data: emaData.map(function(d) { return { date: d.date, ema: d.ema }; }),
+            id: "ema",
+          indicators.push({
+          const emaData = calculateEMA(priceData, 20);
+        case "ema": {
+        }
+          break;
+          });
+            type: "line"
+            data: smaData.map(function(d) { return { date: d.date, sma: d.sma }; }),
+            id: "sma",
+          indicators.push({
+          const smaData = calculateSMA(priceData, 20);
+        case "sma": {
+      switch (indicator) {
+    selectedIndicators.forEach(function(indicator) {
+    
+    const indicators: IndicatorData[] = [];
+    
+    const priceData = data.priceHistory.map(function(p) { return { date: p.date, close: p.price }; });
+    // Convert price history to the format expected by technical indicators
+    
+    if (!data?.priceHistory || selectedIndicators.length === 0) return [];
+  const indicatorsData = useMemo(() => {
+  // Calculate technical indicators based on selected indicators
+  
     return (
       <div className="rounded-[1.75rem] border border-red-400/20 bg-red-500/10 p-8 text-red-200">
         <h2 className="text-lg font-semibold">No fue posible cargar el dashboard</h2>
@@ -218,6 +296,11 @@ export default function DashboardPage() {
               <div className="rounded-full border border-emerald-300/25 bg-emerald-300/10 px-3 py-1 text-xs text-emerald-200">
                 ${Number(currentPrice).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>\n            </div>\n            <div className=\"mt-4\">\n              <TimeframeSelector selectedDays={selectedDays} onChange={setSelectedDays} />\n            </div>\n\n            <SymbolAutocomplete
+            </div>
+            <div className="mt-4">
+              <IndicatorSelector selectedIndicators={selectedIndicators} onChange={setSelectedIndicators} />
+            </div>
+
               value={searchInput}
               onChange={(value) => {
                 setSearchInput(value);
@@ -263,39 +346,11 @@ export default function DashboardPage() {
                 </div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={data?.priceHistory}>
-                    <defs>
-                      <linearGradient id="dashboardPrice" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#6ee7b7" stopOpacity={0.45} />
-                        <stop offset="95%" stopColor="#6ee7b7" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid vertical={false} stroke="rgba(255,255,255,0.05)" />
-                    <XAxis
-                      dataKey="date"
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: "#94a3b8", fontSize: 11 }}
-                      minTickGap={32}
-                    />
-                    <YAxis hide domain={["auto", "auto"]} />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: "rgba(8, 15, 28, 0.96)",
-                        border: "1px solid rgba(255,255,255,0.08)",
-                        borderRadius: "16px",
-                        color: "#fff",
-                      }}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="price"
-                      stroke="#6ee7b7"
-                      strokeWidth={2.5}
-                      fill="url(#dashboardPrice)"
-                      animationDuration={1200}
-                    />
-                  </AreaChart>
+                  <EnhancedPriceChart
+                    data={data?.priceHistory || []}
+                    indicators={indicatorsData}
+                    showPriceArea={true}
+                  />
                 </ResponsiveContainer>
               )}
             </CardContent>

@@ -1,6 +1,8 @@
+'use client';
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Checker, Info } from "lucide-react";
+import { Check, Info } from "lucide-react";
 
 const INDICATORS = [
   { id: "sma", label: "SMA", description: "Media Móvil Simple" },
@@ -22,7 +24,7 @@ export function IndicatorSelector({
   const [showInfo, setShowInfo] = useState(false);
 
   const toggleIndicator = (indicatorId: string) => {
-    setSelectedIndicators((prev) => {
+    onChange((prev) => {
       if (prev.includes(indicatorId)) {
         return prev.filter((id) => id !== indicatorId);
       } else {
@@ -46,7 +48,7 @@ export function IndicatorSelector({
           onClick={() => setShowInfo(!showInfo)}
           className="hover:bg-white/[0.06]"
         >
-          {showInfo ? <Info className="h-4 w-4" /> : <Checker className="h-4 w-4" />}
+          {showInfo ? <Info className="h-4 w-4" /> : <Check className="h-4 w-4" />}
         </Button>
       </div>
 
@@ -64,7 +66,7 @@ export function IndicatorSelector({
                 variant={isActive ? "default" : "outline"}
                 size="sm"
                 onClick={() => toggleIndicator(indicator.id)}
-                className={`${isActive ? "bg-emerald-300 text-slate-950" : "w-8 h-8 flex-shrink-0"`}
+                className={`${isActive ? "bg-emerald-300 text-slate-950" : "w-8 h-8 flex-shrink-0"}`}
               >
                 {isActive ? indicator.label : ""}
               </Button>

@@ -1,6 +1,8 @@
 package com.finsight.portfoliomanager.application.services;
 
 import org.springframework.stereotype.Service;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -37,7 +39,7 @@ public class UserService implements UserUseCase {
     @Override
     public AuthResult register(RegisterCommand command) {
         if (userRepository.existsByEmail(command.getEmail())) {
-            throw new RuntimeException("Email already registered");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Este correo ya está registrado");
         }
 
         User user = User.builder()

@@ -23,7 +23,7 @@ interface PricePoint {
 
 interface IndicatorData {
   id: string;
-  data: { [key: string]: number }[];
+  data: { [key: string]: number | string }[];
   type: "line" | "area" | "histogram";
   yAxisId?: number;
   stroke?: string;
@@ -68,9 +68,9 @@ export function EnhancedPriceChart({
     }, {} as Record<string, number>),
   }));
 
-  // Determine if we need a secondary Y axis (for indicators like RSI, MACD)
+  // Determine if we need a secondary Y axis (for indicators like RSI, MACD, Stochastic)
   const usesSecondaryAxis = indicators.some(ind => 
-    ["rsi", "macd"].includes(ind.id)
+    ["rsi", "macd", "stochastic"].includes(ind.id)
   );
 
   return (
@@ -101,8 +101,9 @@ export function EnhancedPriceChart({
             tickLine={false}
             axisLine={false}
             width={40}
-            tickFormatter={(val: number) => `$${val.toLocaleString(undefined, {maximumFractionDigits: 2})}`}
+            tickFormatter={(val: number) => `$${val.toLocaleString('en-US', {maximumFractionDigits: 2})}`}
             domain={["dataMin", "dataMax"]}
+            yAxisId={0}
           />
           
           {usesSecondaryAxis && (
@@ -116,6 +117,7 @@ export function EnhancedPriceChart({
               tickFormatter={(val: number) => val.toFixed(2)}
               domain={[0, 100]} // For RSI (0-100) and MACD (can be adjusted)
               tick={{ fill: "#64748b" }}
+              yAxisId={1}
             />
           )}
           
@@ -140,7 +142,7 @@ export function EnhancedPriceChart({
             }}
             formatter={(value: number, name: string) => {
               if (name === "price") {
-                return `$${value.toLocaleString(undefined, {maximumFractionDigits: 2})}`;
+                return `$${value.toLocaleString('en-US', {maximumFractionDigits: 2})}`;
               }
               // Format indicator values appropriately
               if (["rsi"].includes(name)) {
@@ -186,12 +188,18 @@ export function EnhancedPriceChart({
               upper: "#64748b",
               middle: "#64748b",
               lower: "#64748b",
+              volume: "#10b981",
+              stochastick: "#8b5cf6",
+              stochastics: "#06b6d4",
             };
             
             const typeMap: Record<string, string> = {
               upper: "line",
               middle: "line",
               lower: "line",
+              volume: "line",
+              stochastick: "line",
+              stochastics: "line",
             };
             
             // Determine which Y axis to use
@@ -201,8 +209,8 @@ export function EnhancedPriceChart({
             // Handle Bollinger Bands (multiple lines)
             if (indicator.id === "bollinger") {
               return [
-                <Line 
-                  key={`bb-upper-${indicator.data[0]?.date}`} 
+                <Line
+                  key={`bb-upper-${indicator.data[0]?.date}`}
                   type="monotone"
                   dataKey="upper"
                   stroke={colorMap.upper}
@@ -210,8 +218,8 @@ export function EnhancedPriceChart({
                   strokeDasharray="4 2"
                   yAxisId={yAxisId}
                 />,
-                <Line 
-                  key=`bb-middle-${indicator.data[0]?.date}` 
+                <Line
+                  key={`bb-middle-${indicator.data[0]?.date}`}
                   type="monotone"
                   dataKey="middle"
                   stroke={colorMap.middle}
@@ -219,59 +227,55 @@ export function EnhancedPriceChart({
                   strokeDasharray="2 2"
                   yAxisId={yAxisId}
                 />,
-                <Line 
-                  key=`bb-lower-${indicator.data[0]?.date}` 
+                <Line
+                  key={`bb-lower-${indicator.data[0]?.date}`}
                   type="monotone"
                   dataKey="lower"
                   stroke={colorMap.lower}
                   strokeWidth={1}
                   strokeDasharray="4 2"
                   yAxisId={yAxisId}
-                />
+                />,
               ];
             }
             
             // Handle MACD (multiple lines)
             if (indicator.id === "macd") {
               return [
-                <Line 
-                  key={`macd-${indicator.data[0]?.date}`} 
+                <Line
+                  key={"macd-" + indicator.data[0]?.date}
                   type="monotone"
                   dataKey="macd"
                   stroke={colorMap.macd}
                   strokeWidth={2}
                   yAxisId={yAxisId}
                 />,
-                <Line 
-                  key={`signal-${indicator.data[0]?.date}`} 
+                <Line
+                  key={"signal-" + indicator.data[0]?.date}
                   type="monotone"
                   dataKey="signal"
                   stroke={colorMap.signal}
                   strokeWidth={2}
                   yAxisId={yAxisId}
                 />,
-                {indicator.data.some(d => d.histogram !== undefined) && (
-                  <>
-                    {indicator.data.map((d, idx) => 
-                      d.histogram !== undefined ? (
-                        <Bar 
-                          key={`histogram-${idx}`} 
-                          dataKey="histogram"
-                          fill={d.histogram >= 0 ? "#10b981" : "#ef4444"}
-                          data={[{ date: d.date, histogram: d.histogram }]}
-                          yAxisId={yAxisId}
-                        />
-                      ) : null
-                    )}
-                  </>
-                )}
+                ...indicator.data.map((d, idx) =>
+                  d.histogram !== undefined ? (
+                    <Bar
+                      key={"histogram-" + idx}
+                      dataKey="histogram"
+                      fill={d.histogram >= 0 ? "#10b981" : "#ef4444"}
+                      data={[{ date: d.date, histogram: d.histogram }]}
+                      yAxisId={yAxisId}
+                    />
+                  ) : null
+                )
               ];
             }
             
             // Single line indicators
             return (
-              <Line 
-                key={`${indicator.id}-${indicator.data[0]?.date}`} 
+              <Line
+                key={indicator.id + "-" + indicator.data[0]?.date}
                 type="monotone"
                 dataKey={indicator.id}
                 stroke={colorMap[indicator.id] || "#fff"}

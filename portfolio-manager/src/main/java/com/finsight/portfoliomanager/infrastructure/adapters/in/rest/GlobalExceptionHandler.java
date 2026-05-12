@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import jakarta.persistence.EntityNotFoundException;
 
+import com.finsight.portfoliomanager.application.exception.EmailAlreadyRegisteredException;
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -26,6 +28,26 @@ public class GlobalExceptionHandler {
         Map<String, String> error = new HashMap<>();
         error.put("message", ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    @ExceptionHandler(EmailAlreadyRegisteredException.class)
+    public ResponseEntity<Map<String, String>> handleEmailAlreadyRegistered(EmailAlreadyRegisteredException ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put("message", "Este correo ya está registrado");
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<Map<String, String>> handleEmailAlreadyRegistered(RuntimeException ex) {
+        if ("Email already registered".equals(ex.getMessage())) {
+            Map<String, String> error = new HashMap<>();
+            error.put("message", "Este correo ya está registrado");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+        }
+        // fallback for other runtime exceptions
+        Map<String, String> error = new HashMap<>();
+        error.put("message", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 
 }

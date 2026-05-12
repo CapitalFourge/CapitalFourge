@@ -102,13 +102,27 @@ interface TradeDialogProps {
     portfolioPositions?: Map<string, Position[]>;
     initialSymbol?: string;
     children?: React.ReactNode;
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
 }
 
-export function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions, initialSymbol = "", children }: TradeDialogProps) {
-    const [open, setOpen] = useState(false);
+export function TradeDialog({ portfolios, defaultType = "buy", portfolioPositions, initialSymbol = "", children, open = false, onOpenChange }: TradeDialogProps) {
+    const [internalOpen, setInternalOpen] = useState(false);
     const [type, setType] = useState<"buy" | "sell">(defaultType);
     const [orderType, setOrderType] = useState<"market" | "limit">("market");
     const [tradingMode, setTradingMode] = useState<"quantity" | "usd">("quantity");
+
+    // Control open state from props or internal state
+    const isControlled = open !== undefined;
+    const dialogOpen = isControlled ? open : internalOpen;
+    const setDialogOpen = isControlled ? (() => {}) : setInternalOpen;
+
+    // Sync internal open state with prop changes
+    useEffect(() => {
+        if (!isControlled) {
+            setInternalOpen(open);
+        }
+    }, [open]);
 
     // Form state
     const [portfolioId, setPortfolioId] = useState(portfolios[0]?.id || "");
@@ -282,18 +296,17 @@ export function TradeDialog({ portfolios, defaultType = "buy", portfolioPosition
     useEffect(() => {
         console.log("[DEBUG TradeDialog] type:", type);
         console.log("[DEBUG TradeDialog] portfolioId:", portfolioId);
-        console.log("[DEBUG TradeDialog] portfolioPositions:", portfolioPositions);
-        console.log("[DEBUG TradeDialog] currentPortfolioPositions:", currentPortfolioPositions);
-        console.log("[DEBUG TradeDialog] currentPortfolioPositions.length:", currentPortfolioPositions.length);
     }, [type, portfolioId, portfolioPositions, currentPortfolioPositions]);
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
                 {children ? children : (
-                    <Button className={`h-16 rounded-2xl font-bold gap-2 ${defaultType === "buy" ? "bg-white text-black hover:bg-slate-200" : "bg-transparent border-white/10 hover:bg-white/5 text-white"}`}>
-                        {defaultType === "buy" ? <ShoppingCart className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-                        {defaultType === "buy" ? "COMPRAR" : "VENDER"}
+                    <Button className={`h-16 rounded-2xl font-bold gap-2 ${defaultType === "buy" ? "bg-white text-black hover:bg-slate-200" : "bg-transparent border-white/10 hover:bg-white/5 text-white"`}>
+                        <>
+                            {defaultType === "buy" ? <ShoppingCart className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+                            {defaultType === "buy" ? "COMPRAR" : "VENDER"}
+                        </>
                     </Button>
                 )}
             </DialogTrigger>
@@ -303,69 +316,19 @@ export function TradeDialog({ portfolios, defaultType = "buy", portfolioPosition
                         Inicializar Operación
                     </DialogTitle>
                 </DialogHeader>
-
+                
                 <div className="flex gap-2 p-1 bg-white/5 rounded-lg mb-4">
                     <button
                         onClick={() => setType("buy")}
-                        className={`flex-1 py-2 rounded-md transition-all text-sm font-bold ${type === "buy" ? "bg-white text-black" : "text-slate-400 hover:text-white"}`}
-                    >
+                        className={type === "buy" ? "flex-1 py-2 rounded-md transition-all text-sm font-bold bg-white text-black" : "flex-1 py-2 rounded-md transition-all text-sm font-bold text-slate-400 hover:text-white"}>
                         COMPRA
                     </button>
                     <button
                         onClick={() => setType("sell")}
-                        className={`flex-1 py-1 rounded-md transition-all text-sm font-bold ${type === "sell" ? "bg-white text-black" : "text-slate-400 hover:text-white"}`}
-                    >
+                        className={type === "sell" ? "flex-1 py-1 rounded-md transition-all text-sm font-bold bg-white text-black" : "flex-1 py-1 rounded-md transition-all text-sm font-bold text-slate-400 hover:text-white"}>
                         VENTA
                     </button>
-                </div>
-
-                <div className="flex gap-2 p-1 bg-white/5 rounded-lg mb-4">
-                    <button
-                        onClick={() => setOrderType("market")}
-                        className={`flex-1 py-2 rounded-md transition-all text-sm font-bold ${orderType === "market" ? "bg-white text-black" : "text-slate-400 hover:text-white"}`}
-                    >
-                        MERCADO
-                    </button>
-                    <button
-                        onClick={() => setOrderType("limit")}
-                        className={`flex-1 py-1 rounded-md transition-all text-sm font-bold ${orderType === "limit" ? "bg-white text-black" : "text-slate-400 hover:text-white"}`}
-                    >
-                        LÍMITE
-                    </button>
-                </div>
-
-                <div className="flex gap-2 p-1 bg-white/5 rounded-lg mb-4">
-                    <button
-                        onClick={() => setTradingMode("quantity")}
-                        className={`flex-1 py-2 rounded-md transition-all text-sm font-bold ${tradingMode === "quantity" ? "bg-white text-black" : "text-slate-400 hover:text-white"}`}
-                    >
-                        POR CANTIDAD
-                    </button>
-                    <button
-                        onClick={() => setTradingMode("usd")}
-                        className={`flex-1 py-1 rounded-md transition-all text-sm font-bold ${tradingMode === "usd" ? "bg-white text-black" : "text-slate-400 hover:text-white"}`}
-                    >
-                        POR USD
-                    </button>
-                </div>
-
-                <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                        <label className="text-xs uppercase tracking-widest text-slate-500">Portafolio de Destino</label>
-                        <select
-                            value={portfolioId}
-                            onChange={(e) => {
-                                setPortfolioId(e.target.value);
-                                setSymbol(""); // Reset symbol when portfolio changes
-                            }}
-                            className="w-full bg-black/40 border border-white/10 rounded-md p-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-slate-400"
-                        >
-                            {portfolios.map(p => (
-                                <option key={p.id} value={p.id}>{p.name || `Estrategia_${p.id.substring(0, 4)}`}</option>
-                            ))}
-                        </select>
-                    </div>
-
+                    
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <label className="text-xs uppercase tracking-widest text-slate-500">Símbolo (Ticker)</label>
@@ -378,7 +341,6 @@ export function TradeDialog({ portfolios, defaultType = "buy", portfolioPosition
                                             setQuantity(""); // Reset quantity when asset changes
                                         }}
                                         className="w-full bg-black/40 border border-white/10 rounded-md p-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-slate-400"
-                                    >
                                         <option value="">Seleccionar activo...</option>
                                         {currentPortfolioPositions.length > 0 ? (
                                             currentPortfolioPositions.map((pos: Position) => (
@@ -415,7 +377,7 @@ export function TradeDialog({ portfolios, defaultType = "buy", portfolioPosition
                                     onChange={handleSymbolChange}
                                     placeholder="AAPL, BTC, etc"
                                     inputClassName="w-full"
-                                />
+                                >
                             )}
                         </div>
                         <div className="space-y-2">
@@ -425,22 +387,20 @@ export function TradeDialog({ portfolios, defaultType = "buy", portfolioPosition
                             <Input
                                 type="number"
                                 placeholder={tradingMode === "quantity" ? "0.00" : "0.00"}
-                                value={tradingMode === "quantity" ? quantity : usdAmount}
-                                onChange={(e) => tradingMode === "quantity" ? setQuantity(e.target.value) : setUsdAmount(e.target.value)}
-                                max={type === "sell" && symbol && tradingMode === "quantity" ? currentPortfolioPositions.find((pos: Position) => pos.symbol === symbol)?.quantity : undefined}
-                                step="any"
+                                     ? 'Valor total: $' + calculatedUSD
+                                         : 'Cantidad estimada: ' + calculatedQuantity}
                                 className="bg-black/40 border-white/10 text-white"
-                            />
+                            >
                             {price && (tradingMode === "quantity" ? quantity : usdAmount) && (
                                 <p className="text-[10px] text-slate-500">
                                     {tradingMode === "quantity"
-                                        ? `Valor total: $${calculatedUSD}`
-                                        : `Cantidad estimada: ${calculatedQuantity}`}
+                                     ? 'Valor total: $' + calculatedUSD
+                                         : 'Cantidad estimada: ' + calculatedQuantity}
                                 </p>
                             )}
                         </div>
                     </div>
-
+                    
                     <div className="space-y-2">
                         <label className="text-xs uppercase tracking-widest text-slate-500">
                             {orderType === "market" ? "Precio de Mercado ($)" : "Precio Objetivo ($)"}
@@ -452,7 +412,7 @@ export function TradeDialog({ portfolios, defaultType = "buy", portfolioPosition
                             onChange={(e) => setPrice(e.target.value)}
                             disabled={orderType === "market"}
                             className="bg-black/40 border-white/10 text-white"
-                        />
+                        >
                         {orderType === "market" && priceData?.stockPrice && (
                             <p className="text-[10px] text-slate-500">
                                 Último precio actualizado: ${priceData.stockPrice.price?.toLocaleString()}
@@ -460,21 +420,12 @@ export function TradeDialog({ portfolios, defaultType = "buy", portfolioPosition
                         )}
                     </div>
                 </div>
-
+                
                 <DialogFooter className="sm:justify-start">
                     <Button
                         onClick={handleTrade}
                         disabled={loading}
-                        className={`w-full font-bold uppercase tracking-widest ${orderType === "market"
-                            ? (type === "buy" ? "bg-green-500 hover:bg-green-600" : "bg-red-500 hover:bg-red-600")
-                            : "bg-blue-500 hover:bg-blue-600"
-                            } text-white`}
-                    >
-                        {loading ? "EJECUTANDO..." : (
-                            orderType === "market"
-                                ? `CONFIRMAR ${type === "buy" ? "COMPRA" : "VENTA"}`
-                                : `CREAR ORDEN ${type === "buy" ? "COMPRA" : "VENTA"}`
-                        )}
+                        className={"w-full font-bold uppercase tracking-widest " + (orderType === "market" ? (type === "buy" ? "bg-green-500 hover:bg-green-600" : "bg-red-500 hover:bg-red-600") : "bg-blue-500 hover:bg-blue-600") + " text-white"}>
                     </Button>
                 </DialogFooter>
             </DialogContent>

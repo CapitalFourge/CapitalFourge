@@ -8,6 +8,7 @@ import {
   ArrowUpRight,
   Clock3,
   Landmark,
+  RefreshCcw,
   TrendingUp,
   Wallet,
 } from "lucide-react";
@@ -26,9 +27,7 @@ import { CashActionDialog } from "@/components/trading/cash-action-dialog";
 import { SymbolAutocomplete } from "@/components/trading/symbol-autocomplete";
 import { TradeDialog } from "@/components/trading/trade-dialog";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRealTimePrice } from "@/lib/hooks/useRealTimePrice";
-
 
 const DASHBOARD_QUERY = gql`
   query GetDashboardData($symbol: String!, $days: Int!) {
@@ -57,6 +56,15 @@ const DASHBOARD_QUERY = gql`
 `;
 
 const WATCHLIST = ["BTC-USD", "ETH-USD", "AAPL", "TSLA", "NVDA", "MSFT", "GC=F", "SI=F"];
+const RANGE_OPTIONS = [1, 7, 30, 90, 180, 365];
+const RANGE_LABELS: Record<number, string> = {
+  1: "1 dia",
+  7: "1 semana",
+  30: "1 mes",
+  90: "3 meses",
+  180: "6 meses",
+  365: "1 ano",
+};
 
 interface Position {
   symbol: string;
@@ -87,33 +95,43 @@ const item = {
   show: { opacity: 1, y: 0 },
 };
 
+const formatCurrency = (value: number) =>
+  value.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+const formatSignedPercent = (value: number) => `${value >= 0 ? "+" : ""}${value.toFixed(2)}%`;
+
 export default function DashboardPage() {
   const [activeSymbol, setActiveSymbol] = useState("BTC-USD");
   const [searchInput, setSearchInput] = useState("");
-  const [selectedDays, setSelectedDays] = useState(30); // Default to 1M
+  const [selectedDays, setSelectedDays] = useState(30);
   const [volatilitySort, setVolatilitySort] = useState<"volatile" | "gain" | "loss" | "volume">("volatile");
-  const realTimePrice = useRealTimePrice([activeSymbol]);
+
+  const realTimeSymbols = useMemo(() => [activeSymbol], [activeSymbol]);
+  const realTimePrice = useRealTimePrice(realTimeSymbols);
 
   const { data, loading, error } = useQuery(DASHBOARD_QUERY, {
     variables: { symbol: activeSymbol, days: selectedDays },
     pollInterval: 60000,
   });
 
-  const currentPrice =
-    realTimePrice[activeSymbol] ??
-    (data?.priceHistory?.length > 0 ? data.priceHistory[data.priceHistory.length - 1].price : 0);
-
-  const userCashBalance = data?.me?.cashBalance || 0;
-  const userLockedBalance = data?.me?.lockedBalance || 0;
   const portfolios = useMemo(() => ((data?.portfolios as Portfolio[] | undefined) ?? []), [data?.portfolios]);
   const leadPortfolio = portfolios[0];
+  const userCashBalance = data?.me?.cashBalance ?? 0;
+  const userLockedBalance = data?.me?.lockedBalance ?? 0;
+
+  const currentPrice =
+    realTimePrice[activeSymbol] ??
+    (data?.priceHistory?.length ? data.priceHistory[data.priceHistory.length - 1].price : 0);
 
   const investedTotal = useMemo(() => {
     return portfolios.reduce((total, portfolio) => {
       const portfolioInvested =
         portfolio.positions?.reduce((sum, position) => {
-          return sum + position.quantity * (position.currentPrice || position.averagePurchasePrice);
-        }, 0) || 0;
+          return sum + position.quantity * (position.currentPrice ?? position.averagePurchasePrice);
+        }, 0) ?? 0;
 
       return total + portfolioInvested;
     }, 0);
@@ -125,25 +143,30 @@ export default function DashboardPage() {
     const map = new Map<string, Position[]>();
 
     portfolios.forEach((portfolio) => {
-      map.set(portfolio.id, portfolio.positions || []);
+      map.set(portfolio.id, portfolio.positions ?? []);
     });
 
     return map;
   }, [portfolios]);
 
-  if (error) {
-    return (
-      <div className="rounded-[1.75rem] border border-red-400/20 bg-red-500/10 p-8 text-red-200">
-        <h2 className="text-lg font-semibold">No fue posible cargar el dashboard</h2>
-        <p className="mt-2 text-sm text-red-100/80">{error.message}</p>
-      </div>
-    );
-  }
+  const totalPositions = useMemo(
+    () => portfolios.reduce((total, portfolio) => total + (portfolio.positions?.length ?? 0), 0),
+    [portfolios],
+  );
 
+  const chartData = useMemo(
+    () =>
+      (data?.priceHistory ?? []).map((entry: { date: string; price: number }) => ({
+        date: new Date(entry.date).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        }),
+        price: Number(entry.price),
+      })),
+    [data?.priceHistory],
+  );
 
   const volatileAssets = useMemo(() => {
-    // Mock data for volatile assets - in a real implementation, this would come from an API
-    // For now, we'll use some sample data from our watchlist
     const baseAssets = [
       { symbol: "BTC-USD", price: "$67,420.50", changePercent: 2.34, changeValue: "+$1,540.25" },
       { symbol: "ETH-USD", price: "$3,450.75", changePercent: -1.87, changeValue: "-$65.42" },
@@ -152,25 +175,20 @@ export default function DashboardPage() {
       { symbol: "NVDA", price: "$875.30", changePercent: 5.67, changeValue: "+$46.92" },
       { symbol: "MSFT", price: "$420.15", changePercent: 1.23, changeValue: "+$5.10" },
       { symbol: "GC=F", price: "$2,345.60", changePercent: 0.89, changeValue: "+$20.75" },
-      { symbol: "SI=F", price: "$28.90", changePercent: -2.45, changeValue: "-$0.73" }
+      { symbol: "SI=F", price: "$28.90", changePercent: -2.45, changeValue: "-$0.73" },
     ];
-    
-    // Sort based on selected volatility type
+
     return [...baseAssets].sort((a, b) => {
-      const changeA = Math.abs(a.changePercent);
-      const changeB = Math.abs(b.changePercent);
-      
       if (volatilitySort === "volatile") {
-        return changeB - changeA; // Descending absolute change
-      } else if (volatilitySort === "gain") {
-        return b.changePercent - a.changePercent; // Descending change
-      } else if (volatilitySort === "loss") {
-        return a.changePercent - b.changePercent; // Ascending change (most negative first)
-      } else if (volatilitySort === "volume") {
-        // For volume, we'd need actual volume data - for now just randomize
-        return Math.random() - 0.5;
+        return Math.abs(b.changePercent) - Math.abs(a.changePercent);
       }
-      return 0;
+      if (volatilitySort === "gain") {
+        return b.changePercent - a.changePercent;
+      }
+      if (volatilitySort === "loss") {
+        return a.changePercent - b.changePercent;
+      }
+      return a.symbol.localeCompare(b.symbol);
     });
   }, [volatilitySort]);
 
@@ -201,23 +219,47 @@ export default function DashboardPage() {
     },
   ];
 
+  if (error) {
+    return (
+      <div className="rounded-[1.75rem] border border-red-400/20 bg-red-500/10 p-8 text-red-200">
+        <h2 className="text-lg font-semibold">No fue posible cargar el dashboard</h2>
+        <p className="mt-2 text-sm text-red-100/80">{error.message}</p>
+      </div>
+    );
+  }
+
   return (
     <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
       <motion.section variants={item} className="panel overflow-hidden p-6 sm:p-7">
-        <div className="grid gap-8 xl:grid-cols-[1.15fr 0.85fr]">
-          <div className="space-y-7">
-            <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-              <div>
-                <p className="eyebrow">Resumen ejecutivo</p>
-                <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] text-white sm:text-5xl">
-                  {data?.me?.username ? `Hola, ${data.me.username}.` : "Panel principal."}
-                </h1>
-                <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
-                  Supervisa caja, exposición y mercado activo desde una misma superficie de trabajo.
-                </p>
+        <div className="space-y-6">
+          <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+            <div className="max-w-3xl">
+              <p className="eyebrow">Resumen ejecutivo</p>
+              <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] text-white sm:text-5xl">
+                {data?.me?.username ? `Hola, ${data.me.username}.` : "Panel principal."}
+              </h1>
+              <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
+                Supervisa caja, exposicion y mercado activo desde una misma superficie de trabajo.
+              </p>
+            </div>
+
+            <div className="flex flex-col items-stretch gap-3 xl:items-end">
+              <div className="flex flex-wrap items-center gap-3">
+                <CashActionDialog initialType="deposit">
+                  <Button className="h-11 rounded-full bg-transparent px-5 text-sm font-semibold text-emerald-300 shadow-none hover:bg-emerald-400/10 hover:text-emerald-200">
+                    <RefreshCcw className="h-4 w-4" />
+                    Recarga
+                  </Button>
+                </CashActionDialog>
+                <CashActionDialog initialType="withdraw">
+                  <Button className="h-11 rounded-full bg-transparent px-5 text-sm font-semibold text-rose-300 shadow-none hover:bg-rose-400/10 hover:text-rose-200">
+                    <Wallet className="h-4 w-4" />
+                    Retiro
+                  </Button>
+                </CashActionDialog>
               </div>
 
-              <div className="panel-muted flex items-center gap-3 self-start px-4 py-3">
+              <div className="panel-muted flex items-center gap-3 self-start px-4 py-3 xl:self-end">
                 <span className="status-dot" />
                 <div>
                   <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Sistema</p>
@@ -225,194 +267,305 @@ export default function DashboardPage() {
                 </div>
               </div>
             </div>
-
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              {stats.map((stat) => {
-                const Icon = stat.icon;
-
-                return (
-                  <div key={stat.label} className="metric-tile">
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs uppercase tracking-[0.24em] text-slate-400">{stat.label}</p>
-                      <Icon className="h-4 w-4 text-slate-500" />
-                    </div>
-                    <p className={`mt-4 text-3xl font-semibold tracking-[-0.04em] ${stat.accent}`}>
-                      {stat.value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
           </div>
 
-          <div className="panel-muted flex flex-col gap-4 p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Activo observado</p>
-                <p className="mt-2 text-3xl font-semibold tracking-[-0.04em] text-white">{activeSymbol}</p>
-              </div>
-              <div className="rounded-full border border-emerald-300/25 bg-emerald-300/10 px-3 py-1 text-xs text-emerald-200">
-                {Number(currentPrice).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </div>
-            </div>
-            <div className="mt-4">
-              <SymbolAutocomplete
-                value={searchInput}
-                onChange={(value) => {
-                  setSearchInput(value);
-                  if (value.trim()) {
-                    setActiveSymbol(value.trim().toUpperCase());
-                  }
-                }}
-                placeholder="Buscar ticker o símbolo"
-                className="w-full"
-                inputClassName="h-14 rounded-2xl border-white/10 bg-white/[0.04] px-4 text-sm tracking-[0.18em] text-white placeholder:text-slate-500"
-              />
-            </div>
-                        <div className="grid gap-3 sm:grid-cols-2">
-                        <div className="rounded-[1.4rem] border border-white/10 bg-white/[0.03] p-4">
-                <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Portafolios</p>
-                {portfolios.length > 0 ? (
-                  <>
-                    {portfolios.slice(0, 3).map((portfolio, index) => (
-                      <div key={index} className="flex w-full items-center justify-between px-3 py-1 text-sm">
-                        <div className="flex-1">
-                          <p className="font-medium text-white">{portfolio.name}</p>
-                          <p className="text-xs text-slate-400">{portfolio.positions?.length || 0} posiciones</p>
-                        </div>
-                        <div className="text-right">
-                          <p className={portfolio.performance >= 0 ? 'text-emerald-400' : 'text-rose-400'} font-medium>
-                            {portfolio.performance.toFixed(2)}%
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                    {portfolios.length > 3 && (
-                      <div className="flex w-full items-center justify-between px-3 py-1 text-sm text-slate-400">
-                        <span>y {portfolios.length - 3} más...</span>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <div className="flex w-full items-center justify-between px-3 py-1 text-sm text-slate-400">
-                    <span>Aún no tienes portafolios</span>
-                    <Link href="/portfolio" className="text-emerald-400 hover:underline">Crear uno</Link>
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {stats.map((stat) => {
+              const Icon = stat.icon;
+
+              return (
+                <div key={stat.label} className="metric-tile">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs uppercase tracking-[0.24em] text-slate-400">{stat.label}</p>
+                    <Icon className="h-4 w-4 text-slate-500" />
                   </div>
-                )}
-              <div className="rounded-[1.4rem] border border-white/10 bg-white/[0.03] p-4">
-                <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Instrumentos clave</p>
-                <p className="mt-2 text-2xl font-semibold text-white">{WATCHLIST.length}</p>
-              </div>
-            </div>
+                  <p className={`mt-4 text-3xl font-semibold tracking-[-0.04em] ${stat.accent}`}>
+                    {formatCurrency(stat.value)}
+                  </p>
+                </div>
+              );
+            })}
           </div>
-            </div>
         </div>
       </motion.section>
 
-      <div className="grid gap-6 xl:grid-cols-[1.35fr 0.65fr]">
-        <motion.section variants={item} className="space-y-6">
-                    <Card className="panel overflow-hidden border-white/10 py-0">
-            <CardHeader className="flex flex-row items-center justify-between px-6 pt-6">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_360px]">
+        <motion.div variants={item} className="space-y-6">
+          <section className="panel p-6">
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
               <div>
-                <p className="eyebrow">Mercado</p>
-                <CardTitle className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-white">
-                  Precio de referencia {selectedDays === null ? 'TODO' : selectedDays === 1 ? '1 día' : selectedDays === 7 ? '1 semana' : selectedDays === 30 ? '1 mes' : selectedDays === 90 ? '3 meses' : selectedDays === 180 ? '6 meses' : selectedDays === 365 ? '1 año' : 'Todo'}
-                </CardTitle>
+                <p className="eyebrow">Portafolios</p>
+                <h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-white">
+                  {portfolios.length > 0 ? "Vista consolidada de tus carteras" : "Aun no tienes portafolios"}
+                </h2>
+                <p className="mt-2 max-w-2xl text-sm text-slate-400">
+                  {portfolios.length > 0
+                    ? "Revisa desempeno, posiciones activas y accesos directos para operar sin salir del tablero."
+                    : "Crea tu primer portafolio para empezar a operar y ver metricas consolidadas en este espacio."}
+                </p>
               </div>
-              <Clock3 className="h-5 w-5 text-slate-500" />
-            </CardHeader>
-            <CardContent className="h-[400px] px-2 pb-4 pt-0 sm:px-4">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-slate-400">Volatilidad del día</span>
-                  <div className="flex space-x-4">
-                    <button onClick={() => setVolatilitySort('volatile')} className={`px-3 py-1 rounded text-sm ${volatilitySort === 'volatile' ? 'bg-emerald-500/20 text-emerald-400' : 'text-slate-300 hover:bg-slate-50/50'}`}>
-                      Más volátiles
-                    </button>
-                    <button onClick={() => setVolatilitySort('gain')} className={`px-3 py-1 rounded text-sm ${volatilitySort === 'gain' ? 'bg-emerald-500/20 text-emerald-400' : 'text-slate-300 hover:bg-slate-50/50'}`}>
-                      Mayores ganancias
-                    </button>
-                    <button onClick={() => setVolatilitySort('loss')} className={`px-3 py-1 rounded text-sm ${volatilitySort === 'loss' ? 'bg-emerald-500/20 text-emerald-400' : 'text-slate-300 hover:bg-slate-50/50'}`}>
-                      Mayores pérdidas
-                    </button>
-                    <button onClick={() => setVolatilitySort('volume')} className={`px-3 py-1 rounded text-sm ${volatilitySort === 'volume' ? 'bg-emerald-500/20 text-emerald-400' : 'text-slate-300 hover:bg-slate-50/50'}`}>
-                      Mayor volumen
-                    </button>
-                  </div>
+
+              {leadPortfolio ? (
+                <div className="flex flex-wrap gap-3">
+                  <TradeDialog portfolios={portfolios} defaultType="buy" portfolioPositions={portfolioPositions} />
+                  <TradeDialog portfolios={portfolios} defaultType="sell" portfolioPositions={portfolioPositions} />
                 </div>
-                <div className="space-y-2">
-                  {volatileAssets.map((asset, index) => (
-                    <div key={index} className="flex items-center justify-between px-3 py-2 bg-white/[0.02] rounded-[0.75rem] hover:bg-white/[0.04] transition-colors">
-                      <div className="flex items-center space-x-3">
-                        <div className="text-xs uppercase tracking-[0.24em] text-slate-400">{asset.symbol}</div>
-                        <div className="flex-1 text-right">
-                          <p className="text-sm font-medium">{asset.price}</p>
-                          <p className={asset.changePercent >= 0 ? 'text-emerald-400' : 'text-rose-400'} text-sm>
-                            {asset.changePercent}% ({asset.changeValue})
+              ) : (
+                <Button asChild className="h-11 rounded-full bg-emerald-300 px-5 text-slate-950 hover:bg-emerald-200">
+                  <Link href="/portfolio">Crear mi primer portafolio</Link>
+                </Button>
+              )}
+            </div>
+
+            <div className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_240px]">
+              <div className="rounded-[1.6rem] border border-white/8 bg-white/[0.03] p-4">
+                {portfolios.length > 0 ? (
+                  <div className="space-y-3">
+                    {portfolios.map((portfolio) => (
+                      <div
+                        key={portfolio.id}
+                        className="flex items-center justify-between rounded-[1.2rem] border border-white/6 bg-slate-950/35 px-4 py-3"
+                      >
+                        <div>
+                          <p className="font-medium text-white">{portfolio.name}</p>
+                          <p className="mt-1 text-xs uppercase tracking-[0.22em] text-slate-500">
+                            {portfolio.positions?.length ?? 0} posiciones activas
                           </p>
                         </div>
+                        <div className="text-right">
+                          <p
+                            className={
+                              portfolio.performance >= 0
+                                ? "text-sm font-semibold text-emerald-300"
+                                : "text-sm font-semibold text-rose-300"
+                            }
+                          >
+                            {formatSignedPercent(portfolio.performance)}
+                          </p>
+                          <p className="mt-1 text-xs text-slate-500">Rendimiento</p>
+                        </div>
                       </div>
-                    </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex min-h-[180px] flex-col items-start justify-center rounded-[1.2rem] border border-dashed border-white/10 bg-slate-950/25 px-5 py-6">
+                    <p className="text-lg font-semibold text-white">Tu espacio esta listo para empezar.</p>
+                    <p className="mt-2 max-w-xl text-sm text-slate-400">
+                      Cuando crees tu primer portafolio, aqui veras su desempeno, posiciones y accesos para comprar o vender.
+                    </p>
+                    <Button asChild className="mt-5 rounded-full bg-emerald-300 px-5 text-slate-950 hover:bg-emerald-200">
+                      <Link href="/portfolio">Crear un portafolio</Link>
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              <div className="rounded-[1.6rem] border border-white/8 bg-white/[0.03] p-4">
+                <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Instrumentos clave</p>
+                <p className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-white">{WATCHLIST.length}</p>
+                <p className="mt-2 text-sm text-slate-400">
+                  {totalPositions > 0
+                    ? `${totalPositions} posiciones abiertas distribuidas en tus portafolios.`
+                    : "Tu watchlist ya esta lista para construir la primera cartera."}
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <section className="panel p-6">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+              <div>
+                <p className="eyebrow">Mercado</p>
+                <h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-white">
+                  Precio de referencia de {activeSymbol}
+                </h2>
+                <p className="mt-2 text-sm text-slate-400">
+                  Serie historica en {RANGE_LABELS[selectedDays]} con actualizacion de precio en tiempo real.
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-3 lg:items-end">
+                <div className="rounded-full border border-emerald-300/25 bg-emerald-300/10 px-4 py-2 text-sm font-medium text-emerald-200">
+                  {formatCurrency(Number(currentPrice || 0))}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {RANGE_OPTIONS.map((range) => (
+                    <button
+                      key={range}
+                      type="button"
+                      onClick={() => setSelectedDays(range)}
+                      className={
+                        selectedDays === range
+                          ? "rounded-full bg-emerald-300/15 px-3 py-1.5 text-xs font-medium text-emerald-200"
+                          : "rounded-full px-3 py-1.5 text-xs font-medium text-slate-400 transition hover:bg-white/5 hover:text-white"
+                      }
+                    >
+                      {RANGE_LABELS[range]}
+                    </button>
                   ))}
                 </div>
               </div>
-            </CardContent>
-          </Card>
-            {leadPortfolio ? (
-              <>
-                <TradeDialog portfolios={portfolios} defaultType="buy" portfolioPositions={portfolioPositions} />
-                <TradeDialog portfolios={portfolios} defaultType="sell" portfolioPositions={portfolioPositions} />
-                <CashActionDialog initialType="deposit" />
-                <CashActionDialog initialType="withdraw" />
-              </>
-            ) : (
-              <div className="panel col-span-full p-8 text-center">
-                <p className="text-lg font-semibold text-white">Aún no tienes un portafolio activo.</p>
-                <p className="mt-2 text-sm text-slate-400">
-                  Crea tu primera cartera para comenzar a operar y ver métricas consolidadas.
-                </p>
-                <div className="mt-4 space-x-3">
-                  <Link href="/portfolio" className="btn-primary px-4 py-2 rounded">Crear portafolio</Link>
-                  <Button asChild className="mt-0 rounded-full bg-emerald-300 text-slate-950 hover:bg-emerald-200">
-                    <Link href="/portfolio">Ir a portafolios</Link>
-                  </Button>
-                </div>
-              </div>
-            )}
-        </motion.section>
-
-        <motion.aside variants={item} className="space-y-6">
-          <div className="panel p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="eyebrow">Watchlist</p>
-                <h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-white">Seguimiento rápido</h2>
-              </div>
-              <ArrowUpRight className="h-5 w-5 text-slate-500" />
             </div>
 
-            <div className="mt-5 space-y-3">
-              {WATCHLIST.map((symbol) => (
+            <div className="mt-6 grid gap-4 xl:grid-cols-[300px_minmax(0,1fr)]">
+              <div className="space-y-4 rounded-[1.5rem] border border-white/8 bg-white/[0.03] p-4">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Activo observado</p>
+                  <p className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-white">{activeSymbol}</p>
+                </div>
+
+                <SymbolAutocomplete
+                  value={searchInput}
+                  onChange={(value) => {
+                    setSearchInput(value);
+                    if (value.trim()) {
+                      setActiveSymbol(value.trim().toUpperCase());
+                    }
+                  }}
+                  placeholder="Buscar ticker o simbolo"
+                  className="w-full"
+                  inputClassName="h-12 rounded-2xl border-white/10 bg-white/[0.04] px-4 text-sm text-white placeholder:text-slate-500"
+                />
+
+                <div className="space-y-2">
+                  {WATCHLIST.map((symbol) => (
+                    <button
+                      key={symbol}
+                      type="button"
+                      onClick={() => {
+                        setActiveSymbol(symbol);
+                        setSearchInput(symbol);
+                      }}
+                      className={
+                        activeSymbol === symbol
+                          ? "flex w-full items-center justify-between rounded-[1rem] border border-emerald-300/35 bg-emerald-300/10 px-3 py-3 text-left text-white"
+                          : "flex w-full items-center justify-between rounded-[1rem] border border-white/8 bg-slate-950/20 px-3 py-3 text-left text-slate-300 transition hover:bg-white/[0.04]"
+                      }
+                    >
+                      <div>
+                        <p className="font-medium">{symbol}</p>
+                        <p className="mt-1 text-[11px] uppercase tracking-[0.2em] text-slate-500">Mercado monitoreado</p>
+                      </div>
+                      <ArrowUpRight className="h-4 w-4" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-[1.5rem] border border-white/8 bg-white/[0.03] p-4">
+                <div className="mb-4 flex items-center justify-between">
+                  <p className="text-sm font-medium text-slate-300">
+                    {loading && chartData.length === 0 ? "Cargando historial..." : "Precio historico"}
+                  </p>
+                  <Activity className="h-4 w-4 text-slate-500" />
+                </div>
+                <div className="h-[320px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={chartData}>
+                      <defs>
+                        <linearGradient id="dashboardPriceGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#61f0c7" stopOpacity={0.3} />
+                          <stop offset="100%" stopColor="#61f0c7" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid stroke="rgba(148, 163, 184, 0.12)" vertical={false} />
+                      <XAxis dataKey="date" tick={{ fill: "#94a3b8", fontSize: 12 }} axisLine={false} tickLine={false} />
+                      <YAxis
+                        tick={{ fill: "#94a3b8", fontSize: 12 }}
+                        axisLine={false}
+                        tickLine={false}
+                        width={72}
+                        tickFormatter={(value: number) => `$${Math.round(value)}`}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          background: "#0f172a",
+                          border: "1px solid rgba(255,255,255,0.08)",
+                          borderRadius: "16px",
+                          color: "#fff",
+                        }}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="price"
+                        stroke="#61f0c7"
+                        strokeWidth={2.5}
+                        fill="url(#dashboardPriceGradient)"
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+          </section>
+        </motion.div>
+
+        <motion.aside variants={item} className="space-y-6">
+          <section className="panel p-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="eyebrow">Volatilidad</p>
+                <h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-white">Activos mas volatiles</h2>
+              </div>
+              <TrendingUp className="h-5 w-5 text-slate-500" />
+            </div>
+
+            <div className="mt-5 flex flex-wrap gap-2">
+              {[
+                { value: "volatile", label: "Mas volatiles" },
+                { value: "gain", label: "Ganancias" },
+                { value: "loss", label: "Perdidas" },
+                { value: "volume", label: "Volumen" },
+              ].map((option) => (
                 <button
-                  key={symbol}
-                  onClick={() => setActiveSymbol(symbol)}
-                  className={`flex w-full items-center justify-between rounded-[1.25rem] border px-4 py-3 text-left transition ${activeSymbol === symbol ? "border-emerald-300/40 bg-emerald-300/12 text-white" : "border-white/8 bg-white/[0.03] text-slate-300 hover:bg-white/[0.06]"}`}
+                  key={option.value}
+                  type="button"
+                  onClick={() => setVolatilitySort(option.value as typeof volatilitySort)}
+                  className={
+                    volatilitySort === option.value
+                      ? "rounded-full bg-emerald-300/15 px-3 py-1.5 text-xs font-medium text-emerald-200"
+                      : "rounded-full px-3 py-1.5 text-xs font-medium text-slate-400 transition hover:bg-white/5 hover:text-white"
+                  }
                 >
-                  <div>
-                    <p className="font-medium text-white">{symbol}</p>
-                    <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Mercado monitoreado</p>
-                  </div>
-                  <div className={activeSymbol === symbol ? "h-4 w-4 text-emerald-200" : "h-4 w-4 text-slate-500"}></div>
+                  {option.label}
                 </button>
               ))}
             </div>
-          </div>
 
-          <div className="panel p-5">
+            <div className="mt-5 space-y-2">
+              {volatileAssets.map((asset) => (
+                <div
+                  key={asset.symbol}
+                  className="rounded-[1.1rem] border border-white/8 bg-slate-950/25 px-4 py-3 transition hover:bg-white/[0.04]"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-medium text-white">{asset.symbol}</p>
+                      <p className="mt-1 text-xs text-slate-500">{asset.price}</p>
+                    </div>
+                    <div className="text-right">
+                      <p
+                        className={
+                          asset.changePercent >= 0
+                            ? "text-sm font-semibold text-emerald-300"
+                            : "text-sm font-semibold text-rose-300"
+                        }
+                      >
+                        {formatSignedPercent(asset.changePercent)}
+                      </p>
+                      <p className="mt-1 text-xs text-slate-500">{asset.changeValue}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="panel p-5">
             <p className="eyebrow">Estado de mercado</p>
             <div className="mt-5 space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-400">Liquidez intradía</span>
+                <span className="text-sm text-slate-400">Liquidez intradia</span>
                 <span className="rounded-full bg-emerald-300/12 px-3 py-1 text-sm text-emerald-200">Alta</span>
               </div>
               <div className="flex items-center justify-between">
@@ -424,7 +577,7 @@ export default function DashboardPage() {
                 <span className="rounded-full bg-sky-300/12 px-3 py-1 text-sm text-sky-200">Multi-activo</span>
               </div>
             </div>
-          </div>
+          </section>
         </motion.aside>
       </div>
     </motion.div>

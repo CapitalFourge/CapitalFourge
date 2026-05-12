@@ -26,7 +26,13 @@ const WITHDRAW_MUTATION = gql`
   }
 `;
 
-export function CashActionDialog({ initialType = "deposit" }: { initialType?: "deposit" | "withdraw" }) {
+export function CashActionDialog({
+    initialType = "deposit",
+    children,
+}: {
+    initialType?: "deposit" | "withdraw";
+    children?: React.ReactNode;
+}) {
     const [open, setOpen] = useState(false);
     const [type, setType] = useState<"deposit" | "withdraw">(initialType);
     const [amount, setAmount] = useState("");
@@ -71,12 +77,16 @@ export function CashActionDialog({ initialType = "deposit" }: { initialType?: "d
     };
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                <Button variant="outline" className="h-16 rounded-2xl border-white/10 text-white hover:bg-white/5 gap-2 uppercase font-bold">
-                    <Banknote className="w-4 h-4" /> {initialType === "deposit" ? "DEPOSITAR" : "RETIRAR"}
-                </Button>
-            </DialogTrigger>
+            <Dialog open={open} onOpenChange={setOpen}>
+                <DialogTrigger asChild>
+                {children ? (
+                    children
+                ) : (
+                    <Button variant="outline" className="h-16 rounded-2xl border-white/10 text-white hover:bg-white/5 gap-2 uppercase font-bold">
+                        <Banknote className="w-4 h-4" /> {initialType === "deposit" ? "DEPOSITAR" : "RETIRAR"}
+                    </Button>
+                )}
+                </DialogTrigger>
             <DialogContent className="glass border-none text-white sm:max-w-md">
                 <DialogHeader>
                     <DialogTitle className="text-2xl font-bold tracking-tighter uppercase italic">

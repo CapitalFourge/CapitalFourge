@@ -2,6 +2,7 @@ package com.finsight.portfoliomanager.application.services;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -137,6 +138,65 @@ public class AssetSearchService {
         }
     }
 
+    public List<AssetMover> getAssetMovers(String sort, int limit) {
+        int safeLimit = limit > 0 ? Math.min(limit, 12) : 8;
+        String safeSort = sort == null ? "volatile" : sort.toLowerCase();
+
+        try {
+            List<AssetInfo> assets = getCategorizedAssets(null);
+
+            List<AssetMover> movers = assets.stream()
+                    .map(asset -> buildAssetMover(asset.getSymbol(), asset.getName()))
+                    .filter(mover -> mover != null)
+                    .sorted(getMoverComparator(safeSort))
+                    .limit(safeLimit)
+                    .collect(Collectors.toList());
+
+            return movers;
+        } catch (Exception e) {
+            log.error("Error getting asset movers: {}", e.getMessage());
+            return List.of();
+        }
+    }
+
+    private AssetMover buildAssetMover(String symbol, String name) {
+        try {
+            List<com.finsight.proto.PricePoint> history = grpcClient.getPriceHistory(symbol, 5);
+            if (history == null || history.size() < 2) {
+                return null;
+            }
+
+            double latestPrice = history.get(history.size() - 1).getPrice();
+            double previousPrice = history.get(history.size() - 2).getPrice();
+
+            if (previousPrice == 0) {
+                return null;
+            }
+
+            double changeValue = latestPrice - previousPrice;
+            double changePercent = (changeValue / previousPrice) * 100.0;
+
+            return AssetMover.builder()
+                    .symbol(symbol)
+                    .name(name)
+                    .price(latestPrice)
+                    .changePercent(changePercent)
+                    .changeValue(changeValue)
+                    .build();
+        } catch (Exception e) {
+            log.debug("Could not build mover for {}: {}", symbol, e.getMessage());
+            return null;
+        }
+    }
+
+    private Comparator<AssetMover> getMoverComparator(String sort) {
+        return switch (sort) {
+            case "gain" -> Comparator.comparingDouble(AssetMover::getChangePercent).reversed();
+            case "loss" -> Comparator.comparingDouble(AssetMover::getChangePercent);
+            default -> Comparator.comparingDouble((AssetMover mover) -> Math.abs(mover.getChangePercent())).reversed();
+        };
+    }
+
     public static class AssetInfo {
         private String symbol;
         private String name;
@@ -228,6 +288,83 @@ public class AssetSearchService {
 
         public String getName() {
             return name;
+        }
+    }
+
+    public static class AssetMover {
+        private String symbol;
+        private String name;
+        private double price;
+        private double changePercent;
+        private double changeValue;
+
+        private AssetMover(String symbol, String name, double price, double changePercent, double changeValue) {
+            this.symbol = symbol;
+            this.name = name;
+            this.price = price;
+            this.changePercent = changePercent;
+            this.changeValue = changeValue;
+        }
+
+        public static Builder builder() {
+            return new Builder();
+        }
+
+        public static class Builder {
+            private String symbol;
+            private String name;
+            private double price;
+            private double changePercent;
+            private double changeValue;
+
+            public Builder symbol(String s) {
+                this.symbol = s;
+                return this;
+            }
+
+            public Builder name(String n) {
+                this.name = n;
+                return this;
+            }
+
+            public Builder price(double p) {
+                this.price = p;
+                return this;
+            }
+
+            public Builder changePercent(double c) {
+                this.changePercent = c;
+                return this;
+            }
+
+            public Builder changeValue(double c) {
+                this.changeValue = c;
+                return this;
+            }
+
+            public AssetMover build() {
+                return new AssetMover(symbol, name, price, changePercent, changeValue);
+            }
+        }
+
+        public String getSymbol() {
+            return symbol;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public double getPrice() {
+            return price;
+        }
+
+        public double getChangePercent() {
+            return changePercent;
+        }
+
+        public double getChangeValue() {
+            return changeValue;
         }
     }
 }

@@ -1,162 +1,154 @@
-import { SMA, EMA, RSI, MACD, BollingerBands, Stochastic, OBV } from 'technicalindicators';
+import { BollingerBands, EMA, MACD, OBV, RSI, SMA, Stochastic } from "technicalindicators";
 
-/**
- * Calculate Simple Moving Average
- * @param {Array<Object>} data - Array of { date: string, close: number }
- * @param {number} period - The period for SMA
- * @returns {Array<Object>} Array of { date: string, sma: number }
- */
-export function calculateSMA(data, period) {
+interface BasePricePoint {
+  date: string;
+  close: number;
+}
+
+interface StochasticPricePoint extends BasePricePoint {
+  high: number;
+  low: number;
+}
+
+interface VolumePricePoint extends BasePricePoint {
+  volume: number;
+}
+
+interface MACDOptions {
+  fast: number;
+  slow: number;
+  signal: number;
+}
+
+interface BollingerOptions {
+  period: number;
+  stdDev: number;
+}
+
+interface StochasticOptions {
+  k: number;
+  d: number;
+  smoothing: number;
+}
+
+export function calculateSMA(data: BasePricePoint[], period: number) {
   if (!data || data.length < period) return [];
-  
-  const closes = data.map(d => d.close);
+
+  const closes = data.map((point) => point.close);
   const smaValues = SMA.calculate({ period, values: closes });
-  
-  // Align the SMA values with the dates (the first period-1 values are undefined)
-  return data.slice(period - 1).map((d, i) => ({
-    date: d.date,
-    sma: smaValues[i]
+
+  return data.slice(period - 1).map((point, index) => ({
+    date: point.date,
+    sma: smaValues[index],
   }));
 }
 
-/**
- * Calculate Exponential Moving Average
- * @param {Array<Object>} data - Array of { date: string, close: number }
- * @param {number} period - The period for EMA
- * @returns {Array<Object>} Array of { date: string, ema: number }
- */
-export function calculateEMA(data, period) {
+export function calculateEMA(data: BasePricePoint[], period: number) {
   if (!data || data.length < period) return [];
-  
-  const closes = data.map(d => d.close);
+
+  const closes = data.map((point) => point.close);
   const emaValues = EMA.calculate({ period, values: closes });
-  
-  // Align the EMA values with the dates
-  return data.slice(period - 1).map((d, i) => ({
-    date: d.date,
-    ema: emaValues[i]
+
+  return data.slice(period - 1).map((point, index) => ({
+    date: point.date,
+    ema: emaValues[index],
   }));
 }
 
-/**
- * Calculate Relative Strength Index
- * @param {Array<Object>} data - Array of { date: string, close: number }
- * @param {number} period - The period for RSI (default 14)
- * @returns {Array<Object>} Array of { date: string, rsi: number }
- */
-export function calculateRSI(data, period = 14) {
+export function calculateRSI(data: BasePricePoint[], period = 14) {
   if (!data || data.length < period + 1) return [];
-  
-  const closes = data.map(d => d.close);
+
+  const closes = data.map((point) => point.close);
   const rsiValues = RSI.calculate({ period, values: closes });
-  
-  // Align the RSI values with the dates (the first period values are undefined)
-  return data.slice(period).map((d, i) => ({
-    date: d.date,
-    rsi: rsiValues[i]
+
+  return data.slice(period).map((point, index) => ({
+    date: point.date,
+    rsi: rsiValues[index],
   }));
 }
 
-/**
- * Calculate MACD (Moving Average Convergence Divergence)
- * @param {Array<Object>} data - Array of { date: string, close: number }
- * @param {Object} options - { fast: 12, slow: 26, signal: 9 }
- * @returns {Array<Object>} Array of { date: string, macd: number, signal: number, histogram: number }
- */
-export function calculateMACD(data, options = { fast: 12, slow: 26, signal: 9 }) {
+export function calculateMACD(
+  data: BasePricePoint[],
+  options: MACDOptions = { fast: 12, slow: 26, signal: 9 },
+) {
   if (!data || data.length < options.slow) return [];
-  
-  const closes = data.map(d => d.close);
-  const macdValues = MACD.calculate({ 
-    fastPeriod: options.fast, 
-    slowPeriod: options.slow, 
-    signalPeriod: options.signal, 
-    values: closes 
+
+  const closes = data.map((point) => point.close);
+  const macdValues = MACD.calculate({
+    fastPeriod: options.fast,
+    slowPeriod: options.slow,
+    signalPeriod: options.signal,
+    values: closes,
+    SimpleMAOscillator: false,
+    SimpleMASignal: false,
   });
-  
-  // Align the MACD values with the dates (the first slow-1 values are undefined)
-  return data.slice(options.slow - 1).map((d, i) => ({
-    date: d.date,
-    macd: macdValues[i].MACD,
-    signal: macdValues[i].signal,
-    histogram: macdValues[i].histogram
+
+  return data.slice(options.slow - 1).map((point, index) => ({
+    date: point.date,
+    macd: macdValues[index]?.MACD ?? 0,
+    signal: macdValues[index]?.signal ?? 0,
+    histogram: macdValues[index]?.histogram ?? 0,
   }));
 }
 
-/**
- * Calculate Bollinger Bands
- * @param {Array<Object>} data - Array of { date: string, close: number }
- * @param {Object} options - { period: 20, stdDev: 2 }
- * @returns {Array<Object>} Array of { date: string, upper: number, middle: number, lower: number }
- */
-export function calculateBollingerBands(data, options = { period: 20, stdDev: 2 }) {
+export function calculateBollingerBands(
+  data: BasePricePoint[],
+  options: BollingerOptions = { period: 20, stdDev: 2 },
+) {
   if (!data || data.length < options.period) return [];
-  
-  const closes = data.map(d => d.close);
-  const bbValues = BollingerBands.calculate({ 
-    period: options.period, 
-    stdDev: options.stdDev, 
-    values: closes 
+
+  const closes = data.map((point) => point.close);
+  const bandValues = BollingerBands.calculate({
+    period: options.period,
+    stdDev: options.stdDev,
+    values: closes,
   });
-  
-  // Align the Bollinger Bands values with the dates
-  return data.slice(options.period - 1).map((d, i) => ({
-    date: d.date,
-    upper: bbValues[i].upper,
-    middle: bbValues[i].middle,
-    lower: bbValues[i].lower
+
+  return data.slice(options.period - 1).map((point, index) => ({
+    date: point.date,
+    upper: bandValues[index]?.upper ?? 0,
+    middle: bandValues[index]?.middle ?? 0,
+    lower: bandValues[index]?.lower ?? 0,
   }));
 }
 
-/**
- * Calculate Stochastic Oscillator
- * @param {Array<Object>} data - Array of { date: string, high: number, low: number, close: number }
- * @param {Object} options - { k: 14, d: 3, smoothing: 3 }
- * @returns {Array<Object>} Array of { date: string, k: number, d: number }
- */
-export function calculateStochastic(data, options = { k: 14, d: 3, smoothing: 3 }) {
+export function calculateStochastic(
+  data: StochasticPricePoint[],
+  options: StochasticOptions = { k: 14, d: 3, smoothing: 3 },
+) {
   if (!data || data.length < options.k) return [];
-  
-  const highs = data.map(d => d.high);
-  const lows = data.map(d => d.low);
-  const closes = data.map(d => d.close);
-  
-  const stochasticValues = Stochastic.calculate({ 
+
+  const highs = data.map((point) => point.high);
+  const lows = data.map((point) => point.low);
+  const closes = data.map((point) => point.close);
+
+  const stochasticValues = Stochastic.calculate({
     high: highs,
     low: lows,
     close: closes,
-    kPeriod: options.k,
-    dPeriod: options.d,
-    smoothingPeriod: options.smoothing
+    period: options.k,
+    signalPeriod: options.d,
   });
-  
-  // Align the stochastic values with the dates (the first k-1 values are undefined)
-  return data.slice(options.k - 1).map((d, i) => ({
-    date: d.date,
-    k: stochasticValues[i].k,
-    d: stochasticValues[i].d
+
+  return data.slice(options.k - 1).map((point, index) => ({
+    date: point.date,
+    k: stochasticValues[index]?.k ?? 0,
+    d: stochasticValues[index]?.d ?? 0,
   }));
 }
 
-/**
- * Calculate On-Balance Volume (OBV)
- * @param {Array<Object>} data - Array of { date: string, close: number, volume: number }
- * @returns {Array<Object>} Array of { date: string, obv: number }
- */
-export function calculateOBV(data) {
+export function calculateOBV(data: VolumePricePoint[]) {
   if (!data || data.length === 0) return [];
-  
-  const closes = data.map(d => d.close);
-  const volumes = data.map(d => d.volume);
-  
-  const obvValues = OBV.calculate({ 
+
+  const closes = data.map((point) => point.close);
+  const volumes = data.map((point) => point.volume);
+  const obvValues = OBV.calculate({
     close: closes,
-    volume: volumes 
+    volume: volumes,
   });
-  
-  // Align the OBV values with the dates
-  return data.map((d, i) => ({
-    date: d.date,
-    obv: obvValues[i]
+
+  return data.map((point, index) => ({
+    date: point.date,
+    obv: obvValues[index] ?? 0,
   }));
 }

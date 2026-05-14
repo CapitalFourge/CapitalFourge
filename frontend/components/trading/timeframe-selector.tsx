@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
 const TIMEFRAMES = [
@@ -41,7 +40,7 @@ export function TimeframeSelector({
                 tf.days !== undefined ? tf.days : null
               )
             }
-            className={`${isActive ? "bg-emerald-300 text-slate-950" : "hover:bg-white/[0.06]"`}
+            className={isActive ? "bg-emerald-300 text-slate-950" : "hover:bg-white/[0.06]"}
           >
             {tf.label}
           </Button>

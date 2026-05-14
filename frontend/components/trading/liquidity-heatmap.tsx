@@ -1,5 +1,4 @@
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
-import { format } from "date-fns";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from "recharts";
 
 interface PricePoint {
   date: string;
@@ -34,7 +33,6 @@ export function LiquidityHeatmap({ data }: { data: PricePoint[] }) {
     const high = low + binSize;
     const count = prices.filter(p => p >= low && p < high).length;
     // Use a color gradient from light to dark based on count
-    const intensity = Math.round((count / Math.max(...bins.map(b => b.count), 1)) * 255);
     const fill = `rgba(30, 64, 175, ${0.2 + (count / Math.max(...bins.map(b => b.count), 1)) * 0.8})`;
     bins.push({
       priceRange: `${low.toFixed(2)} - ${high.toFixed(2)}`,
@@ -57,7 +55,11 @@ export function LiquidityHeatmap({ data }: { data: PricePoint[] }) {
           labelStyle={{ color: "#fff" }}
           formatter={(value) => `${value} occurrences`}
         />
-        <Bar dataKey="count" fill={(props) => props.fill} radius={[4, 4, 0, 0]} />
+        <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+          {bins.map((bin) => (
+            <Cell key={bin.priceRange} fill={bin.fill} />
+          ))}
+        </Bar>
       </BarChart>
     </ResponsiveContainer>
   );

@@ -1,7 +1,5 @@
 
 "use client";
-
-import { useMemo } from "react";
 import {
   Line,
   LineChart,
@@ -11,23 +9,12 @@ import {
   YAxis,
   CartesianGrid,
   Area,
-  AreaChart,
 } from "recharts";
-import { format } from "date-fns";
 import type { IndicatorData } from "@/lib/indicatorTypes";
 
 interface PricePoint {
   date: string;
   price: number;
-}
-
-interface IndicatorData {
-  id: string;
-  data: { [key: string]: number | string }[];
-  type: "line" | "area" | "histogram";
-  yAxisId?: number;
-  stroke?: string;
-  fill?: string;
 }
 
 interface EnhancedPriceChartProps {
@@ -60,7 +47,10 @@ export function EnhancedPriceChart({
       if (indPoint) {
         Object.keys(indPoint).forEach(key => {
           if (key !== 'date') {
-            acc[key] = indPoint[key];
+            const indicatorValue = indPoint[key];
+            if (typeof indicatorValue === "number") {
+              acc[key] = indicatorValue;
+            }
           }
         });
       }
@@ -193,15 +183,6 @@ export function EnhancedPriceChart({
               stochastics: "#06b6d4",
             };
             
-            const typeMap: Record<string, string> = {
-              upper: "line",
-              middle: "line",
-              lower: "line",
-              volume: "line",
-              stochastick: "line",
-              stochastics: "line",
-            };
-            
             // Determine which Y axis to use
             const yAxisId = ["rsi", "macd", "signal", "histogram"].includes(indicator.id) 
               && usesSecondaryAxis ? 1 : 0;
@@ -259,12 +240,12 @@ export function EnhancedPriceChart({
                   yAxisId={yAxisId}
                 />,
                 ...indicator.data.map((d, idx) =>
-                  d.histogram !== undefined ? (
+                  typeof d.histogram === "number" ? (
                     <Bar
                       key={"histogram-" + idx}
                       dataKey="histogram"
                       fill={d.histogram >= 0 ? "#10b981" : "#ef4444"}
-                      data={[{ date: d.date, histogram: d.histogram }]}
+                      data={[{ date: String(d.date), histogram: d.histogram }]}
                       yAxisId={yAxisId}
                     />
                   ) : null
@@ -299,14 +280,15 @@ export function EnhancedPriceChart({
 }
 
 // Bar component for MACD histogram
-interface BarProps {
+type BarProps = {
   dataKey: string;
   fill: string;
-  data: { date: string; [key: string]: number }[];
+  data: Array<Record<string, string | number>>;
   yAxisId?: number;
-}
+};
 
-function Bar({ dataKey, fill, data, yAxisId }: BarProps) {
+function Bar(props: BarProps) {
+  void props;
   // This is a simplified approach - in practice, you might want to use Recharts Bar component
   // For now, we'll skip the histogram visualization in this example
   return null;

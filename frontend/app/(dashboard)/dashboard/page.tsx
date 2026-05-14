@@ -3,34 +3,15 @@
 import Link from "next/link";
 import { gql, useQuery } from "@apollo/client";
 import { motion } from "framer-motion";
-import {
-  Activity,
-  ArrowUpRight,
-  Clock3,
-  Landmark,
-  RefreshCcw,
-  TrendingUp,
-  Wallet,
-} from "lucide-react";
+import { Clock3, Landmark, RefreshCcw, TrendingUp, Wallet } from "lucide-react";
 import { useMemo, useState } from "react";
-import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
 
 import { CashActionDialog } from "@/components/trading/cash-action-dialog";
-import { SymbolAutocomplete } from "@/components/trading/symbol-autocomplete";
 import { TradeDialog } from "@/components/trading/trade-dialog";
 import { Button } from "@/components/ui/button";
-import { useRealTimePrice } from "@/lib/hooks/useRealTimePrice";
 
 const DASHBOARD_QUERY = gql`
-  query GetDashboardData($symbol: String!, $days: Int!) {
+  query GetDashboardData($sort: String!, $limit: Int!) {
     me {
       id
       username
@@ -48,23 +29,15 @@ const DASHBOARD_QUERY = gql`
         currentPrice
       }
     }
-    priceHistory(symbol: $symbol, days: $days) {
+    assetMovers(sort: $sort, limit: $limit) {
+      symbol
+      name
       price
-      date
+      changePercent
+      changeValue
     }
   }
 `;
-
-const WATCHLIST = ["BTC-USD", "ETH-USD", "AAPL", "TSLA", "NVDA", "MSFT", "GC=F", "SI=F"];
-const RANGE_OPTIONS = [1, 7, 30, 90, 180, 365];
-const RANGE_LABELS: Record<number, string> = {
-  1: "1 dia",
-  7: "1 semana",
-  30: "1 mes",
-  90: "3 meses",
-  180: "6 meses",
-  365: "1 ano",
-};
 
 interface Position {
   symbol: string;
@@ -78,6 +51,14 @@ interface Portfolio {
   name: string;
   performance: number;
   positions: Position[];
+}
+
+interface AssetMover {
+  symbol: string;
+  name?: string | null;
+  price: number;
+  changePercent: number;
+  changeValue: number;
 }
 
 const container = {
@@ -102,29 +83,21 @@ const formatCurrency = (value: number) =>
   });
 
 const formatSignedPercent = (value: number) => `${value >= 0 ? "+" : ""}${value.toFixed(2)}%`;
+const formatSignedCurrency = (value: number) => `${value >= 0 ? "+" : "-"}$${formatCurrency(Math.abs(value))}`;
 
 export default function DashboardPage() {
-  const [activeSymbol, setActiveSymbol] = useState("BTC-USD");
-  const [searchInput, setSearchInput] = useState("");
-  const [selectedDays, setSelectedDays] = useState(30);
-  const [volatilitySort, setVolatilitySort] = useState<"volatile" | "gain" | "loss" | "volume">("volatile");
+  const [volatilitySort, setVolatilitySort] = useState<"volatile" | "gain" | "loss">("volatile");
 
-  const realTimeSymbols = useMemo(() => [activeSymbol], [activeSymbol]);
-  const realTimePrice = useRealTimePrice(realTimeSymbols);
-
-  const { data, loading, error } = useQuery(DASHBOARD_QUERY, {
-    variables: { symbol: activeSymbol, days: selectedDays },
+  const { data, error } = useQuery(DASHBOARD_QUERY, {
+    variables: { sort: volatilitySort, limit: 8 },
     pollInterval: 60000,
   });
 
   const portfolios = useMemo(() => ((data?.portfolios as Portfolio[] | undefined) ?? []), [data?.portfolios]);
+  const volatileAssets = useMemo(() => ((data?.assetMovers as AssetMover[] | undefined) ?? []), [data?.assetMovers]);
   const leadPortfolio = portfolios[0];
   const userCashBalance = data?.me?.cashBalance ?? 0;
   const userLockedBalance = data?.me?.lockedBalance ?? 0;
-
-  const currentPrice =
-    realTimePrice[activeSymbol] ??
-    (data?.priceHistory?.length ? data.priceHistory[data.priceHistory.length - 1].price : 0);
 
   const investedTotal = useMemo(() => {
     return portfolios.reduce((total, portfolio) => {
@@ -148,49 +121,6 @@ export default function DashboardPage() {
 
     return map;
   }, [portfolios]);
-
-  const totalPositions = useMemo(
-    () => portfolios.reduce((total, portfolio) => total + (portfolio.positions?.length ?? 0), 0),
-    [portfolios],
-  );
-
-  const chartData = useMemo(
-    () =>
-      (data?.priceHistory ?? []).map((entry: { date: string; price: number }) => ({
-        date: new Date(entry.date).toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-        }),
-        price: Number(entry.price),
-      })),
-    [data?.priceHistory],
-  );
-
-  const volatileAssets = useMemo(() => {
-    const baseAssets = [
-      { symbol: "BTC-USD", price: "$67,420.50", changePercent: 2.34, changeValue: "+$1,540.25" },
-      { symbol: "ETH-USD", price: "$3,450.75", changePercent: -1.87, changeValue: "-$65.42" },
-      { symbol: "AAPL", price: "$198.52", changePercent: 3.21, changeValue: "+$6.18" },
-      { symbol: "TSLA", price: "$248.90", changePercent: -4.15, changeValue: "-$10.82" },
-      { symbol: "NVDA", price: "$875.30", changePercent: 5.67, changeValue: "+$46.92" },
-      { symbol: "MSFT", price: "$420.15", changePercent: 1.23, changeValue: "+$5.10" },
-      { symbol: "GC=F", price: "$2,345.60", changePercent: 0.89, changeValue: "+$20.75" },
-      { symbol: "SI=F", price: "$28.90", changePercent: -2.45, changeValue: "-$0.73" },
-    ];
-
-    return [...baseAssets].sort((a, b) => {
-      if (volatilitySort === "volatile") {
-        return Math.abs(b.changePercent) - Math.abs(a.changePercent);
-      }
-      if (volatilitySort === "gain") {
-        return b.changePercent - a.changePercent;
-      }
-      if (volatilitySort === "loss") {
-        return a.changePercent - b.changePercent;
-      }
-      return a.symbol.localeCompare(b.symbol);
-    });
-  }, [volatilitySort]);
 
   const stats = [
     {
@@ -239,7 +169,7 @@ export default function DashboardPage() {
                 {data?.me?.username ? `Hola, ${data.me.username}.` : "Panel principal."}
               </h1>
               <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
-                Supervisa caja, exposicion y mercado activo desde una misma superficie de trabajo.
+                Supervisa caja, exposicion y estado general de tus carteras desde una sola superficie de trabajo.
               </p>
             </div>
 
@@ -290,7 +220,7 @@ export default function DashboardPage() {
       </motion.section>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_360px]">
-        <motion.div variants={item} className="space-y-6">
+        <motion.div variants={item}>
           <section className="panel p-6">
             <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
               <div>
@@ -317,185 +247,46 @@ export default function DashboardPage() {
               )}
             </div>
 
-            <div className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_240px]">
-              <div className="rounded-[1.6rem] border border-white/8 bg-white/[0.03] p-4">
-                {portfolios.length > 0 ? (
-                  <div className="space-y-3">
-                    {portfolios.map((portfolio) => (
-                      <div
-                        key={portfolio.id}
-                        className="flex items-center justify-between rounded-[1.2rem] border border-white/6 bg-slate-950/35 px-4 py-3"
-                      >
-                        <div>
-                          <p className="font-medium text-white">{portfolio.name}</p>
-                          <p className="mt-1 text-xs uppercase tracking-[0.22em] text-slate-500">
-                            {portfolio.positions?.length ?? 0} posiciones activas
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p
-                            className={
-                              portfolio.performance >= 0
-                                ? "text-sm font-semibold text-emerald-300"
-                                : "text-sm font-semibold text-rose-300"
-                            }
-                          >
-                            {formatSignedPercent(portfolio.performance)}
-                          </p>
-                          <p className="mt-1 text-xs text-slate-500">Rendimiento</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="flex min-h-[180px] flex-col items-start justify-center rounded-[1.2rem] border border-dashed border-white/10 bg-slate-950/25 px-5 py-6">
-                    <p className="text-lg font-semibold text-white">Tu espacio esta listo para empezar.</p>
-                    <p className="mt-2 max-w-xl text-sm text-slate-400">
-                      Cuando crees tu primer portafolio, aqui veras su desempeno, posiciones y accesos para comprar o vender.
-                    </p>
-                    <Button asChild className="mt-5 rounded-full bg-emerald-300 px-5 text-slate-950 hover:bg-emerald-200">
-                      <Link href="/portfolio">Crear un portafolio</Link>
-                    </Button>
-                  </div>
-                )}
-              </div>
-
-              <div className="rounded-[1.6rem] border border-white/8 bg-white/[0.03] p-4">
-                <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Instrumentos clave</p>
-                <p className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-white">{WATCHLIST.length}</p>
-                <p className="mt-2 text-sm text-slate-400">
-                  {totalPositions > 0
-                    ? `${totalPositions} posiciones abiertas distribuidas en tus portafolios.`
-                    : "Tu watchlist ya esta lista para construir la primera cartera."}
-                </p>
-              </div>
-            </div>
-          </section>
-
-          <section className="panel p-6">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-              <div>
-                <p className="eyebrow">Mercado</p>
-                <h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-white">
-                  Precio de referencia de {activeSymbol}
-                </h2>
-                <p className="mt-2 text-sm text-slate-400">
-                  Serie historica en {RANGE_LABELS[selectedDays]} con actualizacion de precio en tiempo real.
-                </p>
-              </div>
-
-              <div className="flex flex-col gap-3 lg:items-end">
-                <div className="rounded-full border border-emerald-300/25 bg-emerald-300/10 px-4 py-2 text-sm font-medium text-emerald-200">
-                  {formatCurrency(Number(currentPrice || 0))}
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {RANGE_OPTIONS.map((range) => (
-                    <button
-                      key={range}
-                      type="button"
-                      onClick={() => setSelectedDays(range)}
-                      className={
-                        selectedDays === range
-                          ? "rounded-full bg-emerald-300/15 px-3 py-1.5 text-xs font-medium text-emerald-200"
-                          : "rounded-full px-3 py-1.5 text-xs font-medium text-slate-400 transition hover:bg-white/5 hover:text-white"
-                      }
-                    >
-                      {RANGE_LABELS[range]}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-6 grid gap-4 xl:grid-cols-[300px_minmax(0,1fr)]">
-              <div className="space-y-4 rounded-[1.5rem] border border-white/8 bg-white/[0.03] p-4">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Activo observado</p>
-                  <p className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-white">{activeSymbol}</p>
-                </div>
-
-                <SymbolAutocomplete
-                  value={searchInput}
-                  onChange={(value) => {
-                    setSearchInput(value);
-                    if (value.trim()) {
-                      setActiveSymbol(value.trim().toUpperCase());
-                    }
-                  }}
-                  placeholder="Buscar ticker o simbolo"
-                  className="w-full"
-                  inputClassName="h-12 rounded-2xl border-white/10 bg-white/[0.04] px-4 text-sm text-white placeholder:text-slate-500"
-                />
-
-                <div className="space-y-2">
-                  {WATCHLIST.map((symbol) => (
-                    <button
-                      key={symbol}
-                      type="button"
-                      onClick={() => {
-                        setActiveSymbol(symbol);
-                        setSearchInput(symbol);
-                      }}
-                      className={
-                        activeSymbol === symbol
-                          ? "flex w-full items-center justify-between rounded-[1rem] border border-emerald-300/35 bg-emerald-300/10 px-3 py-3 text-left text-white"
-                          : "flex w-full items-center justify-between rounded-[1rem] border border-white/8 bg-slate-950/20 px-3 py-3 text-left text-slate-300 transition hover:bg-white/[0.04]"
-                      }
+            <div className="mt-6">
+              {portfolios.length > 0 ? (
+                <div className="space-y-3 rounded-[1.6rem] border border-white/8 bg-white/[0.03] p-4">
+                  {portfolios.map((portfolio) => (
+                    <div
+                      key={portfolio.id}
+                      className="flex items-center justify-between rounded-[1.2rem] border border-white/6 bg-slate-950/35 px-4 py-3"
                     >
                       <div>
-                        <p className="font-medium">{symbol}</p>
-                        <p className="mt-1 text-[11px] uppercase tracking-[0.2em] text-slate-500">Mercado monitoreado</p>
+                        <p className="font-medium text-white">{portfolio.name}</p>
+                        <p className="mt-1 text-xs uppercase tracking-[0.22em] text-slate-500">
+                          {portfolio.positions?.length ?? 0} posiciones activas
+                        </p>
                       </div>
-                      <ArrowUpRight className="h-4 w-4" />
-                    </button>
+                      <div className="text-right">
+                        <p
+                          className={
+                            portfolio.performance >= 0
+                              ? "text-sm font-semibold text-emerald-300"
+                              : "text-sm font-semibold text-rose-300"
+                          }
+                        >
+                          {formatSignedPercent(portfolio.performance)}
+                        </p>
+                        <p className="mt-1 text-xs text-slate-500">Rendimiento</p>
+                      </div>
+                    </div>
                   ))}
                 </div>
-              </div>
-
-              <div className="rounded-[1.5rem] border border-white/8 bg-white/[0.03] p-4">
-                <div className="mb-4 flex items-center justify-between">
-                  <p className="text-sm font-medium text-slate-300">
-                    {loading && chartData.length === 0 ? "Cargando historial..." : "Precio historico"}
+              ) : (
+                <div className="flex min-h-[220px] flex-col items-start justify-center rounded-[1.6rem] border border-dashed border-white/10 bg-white/[0.03] px-5 py-6">
+                  <p className="text-lg font-semibold text-white">Tu espacio esta listo para empezar.</p>
+                  <p className="mt-2 max-w-xl text-sm text-slate-400">
+                    Cuando crees tu primer portafolio, aqui veras su desempeno, posiciones y accesos para comprar o vender.
                   </p>
-                  <Activity className="h-4 w-4 text-slate-500" />
+                  <Button asChild className="mt-5 rounded-full bg-emerald-300 px-5 text-slate-950 hover:bg-emerald-200">
+                    <Link href="/portfolio">Crear un portafolio</Link>
+                  </Button>
                 </div>
-                <div className="h-[320px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={chartData}>
-                      <defs>
-                        <linearGradient id="dashboardPriceGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#61f0c7" stopOpacity={0.3} />
-                          <stop offset="100%" stopColor="#61f0c7" stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid stroke="rgba(148, 163, 184, 0.12)" vertical={false} />
-                      <XAxis dataKey="date" tick={{ fill: "#94a3b8", fontSize: 12 }} axisLine={false} tickLine={false} />
-                      <YAxis
-                        tick={{ fill: "#94a3b8", fontSize: 12 }}
-                        axisLine={false}
-                        tickLine={false}
-                        width={72}
-                        tickFormatter={(value: number) => `$${Math.round(value)}`}
-                      />
-                      <Tooltip
-                        contentStyle={{
-                          background: "#0f172a",
-                          border: "1px solid rgba(255,255,255,0.08)",
-                          borderRadius: "16px",
-                          color: "#fff",
-                        }}
-                      />
-                      <Area
-                        type="monotone"
-                        dataKey="price"
-                        stroke="#61f0c7"
-                        strokeWidth={2.5}
-                        fill="url(#dashboardPriceGradient)"
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
+              )}
             </div>
           </section>
         </motion.div>
@@ -515,7 +306,6 @@ export default function DashboardPage() {
                 { value: "volatile", label: "Mas volatiles" },
                 { value: "gain", label: "Ganancias" },
                 { value: "loss", label: "Perdidas" },
-                { value: "volume", label: "Volumen" },
               ].map((option) => (
                 <button
                   key={option.value}
@@ -541,23 +331,29 @@ export default function DashboardPage() {
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <p className="text-sm font-medium text-white">{asset.symbol}</p>
-                      <p className="mt-1 text-xs text-slate-500">{asset.price}</p>
+                      <p className="mt-1 text-xs text-slate-500">{asset.name || "Activo monitoreado"}</p>
                     </div>
                     <div className="text-right">
+                      <p className="text-sm font-medium text-white">${formatCurrency(asset.price)}</p>
                       <p
                         className={
                           asset.changePercent >= 0
-                            ? "text-sm font-semibold text-emerald-300"
-                            : "text-sm font-semibold text-rose-300"
+                            ? "mt-1 text-sm font-semibold text-emerald-300"
+                            : "mt-1 text-sm font-semibold text-rose-300"
                         }
                       >
                         {formatSignedPercent(asset.changePercent)}
                       </p>
-                      <p className="mt-1 text-xs text-slate-500">{asset.changeValue}</p>
+                      <p className="mt-1 text-xs text-slate-500">{formatSignedCurrency(asset.changeValue)}</p>
                     </div>
                   </div>
                 </div>
               ))}
+              {volatileAssets.length === 0 && (
+                <div className="rounded-[1.1rem] border border-dashed border-white/10 bg-slate-950/25 px-4 py-6 text-sm text-slate-400">
+                  No hay suficientes datos de mercado para calcular volatilidad ahora mismo.
+                </div>
+              )}
             </div>
           </section>
 

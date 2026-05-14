@@ -118,6 +118,12 @@ public class PortfolioGraphQLController {
         return assetSearchService.getCategorizedAssets(category);
     }
 
+    @QueryMapping
+    public List<com.finsight.portfoliomanager.application.services.AssetSearchService.AssetMover> assetMovers(
+            @Argument("sort") String sort, @Argument("limit") Integer limit) {
+        return assetSearchService.getAssetMovers(sort, limit != null ? limit : 8);
+    }
+
     @MutationMapping
     public Portfolio createPortfolio(@Argument("name") String name, @Argument("description") String description,
             @AuthenticationPrincipal UUID userId) {

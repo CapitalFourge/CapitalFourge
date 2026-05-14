@@ -86,6 +86,14 @@ type Asset {
   category: String
 }
 
+type AssetMover {
+  symbol: String!
+  name: String
+  price: Float!
+  changePercent: Float!
+  changeValue: Float!
+}
+
 type Query {
   me: User
   stockPrice(symbol: String!): StockPrice
@@ -97,6 +105,7 @@ type Query {
   order(id: ID!): Order
   searchSymbols(query: String!, limit: Int): [AssetSuggestion]
   assetsByCategory(category: String): [Asset]
+  assetMovers(sort: String, limit: Int): [AssetMover]
   leaderboard: [Portfolio]
   sharedPortfolio(slug: String!): Portfolio
 }

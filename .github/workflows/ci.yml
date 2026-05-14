@@ -2,7 +2,7 @@ name: CI Finsight
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ "**" ]
   pull_request:
     branches: [ main, master ]
 
@@ -57,8 +57,12 @@ jobs:
       - name: Install dependencies
         run: |
           cd frontend
-          npm install
+          npm ci
       - name: Run Lint
         run: |
           cd frontend
           npm run lint
+      - name: Run Build
+        run: |
+          cd frontend
+          npm run build

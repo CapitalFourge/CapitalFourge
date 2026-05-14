@@ -75,16 +75,16 @@ export default function AssetDetailPage() {
 
   // Process price history for charts
   const chartData = priceHistory.map((p: any) => ({
-    date: new Date(p.date),
+    date: p.date,
     price: p.price,
     volume: p.volume || 0
-  })).filter((p: any) => !isNaN(p.date.getTime()) && p.price > 0);
+  })).filter((p: any) => !Number.isNaN(Date.parse(p.date)) && p.price > 0);
 
     // Calculate technical indicators
   const indicatorsData = useMemo(() => {
     if (chartData.length === 0 || selectedIndicators.length === 0) return [];
     
-    const priceData = chartData.map((p: { date: Date; price: number }) => ({
+    const priceData = chartData.map((p: { date: string; price: number }) => ({
       date: p.date,
       close: p.price
     }));
@@ -98,7 +98,7 @@ export default function AssetDetailPage() {
           indicators.push({
             id: "sma",
             type: "line",
-            data: smaData.map((d: { date: Date; sma: number }) => ({
+            data: smaData.map((d: { date: string; sma: number }) => ({
               date: d.date,
               sma: d.sma
             }))
@@ -110,7 +110,7 @@ export default function AssetDetailPage() {
           indicators.push({
             id: "ema",
             type: "line",
-            data: emaData.map((d: { date: Date; ema: number }) => ({
+            data: emaData.map((d: { date: string; ema: number }) => ({
               date: d.date,
               ema: d.ema
             }))
@@ -122,7 +122,7 @@ export default function AssetDetailPage() {
           indicators.push({
             id: "rsi",
             type: "line",
-            data: rsiData.map((d: { date: Date; rsi: number }) => ({
+            data: rsiData.map((d: { date: string; rsi: number }) => ({
               date: d.date,
               rsi: d.rsi
             }))
@@ -134,7 +134,7 @@ export default function AssetDetailPage() {
           indicators.push({
             id: "macd",
             type: "line",
-            data: macdData.map((d: { date: Date; macd: number; signal: number; histogram: number }) => ({
+            data: macdData.map((d: { date: string; macd: number; signal: number; histogram: number }) => ({
               date: d.date,
               macd: d.macd,
               signal: d.signal,
@@ -148,7 +148,7 @@ export default function AssetDetailPage() {
           indicators.push({
             id: "bollinger",
             type: "line",
-            data: bbData.map((d: { date: Date; upper: number; middle: number; lower: number }) => ({
+            data: bbData.map((d: { date: string; upper: number; middle: number; lower: number }) => ({
               date: d.date,
               upper: d.upper,
               middle: d.middle,
@@ -162,7 +162,7 @@ export default function AssetDetailPage() {
           indicators.push({
             id: "stochastic",
             type: "line",
-            data: stochasticData.map((d: { date: Date; k: number; d: number }) => ({
+            data: stochasticData.map((d: { date: string; k: number; d: number }) => ({
               date: d.date,
               stochastick: d.k,
               stochastics: d.d

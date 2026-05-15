@@ -17,10 +17,12 @@ public class AssetSearchServiceFallbackTest {
     @Test
     void returnsFallbackAssetsWhenGrpcFails() {
         GrpcFinancialDataClient mockGrpc = mock(GrpcFinancialDataClient.class);
+        com.finsight.portfoliomanager.application.ports.out.MetricRepository mockMetrics = mock(
+                com.finsight.portfoliomanager.application.ports.out.MetricRepository.class);
         // Simulate failure
         when(mockGrpc.getCategorizedAssets()).thenThrow(new RuntimeException("simulated-failure"));
 
-        AssetSearchService service = new AssetSearchService(mockGrpc);
+        AssetSearchService service = new AssetSearchService(mockGrpc, mockMetrics);
         List<AssetSearchService.AssetInfo> assets = service.getCategorizedAssets(null);
 
         // Expect all 15 fallback assets

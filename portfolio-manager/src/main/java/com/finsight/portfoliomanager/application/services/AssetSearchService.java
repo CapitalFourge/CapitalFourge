@@ -15,16 +15,20 @@ import java.util.Collections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.finsight.portfoliomanager.application.ports.out.MetricRepository;
+
 @Service
 public class AssetSearchService {
     private static final Logger log = LoggerFactory.getLogger(AssetSearchService.class);
     private static final long MOVERS_CACHE_TTL_MS = 60_000;
 
     private final GrpcFinancialDataClient grpcClient;
+    private final MetricRepository metricRepository;
     private final Map<String, CachedMovers> moversCache = new ConcurrentHashMap<>();
 
-    public AssetSearchService(GrpcFinancialDataClient grpcClient) {
+    public AssetSearchService(GrpcFinancialDataClient grpcClient, MetricRepository metricRepository) {
         this.grpcClient = grpcClient;
+        this.metricRepository = metricRepository;
     }
 
     public List<AssetInfo> getCategorizedAssets(String category) {
@@ -186,6 +190,7 @@ public class AssetSearchService {
 
             double changeValue = latestPrice - previousPrice;
             double changePercent = (changeValue / previousPrice) * 100.0;
+            double volume = metricRepository.getAssetVolume(symbol);
 
             return AssetMover.builder()
                     .symbol(symbol)
@@ -193,6 +198,7 @@ public class AssetSearchService {
                     .price(latestPrice)
                     .changePercent(changePercent)
                     .changeValue(changeValue)
+                    .volume(volume)
                     .build();
         } catch (Exception e) {
             log.debug("Could not build mover for {}: {}", symbol, e.getMessage());
@@ -308,13 +314,15 @@ public class AssetSearchService {
         private double price;
         private double changePercent;
         private double changeValue;
+        private double volume;
 
-        private AssetMover(String symbol, String name, double price, double changePercent, double changeValue) {
+        private AssetMover(String symbol, String name, double price, double changePercent, double changeValue, double volume) {
             this.symbol = symbol;
             this.name = name;
             this.price = price;
             this.changePercent = changePercent;
             this.changeValue = changeValue;
+            this.volume = volume;
         }
 
         public static Builder builder() {
@@ -327,6 +335,7 @@ public class AssetSearchService {
             private double price;
             private double changePercent;
             private double changeValue;
+            private double volume;
 
             public Builder symbol(String s) {
                 this.symbol = s;
@@ -353,8 +362,13 @@ public class AssetSearchService {
                 return this;
             }
 
+            public Builder volume(double v) {
+                this.volume = v;
+                return this;
+            }
+
             public AssetMover build() {
-                return new AssetMover(symbol, name, price, changePercent, changeValue);
+                return new AssetMover(symbol, name, price, changePercent, changeValue, volume);
             }
         }
 
@@ -376,6 +390,10 @@ public class AssetSearchService {
 
         public double getChangeValue() {
             return changeValue;
+        }
+
+        public double getVolume() {
+            return volume;
         }
     }
 

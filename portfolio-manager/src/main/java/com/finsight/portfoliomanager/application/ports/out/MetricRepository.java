@@ -5,6 +5,8 @@ import java.util.Map;
 public interface MetricRepository {
     void incrementAssetVolume(String symbol, double volume);
 
+    Double getAssetVolume(String symbol);
+
     Map<String, Double> getTrendingAssets(int topN);
 
     void recordUserActivity(String userId);

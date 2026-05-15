@@ -92,6 +92,7 @@ type AssetMover {
   price: Float!
   changePercent: Float!
   changeValue: Float!
+  volume: Float!
 }
 
 type IndicatorPoint {

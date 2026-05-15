@@ -10,7 +10,7 @@ import { TradeDialog } from "@/components/trading/trade-dialog";
 import { EnhancedPriceChart } from "@/components/trading/enhanced-price-chart";
 import { IndicatorSelector } from "@/components/trading/indicator-selector";
 import { LiquidityHeatmap } from "@/components/trading/liquidity-heatmap";
-import { calculateSMA, calculateEMA, calculateRSI, calculateMACD, calculateBollingerBands, calculateStochastic } from "@/lib/technicalIndicators";
+import { calculateSMA, calculateEMA, calculateWMA, calculateRSI, calculateMACD, calculateBollingerBands, calculateStochastic, calculateOBV, calculateROC } from "@/lib/technicalIndicators";
 import { IndicatorData } from "@/lib/indicatorTypes";
 
 const ASSET_DATA_QUERY = gql`
@@ -87,9 +87,12 @@ export default function AssetDetailPage() {
   const indicatorsData = useMemo(() => {
     if (chartData.length === 0 || selectedIndicators.length === 0) return [];
     
-    const priceData = chartData.map((p: { date: string; price: number }) => ({
+    const priceData = chartData.map((p: { date: string; price: number; volume: number }) => ({
       date: p.date,
-      close: p.price
+      close: p.price,
+      high: p.price,
+      low: p.price,
+      volume: p.volume,
     }));
 
     const indicators: IndicatorData[] = [];
@@ -116,6 +119,18 @@ export default function AssetDetailPage() {
             data: emaData.map((d: { date: string; ema: number }) => ({
               date: d.date,
               ema: d.ema
+            }))
+          });
+          break;
+        }
+        case "wma": {
+          const wmaData = calculateWMA(priceData, 20);
+          indicators.push({
+            id: "wma",
+            type: "line",
+            data: wmaData.map((d: { date: string; wma: number }) => ({
+              date: d.date,
+              wma: d.wma
             }))
           });
           break;
@@ -169,6 +184,30 @@ export default function AssetDetailPage() {
               date: d.date,
               stochastick: d.k,
               stochastics: d.d
+            }))
+          });
+          break;
+        }
+        case "roc": {
+          const rocData = calculateROC(priceData, 12);
+          indicators.push({
+            id: "roc",
+            type: "line",
+            data: rocData.map((d: { date: string; roc: number }) => ({
+              date: d.date,
+              roc: d.roc
+            }))
+          });
+          break;
+        }
+        case "obv": {
+          const obvData = calculateOBV(priceData);
+          indicators.push({
+            id: "obv",
+            type: "line",
+            data: obvData.map((d: { date: string; obv: number }) => ({
+              date: d.date,
+              obv: d.obv
             }))
           });
           break;

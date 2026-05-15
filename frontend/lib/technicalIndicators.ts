@@ -1,4 +1,4 @@
-import { BollingerBands, EMA, MACD, OBV, RSI, SMA, Stochastic } from "technicalindicators";
+import { BollingerBands, EMA, MACD, OBV, ROC, RSI, SMA, Stochastic, WMA } from "technicalindicators";
 
 interface BasePricePoint {
   date: string;
@@ -52,6 +52,18 @@ export function calculateEMA(data: BasePricePoint[], period: number) {
   return data.slice(period - 1).map((point, index) => ({
     date: point.date,
     ema: emaValues[index],
+  }));
+}
+
+export function calculateWMA(data: BasePricePoint[], period: number) {
+  if (!data || data.length < period) return [];
+
+  const closes = data.map((point) => point.close);
+  const wmaValues = WMA.calculate({ period, values: closes });
+
+  return data.slice(period - 1).map((point, index) => ({
+    date: point.date,
+    wma: wmaValues[index],
   }));
 }
 
@@ -113,13 +125,13 @@ export function calculateBollingerBands(
 }
 
 export function calculateStochastic(
-  data: StochasticPricePoint[],
+  data: Array<BasePricePoint | StochasticPricePoint>,
   options: StochasticOptions = { k: 14, d: 3, smoothing: 3 },
 ) {
   if (!data || data.length < options.k) return [];
 
-  const highs = data.map((point) => point.high);
-  const lows = data.map((point) => point.low);
+  const highs = data.map((point) => ("high" in point ? point.high : point.close));
+  const lows = data.map((point) => ("low" in point ? point.low : point.close));
   const closes = data.map((point) => point.close);
 
   const stochasticValues = Stochastic.calculate({
@@ -150,5 +162,20 @@ export function calculateOBV(data: VolumePricePoint[]) {
   return data.map((point, index) => ({
     date: point.date,
     obv: obvValues[index] ?? 0,
+  }));
+}
+
+export function calculateROC(data: BasePricePoint[], period = 12) {
+  if (!data || data.length < period + 1) return [];
+
+  const closes = data.map((point) => point.close);
+  const rocValues = ROC.calculate({
+    period,
+    values: closes,
+  });
+
+  return data.slice(period).map((point, index) => ({
+    date: point.date,
+    roc: rocValues[index] ?? 0,
   }));
 }

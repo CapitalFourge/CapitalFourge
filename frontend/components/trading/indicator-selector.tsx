@@ -8,11 +8,13 @@ import { Button } from "@/components/ui/button";
 const INDICATORS = [
   { id: "sma", label: "SMA", description: "Media movil simple" },
   { id: "ema", label: "EMA", description: "Media movil exponencial" },
+  { id: "wma", label: "WMA", description: "Media movil ponderada" },
   { id: "rsi", label: "RSI", description: "Indice de fuerza relativa" },
   { id: "macd", label: "MACD", description: "Convergencia y divergencia de medias moviles" },
   { id: "bollinger", label: "Bollinger", description: "Bandas de Bollinger" },
   { id: "stochastic", label: "Estocastico", description: "Oscilador estocastico" },
-  { id: "volume", label: "Volumen", description: "Volumen de trading" },
+  { id: "roc", label: "ROC", description: "Rate of change para medir momentum" },
+  { id: "obv", label: "OBV", description: "On-balance volume para confirmar flujos" },
 ];
 
 interface IndicatorSelectorProps {

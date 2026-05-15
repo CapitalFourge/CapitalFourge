@@ -3,6 +3,8 @@ package com.finsight.portfoliomanager.application.services;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -16,8 +18,10 @@ import org.slf4j.LoggerFactory;
 @Service
 public class AssetSearchService {
     private static final Logger log = LoggerFactory.getLogger(AssetSearchService.class);
+    private static final long MOVERS_CACHE_TTL_MS = 60_000;
 
     private final GrpcFinancialDataClient grpcClient;
+    private final Map<String, CachedMovers> moversCache = new ConcurrentHashMap<>();
 
     public AssetSearchService(GrpcFinancialDataClient grpcClient) {
         this.grpcClient = grpcClient;
@@ -141,17 +145,24 @@ public class AssetSearchService {
     public List<AssetMover> getAssetMovers(String sort, int limit) {
         int safeLimit = limit > 0 ? Math.min(limit, 12) : 8;
         String safeSort = sort == null ? "volatile" : sort.toLowerCase();
+        String cacheKey = safeSort + ":" + safeLimit;
+
+        CachedMovers cached = moversCache.get(cacheKey);
+        if (cached != null && !cached.isExpired()) {
+            return cached.movers();
+        }
 
         try {
-            List<AssetInfo> assets = getCategorizedAssets(null);
+            List<String> symbols = grpcClient.getAllAvailableSymbols();
 
-            List<AssetMover> movers = assets.stream()
-                    .map(asset -> buildAssetMover(asset.getSymbol(), asset.getName()))
+            List<AssetMover> movers = symbols.parallelStream()
+                    .map(symbol -> buildAssetMover(symbol, getAssetName(symbol)))
                     .filter(mover -> mover != null)
                     .sorted(getMoverComparator(safeSort))
                     .limit(safeLimit)
                     .collect(Collectors.toList());
 
+            moversCache.put(cacheKey, new CachedMovers(movers));
             return movers;
         } catch (Exception e) {
             log.error("Error getting asset movers: {}", e.getMessage());
@@ -365,6 +376,16 @@ public class AssetSearchService {
 
         public double getChangeValue() {
             return changeValue;
+        }
+    }
+
+    private record CachedMovers(List<AssetMover> movers, long createdAt) {
+        private CachedMovers(List<AssetMover> movers) {
+            this(List.copyOf(movers), System.currentTimeMillis());
+        }
+
+        private boolean isExpired() {
+            return System.currentTimeMillis() - createdAt > MOVERS_CACHE_TTL_MS;
         }
     }
 }

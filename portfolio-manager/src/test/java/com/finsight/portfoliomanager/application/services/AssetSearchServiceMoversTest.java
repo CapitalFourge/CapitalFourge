@@ -10,7 +10,6 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import com.finsight.portfoliomanager.infrastructure.grpc.GrpcFinancialDataClient;
-import com.finsight.proto.Asset;
 import com.finsight.proto.PricePoint;
 
 class AssetSearchServiceMoversTest {
@@ -20,10 +19,10 @@ class AssetSearchServiceMoversTest {
         GrpcFinancialDataClient grpc = mock(GrpcFinancialDataClient.class);
         AssetSearchService service = new AssetSearchService(grpc);
 
-        when(grpc.getCategorizedAssets()).thenReturn(List.of(
-                asset("BTC-USD", "Bitcoin", "CRYPTO"),
-                asset("AAPL", "Apple", "STOCKS"),
-                asset("TSLA", "Tesla", "STOCKS")));
+        when(grpc.getAllAvailableSymbols()).thenReturn(List.of("BTC-USD", "AAPL", "TSLA"));
+        when(grpc.getAssetName("BTC-USD")).thenReturn("Bitcoin");
+        when(grpc.getAssetName("AAPL")).thenReturn("Apple");
+        when(grpc.getAssetName("TSLA")).thenReturn("Tesla");
 
         when(grpc.getPriceHistory("BTC-USD", 5)).thenReturn(history(100, 115));
         when(grpc.getPriceHistory("AAPL", 5)).thenReturn(history(100, 103));
@@ -42,10 +41,10 @@ class AssetSearchServiceMoversTest {
         GrpcFinancialDataClient grpc = mock(GrpcFinancialDataClient.class);
         AssetSearchService service = new AssetSearchService(grpc);
 
-        when(grpc.getCategorizedAssets()).thenReturn(List.of(
-                asset("ETH-USD", "Ethereum", "CRYPTO"),
-                asset("TSLA", "Tesla", "STOCKS"),
-                asset("MSFT", "Microsoft", "STOCKS")));
+        when(grpc.getAllAvailableSymbols()).thenReturn(List.of("ETH-USD", "TSLA", "MSFT"));
+        when(grpc.getAssetName("ETH-USD")).thenReturn("Ethereum");
+        when(grpc.getAssetName("TSLA")).thenReturn("Tesla");
+        when(grpc.getAssetName("MSFT")).thenReturn("Microsoft");
 
         when(grpc.getPriceHistory("ETH-USD", 5)).thenReturn(history(100, 95));
         when(grpc.getPriceHistory("TSLA", 5)).thenReturn(history(100, 90));
@@ -63,9 +62,9 @@ class AssetSearchServiceMoversTest {
         GrpcFinancialDataClient grpc = mock(GrpcFinancialDataClient.class);
         AssetSearchService service = new AssetSearchService(grpc);
 
-        when(grpc.getCategorizedAssets()).thenReturn(List.of(
-                asset("BTC-USD", "Bitcoin", "CRYPTO"),
-                asset("AAPL", "Apple", "STOCKS")));
+        when(grpc.getAllAvailableSymbols()).thenReturn(List.of("BTC-USD", "AAPL"));
+        when(grpc.getAssetName("BTC-USD")).thenReturn("Bitcoin");
+        when(grpc.getAssetName("AAPL")).thenReturn("Apple");
 
         when(grpc.getPriceHistory("BTC-USD", 5)).thenReturn(history(100, 101));
         when(grpc.getPriceHistory("AAPL", 5)).thenReturn(List.of(point(200)));
@@ -75,10 +74,6 @@ class AssetSearchServiceMoversTest {
         assertEquals(1, movers.size());
         assertEquals("BTC-USD", movers.get(0).getSymbol());
         assertTrue(movers.get(0).getChangePercent() > 0);
-    }
-
-    private static Asset asset(String symbol, String name, String category) {
-        return Asset.newBuilder().setSymbol(symbol).setName(name).setCategory(category).build();
     }
 
     private static List<PricePoint> history(double previous, double latest) {

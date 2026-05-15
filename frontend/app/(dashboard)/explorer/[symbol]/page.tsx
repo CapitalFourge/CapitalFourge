@@ -1,30 +1,17 @@
 'use client';
 
-import Link from "next/link";
-import { useState, useEffect, useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { gql, useQuery } from "@apollo/client";
 import { motion } from "framer-motion";
-import { 
-  Activity,
-  ArrowLeft,
-  BarChart3,
-  Clock,
-  Coins,
-  ExternalLink,
-  Globe,
-  Info,
-  TrendingUp,
-  Wallet
-} from "lucide-react";
+import { ArrowLeft, ExternalLink, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TradeDialog } from "@/components/trading/trade-dialog";
 import { EnhancedPriceChart } from "@/components/trading/enhanced-price-chart";
 import { IndicatorSelector } from "@/components/trading/indicator-selector";
+import { LiquidityHeatmap } from "@/components/trading/liquidity-heatmap";
 import { calculateSMA, calculateEMA, calculateRSI, calculateMACD, calculateBollingerBands, calculateStochastic } from "@/lib/technicalIndicators";
 import { IndicatorData } from "@/lib/indicatorTypes";
-import { getPartnerForCategory } from "@/config/affiliates";
 
 const ASSET_DATA_QUERY = gql`
   query GetAssetData($symbol: String!) {
@@ -53,6 +40,13 @@ const ASSET_DATA_QUERY = gql`
   }
 `;
 
+interface Position {
+  symbol: string;
+  quantity: number;
+  averagePurchasePrice: number;
+  currentPrice?: number;
+}
+
 export default function AssetDetailPage() {
   const { symbol } = useParams<{ symbol: string }>();
   const [selectedDays, setSelectedDays] = useState(30);
@@ -64,23 +58,32 @@ export default function AssetDetailPage() {
     variables: { symbol: symbol },
     pollInterval: 30000,
   });
+  const asset = data?.asset;
+  const priceHistory = data?.priceHistory || [];
+  const portfolios = data?.portfolios || [];
 
-  if (!data) {
-    return <div>Loading...</div>;
-  }
+  const fullChartData = useMemo(
+    () =>
+      priceHistory
+        .map((point: { date: string; price: number; volume?: number }) => ({
+          date: point.date,
+          price: point.price,
+          volume: point.volume || 0,
+        }))
+        .filter((point: { date: string; price: number }) => !Number.isNaN(Date.parse(point.date)) && point.price > 0),
+    [priceHistory]
+  );
 
-  const asset = data.asset;
-  const priceHistory = data.priceHistory || [];
-  const portfolios = data.portfolios || [];
+  const chartData = useMemo(() => {
+    if (selectedDays >= 365 || fullChartData.length <= 2) {
+      return fullChartData;
+    }
 
-  // Process price history for charts
-  const chartData = priceHistory.map((p: any) => ({
-    date: p.date,
-    price: p.price,
-    volume: p.volume || 0
-  })).filter((p: any) => !Number.isNaN(Date.parse(p.date)) && p.price > 0);
+    const pointsToKeep = selectedDays === 1 ? 2 : Math.min(fullChartData.length, selectedDays);
+    return fullChartData.slice(-pointsToKeep);
+  }, [fullChartData, selectedDays]);
 
-    // Calculate technical indicators
+  // Calculate technical indicators
   const indicatorsData = useMemo(() => {
     if (chartData.length === 0 || selectedIndicators.length === 0) return [];
     
@@ -191,12 +194,23 @@ export default function AssetDetailPage() {
     return null;
   }, [portfolios, symbol]);
 
-interface Position {
-  symbol: string;
-  quantity: number;
-  averagePurchasePrice: number;
-  currentPrice?: number;
-}
+  if (loading && !data) {
+    return <div className="flex min-h-[60vh] items-center justify-center text-slate-400">Cargando activo...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="rounded-3xl border border-red-400/20 bg-red-500/10 px-6 py-5 text-red-100">
+          No fue posible cargar el activo: {error.message}
+        </div>
+      </div>
+    );
+  }
+
+  if (!asset) {
+    return <div className="flex min-h-[60vh] items-center justify-center text-slate-400">Activo no encontrado.</div>;
+  }
 
   return (
     <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="min-h-screen bg-black/50">
@@ -333,13 +347,19 @@ interface Position {
             </div>
           </div>
           
-          <div className="h-[400px]">
-            <EnhancedPriceChart
-              data={chartData}
-              indicators={indicatorsData}
-              showPriceArea={true}
-            />
-          </div>
+          {chartData.length > 0 ? (
+            <div className="h-[400px]">
+              <EnhancedPriceChart
+                data={chartData}
+                indicators={indicatorsData}
+                showPriceArea={true}
+              />
+            </div>
+          ) : (
+            <div className="flex h-[400px] items-center justify-center rounded-3xl border border-white/10 bg-white/[0.03] text-slate-400">
+              No hay suficientes datos historicos para renderizar la grafica.
+            </div>
+          )}
         </div>
 
         {/* Technical Indicators */}
@@ -349,6 +369,16 @@ interface Position {
             selectedIndicators={selectedIndicators} 
             onChange={setSelectedIndicators} 
           />
+        </div>
+
+        <div className="mb-8">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-2xl font-semibold text-white">Mapa de calor de liquidez</h2>
+            <p className="text-sm text-slate-400">Distribucion aproximada de actividad por rango de precios.</p>
+          </div>
+          <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-4">
+            <LiquidityHeatmap data={chartData} />
+          </div>
         </div>
 
         {/* Asset Info */}

@@ -1,20 +1,18 @@
 "use client";
 
+import Link from "next/link";
 import { gql, useQuery } from "@apollo/client";
 import { motion } from "framer-motion";
 import {
   Activity,
   BarChart3,
   Coins,
-  ExternalLink,
   Globe,
   Info,
   Search,
   TrendingUp,
 } from "lucide-react";
 import { useMemo, useState } from "react";
-
-import { getPartnerForCategory } from "@/config/affiliates";
 
 import { TradeDialog } from "@/components/trading/trade-dialog";
 import { Button } from "@/components/ui/button";
@@ -186,25 +184,12 @@ export default function ExplorerPage() {
                       portfolioPositions={portfolioPositions}
                       initialSymbol={asset.symbol}
                     />
-                    {getPartnerForCategory(asset.category) && (
-                      <Button
-                        asChild
-                        variant="ghost"
-                        className="h-11 w-full rounded-2xl border border-emerald-300/20 bg-emerald-300/5 text-emerald-200 hover:bg-emerald-300/10 hover:text-emerald-100"
-                      >
-                        <a
-                          href={getPartnerForCategory(asset.category)?.referralUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2"
-                        >
-                          Operar en {getPartnerForCategory(asset.category)?.name}
-                          <ExternalLink className="h-4 w-4" />
-                        </a>
-                      </Button>
-                    )}
-                    <Button variant="outline" className="h-11 w-full rounded-2xl border-white/10 bg-white/[0.03] text-slate-200 hover:bg-white/[0.06]">
-                      Revisar contexto
+                    <Button
+                      asChild
+                      variant="outline"
+                      className="h-11 w-full rounded-2xl border-white/10 bg-white/[0.03] text-slate-200 hover:bg-white/[0.06]"
+                    >
+                      <Link href={`/explorer/${asset.symbol}`}>Ver grafica y analisis</Link>
                     </Button>
                   </CardContent>
                 </Card>

@@ -94,6 +94,24 @@ type AssetMover {
   changeValue: Float!
 }
 
+type IndicatorPoint {
+  date: String!
+  value: Float
+  signal: Float
+  histogram: Float
+  upper: Float
+  middle: Float
+  lower: Float
+  k: Float
+  d: Float
+}
+
+type IndicatorSeries {
+  id: String!
+  type: String!
+  points: [IndicatorPoint!]!
+}
+
 type Query {
   me: User
   stockPrice(symbol: String!): StockPrice
@@ -106,6 +124,7 @@ type Query {
   searchSymbols(query: String!, limit: Int): [AssetSuggestion]
   assetsByCategory(category: String): [Asset]
   assetMovers(sort: String, limit: Int): [AssetMover]
+  technicalIndicators(symbol: String!, days: Int!): [IndicatorSeries!]!
   leaderboard: [Portfolio]
   sharedPortfolio(slug: String!): Portfolio
 }

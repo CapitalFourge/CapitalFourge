@@ -10,7 +10,6 @@ import { TradeDialog } from "@/components/trading/trade-dialog";
 import { EnhancedPriceChart } from "@/components/trading/enhanced-price-chart";
 import { IndicatorSelector } from "@/components/trading/indicator-selector";
 import { LiquidityHeatmap } from "@/components/trading/liquidity-heatmap";
-import { calculateSMA, calculateEMA, calculateWMA, calculateRSI, calculateMACD, calculateBollingerBands, calculateStochastic, calculateOBV, calculateROC } from "@/lib/technicalIndicators";
 import { IndicatorData } from "@/lib/indicatorTypes";
 
 const ASSET_DATA_QUERY = gql`
@@ -26,6 +25,21 @@ const ASSET_DATA_QUERY = gql`
       price
       date
       volume
+    }
+    technicalIndicators(symbol: $symbol, days: 365) {
+      id
+      type
+      points {
+        date
+        value
+        signal
+        histogram
+        upper
+        middle
+        lower
+        k
+        d
+      }
     }
     portfolios {
       id
@@ -60,6 +74,7 @@ export default function AssetDetailPage() {
   });
   const asset = data?.asset;
   const priceHistory = data?.priceHistory || [];
+  const technicalIndicators = data?.technicalIndicators || [];
   const portfolios = data?.portfolios || [];
 
   const fullChartData = useMemo(
@@ -86,137 +101,64 @@ export default function AssetDetailPage() {
   // Calculate technical indicators
   const indicatorsData = useMemo(() => {
     if (chartData.length === 0 || selectedIndicators.length === 0) return [];
-    
-    const priceData = chartData.map((p: { date: string; price: number; volume: number }) => ({
-      date: p.date,
-      close: p.price,
-      high: p.price,
-      low: p.price,
-      volume: p.volume,
-    }));
 
-    const indicators: IndicatorData[] = [];
+    const visibleDates = new Set(chartData.map((point: { date: string }) => point.date));
 
-    selectedIndicators.forEach(indicator => {
-      switch (indicator) {
-        case "sma": {
-          const smaData = calculateSMA(priceData, 20);
-          indicators.push({
-            id: "sma",
-            type: "line",
-            data: smaData.map((d: { date: string; sma: number }) => ({
-              date: d.date,
-              sma: d.sma
-            }))
-          });
-          break;
+    return selectedIndicators
+      .map((indicatorId) => {
+        const series = technicalIndicators.find((entry: { id: string }) => entry.id === indicatorId);
+        if (!series) {
+          return null;
         }
-        case "ema": {
-          const emaData = calculateEMA(priceData, 20);
-          indicators.push({
-            id: "ema",
-            type: "line",
-            data: emaData.map((d: { date: string; ema: number }) => ({
-              date: d.date,
-              ema: d.ema
-            }))
-          });
-          break;
-        }
-        case "wma": {
-          const wmaData = calculateWMA(priceData, 20);
-          indicators.push({
-            id: "wma",
-            type: "line",
-            data: wmaData.map((d: { date: string; wma: number }) => ({
-              date: d.date,
-              wma: d.wma
-            }))
-          });
-          break;
-        }
-        case "rsi": {
-          const rsiData = calculateRSI(priceData, 14);
-          indicators.push({
-            id: "rsi",
-            type: "line",
-            data: rsiData.map((d: { date: string; rsi: number }) => ({
-              date: d.date,
-              rsi: d.rsi
-            }))
-          });
-          break;
-        }
-        case "macd": {
-          const macdData = calculateMACD(priceData);
-          indicators.push({
-            id: "macd",
-            type: "line",
-            data: macdData.map((d: { date: string; macd: number; signal: number; histogram: number }) => ({
-              date: d.date,
-              macd: d.macd,
-              signal: d.signal,
-              histogram: d.histogram
-            }))
-          });
-          break;
-        }
-        case "bollinger": {
-          const bbData = calculateBollingerBands(priceData);
-          indicators.push({
-            id: "bollinger",
-            type: "line",
-            data: bbData.map((d: { date: string; upper: number; middle: number; lower: number }) => ({
-              date: d.date,
-              upper: d.upper,
-              middle: d.middle,
-              lower: d.lower
-            }))
-          });
-          break;
-        }
-        case "stochastic": {
-          const stochasticData = calculateStochastic(priceData);
-          indicators.push({
-            id: "stochastic",
-            type: "line",
-            data: stochasticData.map((d: { date: string; k: number; d: number }) => ({
-              date: d.date,
-              stochastick: d.k,
-              stochastics: d.d
-            }))
-          });
-          break;
-        }
-        case "roc": {
-          const rocData = calculateROC(priceData, 12);
-          indicators.push({
-            id: "roc",
-            type: "line",
-            data: rocData.map((d: { date: string; roc: number }) => ({
-              date: d.date,
-              roc: d.roc
-            }))
-          });
-          break;
-        }
-        case "obv": {
-          const obvData = calculateOBV(priceData);
-          indicators.push({
-            id: "obv",
-            type: "line",
-            data: obvData.map((d: { date: string; obv: number }) => ({
-              date: d.date,
-              obv: d.obv
-            }))
-          });
-          break;
-        }
-      }
-    });
 
-    return indicators;
-  }, [chartData, selectedIndicators]);
+        return {
+          id: series.id,
+          type: series.type as IndicatorData["type"],
+          data: series.points
+            .filter((point: { date: string }) => visibleDates.has(point.date))
+            .map((point: {
+              date: string;
+              value?: number | null;
+              signal?: number | null;
+              histogram?: number | null;
+              upper?: number | null;
+              middle?: number | null;
+              lower?: number | null;
+              k?: number | null;
+              d?: number | null;
+            }) => {
+              switch (series.id) {
+                case "macd":
+                  return {
+                    date: point.date,
+                    macd: point.value ?? 0,
+                    signal: point.signal ?? 0,
+                    histogram: point.histogram ?? 0,
+                  };
+                case "bollinger":
+                  return {
+                    date: point.date,
+                    upper: point.upper ?? 0,
+                    middle: point.middle ?? 0,
+                    lower: point.lower ?? 0,
+                  };
+                case "stochastic":
+                  return {
+                    date: point.date,
+                    stochastick: point.k ?? 0,
+                    stochastics: point.d ?? 0,
+                  };
+                default:
+                  return {
+                    date: point.date,
+                    [series.id]: point.value ?? 0,
+                  };
+              }
+            }),
+        };
+      })
+      .filter((indicator): indicator is IndicatorData => indicator !== null);
+  }, [chartData, selectedIndicators, technicalIndicators]);
 
   // Find user's position in this asset
   const userPosition = useMemo(() => {

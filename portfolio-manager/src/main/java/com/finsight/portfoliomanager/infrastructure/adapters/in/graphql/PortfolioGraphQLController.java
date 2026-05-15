@@ -37,6 +37,7 @@ public class PortfolioGraphQLController {
     private final PortfolioUseCase portfolioUseCase;
     private final UserRepository userRepository;
     private final com.finsight.portfoliomanager.application.services.AssetSearchService assetSearchService;
+    private final com.finsight.portfoliomanager.application.services.TechnicalAnalysisService technicalAnalysisService;
 
     @QueryMapping
     public User me(@AuthenticationPrincipal UUID userId) {
@@ -122,6 +123,12 @@ public class PortfolioGraphQLController {
     public List<com.finsight.portfoliomanager.application.services.AssetSearchService.AssetMover> assetMovers(
             @Argument("sort") String sort, @Argument("limit") Integer limit) {
         return assetSearchService.getAssetMovers(sort, limit != null ? limit : 8);
+    }
+
+    @QueryMapping
+    public List<com.finsight.portfoliomanager.application.services.TechnicalAnalysisService.IndicatorSeries> technicalIndicators(
+            @Argument("symbol") String symbol, @Argument("days") int days) {
+        return technicalAnalysisService.getIndicators(symbol, days);
     }
 
     @MutationMapping

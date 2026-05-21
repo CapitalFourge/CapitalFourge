@@ -4,6 +4,7 @@ import { type MouseEvent as ReactMouseEvent, useEffect, useMemo, useRef, useStat
 import {
   Area,
   Bar,
+  Cell,
   CartesianGrid,
   ComposedChart,
   Line,
@@ -42,6 +43,7 @@ interface PricePoint {
 interface EnhancedPriceChartProps {
   data: PricePoint[];
   indicators: IndicatorData[];
+  chartType?: "area" | "line" | "candles";
   showPriceArea?: boolean;
 }
 
@@ -145,6 +147,7 @@ function getToolIcon(tool: ChartAnnotationType) {
 export function EnhancedPriceChart({
   data,
   indicators = [],
+  chartType = "area",
   showPriceArea = true,
 }: EnhancedPriceChartProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -167,6 +170,11 @@ export function EnhancedPriceChart({
         low: point.low,
         close: point.close,
         volume: point.volume,
+        wickBase: point.low,
+        wickSpan: Math.max(point.high - point.low, 0.000001),
+        bodyBase: Math.min(point.open, point.close),
+        bodySpan: Math.max(Math.abs(point.close - point.open), 0.000001),
+        isBullish: point.close >= point.open ? 1 : 0,
         ...indicators.reduce((acc, indicator) => {
           const indicatorPoint = indicator.data.find((entry) => entry.date === point.date);
           if (!indicatorPoint) {
@@ -635,6 +643,9 @@ export function EnhancedPriceChart({
 
   const activeToolLabel =
     activeTool === "none" ? "Sin dibujo activo" : DRAWING_TOOL_CATALOG.find((tool) => tool.id === activeTool)?.label;
+  const isCandleChart = chartType === "candles";
+  const isLineChart = chartType === "line";
+  const isAreaChart = chartType === "area";
 
   return (
     <div className="relative h-[460px] w-full overflow-hidden rounded-[1.75rem] border border-white/10 bg-slate-950/45 p-4">
@@ -811,6 +822,7 @@ export function EnhancedPriceChart({
               )}
 
               <Tooltip
+                filterNull
                 contentStyle={{
                   backgroundColor: "rgba(8, 15, 28, 0.96)",
                   border: "1px solid rgba(255,255,255,0.08)",
@@ -829,6 +841,18 @@ export function EnhancedPriceChart({
                   fontWeight: "bold",
                 }}
                 formatter={(value: number, name: string) => {
+                  if (["wickBase", "wickSpan", "bodyBase", "bodySpan", "isBullish"].includes(name)) {
+                    return null;
+                  }
+
+                  if (["open", "high", "low", "close"].includes(name)) {
+                    return `$${value.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
+                  }
+
+                  if (name === "volume") {
+                    return value.toLocaleString("en-US", { maximumFractionDigits: 0 });
+                  }
+
                   if (name === "price") {
                     return `$${value.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
                   }
@@ -841,7 +865,7 @@ export function EnhancedPriceChart({
                 }}
               />
 
-              {showPriceArea && (
+              {isAreaChart && showPriceArea && (
                 <Area
                   type="monotone"
                   dataKey="price"
@@ -852,15 +876,34 @@ export function EnhancedPriceChart({
                 />
               )}
 
-              <Line
-                type="monotone"
-                dataKey="price"
-                stroke="#6ee7b7"
-                strokeWidth={2.5}
-                dot={false}
-                activeDot={{ r: 4, fill: "#fff", stroke: "#000", strokeWidth: 2 }}
-                yAxisId={0}
-              />
+              {(isAreaChart || isLineChart) && (
+                <Line
+                  type="monotone"
+                  dataKey="price"
+                  stroke="#6ee7b7"
+                  strokeWidth={2.5}
+                  dot={false}
+                  activeDot={{ r: 4, fill: "#fff", stroke: "#000", strokeWidth: 2 }}
+                  yAxisId={0}
+                />
+              )}
+
+              {isCandleChart && (
+                <>
+                  <Bar dataKey="wickBase" stackId="wick" fill="transparent" yAxisId={0} isAnimationActive={false} />
+                  <Bar dataKey="wickSpan" stackId="wick" barSize={2} fill="#94a3b8" yAxisId={0} isAnimationActive={false}>
+                    {chartData.map((point, index) => (
+                      <Cell key={`wick-${point.date}-${index}`} fill={point.isBullish ? "#34d399" : "#fb7185"} />
+                    ))}
+                  </Bar>
+                  <Bar dataKey="bodyBase" stackId="body" fill="transparent" yAxisId={0} isAnimationActive={false} />
+                  <Bar dataKey="bodySpan" stackId="body" barSize={8} radius={[2, 2, 2, 2]} yAxisId={0} isAnimationActive={false}>
+                    {chartData.map((point, index) => (
+                      <Cell key={`body-${point.date}-${index}`} fill={point.isBullish ? "#34d399" : "#fb7185"} />
+                    ))}
+                  </Bar>
+                </>
+              )}
 
               {indicators.some((indicator) => indicator.id === "rsi") && (
                 <>

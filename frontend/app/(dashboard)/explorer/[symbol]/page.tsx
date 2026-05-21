@@ -183,10 +183,66 @@ interface FundamentalMetricSection {
   metrics: FundamentalMetricItem[];
 }
 
+type ChartType = "area" | "line" | "candles";
+type CandleTimeframe = "1D" | "1W" | "1M";
+
+function startOfWeek(date: Date) {
+  const copy = new Date(date);
+  const day = copy.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  copy.setDate(copy.getDate() + diff);
+  copy.setHours(0, 0, 0, 0);
+  return copy;
+}
+
+function aggregateCandles<
+  T extends { date: string; open: number; high: number; low: number; close: number; volume: number }
+>(points: T[], timeframe: CandleTimeframe): T[] {
+  if (timeframe === "1D" || points.length <= 1) {
+    return points;
+  }
+
+  const grouped = new Map<string, T[]>();
+
+  for (const point of points) {
+    const date = new Date(point.date);
+    if (Number.isNaN(date.getTime())) {
+      continue;
+    }
+
+    const key =
+      timeframe === "1W"
+        ? startOfWeek(date).toISOString().slice(0, 10)
+        : `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
+
+    const current = grouped.get(key) ?? [];
+    current.push(point);
+    grouped.set(key, current);
+  }
+
+  return Array.from(grouped.values()).map((bucket) => {
+    const sorted = [...bucket].sort((a, b) => Date.parse(a.date) - Date.parse(b.date));
+    const first = sorted[0];
+    const last = sorted[sorted.length - 1];
+
+    return {
+      ...last,
+      date: last.date,
+      open: first.open,
+      high: Math.max(...sorted.map((point) => point.high)),
+      low: Math.min(...sorted.map((point) => point.low)),
+      close: last.close,
+      volume: sorted.reduce((sum, point) => sum + point.volume, 0),
+    };
+  });
+}
+
 export default function AssetDetailPage() {
   const { symbol } = useParams<{ symbol: string }>();
   const [selectedDays, setSelectedDays] = useState(30);
   const [selectedIndicators, setSelectedIndicators] = useState<string[]>([]);
+  const [chartType, setChartType] = useState<ChartType>("candles");
+  const [candleTimeframe, setCandleTimeframe] = useState<CandleTimeframe>("1D");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [dialogType, setDialogType] = useState<'buy' | 'sell'>('buy');
 
@@ -215,7 +271,7 @@ export default function AssetDetailPage() {
     [priceHistory]
   );
 
-  const chartData = useMemo(() => {
+  const visibleDailyChartData = useMemo(() => {
     if (selectedDays >= 365 || fullChartData.length <= 2) {
       return fullChartData;
     }
@@ -224,11 +280,18 @@ export default function AssetDetailPage() {
     return fullChartData.slice(-pointsToKeep);
   }, [fullChartData, selectedDays]);
 
+  const chartData = useMemo(
+    () => aggregateCandles(visibleDailyChartData, candleTimeframe),
+    [visibleDailyChartData, candleTimeframe]
+  );
+  const latestDailyPoint = visibleDailyChartData[visibleDailyChartData.length - 1];
+  const previousDailyPoint = visibleDailyChartData[visibleDailyChartData.length - 2];
+
   // Calculate technical indicators
   const indicatorsData = useMemo(() => {
-    if (chartData.length === 0 || selectedIndicators.length === 0) return [];
+    if (visibleDailyChartData.length === 0 || selectedIndicators.length === 0 || candleTimeframe !== "1D") return [];
 
-    const visibleDates = new Set(chartData.map((point: { date: string }) => point.date));
+    const visibleDates = new Set(visibleDailyChartData.map((point: { date: string }) => point.date));
 
     return selectedIndicators
       .map((indicatorId) => {
@@ -284,7 +347,7 @@ export default function AssetDetailPage() {
         };
       })
       .filter((indicator): indicator is IndicatorData => indicator !== null);
-  }, [chartData, selectedIndicators, technicalIndicators]);
+  }, [visibleDailyChartData, selectedIndicators, technicalIndicators, candleTimeframe]);
 
   // Find user's position in this asset
   const userPosition = useMemo(() => {
@@ -437,8 +500,8 @@ export default function AssetDetailPage() {
           <div className="flex flex-col items-center p-4 bg-white/[0.03] rounded-xl">
             <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Precio actual</p>
             <p className="mt-2 text-3xl font-semibold text-white">
-              {chartData.length > 0 ? 
-                `$${chartData[chartData.length - 1].close.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 
+              {latestDailyPoint ? 
+                `$${latestDailyPoint.close.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 
                 '$0.00'}
             </p>
           </div>
@@ -446,12 +509,12 @@ export default function AssetDetailPage() {
           <div className="flex flex-col items-center p-4 bg-white/[0.03] rounded-xl">
             <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Cambio 24h</p>
             <p className="mt-2 text-2xl font-semibold">
-              {chartData.length >= 2 ? 
+              {latestDailyPoint && previousDailyPoint ? 
                 (
-                  ((chartData[chartData.length - 1].close - chartData[chartData.length - 2].close) / chartData[chartData.length - 2].close) * 100
+                  ((latestDailyPoint.close - previousDailyPoint.close) / previousDailyPoint.close) * 100
                 ).toFixed(2) + '%' : 
                 '0.00%'}
-              <span className={(chartData.length >= 2) ? (chartData[chartData.length - 1].close > chartData[chartData.length - 2].close ? 'text-emerald-400' : 'text-rose-400') : undefined}>
+              <span className={(latestDailyPoint && previousDailyPoint) ? (latestDailyPoint.close > previousDailyPoint.close ? 'text-emerald-400' : 'text-rose-400') : undefined}>
               </span>
             </p>
           </div>
@@ -459,8 +522,8 @@ export default function AssetDetailPage() {
           <div className="flex flex-col items-center p-4 bg-white/[0.03] rounded-xl">
             <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Volumen 24h</p>
             <p className="mt-2 text-2xl font-semibold text-white">
-              {chartData.length > 0 ? 
-                chartData[chartData.length - 1].volume.toLocaleString(undefined) : 
+              {latestDailyPoint ? 
+                latestDailyPoint.volume.toLocaleString(undefined) : 
                 '0'}
             </p>
           </div>
@@ -486,7 +549,7 @@ export default function AssetDetailPage() {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-semibold text-white">Historial de precios</h2>
-            <div className="flex space-x-3">
+            <div className="flex flex-wrap items-center gap-3">
               <Button 
                 variant="outline" 
                 onClick={() => setSelectedDays(1)}
@@ -524,12 +587,54 @@ export default function AssetDetailPage() {
               </Button>
             </div>
           </div>
+
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-4 rounded-[1.5rem] border border-white/10 bg-white/[0.03] px-4 py-3">
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.26em] text-slate-500">Visualizacion</p>
+              <p className="mt-1 text-sm text-slate-400">
+                Cambia el tipo de grafico y la compresion de velas segun el horizonte que quieras leer.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex flex-wrap gap-2">
+                {([
+                  ["candles", "Velas"],
+                  ["line", "Lineal"],
+                  ["area", "Area"],
+                ] as const).map(([value, label]) => (
+                  <Button
+                    key={value}
+                    variant="outline"
+                    onClick={() => setChartType(value)}
+                    className={chartType === value ? "bg-emerald-500/20 text-emerald-400" : "text-slate-300 hover:bg-slate-50/50"}
+                  >
+                    {label}
+                  </Button>
+                ))}
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {(["1D", "1W", "1M"] as const).map((value) => (
+                  <Button
+                    key={value}
+                    variant="outline"
+                    onClick={() => setCandleTimeframe(value)}
+                    className={candleTimeframe === value ? "bg-cyan-500/20 text-cyan-300" : "text-slate-300 hover:bg-slate-50/50"}
+                  >
+                    {value}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </div>
           
           {chartData.length > 0 ? (
             <div className="h-[400px]">
               <EnhancedPriceChart
                 data={chartData}
                 indicators={indicatorsData}
+                chartType={chartType}
                 showPriceArea={true}
               />
             </div>
@@ -542,6 +647,12 @@ export default function AssetDetailPage() {
 
         <div className="mb-8">
           <IndicatorSelector selectedIndicators={selectedIndicators} onChange={setSelectedIndicators} />
+          {candleTimeframe !== "1D" && selectedIndicators.length > 0 && (
+            <div className="mt-3 rounded-2xl border border-amber-400/15 bg-amber-400/10 px-4 py-3 text-sm text-amber-100">
+              Los indicadores se muestran sobre velas diarias. Para evitar lecturas inconsistentes, se ocultan cuando el
+              timeframe del grafico esta en {candleTimeframe}.
+            </div>
+          )}
         </div>
 
         <div className="mb-8">
@@ -585,7 +696,7 @@ export default function AssetDetailPage() {
             <p className="text-sm text-slate-400">Distribucion aproximada de actividad por rango de precios.</p>
           </div>
           <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-4">
-            <LiquidityHeatmap data={chartData} />
+            <LiquidityHeatmap data={chartData.map((point) => ({ date: point.date, price: point.close }))} />
           </div>
         </div>
 

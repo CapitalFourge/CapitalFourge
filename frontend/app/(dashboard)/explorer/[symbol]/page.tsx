@@ -11,6 +11,11 @@ import { EnhancedPriceChart } from "@/components/trading/enhanced-price-chart";
 import { IndicatorSelector } from "@/components/trading/indicator-selector";
 import { LiquidityHeatmap } from "@/components/trading/liquidity-heatmap";
 import { IndicatorData } from "@/lib/indicatorTypes";
+import {
+  FUNDAMENTAL_METRIC_CATALOG,
+  type FundamentalCategory,
+  type FundamentalMetricDefinition,
+} from "@/lib/fundamental-metric-catalog";
 
 const ASSET_DATA_QUERY = gql`
   query GetAssetData($symbol: String!) {
@@ -165,6 +170,19 @@ interface FundamentalPricePoint {
   weatherIndex?: number | null;
 }
 
+interface FundamentalMetricItem {
+  id: string;
+  label: string;
+  description: string;
+  value: string;
+}
+
+interface FundamentalMetricSection {
+  section: string;
+  summary: string;
+  metrics: FundamentalMetricItem[];
+}
+
 export default function AssetDetailPage() {
   const { symbol } = useParams<{ symbol: string }>();
   const [selectedDays, setSelectedDays] = useState(30);
@@ -283,83 +301,75 @@ export default function AssetDetailPage() {
     return null;
   }, [portfolios, symbol]);
 
-  const fundamentalMetrics = useMemo(() => {
+  const fundamentalMetrics = useMemo<FundamentalMetricSection[]>(() => {
     if (!latestFundamental) {
       return [];
     }
 
-    const percent = (value?: number | null) =>
-      value && value !== 0 ? `${(value * 100).toFixed(2)}%` : null;
-    const currency = (value?: number | null) =>
-      value && value !== 0 ? `$${value.toLocaleString(undefined, { maximumFractionDigits: 2 })}` : null;
-    const number = (value?: number | null) =>
-      value && value !== 0 ? value.toLocaleString(undefined, { maximumFractionDigits: 2 }) : null;
+    const category: FundamentalCategory =
+      asset?.category === "CRYPTO" ? "CRYPTO" : asset?.category === "COMMODITIES" ? "COMMODITIES" : "STOCKS";
 
-    const common = [
-      { label: "Volumen", value: number(latestFundamental.volume) },
-      { label: "Capitalizacion", value: currency(latestFundamental.marketCap) },
-      { label: "Revenue", value: currency(latestFundamental.revenue) },
-    ];
+    const sectionSummaries: Record<string, string> = {
+      Actividad: "Contexto base de tamano, liquidez y traccion del activo.",
+      Valoracion: "Multiples para juzgar cuanto esta pagando el mercado por el activo.",
+      Rentabilidad: "Metricas para entender eficiencia y capacidad de generar retorno.",
+      Solidez: "Senales de balance y liquidez para evaluar resiliencia financiera.",
+      "Retorno al accionista": "Variables ligadas a caja libre y distribucion de valor.",
+      Tokenomics: "Variables de oferta que condicionan dilucion, escasez y valor relativo.",
+      "On-chain": "Uso economico de la red y actividad registrada en la cadena.",
+      "Seguridad de red": "Metricas que ayudan a entender robustez y descentralizacion.",
+      Mercado: "Lecturas de liquidez, sentimiento y traccion del ecosistema.",
+      "Oferta y demanda": "Factores fisicos o estructurales que tensionan el equilibrio del commodity.",
+      "Curva y macro": "Variables macro y de futuros que suelen mover la narrativa del activo.",
+    };
 
-    const stock = [
-      { label: "Trailing P/E", value: number(latestFundamental.trailingPe) },
-      { label: "Forward P/E", value: number(latestFundamental.forwardPe) },
-      { label: "PEG Ratio", value: number(latestFundamental.pegRatio) },
-      { label: "Price/Book", value: number(latestFundamental.priceToBook) },
-      { label: "Price/Sales", value: number(latestFundamental.priceToSales) },
-      { label: "EV/EBITDA", value: number(latestFundamental.enterpriseToEbitda) },
-      { label: "Margen neto", value: percent(latestFundamental.profitMargins) },
-      { label: "Margen operativo", value: percent(latestFundamental.operatingMargins) },
-      { label: "ROE", value: percent(latestFundamental.returnOnEquity) },
-      { label: "ROA", value: percent(latestFundamental.returnOnAssets) },
-      { label: "Debt/Equity", value: number(latestFundamental.debtToEquity) },
-      { label: "Current Ratio", value: number(latestFundamental.currentRatio) },
-      { label: "Quick Ratio", value: number(latestFundamental.quickRatio) },
-      { label: "Dividend Yield", value: percent(latestFundamental.dividendYield) },
-      { label: "Free Cash Flow", value: currency(latestFundamental.freeCashFlow) },
-    ];
+    const formatMetricValue = (definition: FundamentalMetricDefinition, rawValue?: number | null) => {
+      if (rawValue === undefined || rawValue === null || rawValue === 0) {
+        return null;
+      }
 
-    const crypto = [
-      { label: "FDV", value: currency(latestFundamental.fdv) },
-      { label: "Circulating Supply", value: number(latestFundamental.circulatingSupply) },
-      { label: "Total Supply", value: number(latestFundamental.totalSupply) },
-      { label: "Max Supply", value: number(latestFundamental.maxSupply) },
-      { label: "Inflation Rate", value: percent(latestFundamental.inflationRate) },
-      { label: "Active Addresses", value: number(latestFundamental.activeAddresses) },
-      { label: "Transaction Volume", value: currency(latestFundamental.transactionVolume) },
-      { label: "Transaction Count", value: number(latestFundamental.transactionCount) },
-      { label: "Fees Generated", value: currency(latestFundamental.feesGenerated) },
-      { label: "TVL", value: currency(latestFundamental.tvl) },
-      { label: "Hash Rate", value: number(latestFundamental.hashRate) },
-      { label: "Staking Ratio", value: percent(latestFundamental.stakingRatio) },
-      { label: "Nakamoto Coefficient", value: number(latestFundamental.nakamotoCoefficient) },
-      { label: "Order Book Depth", value: currency(latestFundamental.orderBookDepth) },
-      { label: "Developer Activity", value: number(latestFundamental.developerActivity) },
-      { label: "User Growth", value: percent(latestFundamental.userGrowth) },
-      { label: "Price/Fees Ratio", value: number(latestFundamental.priceToFeesRatio) },
-      { label: "BTC Dominance", value: percent(latestFundamental.bitcoinDominance) },
-      { label: "Fear & Greed", value: number(latestFundamental.fearGreedIndex) },
-    ];
+      if (definition.formatter === "percent") {
+        return `${(rawValue * 100).toFixed(2)}%`;
+      }
 
-    const commodity = [
-      { label: "Inventory Levels", value: number(latestFundamental.inventoryLevels) },
-      { label: "Cost of Production", value: currency(latestFundamental.costOfProduction) },
-      { label: "AISC", value: currency(latestFundamental.allInSustainingCost) },
-      { label: "Reserve Replacement", value: percent(latestFundamental.reserveReplacementRatio) },
-      { label: "Contango/Backwardation", value: number(latestFundamental.contangoBackwardation) },
-      { label: "Dollar Index Exposure", value: number(latestFundamental.dollarIndexExposure) },
-      { label: "Inflation Correlation", value: number(latestFundamental.inflationCorrelation) },
-      { label: "OPEC Spare Capacity", value: number(latestFundamental.opecSpareCapacity) },
-      { label: "Chinese Demand", value: number(latestFundamental.chineseDemandIndex) },
-      { label: "Weather Index", value: number(latestFundamental.weatherIndex) },
-    ];
+      if (definition.formatter === "currency") {
+        return `$${rawValue.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+      }
 
-    const categorySpecific =
-      asset?.category === "CRYPTO" ? crypto :
-      asset?.category === "COMMODITIES" ? commodity :
-      stock;
+      return rawValue.toLocaleString(undefined, { maximumFractionDigits: 2 });
+    };
 
-    return [...common, ...categorySpecific].filter((metric) => metric.value);
+    const grouped = FUNDAMENTAL_METRIC_CATALOG.reduce<Map<string, FundamentalMetricItem[]>>((acc, definition) => {
+      if (!definition.categories.includes(category)) {
+        return acc;
+      }
+
+      const rawValue = latestFundamental[definition.id as keyof FundamentalPricePoint];
+      if (typeof rawValue !== "number" && rawValue !== null && rawValue !== undefined) {
+        return acc;
+      }
+
+      const value = formatMetricValue(definition, rawValue);
+      if (!value) {
+        return acc;
+      }
+
+      const current = acc.get(definition.section) ?? [];
+      current.push({
+        id: definition.id,
+        label: definition.label,
+        description: definition.description,
+        value,
+      });
+      acc.set(definition.section, current);
+      return acc;
+    }, new Map<string, FundamentalMetricItem[]>());
+
+    return Array.from(grouped.entries()).map(([section, metrics]) => ({
+      section,
+      summary: sectionSummaries[section] ?? "Lectura complementaria para entender mejor el estado del activo.",
+      metrics,
+    }));
   }, [asset?.category, latestFundamental]);
 
   if (loading && !data) {
@@ -530,13 +540,8 @@ export default function AssetDetailPage() {
           )}
         </div>
 
-        {/* Technical Indicators */}
         <div className="mb-8">
-          <h2 className="text-2xl font-semibold text-white mb-4">Indicadores técnicos</h2>
-          <IndicatorSelector 
-            selectedIndicators={selectedIndicators} 
-            onChange={setSelectedIndicators} 
-          />
+          <IndicatorSelector selectedIndicators={selectedIndicators} onChange={setSelectedIndicators} />
         </div>
 
         <div className="mb-8">
@@ -547,12 +552,24 @@ export default function AssetDetailPage() {
             </p>
           </div>
           {fundamentalMetrics.length > 0 ? (
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-              {fundamentalMetrics.map((metric) => (
-                <div key={metric.label} className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
-                  <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500">{metric.label}</p>
-                  <p className="mt-2 text-lg font-semibold text-white">{metric.value}</p>
-                </div>
+            <div className="space-y-5">
+              {fundamentalMetrics.map((group) => (
+                <section key={group.section} className="rounded-[1.75rem] border border-white/10 bg-white/[0.03] p-4">
+                  <div className="mb-4">
+                    <p className="text-[10px] uppercase tracking-[0.26em] text-slate-500">{group.section}</p>
+                    <p className="mt-2 text-sm text-slate-400">{group.summary}</p>
+                  </div>
+
+                  <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                    {group.metrics.map((metric) => (
+                      <div key={metric.id} className="rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-4">
+                        <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500">{metric.label}</p>
+                        <p className="mt-2 text-xl font-semibold text-white">{metric.value}</p>
+                        <p className="mt-2 text-xs leading-5 text-slate-400">{metric.description}</p>
+                      </div>
+                    ))}
+                  </div>
+                </section>
               ))}
             </div>
           ) : (

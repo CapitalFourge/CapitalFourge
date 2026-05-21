@@ -18,8 +18,8 @@ public class TechnicalAnalysisService {
 
     public List<IndicatorSeries> getIndicators(String symbol, int days) {
         List<HistoricalPoint> history = grpcClient.getPriceHistory(symbol, days).stream()
-                .filter(point -> point.getPrice() > 0 && point.getDate() != null && !point.getDate().isBlank())
-                .map(point -> new HistoricalPoint(point.getDate(), point.getPrice()))
+                .filter(point -> point.getClose() > 0 && point.getDate() != null && !point.getDate().isBlank())
+                .map(point -> new HistoricalPoint(point.getDate(), point.getClose()))
                 .toList();
 
         if (history.size() < 2) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { type MouseEvent, useMemo, useRef, useState } from "react";
+import { type MouseEvent as ReactMouseEvent, useMemo, useRef, useState, useEffect } from "react";
 import {
   Area,
   Bar,
@@ -18,9 +18,22 @@ import { PencilLine, RectangleHorizontal, Slash, Trash2 } from "lucide-react";
 import type { IndicatorData } from "@/lib/indicatorTypes";
 import { Button } from "@/components/ui/button";
 
+// Función para generar UUID versión 4 (compatível con navegadores y entornos de prueba)
+function generateUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
 interface PricePoint {
   date: string;
-  price: number;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
 }
 
 interface EnhancedPriceChartProps {
@@ -75,12 +88,19 @@ export function EnhancedPriceChart({
   const [activeTool, setActiveTool] = useState<DrawingTool>("none");
   const [draftPoint, setDraftPoint] = useState<DraftPoint | null>(null);
   const [annotations, setAnnotations] = useState<ChartAnnotation[]>([]);
+  const [activeAnnotationId, setActiveAnnotationId] = useState<string | null>(null);
+  const [annotationEditMode, setAnnotationEditMode] = useState<'move' | 'resize-start' | 'resize-end' | null>(null);
+  const [editPoint, setEditPoint] = useState<{ x: number; y: number } | null>(null);
 
   const chartData = useMemo(
     () =>
       data.map((point) => ({
         date: point.date,
-        price: point.price,
+        open: point.open,
+        high: point.high,
+        low: point.low,
+        close: point.close,
+        volume: point.volume,
         ...indicators.reduce((acc, indicator) => {
           const indicatorPoint = indicator.data.find((entry) => entry.date === point.date);
           if (!indicatorPoint) {
@@ -121,20 +141,18 @@ export function EnhancedPriceChart({
     setActiveTool("none");
   };
 
-  const handleOverlayClick = (event: MouseEvent<HTMLDivElement>) => {
-    if (activeTool === "none" || !overlayRef.current) {
-      return;
-    }
+  const handleOverlayClick = (event: ReactMouseEvent<HTMLDivElement>) => {
+    if (activeTool === "none" || !overlayRef.current) return;
 
     const bounds = overlayRef.current.getBoundingClientRect();
     const x = Math.min(Math.max((event.clientX - bounds.left) / bounds.width, 0), 1);
     const y = Math.min(Math.max((event.clientY - bounds.top) / bounds.height, 0), 1);
 
     if (activeTool === "horizontal") {
-      setAnnotations((current) => [
-        ...current,
+      setAnnotations(prev => [
+        ...prev,
         {
-          id: crypto.randomUUID(),
+          id: generateUUID(),
           type: "horizontal",
           x1: 0,
           y1: y,
@@ -151,10 +169,10 @@ export function EnhancedPriceChart({
       return;
     }
 
-    setAnnotations((current) => [
-      ...current,
+    setAnnotations(prev => [
+      ...prev,
       {
-        id: crypto.randomUUID(),
+        id: generateUUID(),
         type: activeTool,
         x1: draftPoint.x,
         y1: draftPoint.y,
@@ -165,72 +183,234 @@ export function EnhancedPriceChart({
     resetDrawingState();
   };
 
+  const handleAnnotationClick = (annotation: ChartAnnotation, e: ReactMouseEvent<SVGElement>) => {
+    e.stopPropagation(); // Evitar que active el click del overlay
+    setActiveAnnotationId(annotation.id);
+    setAnnotationEditMode('move');
+  };
+
+  const handleHandleMouseDown = (
+    e: ReactMouseEvent<SVGElement>, 
+    annotationId: string, 
+    handle: 'start' | 'end'
+  ) => {
+    e.stopPropagation();
+    const annotation = annotations.find(a => a.id === annotationId)!;
+    setActiveAnnotationId(annotationId);
+    setAnnotationEditMode(handle === 'start' ? 'resize-start' : 'resize-end');
+    const point = handle === 'start' 
+      ? { x: annotation.x1, y: annotation.y1 } 
+      : { x: annotation.x2!, y: annotation.y2! };
+    setEditPoint(point);
+  };
+
+  // Effect para mover/redimensionar anotaciones seleccionadas
+  useEffect(() => {
+    if (!activeAnnotationId || !annotationEditMode || !editPoint) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!overlayRef.current) return;
+      
+      const bounds = overlayRef.current.getBoundingClientRect();
+      const x = Math.min(Math.max((e.clientX - bounds.left) / bounds.width, 0), 1);
+      const y = Math.min(Math.max((e.clientY - bounds.top) / bounds.height, 0), 1);
+
+      setAnnotations(prev => 
+        prev.map(ann => {
+          if (ann.id !== activeAnnotationId) return ann;
+          
+          switch (annotationEditMode) {
+            case 'move': {
+              const dx = x - editPoint.x;
+              const dy = y - editPoint.y;
+              return {
+                ...ann,
+                x1: ann.x1 + dx,
+                y1: ann.y1 + dy,
+                x2: ann.x2 !== undefined ? ann.x2 + dx : ann.x2,
+                y2: ann.y2 !== undefined ? ann.y2 + dy : ann.y2,
+              };
+            }
+            case 'resize-start': {
+              if (ann.type === 'horizontal') return ann; // Las horizontales no se redimensionan en X
+              return {
+                ...ann,
+                x1: x,
+                y1: y,
+              };
+            }
+            case 'resize-end': {
+              if (ann.type === 'horizontal') return ann;
+              return {
+                ...ann,
+                x2: x,
+                y2: y,
+              };
+            }
+            default:
+              return ann;
+          }
+        })
+      );
+    };
+
+    const handleMouseUp = () => {
+      setAnnotationEditMode(null);
+      setEditPoint(null);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [activeAnnotationId, annotationEditMode, editPoint, annotations]);
+
   const renderOverlay = () => (
     <div className="pointer-events-none absolute inset-[52px_20px_16px_16px]">
       <svg className="h-full w-full overflow-visible">
-        {annotations.map((annotation) => {
-          if (annotation.type === "horizontal") {
-            return (
-              <line
-                key={annotation.id}
-                x1="0%"
-                y1={projectY(annotation.y1)}
-                x2="100%"
-                y2={projectY(annotation.y1)}
-                stroke="#f8fafc"
-                strokeWidth="1.5"
-                strokeDasharray="6 4"
-                opacity="0.8"
-              />
-            );
-          }
+        {annotations.map(annotation => {
+          const isActive = activeAnnotationId === annotation.id;
+          
+          // Línea base (horizontal, trend o zone)
+          const baseElement = () => {
+            if (annotation.type === "horizontal") {
+              return (
+                <line
+                  key={annotation.id}
+                  x1="0%"
+                  y1={projectY(annotation.y1)}
+                  x2="100%"
+                  y2={projectY(annotation.y1)}
+                  stroke={isActive ? "#fbbf24" : "#f8fafc"}
+                  strokeWidth={isActive ? 2 : 1.5}
+                  strokeDasharray={isActive ? "2 2" : "6 4"}
+                  opacity={0.9}
+                  onClick={e => handleAnnotationClick(annotation, e)}
+                  cursor="pointer"
+                />
+              );
+            }
 
-          if (annotation.type === "trend" && annotation.x2 !== undefined && annotation.y2 !== undefined) {
-            return (
-              <line
-                key={annotation.id}
-                x1={projectX(annotation.x1)}
-                y1={projectY(annotation.y1)}
-                x2={projectX(annotation.x2)}
-                y2={projectY(annotation.y2)}
-                stroke="#38bdf8"
-                strokeWidth="2"
-                opacity="0.9"
-              />
-            );
-          }
+            if (annotation.type === "trend" && annotation.x2 !== undefined && annotation.y2 !== undefined) {
+              return (
+                <line
+                  key={annotation.id}
+                  x1={projectX(annotation.x1)}
+                  y1={projectY(annotation.y1)}
+                  x2={projectX(annotation.x2)}
+                  y2={projectY(annotation.y2)}
+                  stroke={isActive ? "#fbbf24" : "#38bdf8"}
+                  strokeWidth={isActive ? 3 : 2}
+                  opacity={0.9}
+                  onClick={e => handleAnnotationClick(annotation, e)}
+                  cursor="pointer"
+                />
+              );
+            }
 
-          if (annotation.type === "zone" && annotation.x2 !== undefined && annotation.y2 !== undefined) {
-            const left = Math.min(annotation.x1, annotation.x2);
-            const top = Math.min(annotation.y1, annotation.y2);
-            const width = Math.abs(annotation.x2 - annotation.x1);
-            const height = Math.abs(annotation.y2 - annotation.y1);
+            if (annotation.type === "zone" && annotation.x2 !== undefined && annotation.y2 !== undefined) {
+              const left = Math.min(annotation.x1, annotation.x2);
+              const top = Math.min(annotation.y1, annotation.y2);
+              const width = Math.abs(annotation.x2 - annotation.x1);
+              const height = Math.abs(annotation.y2 - annotation.y1);
+              
+              return (
+                <g key={annotation.id} onClick={e => handleAnnotationClick(annotation, e)} cursor="pointer">
+                  <rect
+                    x={projectX(left)}
+                    y={projectY(top)}
+                    width={`${width * 100}%`}
+                    height={`${height * 100}%`}
+                    fill={isActive ? "rgba(251, 191, 36, 0.2)" : "rgba(110, 231, 183, 0.14)"}
+                    stroke={isActive ? "#fbbf24" : "#6ee7b7"}
+                    strokeWidth={isActive ? 2 : 1.5}
+                    rx={6}
+                  />
+                </g>
+              );
+            }
+            
+            return null;
+          };
 
-            return (
-              <rect
-                key={annotation.id}
-                x={projectX(left)}
-                y={projectY(top)}
-                width={`${width * 100}%`}
-                height={`${height * 100}%`}
-                fill="rgba(110, 231, 183, 0.14)"
-                stroke="#6ee7b7"
-                strokeWidth="1.5"
-                rx="6"
-              />
-            );
-          }
+          // Handles para redimensionado (solo si está activa)
+          const handles = () => {
+            if (!isActive) return null;
+            
+            const getHandlePos = (x: number, y: number) => ({
+              cx: projectX(x),
+              cy: projectY(y),
+              r: 4,
+              fill: "#ffffff",
+              stroke: "#fbbf24",
+              strokeWidth: 1.5
+            });
 
-          return null;
+            if (annotation.type === "horizontal") {
+              return (
+                <>
+                  {/* Handle izquierdo (solo Y editable) */}
+                  {annotation.y1 !== undefined && (
+                    <circle 
+                      {...getHandlePos(0, annotation.y1)} 
+                      onMouseDown={e => handleHandleMouseDown(e, annotation.id, 'start')}
+                      cursor="row-resize"
+                    />
+                  )}
+                  {/* Handle derecho (solo Y editable) */}
+                  {annotation.y2 !== undefined && (
+                    <circle 
+                      {...getHandlePos(1, annotation.y2)} 
+                      onMouseDown={e => handleHandleMouseDown(e, annotation.id, 'end')}
+                      cursor="row-resize"
+                    />
+                  )}
+                </>
+              );
+            }
+
+            if (annotation.type === "trend" || annotation.type === "zone") {
+              return (
+                <>
+                  {annotation.x1 !== undefined && annotation.y1 !== undefined && (
+                    <circle 
+                      {...getHandlePos(annotation.x1, annotation.y1)} 
+                      onMouseDown={e => handleHandleMouseDown(e, annotation.id, 'start')}
+                      cursor="pointer"
+                    />
+                  )}
+                  {annotation.x2 !== undefined && annotation.y2 !== undefined && (
+                    <circle 
+                      {...getHandlePos(annotation.x2, annotation.y2)} 
+                      onMouseDown={e => handleHandleMouseDown(e, annotation.id, 'end')}
+                      cursor="pointer"
+                    />
+                  )}
+                </>
+              );
+            }
+            
+            return null;
+          };
+
+          return (
+            <g key={annotation.id}>
+              {baseElement()}
+              {handles()}
+            </g>
+          );
         })}
-
+        
+        {/* Punto de borrador (igual que antes) */}
         {draftPoint && activeTool !== "horizontal" && (
           <circle
             cx={projectX(draftPoint.x)}
             cy={projectY(draftPoint.y)}
             r="4"
             fill="#ffffff"
-            opacity="0.9"
+            opacity={0.9}
           />
         )}
       </svg>

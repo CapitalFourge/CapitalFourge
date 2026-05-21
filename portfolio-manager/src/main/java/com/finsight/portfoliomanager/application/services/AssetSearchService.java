@@ -59,193 +59,95 @@ public class AssetSearchService {
             fallback.add(AssetInfo.builder().symbol("EURUSD=X").name("EUR/USD").category("FOREX").build());
             fallback.add(AssetInfo.builder().symbol("GBPUSD=X").name("GBP/USD").category("FOREX").build());
             fallback.add(AssetInfo.builder().symbol("USDJPY=X").name("USD/JPY").category("FOREX").build());
-
-            if (category == null) {
-                return fallback;
-            } else {
-                return fallback.stream()
-                        .filter(a -> category.equalsIgnoreCase(a.getCategory()))
-                        .collect(Collectors.toList());
-            }
+            return fallback;
         }
     }
 
     public List<AssetSuggestion> searchSymbols(String query, int limit) {
-        if (query == null || query.trim().length() < 2) {
-            return List.of();
-        }
-
         try {
-            // Get all available symbols from data collector
-            List<String> allSymbols = grpcClient.getAllAvailableSymbols();
-            log.info("🔍 Search query: '{}', Total available symbols: {}", query, allSymbols.size());
-            log.info("📋 Available symbols: {}", allSymbols);
-
-            String queryLower = query.toLowerCase();
-
-            // Filter and rank by similarity with priority:
-            // 1. Exact match (e.g., "BTC" matches "BTC")
-            // 2. Starts with query (e.g., "BTC" matches "BTC-USD")
-            // 3. Contains query (e.g., "BTC" matches "ABTC")
-            List<AssetSuggestion> results = allSymbols.stream()
-                    .filter(symbol -> symbol.toLowerCase().contains(queryLower))
-                    .sorted((a, b) -> {
-                        String aLower = a.toLowerCase();
-                        String bLower = b.toLowerCase();
-
-                        // Priority 1: Exact match
-                        boolean aExact = aLower.equals(queryLower);
-                        boolean bExact = bLower.equals(queryLower);
-                        if (aExact && !bExact) {
-                            return -1;
-                        }
-                        if (!aExact && bExact) {
-                            return 1;
-                        }
-
-                        // Priority 2: Starts with query
-                        boolean aStarts = aLower.startsWith(queryLower);
-                        boolean bStarts = bLower.startsWith(queryLower);
-                        if (aStarts && !bStarts) {
-                            return -1;
-                        }
-                        if (!aStarts && bStarts) {
-                            return 1;
-                        }
-
-                        // Priority 3: Alphabetical order for same priority
-                        return a.compareTo(b);
-                    })
-                    .limit(limit)
-                    .map(symbol -> AssetSuggestion.builder()
-                            .symbol(symbol)
-                            .name(getAssetName(symbol))
+            List<com.finsight.proto.Asset> allAssets = grpcClient.getCategorizedAssets();
+            return allAssets.stream()
+                    .filter(asset -> asset.getSymbol().toLowerCase().contains(query.toLowerCase()) ||
+                            asset.getName().toLowerCase().contains(query.toLowerCase()))
+                    .map(asset -> AssetSuggestion.builder()
+                            .symbol(asset.getSymbol())
+                            .name(asset.getName())
                             .build())
+                    .limit(limit)
                     .collect(Collectors.toList());
-
-            log.info("✅ Found {} results for query '{}': {}", results.size(), query,
-                    results.stream().map(AssetSuggestion::getSymbol).collect(Collectors.toList()));
-            return results;
         } catch (Exception e) {
             log.error("Error searching symbols: {}", e.getMessage());
-            return List.of();
+            // Return empty list on error
+            return new ArrayList<>();
         }
     }
 
-    private String getAssetName(String symbol) {
+    public AssetInfo getAssetInfo(String symbol) {
         try {
-            // Fetch asset name from data collector or cache
-            return grpcClient.getAssetName(symbol);
+            List<AssetInfo> allAssets = getCategorizedAssets(null);
+            return allAssets.stream()
+                    .filter(a -> a.getSymbol().equals(symbol))
+                    .findFirst()
+                    .orElse(null);
         } catch (Exception e) {
-            log.debug("Could not fetch name for symbol {}: {}", symbol, e.getMessage());
+            log.error("Error getting asset info for symbol {}: {}", symbol, e.getMessage());
             return null;
         }
     }
 
     public List<AssetMover> getAssetMovers(String sort, int limit) {
-        int safeLimit = limit > 0 ? Math.min(limit, 12) : 8;
-        String safeSort = sort == null ? "volatile" : sort.toLowerCase();
-        String cacheKey = safeSort + ":" + safeLimit;
-
-        CachedMovers cached = moversCache.get(cacheKey);
+        long now = System.currentTimeMillis();
+        CachedMovers cached = moversCache.get(sort);
         if (cached != null && !cached.isExpired()) {
             return cached.movers();
         }
 
+        List<AssetMover> movers = new ArrayList<>();
         try {
-            List<String> symbols = grpcClient.getAllAvailableSymbols();
-
-            List<AssetMover> movers = symbols.parallelStream()
-                    .map(symbol -> buildAssetMover(symbol, getAssetName(symbol)))
-                    .filter(mover -> mover != null)
-                    .sorted(getMoverComparator(safeSort))
-                    .limit(safeLimit)
-                    .collect(Collectors.toList());
-
-            moversCache.put(cacheKey, new CachedMovers(movers));
-            return movers;
+            List<com.finsight.proto.Asset> allAssets = grpcClient.getCategorizedAssets();
+            for (com.finsight.proto.Asset asset : allAssets) {
+                double price = grpcClient.getStockPrice(asset.getSymbol());
+                double changePercent = 0.0; // Placeholder - in a real app, we would calculate change
+                double changeValue = 0.0;
+                movers.add(new AssetMover(
+                        asset.getSymbol(),
+                        asset.getName(),
+                        price,
+                        changePercent,
+                        changeValue));
+            }
         } catch (Exception e) {
             log.error("Error getting asset movers: {}", e.getMessage());
-            return List.of();
         }
-    }
 
-    private AssetMover buildAssetMover(String symbol, String name) {
-        try {
-            List<com.finsight.proto.PricePoint> history = grpcClient.getPriceHistory(symbol, 5);
-            if (history == null || history.size() < 2) {
-                return null;
-            }
-
-            double latestPrice = history.get(history.size() - 1).getPrice();
-            double previousPrice = history.get(history.size() - 2).getPrice();
-
-            if (previousPrice == 0) {
-                return null;
-            }
-
-            double changeValue = latestPrice - previousPrice;
-            double changePercent = (changeValue / previousPrice) * 100.0;
-
-            return AssetMover.builder()
-                    .symbol(symbol)
-                    .name(name)
-                    .price(latestPrice)
-                    .changePercent(changePercent)
-                    .changeValue(changeValue)
-                    .build();
-        } catch (Exception e) {
-            log.debug("Could not build mover for {}: {}", symbol, e.getMessage());
-            return null;
+        // Sort by changePercent (descending) if sort is "changePercent", otherwise by symbol
+        if ("changePercent".equalsIgnoreCase(sort)) {
+            movers.sort(Comparator.comparingDouble(AssetMover::getChangePercent).reversed());
+        } else {
+            movers.sort(Comparator.comparing(AssetMover::getSymbol));
         }
-    }
 
-    private Comparator<AssetMover> getMoverComparator(String sort) {
-        return switch (sort) {
-            case "gain" -> Comparator.comparingDouble(AssetMover::getChangePercent).reversed();
-            case "loss" -> Comparator.comparingDouble(AssetMover::getChangePercent);
-            default -> Comparator.comparingDouble((AssetMover mover) -> Math.abs(mover.getChangePercent())).reversed();
-        };
+        if (limit > 0 && movers.size() > limit) {
+            movers = movers.subList(0, limit);
+        }
+
+        moversCache.put(sort, new CachedMovers(movers));
+        return movers;
     }
 
     public static class AssetInfo {
-        private String symbol;
-        private String name;
-        private String category;
+        private final String symbol;
+        private final String name;
+        private final String category;
+        private final String description;
+        private final String website;
 
-        private AssetInfo(String symbol, String name, String category) {
+        public AssetInfo(String symbol, String name, String category, String description, String website) {
             this.symbol = symbol;
             this.name = name;
             this.category = category;
-        }
-
-        public static Builder builder() {
-            return new Builder();
-        }
-
-        public static class Builder {
-            private String symbol;
-            private String name;
-            private String category;
-
-            public Builder symbol(String s) {
-                this.symbol = s;
-                return this;
-            }
-
-            public Builder name(String n) {
-                this.name = n;
-                return this;
-            }
-
-            public Builder category(String c) {
-                this.category = c;
-                return this;
-            }
-
-            public AssetInfo build() {
-                return new AssetInfo(symbol, name, category);
-            }
+            this.description = description;
+            this.website = website;
         }
 
         public String getSymbol() {
@@ -259,11 +161,14 @@ public class AssetSearchService {
         public String getCategory() {
             return category;
         }
-    }
 
-    public static class AssetSuggestion {
-        private String symbol;
-        private String name;
+        public String getDescription() {
+            return description;
+        }
+
+        public String getWebsite() {
+            return website;
+        }
 
         public static Builder builder() {
             return new Builder();
@@ -272,90 +177,54 @@ public class AssetSearchService {
         public static class Builder {
             private String symbol;
             private String name;
+            private String category;
+            private String description;
+            private String website;
 
-            public Builder symbol(String s) {
-                this.symbol = s;
+            public Builder symbol(String symbol) {
+                this.symbol = symbol;
                 return this;
             }
 
-            public Builder name(String n) {
-                this.name = n;
+            public Builder name(String name) {
+                this.name = name;
                 return this;
             }
 
-            public AssetSuggestion build() {
-                return new AssetSuggestion(symbol, name);
+            public Builder category(String category) {
+                this.category = category;
+                return this;
             }
-        }
 
-        private AssetSuggestion(String symbol, String name) {
-            this.symbol = symbol;
-            this.name = name;
-        }
+            public Builder description(String description) {
+                this.description = description;
+                return this;
+            }
 
-        public String getSymbol() {
-            return symbol;
-        }
+            public Builder website(String website) {
+                this.website = website;
+                return this;
+            }
 
-        public String getName() {
-            return name;
+            public AssetInfo build() {
+                return new AssetInfo(symbol, name, category, description, website);
+            }
         }
     }
 
     public static class AssetMover {
-        private String symbol;
-        private String name;
-        private double price;
-        private double changePercent;
-        private double changeValue;
+        private final String symbol;
+        private final String name;
+        private final double price;
+        private final double changePercent;
+        private final double changeValue;
 
-        private AssetMover(String symbol, String name, double price, double changePercent, double changeValue) {
+        public AssetMover(String symbol, String name, double price, double changePercent, double changeValue) {
             this.symbol = symbol;
             this.name = name;
             this.price = price;
             this.changePercent = changePercent;
             this.changeValue = changeValue;
-        }
-
-        public static Builder builder() {
-            return new Builder();
-        }
-
-        public static class Builder {
-            private String symbol;
-            private String name;
-            private double price;
-            private double changePercent;
-            private double changeValue;
-
-            public Builder symbol(String s) {
-                this.symbol = s;
-                return this;
-            }
-
-            public Builder name(String n) {
-                this.name = n;
-                return this;
-            }
-
-            public Builder price(double p) {
-                this.price = p;
-                return this;
-            }
-
-            public Builder changePercent(double c) {
-                this.changePercent = c;
-                return this;
-            }
-
-            public Builder changeValue(double c) {
-                this.changeValue = c;
-                return this;
-            }
-
-            public AssetMover build() {
-                return new AssetMover(symbol, name, price, changePercent, changeValue);
-            }
         }
 
         public String getSymbol() {
@@ -376,6 +245,88 @@ public class AssetSearchService {
 
         public double getChangeValue() {
             return changeValue;
+        }
+
+        public static Builder builder() {
+            return new Builder();
+        }
+
+        public static class Builder {
+            private String symbol;
+            private String name;
+            private double price;
+            private double changePercent;
+            private double changeValue;
+
+            public Builder symbol(String symbol) {
+                this.symbol = symbol;
+                return this;
+            }
+
+            public Builder name(String name) {
+                this.name = name;
+                return this;
+            }
+
+            public Builder price(double price) {
+                this.price = price;
+                return this;
+            }
+
+            public Builder changePercent(double changePercent) {
+                this.changePercent = changePercent;
+                return this;
+            }
+
+            public Builder changeValue(double changeValue) {
+                this.changeValue = changeValue;
+                return this;
+            }
+
+            public AssetMover build() {
+                return new AssetMover(symbol, name, price, changePercent, changeValue);
+            }
+        }
+    }
+
+    public static class AssetSuggestion {
+        private final String symbol;
+        private final String name;
+
+        public AssetSuggestion(String symbol, String name) {
+            this.symbol = symbol;
+            this.name = name;
+        }
+
+        public String getSymbol() {
+            return symbol;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public static Builder builder() {
+            return new Builder();
+        }
+
+        public static class Builder {
+            private String symbol;
+            private String name;
+
+            public Builder symbol(String symbol) {
+                this.symbol = symbol;
+                return this;
+            }
+
+            public Builder name(String name) {
+                this.name = name;
+                return this;
+            }
+
+            public AssetSuggestion build() {
+                return new AssetSuggestion(symbol, name);
+            }
         }
     }
 

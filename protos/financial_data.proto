@@ -18,6 +18,8 @@ message Asset {
   string symbol = 1;
   string name = 2;
   string category = 3;
+  string description = 4;
+  string website = 5;
 }
 
 message CategorizedAssetsResponse {
@@ -48,8 +50,58 @@ message HistoryRequest {
 }
 
 message PricePoint {
-  double price = 1;
-  string date = 2;
+  double open = 1;
+  double high = 2;
+  double low = 3;
+  double close = 4;
+  double volume = 5;
+  string date = 6;
+  double market_cap = 7;
+  double trailing_pe = 8;
+  double forward_pe = 9;
+  double peg_ratio = 10;
+  double price_to_book = 11;
+  double price_to_sales = 12;
+  double enterprise_to_ebitda = 13;
+  double profit_margins = 14;
+  double operating_margins = 15;
+  double return_on_equity = 16;
+  double return_on_assets = 17;
+  double debt_to_equity = 18;
+  double current_ratio = 19;
+  double quick_ratio = 20;
+  double dividend_yield = 21;
+  double free_cash_flow = 22;
+  double circulating_supply = 23;
+  double total_supply = 24;
+  double max_supply = 25;
+  double inflation_rate = 26;
+  double fdv = 27;
+  double active_addresses = 28;
+  double transaction_volume = 29;
+  double transaction_count = 30;
+  double fees_generated = 31;
+  double tvl = 32;
+  double hash_rate = 33;
+  double staking_ratio = 34;
+  double nakamoto_coefficient = 35;
+  double order_book_depth = 36;
+  double developer_activity = 37;
+  double user_growth = 38;
+  double revenue = 39;
+  double price_to_fees_ratio = 40;
+  double bitcoin_dominance = 41;
+  double fear_greed_index = 42;
+  double inventory_levels = 43;
+  double cost_of_production = 44;
+  double all_in_sustaining_cost = 45;
+  double reserve_replacement_ratio = 46;
+  double contango_backwardation = 47;
+  double dollar_index_exposure = 48;
+  double inflation_correlation = 49;
+  double opec_spare_capacity = 50;
+  double chinese_demand_index = 51;
+  double weather_index = 52;
 }
 
 message HistoryResponse {

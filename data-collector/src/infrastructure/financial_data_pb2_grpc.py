@@ -5,7 +5,7 @@ import warnings
 
 import financial_data_pb2 as financial__data__pb2
 
-GRPC_GENERATED_VERSION = '1.76.0'
+GRPC_GENERATED_VERSION = '1.80.0'
 GRPC_VERSION = grpc.__version__
 _version_not_supported = False
 
@@ -54,6 +54,11 @@ class FinancialDataServiceStub(object):
                 request_serializer=financial__data__pb2.EmptyRequest.SerializeToString,
                 response_deserializer=financial__data__pb2.SymbolsResponse.FromString,
                 _registered_method=True)
+        self.GetCategorizedAssets = channel.unary_unary(
+                '/financial.FinancialDataService/GetCategorizedAssets',
+                request_serializer=financial__data__pb2.EmptyRequest.SerializeToString,
+                response_deserializer=financial__data__pb2.CategorizedAssetsResponse.FromString,
+                _registered_method=True)
 
 
 class FinancialDataServiceServicer(object):
@@ -83,6 +88,12 @@ class FinancialDataServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def GetCategorizedAssets(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_FinancialDataServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -105,6 +116,11 @@ def add_FinancialDataServiceServicer_to_server(servicer, server):
                     servicer.GetAvailableSymbols,
                     request_deserializer=financial__data__pb2.EmptyRequest.FromString,
                     response_serializer=financial__data__pb2.SymbolsResponse.SerializeToString,
+            ),
+            'GetCategorizedAssets': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetCategorizedAssets,
+                    request_deserializer=financial__data__pb2.EmptyRequest.FromString,
+                    response_serializer=financial__data__pb2.CategorizedAssetsResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -215,6 +231,33 @@ class FinancialDataService(object):
             '/financial.FinancialDataService/GetAvailableSymbols',
             financial__data__pb2.EmptyRequest.SerializeToString,
             financial__data__pb2.SymbolsResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetCategorizedAssets(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/financial.FinancialDataService/GetCategorizedAssets',
+            financial__data__pb2.EmptyRequest.SerializeToString,
+            financial__data__pb2.CategorizedAssetsResponse.FromString,
             options,
             channel_credentials,
             insecure,

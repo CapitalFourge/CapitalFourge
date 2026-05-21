@@ -131,6 +131,19 @@ public class PortfolioGraphQLController {
         return technicalAnalysisService.getIndicators(symbol, days);
     }
 
+    @QueryMapping
+    public com.finsight.proto.Asset asset(@Argument("symbol") String symbol) {
+        com.finsight.portfoliomanager.application.services.AssetSearchService.AssetInfo info = assetSearchService.getAssetInfo(symbol);
+        if (info == null) {
+            return null;
+        }
+        return com.finsight.proto.Asset.newBuilder()
+                .setSymbol(info.getSymbol())
+                .setName(info.getName())
+                .setCategory(info.getCategory())
+                .build();
+    }
+
     @MutationMapping
     public Portfolio createPortfolio(@Argument("name") String name, @Argument("description") String description,
             @AuthenticationPrincipal UUID userId) {

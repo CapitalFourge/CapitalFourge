@@ -84,6 +84,8 @@ type Asset {
   symbol: String!
   name: String
   category: String
+  description: String
+  website: String
 }
 
 type AssetMover {
@@ -127,11 +129,13 @@ type Query {
   technicalIndicators(symbol: String!, days: Int!): [IndicatorSeries!]!
   leaderboard: [Portfolio]
   sharedPortfolio(slug: String!): Portfolio
+  asset(symbol: String!): Asset
 }
 
 type PricePoint {
   price: Float!
   date: String!
+  volume: Float
 }
 extend type Query {
   priceHistory(symbol: String!, days: Int!): [PricePoint]

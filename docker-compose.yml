@@ -58,6 +58,7 @@ services:
             - DB_MONGO_HOST=mongodb
             - DB_REDIS_HOST=redis
             - DB_REDIS_PASSWORD=${DB_REDIS_PASSWORD}
+            - EIA_API_KEY=Ps3dC17c5iZXwERmnwb4HxIOMkFRaSIeLGk6BdtX
         depends_on:
             mongodb:
                 condition: service_healthy

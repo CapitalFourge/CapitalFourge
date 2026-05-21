@@ -35,6 +35,7 @@ const DASHBOARD_QUERY = gql`
       price
       changePercent
       changeValue
+      volume
     }
   }
 `;
@@ -59,6 +60,7 @@ interface AssetMover {
   price: number;
   changePercent: number;
   changeValue: number;
+  volume: number;
 }
 
 const container = {
@@ -84,6 +86,11 @@ const formatCurrency = (value: number) =>
 
 const formatSignedPercent = (value: number) => `${value >= 0 ? "+" : ""}${value.toFixed(2)}%`;
 const formatSignedCurrency = (value: number) => `${value >= 0 ? "+" : "-"}$${formatCurrency(Math.abs(value))}`;
+const formatMetricVolume = (value: number) =>
+  value.toLocaleString("en-US", {
+    minimumFractionDigits: value >= 100 ? 0 : 2,
+    maximumFractionDigits: value >= 100 ? 0 : 2,
+  });
 
 export default function DashboardPage() {
   const [volatilitySort, setVolatilitySort] = useState<"volatile" | "gain" | "loss">("volatile");
@@ -176,13 +183,13 @@ export default function DashboardPage() {
             <div className="flex flex-col items-stretch gap-3 xl:items-end">
               <div className="flex flex-wrap items-center gap-3">
                 <CashActionDialog initialType="deposit">
-                  <Button className="h-11 rounded-full bg-transparent px-5 text-sm font-semibold text-emerald-300 shadow-none hover:bg-emerald-400/10 hover:text-emerald-200">
+                  <Button className="h-11 rounded-full border border-emerald-300/30 bg-emerald-300/8 px-5 text-sm font-semibold text-emerald-200 shadow-[0_0_0_1px_rgba(110,231,183,0.08)] hover:bg-emerald-400/14 hover:text-emerald-100">
                     <RefreshCcw className="h-4 w-4" />
                     Recarga
                   </Button>
                 </CashActionDialog>
                 <CashActionDialog initialType="withdraw">
-                  <Button className="h-11 rounded-full bg-transparent px-5 text-sm font-semibold text-rose-300 shadow-none hover:bg-rose-400/10 hover:text-rose-200">
+                  <Button className="h-11 rounded-full border border-rose-300/30 bg-rose-300/8 px-5 text-sm font-semibold text-rose-200 shadow-[0_0_0_1px_rgba(251,113,133,0.08)] hover:bg-rose-400/14 hover:text-rose-100">
                     <Wallet className="h-4 w-4" />
                     Retiro
                   </Button>
@@ -219,7 +226,7 @@ export default function DashboardPage() {
         </div>
       </motion.section>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_360px]">
+      <div className="space-y-6">
         <motion.div variants={item}>
           <section className="panel p-6">
             <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
@@ -291,90 +298,88 @@ export default function DashboardPage() {
           </section>
         </motion.div>
 
-        <motion.aside variants={item} className="space-y-6">
-          <section className="panel p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="eyebrow">Volatilidad</p>
-                <h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-white">Activos mas volatiles</h2>
-              </div>
-              <TrendingUp className="h-5 w-5 text-slate-500" />
+        <motion.section variants={item} className="panel p-6">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <p className="eyebrow">Volatilidad</p>
+              <h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-white">Activos mas volatiles</h2>
+              <p className="mt-2 max-w-2xl text-sm text-slate-400">
+                Sigue los instrumentos con mayor desplazamiento reciente junto con su actividad operada para entender por que dominan el flujo.
+              </p>
             </div>
+            <TrendingUp className="h-5 w-5 text-slate-500" />
+          </div>
 
-            <div className="mt-5 flex flex-wrap gap-2">
-              {[
-                { value: "volatile", label: "Mas volatiles" },
-                { value: "gain", label: "Ganancias" },
-                { value: "loss", label: "Perdidas" },
-              ].map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => setVolatilitySort(option.value as typeof volatilitySort)}
-                  className={
-                    volatilitySort === option.value
-                      ? "rounded-full bg-emerald-300/15 px-3 py-1.5 text-xs font-medium text-emerald-200"
-                      : "rounded-full px-3 py-1.5 text-xs font-medium text-slate-400 transition hover:bg-white/5 hover:text-white"
-                  }
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
+          <div className="mt-5 flex flex-wrap gap-2">
+            {[
+              { value: "volatile", label: "Mas volatiles" },
+              { value: "gain", label: "Ganancias" },
+              { value: "loss", label: "Perdidas" },
+            ].map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => setVolatilitySort(option.value as typeof volatilitySort)}
+                className={
+                  volatilitySort === option.value
+                    ? "rounded-full border border-emerald-300/20 bg-emerald-300/15 px-3 py-1.5 text-xs font-medium text-emerald-200"
+                    : "rounded-full border border-transparent px-3 py-1.5 text-xs font-medium text-slate-400 transition hover:border-white/8 hover:bg-white/5 hover:text-white"
+                }
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
 
-            <div className="mt-5 space-y-2">
-              {volatileAssets.map((asset) => (
-                <div
-                  key={asset.symbol}
-                  className="rounded-[1.1rem] border border-white/8 bg-slate-950/25 px-4 py-3 transition hover:bg-white/[0.04]"
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-medium text-white">{asset.symbol}</p>
-                      <p className="mt-1 text-xs text-slate-500">{asset.name || "Activo monitoreado"}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-medium text-white">${formatCurrency(asset.price)}</p>
-                      <p
-                        className={
-                          asset.changePercent >= 0
-                            ? "mt-1 text-sm font-semibold text-emerald-300"
-                            : "mt-1 text-sm font-semibold text-rose-300"
-                        }
-                      >
-                        {formatSignedPercent(asset.changePercent)}
-                      </p>
-                      <p className="mt-1 text-xs text-slate-500">{formatSignedCurrency(asset.changeValue)}</p>
-                    </div>
+          <div className="mt-6 grid gap-3 lg:grid-cols-2">
+            {volatileAssets.map((asset) => (
+              <div
+                key={asset.symbol}
+                className="rounded-[1.25rem] border border-white/8 bg-slate-950/25 px-5 py-4 transition hover:bg-white/[0.04]"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="text-base font-semibold text-white">{asset.symbol}</p>
+                    <p className="mt-1 truncate text-sm text-slate-500">{asset.name || "Activo monitoreado"}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-base font-semibold text-white">${formatCurrency(asset.price)}</p>
+                    <p
+                      className={
+                        asset.changePercent >= 0
+                          ? "mt-1 text-base font-semibold text-emerald-300"
+                          : "mt-1 text-base font-semibold text-rose-300"
+                      }
+                    >
+                      {formatSignedPercent(asset.changePercent)}
+                    </p>
+                    <p className="mt-1 text-sm text-slate-500">{formatSignedCurrency(asset.changeValue)}</p>
                   </div>
                 </div>
-              ))}
-              {volatileAssets.length === 0 && (
-                <div className="rounded-[1.1rem] border border-dashed border-white/10 bg-slate-950/25 px-4 py-6 text-sm text-slate-400">
-                  No hay suficientes datos de mercado para calcular volatilidad ahora mismo.
-                </div>
-              )}
-            </div>
-          </section>
 
-          <section className="panel p-5">
-            <p className="eyebrow">Estado de mercado</p>
-            <div className="mt-5 space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-400">Liquidez intradia</span>
-                <span className="rounded-full bg-emerald-300/12 px-3 py-1 text-sm text-emerald-200">Alta</span>
+                <div className="mt-4 grid gap-3 border-t border-white/8 pt-3 sm:grid-cols-2">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500">Volumen operado</p>
+                    <p className="mt-1 text-sm font-medium text-slate-200">{formatMetricVolume(asset.volume)}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500">Lectura</p>
+                    <p className="mt-1 text-sm text-slate-300">
+                      {asset.volume > 0
+                        ? "Movimiento respaldado por actividad transaccional."
+                        : "Alta variacion con poca actividad interna registrada."}
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-400">Volatilidad agregada</span>
-                <span className="rounded-full bg-amber-300/12 px-3 py-1 text-sm text-amber-200">Media</span>
+            ))}
+            {volatileAssets.length === 0 && (
+              <div className="rounded-[1.1rem] border border-dashed border-white/10 bg-slate-950/25 px-4 py-6 text-sm text-slate-400 lg:col-span-2">
+                No hay suficientes datos de mercado para calcular volatilidad ahora mismo.
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-400">Cobertura</span>
-                <span className="rounded-full bg-sky-300/12 px-3 py-1 text-sm text-sky-200">Multi-activo</span>
-              </div>
-            </div>
-          </section>
-        </motion.aside>
+            )}
+          </div>
+        </motion.section>
       </div>
     </motion.div>
   );

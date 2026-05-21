@@ -28,6 +28,12 @@ public class RedisMetricAdapter implements MetricRepository {
     }
 
     @Override
+    public Double getAssetVolume(String symbol) {
+        Double score = redisTemplate.opsForZSet().score(ASSET_TRENDS_KEY, symbol);
+        return score != null ? score : 0.0;
+    }
+
+    @Override
     public Map<String, Double> getTrendingAssets(int topN) {
         Set<TypedTuple<String>> results = redisTemplate.opsForZSet()
                 .reverseRangeWithScores(ASSET_TRENDS_KEY, 0, topN - 1);

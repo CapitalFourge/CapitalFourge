@@ -7,15 +7,8 @@ import { motion } from "framer-motion";
 import { ArrowLeft, ExternalLink, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TradeDialog } from "@/components/trading/trade-dialog";
-import { IndicatorSelector } from "@/components/trading/indicator-selector";
 import { TradingViewChart } from "@/components/trading/tradingview-chart";
 import { LiquidityHeatmap } from "@/components/trading/liquidity-heatmap";
-import { IndicatorData } from "@/lib/indicatorTypes";
-import {
-  FUNDAMENTAL_METRIC_CATALOG,
-  type FundamentalCategory,
-  type FundamentalMetricDefinition,
-} from "@/lib/fundamental-metric-catalog";
 
 const ASSET_DATA_QUERY = gql`
   query GetAssetData($symbol: String!) {
@@ -79,31 +72,6 @@ const ASSET_DATA_QUERY = gql`
       opecSpareCapacity
       chineseDemandIndex
       weatherIndex
-    }
-    technicalIndicators(symbol: $symbol, days: 365) {
-      id
-      type
-      points {
-        date
-        value
-        signal
-        histogram
-        upper
-        middle
-        lower
-        k
-        d
-      }
-    }
-    portfolios {
-      id
-      name
-      positions {
-        symbol
-        quantity
-        averagePurchasePrice
-        currentPrice
-      }
     }
   }
 `;
@@ -239,10 +207,6 @@ function aggregateCandles<
 
 export default function AssetDetailPage() {
   const { symbol } = useParams<{ symbol: string }>();
-  const [selectedDays, setSelectedDays] = useState(30);
-  const [selectedIndicators, setSelectedIndicators] = useState<string[]>([]);
-  const [chartType, setChartType] = useState<ChartType>("candles");
-  const [candleTimeframe, setCandleTimeframe] = useState<CandleTimeframe>("1D");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [dialogType, setDialogType] = useState<'buy' | 'sell'>('buy');
 
@@ -252,102 +216,25 @@ export default function AssetDetailPage() {
   });
   const asset = data?.asset;
   const priceHistory = data?.priceHistory || [];
-  const technicalIndicators = data?.technicalIndicators || [];
   const portfolios = data?.portfolios || [];
   const latestFundamental = priceHistory[priceHistory.length - 1] as FundamentalPricePoint | undefined;
 
-  const fullChartData = useMemo(
-    () =>
-      priceHistory
-        .map((point: FundamentalPricePoint) => ({
-          date: point.date,
-          open: point.open || point.close,
-          high: point.high || point.close,
-          low: point.low || point.close,
-          close: point.close,
-          volume: point.volume || 0,
-        }))
-        .filter((point: { date: string; close: number }) => !Number.isNaN(Date.parse(point.date)) && point.close > 0),
-    [priceHistory]
-  );
+  // Process price history for stats and fundamentals
+  const fullChartData = useMemo(() => {
+    return priceHistory
+      .map((point: FundamentalPricePoint) => ({
+        date: point.date,
+        open: point.open || point.close,
+        high: point.high || point.close,
+        low: point.low || point.close,
+        close: point.close,
+        volume: point.volume || 0,
+      }))
+      .filter((point: { date: string; close: number }) => !Number.isNaN(Date.parse(point.date)) && point.close > 0);
+  }, [priceHistory]);
 
-  const visibleDailyChartData = useMemo(() => {
-    if (selectedDays >= 365 || fullChartData.length <= 2) {
-      return fullChartData;
-    }
-
-    const pointsToKeep = selectedDays === 1 ? 2 : Math.min(fullChartData.length, selectedDays);
-    return fullChartData.slice(-pointsToKeep);
-  }, [fullChartData, selectedDays]);
-
-  const chartData = useMemo(
-    () => aggregateCandles(visibleDailyChartData, candleTimeframe),
-    [visibleDailyChartData, candleTimeframe]
-  );
-  const latestDailyPoint = visibleDailyChartData[visibleDailyChartData.length - 1];
-  const previousDailyPoint = visibleDailyChartData[visibleDailyChartData.length - 2];
-
-  // Calculate technical indicators
-  const indicatorsData = useMemo(() => {
-    if (visibleDailyChartData.length === 0 || selectedIndicators.length === 0 || candleTimeframe !== "1D") return [];
-
-    const visibleDates = new Set(visibleDailyChartData.map((point: { date: string }) => point.date));
-
-    return selectedIndicators
-      .map((indicatorId) => {
-        const series = technicalIndicators.find((entry: { id: string }) => entry.id === indicatorId);
-        if (!series) {
-          return null;
-        }
-
-        return {
-          id: series.id,
-          type: series.type as IndicatorData["type"],
-          data: series.points
-            .filter((point: { date: string }) => visibleDates.has(point.date))
-            .map((point: {
-              date: string;
-              value?: number | null;
-              signal?: number | null;
-              histogram?: number | null;
-              upper?: number | null;
-              middle?: number | null;
-              lower?: number | null;
-              k?: number | null;
-              d?: number | null;
-            }) => {
-              switch (series.id) {
-                case "macd":
-                  return {
-                    date: point.date,
-                    macd: point.value ?? 0,
-                    signal: point.signal ?? 0,
-                    histogram: point.histogram ?? 0,
-                  };
-                case "bollinger":
-                  return {
-                    date: point.date,
-                    upper: point.upper ?? 0,
-                    middle: point.middle ?? 0,
-                    lower: point.lower ?? 0,
-                  };
-                case "stochastic":
-                  return {
-                    date: point.date,
-                    stochastick: point.k ?? 0,
-                    stochastics: point.d ?? 0,
-                  };
-                default:
-                  return {
-                    date: point.date,
-                    [series.id]: point.value ?? 0,
-                  };
-              }
-            }),
-        };
-      })
-      .filter((indicator): indicator is IndicatorData => indicator !== null);
-  }, [visibleDailyChartData, selectedIndicators, technicalIndicators, candleTimeframe]);
+  const latestDailyPoint = fullChartData[fullChartData.length - 1];
+  const previousDailyPoint = fullChartData[fullChartData.length - 2];
 
   // Find user's position in this asset
   const userPosition = useMemo(() => {
@@ -547,121 +434,20 @@ export default function AssetDetailPage() {
 
         {/* Price Chart */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-semibold text-white">Historial de precios</h2>
-            <div className="flex flex-wrap items-center gap-3">
-              <Button 
-                variant="outline" 
-                onClick={() => setSelectedDays(1)}
-                className={selectedDays === 1 ? 'bg-emerald-500/20 text-emerald-400' : 'text-slate-300 hover:bg-slate-50/50'}
-              >
-                1D
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => setSelectedDays(7)}
-                className={selectedDays === 7 ? 'bg-emerald-500/20 text-emerald-400' : 'text-slate-300 hover:bg-slate-50/50'}
-              >
-                1W
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => setSelectedDays(30)}
-                className={selectedDays === 30 ? 'bg-emerald-500/20 text-emerald-400' : 'text-slate-300 hover:bg-slate-50/50'}
-              >
-                1M
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => setSelectedDays(90)}
-                className={selectedDays === 90 ? 'bg-emerald-500/20 text-emerald-400' : 'text-slate-300 hover:bg-slate-50/50'}
-              >
-                3M
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => setSelectedDays(365)}
-                className={selectedDays === 365 ? 'bg-emerald-500/20 text-emerald-400' : 'text-slate-300 hover:bg-slate-50/50'}
-              >
-                1A
-              </Button>
-            </div>
+          <h2 className="text-2xl font-semibold text-white mb-4">Historial de precios</h2>
+          <div className="h-[400px]">
+            <TradingViewChart
+              symbol={symbol}
+              interval="1D"
+              width="100%"
+              height="100%"
+            />
           </div>
-
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-4 rounded-[1.5rem] border border-white/10 bg-white/[0.03] px-4 py-3">
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.26em] text-slate-500">Visualizacion</p>
-              <p className="mt-1 text-sm text-slate-400">
-                Cambia el tipo de grafico y la compresion de velas segun el horizonte que quieras leer.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="flex flex-wrap gap-2">
-                {([
-                  ["candles", "Velas"],
-                  ["line", "Lineal"],
-                  ["area", "Area"],
-                ] as const).map(([value, label]) => (
-                  <Button
-                    key={value}
-                    variant="outline"
-                    onClick={() => setChartType(value)}
-                    className={chartType === value ? "bg-emerald-500/20 text-emerald-400" : "text-slate-300 hover:bg-slate-50/50"}
-                  >
-                    {label}
-                  </Button>
-                ))}
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                {(["1D", "1W", "1M"] as const).map((value) => (
-                  <Button
-                    key={value}
-                    variant="outline"
-                    onClick={() => setCandleTimeframe(value)}
-                    className={candleTimeframe === value ? "bg-cyan-500/20 text-cyan-300" : "text-slate-300 hover:bg-slate-50/50"}
-                  >
-                    {value}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          </div>
-          
-          {chartData.length > 0 ? (
-            <div className="h-[400px]">
-              <TradingViewChart
-                symbol={symbol}
-                interval={candleTimeframe === "1D" ? "D" : candleTimeframe === "1W" ? "W" : "M"}
-                width="100%"
-                height="100%"
-              />
-            </div>
-          ) : (
-            <div className="flex h-[400px] items-center justify-center rounded-3xl border border-white/10 bg-white/[0.03] text-slate-400">
-              No hay suficientes datos historicos para renderizar la grafica.
-            </div>
-          )}
         </div>
 
+        {/* Analisis fundamental */}
         <div className="mb-8">
-          <IndicatorSelector selectedIndicators={selectedIndicators} onChange={setSelectedIndicators} />
-          {candleTimeframe !== "1D" && selectedIndicators.length > 0 && (
-            <div className="mt-3 rounded-2xl border border-amber-400/15 bg-amber-400/10 px-4 py-3 text-sm text-amber-100">
-              Los indicadores se muestran sobre velas diarias. Para evitar lecturas inconsistentes, se ocultan cuando el
-              timeframe del grafico esta en {candleTimeframe}.
-            </div>
-          )}
-        </div>
-
-        <div className="mb-8">
-          <div className="mb-4">
-            <h2 className="text-2xl font-semibold text-white">Analisis fundamental</h2>
-            <p className="mt-1 text-sm text-slate-400">
-              Sintesis de metricas clave segun la categoria del activo usando el ultimo snapshot fundamental disponible.
-            </p>
-          </div>
+          <h2 className="text-2xl font-semibold text-white mb-4">Analisis fundamental</h2>
           {fundamentalMetrics.length > 0 ? (
             <div className="space-y-5">
               {fundamentalMetrics.map((group) => (
@@ -670,7 +456,7 @@ export default function AssetDetailPage() {
                     <p className="text-[10px] uppercase tracking-[0.26em] text-slate-500">{group.section}</p>
                     <p className="mt-2 text-sm text-slate-400">{group.summary}</p>
                   </div>
-
+                  
                   <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                     {group.metrics.map((metric) => (
                       <div key={metric.id} className="rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-4">
@@ -688,47 +474,6 @@ export default function AssetDetailPage() {
               Aun no hay suficientes datos fundamentales estructurados para este activo.
             </div>
           )}
-        </div>
-
-        <div className="mb-8">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-2xl font-semibold text-white">Mapa de calor de liquidez</h2>
-            <p className="text-sm text-slate-400">Distribucion aproximada de actividad por rango de precios.</p>
-          </div>
-          <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-4">
-            <LiquidityHeatmap data={chartData.map((point) => ({ date: point.date, price: point.close }))} />
-          </div>
-        </div>
-
-        {/* Asset Info */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-semibold text-white mb-4">Información del activo</h2>
-          <div className="space-y-4">
-            <div className="flex items-start gap-4">
-              <Info className="h-4 w-4 text-slate-400 mt-1" />
-              <div>
-                <p className="text-sm font-medium text-slate-300">Descripción</p>
-                <p className="mt-1 text-text">{asset.description || 'No hay descripción disponible para este activo.'}</p>
-              </div>
-            </div>
-            
-            {asset.website && (
-              <div className="flex items-start gap-4">
-                <ExternalLink className="h-4 w-4 text-slate-400 mt-1" />
-                <div>
-                  <p className="text-sm font-medium text-slate-300">Sitio web</p>
-                  <a 
-                    href={asset.website} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-sm text-emerald-400 hover:underline"
-                  >
-                    {asset.website}
-                  </a>
-                </div>
-              </div>
-            )}
-          </div>
         </div>
 
         {/* Trading Section */}

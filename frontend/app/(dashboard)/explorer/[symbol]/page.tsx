@@ -636,6 +636,7 @@ export default function AssetDetailPage() {
                 indicators={indicatorsData}
                 chartType={chartType}
                 showPriceArea={true}
+                className="h-full"
               />
             </div>
           ) : (

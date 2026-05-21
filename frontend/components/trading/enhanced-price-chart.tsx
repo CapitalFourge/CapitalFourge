@@ -648,11 +648,11 @@ export function EnhancedPriceChart({
   const isAreaChart = chartType === "area";
 
   return (
-    <div className="relative h-[460px] w-full overflow-hidden rounded-[1.75rem] border border-white/10 bg-slate-950/45 p-4">
+    <div className="relative flex flex-col h-[460px] w-full overflow-hidden rounded-[1.75rem] border border-white/10 bg-slate-950/45">
       <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-[10px] uppercase tracking-[0.28em] text-slate-500">Analisis tecnico y dibujo</p>
-          <p className="mt-2 text-sm text-slate-300">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-300">Analisis tecnico y dibujo</p>
+          <p className="mt-2 text-sm text-slate-400">
             Usa dibujos para marcar estructura, zonas y niveles. El panel esta agrupado por tipo para que no sature la vista.
           </p>
         </div>
@@ -711,9 +711,9 @@ export function EnhancedPriceChart({
         )}
       </div>
 
-      <div className="relative h-[calc(100%-92px)]">
+      <div className="relative flex-1 min-h-0">
         {toolsOpen && (
-          <div className="absolute left-3 top-3 z-20 w-[320px] rounded-[1.5rem] border border-white/10 bg-slate-950/96 p-4 shadow-2xl shadow-black/40">
+          <div className="absolute left-3 top-[48px] z-20 w-[320px] rounded-[1.5rem] border border-white/10 bg-slate-950/96 p-4 shadow-2xl shadow-black/40">
             <div className="mb-4 flex items-center justify-between">
               <div>
                 <p className="text-sm font-semibold text-white">Dibujos</p>
@@ -891,13 +891,13 @@ export function EnhancedPriceChart({
               {isCandleChart && (
                 <>
                   <Bar dataKey="wickBase" stackId="wick" fill="transparent" yAxisId={0} isAnimationActive={false} />
-                  <Bar dataKey="wickSpan" stackId="wick" barSize={2} fill="#94a3b8" yAxisId={0} isAnimationActive={false}>
+                  <Bar dataKey="wickSpan" stackId="wick" barSize={4} fill="#94a3b8" yAxisId={0} isAnimationActive={false}>
                     {chartData.map((point, index) => (
                       <Cell key={`wick-${point.date}-${index}`} fill={point.isBullish ? "#34d399" : "#fb7185"} />
                     ))}
                   </Bar>
                   <Bar dataKey="bodyBase" stackId="body" fill="transparent" yAxisId={0} isAnimationActive={false} />
-                  <Bar dataKey="bodySpan" stackId="body" barSize={8} radius={[2, 2, 2, 2]} yAxisId={0} isAnimationActive={false}>
+                  <Bar dataKey="bodySpan" stackId="body" barSize={10} radius={[3, 3, 3, 3]} yAxisId={0} isAnimationActive={false}>
                     {chartData.map((point, index) => (
                       <Cell key={`body-${point.date}-${index}`} fill={point.isBullish ? "#34d399" : "#fb7185"} />
                     ))}

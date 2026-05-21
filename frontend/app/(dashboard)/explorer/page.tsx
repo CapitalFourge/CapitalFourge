@@ -178,12 +178,6 @@ export default function ExplorerPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="mt-auto space-y-4 px-6 pb-6">
-                    <TradeDialog
-                      portfolios={portfolios}
-                      defaultType="buy"
-                      portfolioPositions={portfolioPositions}
-                      initialSymbol={asset.symbol}
-                    />
                     <Button
                       asChild
                       variant="outline"

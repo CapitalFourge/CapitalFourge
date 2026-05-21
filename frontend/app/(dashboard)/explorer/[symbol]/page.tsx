@@ -210,6 +210,8 @@ export default function AssetDetailPage() {
   const { symbol } = useParams<{ symbol: string }>();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [dialogType, setDialogType] = useState<'buy' | 'sell'>('buy');
+  const [showIndicators, setShowIndicators] = useState<boolean>(false);
+  const [showFundamental, setShowFundamental] = useState<boolean>(false);
 
   const { data, loading, error } = useQuery(ASSET_DATA_QUERY, {
     variables: { symbol: symbol },
@@ -403,22 +405,26 @@ const calculateRSI = (data: FundamentalPricePoint[], period: number): number | n
           <Button 
             variant="default" 
             onClick={() => {
-              setDialogType('buy');
+              setDialogType('analyze');
               setIsDialogOpen(true);
             }}
             className="text-sm px-4 py-2"
           >
-            Comprar
+            Analizar
           </Button>
           <Button 
             variant="outline" 
-            onClick={() => {
-              setDialogType('sell');
-              setIsDialogOpen(true);
-            }}
+            onClick={() => setShowIndicators(!showIndicators)}
             className="text-sm px-4 py-2"
           >
-            Vender
+            Indicadores {showIndicators ? '▲' : '▼'}
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => setShowFundamental(!showFundamental)}
+            className="text-sm px-4 py-2"
+          >
+            Análisis Fundamental {showFundamental ? '▲' : '▼'}
           </Button>
         </div>
       </div>
@@ -729,32 +735,7 @@ const calculateRSI = (data: FundamentalPricePoint[], period: number): number | n
           )}
         </div>
 
-        {/* Trading Section */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-semibold text-white mb-4">Operar</h2>
-          <div className="space-y-4">
-            <Button 
-              variant="default" 
-              onClick={() => {
-                setDialogType('buy');
-                setIsDialogOpen(true);
-              }}
-              className="w-full"
-            >
-              Comprar {asset.symbol}
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setDialogType('sell');
-                setIsDialogOpen(true);
-              }}
-              className="w-full"
-            >
-              Vender {asset.symbol}
-            </Button>
-          </div>
-        </div>
+
       </div>
 
       {/* Trading Dialog */}

@@ -1,0 +1,199 @@
+type User {
+  id: ID!
+  email: String!
+  username: String!
+  role: String!
+  cashBalance: Float!
+  lockedBalance: Float!
+  language: String!
+}
+
+type StockPrice {
+  symbol: String!
+  price: Float!
+}
+
+type Portfolio {
+  id: ID!
+  name: String!
+  description: String
+  userId: ID!
+  positions: [Position]
+  performance: Float!
+  transactions: [Transaction]
+  isPublic: Boolean!
+  shareSlug: String
+}
+
+type Position {
+  id: ID!
+  symbol: String!
+  quantity: Float!
+  averagePurchasePrice: Float!
+  currentPrice: Float!
+}
+
+type Transaction {
+  id: ID!
+  type: String!
+  symbol: String!
+  quantity: Float!
+  price: Float!
+  totalAmount: Float!
+  timestamp: String!
+  balanceTransaction: Float!
+}
+
+enum OrderType {
+  BUY_LIMIT
+  SELL_LIMIT
+}
+
+enum OrderStatus {
+  PENDING
+  FILLED
+  CANCELLED
+  EXPIRED
+  REJECTED
+}
+
+type Order {
+  id: ID!
+  portfolioId: ID!
+  userId: ID!
+  type: OrderType!
+  symbol: String!
+  targetPrice: Float!
+  quantity: Float
+  usdAmount: Float
+  status: OrderStatus!
+  createdAt: String!
+  filledAt: String
+  expiresAt: String!
+  filledPrice: Float
+  filledQuantity: Float
+  rejectionReason: String
+}
+
+type AssetSuggestion {
+  symbol: String!
+  name: String
+}
+
+type Asset {
+  symbol: String!
+  name: String
+  category: String
+}
+
+type AssetMover {
+  symbol: String!
+  name: String
+  price: Float!
+  changePercent: Float!
+  changeValue: Float!
+}
+
+type IndicatorPoint {
+  date: String!
+  value: Float
+  signal: Float
+  histogram: Float
+  upper: Float
+  middle: Float
+  lower: Float
+  k: Float
+  d: Float
+}
+
+type IndicatorSeries {
+  id: String!
+  type: String!
+  points: [IndicatorPoint!]!
+}
+
+type Query {
+  me: User
+  stockPrice(symbol: String!): StockPrice
+  portfolio(id: ID!): Portfolio
+  portfolios: [Portfolio]
+  notifications: [Notification]
+  orders: [Order]
+  ordersByPortfolio(portfolioId: ID!): [Order]
+  order(id: ID!): Order
+  searchSymbols(query: String!, limit: Int): [AssetSuggestion]
+  assetsByCategory(category: String): [Asset]
+  assetMovers(sort: String, limit: Int): [AssetMover]
+  technicalIndicators(symbol: String!, days: Int!): [IndicatorSeries!]!
+  leaderboard: [Portfolio]
+  sharedPortfolio(slug: String!): Portfolio
+}
+
+type PricePoint {
+  price: Float!
+  date: String!
+}
+extend type Query {
+  priceHistory(symbol: String!, days: Int!): [PricePoint]
+}
+
+type Notification {
+  id: ID!
+  message: String!
+  type: String!
+  read: Boolean!
+  timestamp: String!
+}
+
+type AuthResult {
+  token: String!
+  refreshToken: String!
+  user: User!
+}
+type Mutation {
+  login(email: String!, password: String!): AuthResult
+  createPortfolio(name: String!, description: String): Portfolio
+  buyAsset(
+    portfolioId: ID!
+    symbol: String!
+    quantity: Float!
+    price: Float!
+  ): Portfolio
+  sellAsset(
+    portfolioId: ID!
+    symbol: String!
+    quantity: Float!
+    price: Float!
+  ): Portfolio
+  buyAssetByUSD(
+    portfolioId: ID!
+    symbol: String!
+    usdAmount: Float!
+    price: Float!
+  ): Portfolio
+  sellAssetByUSD(
+    portfolioId: ID!
+    symbol: String!
+    usdAmount: Float!
+    price: Float!
+  ): Portfolio
+  addCash(portfolioId: ID!, amount: Float!): Portfolio
+  withdrawCash(portfolioId: ID!, amount: Float!): Portfolio
+  deletePortfolio(id: ID!): Boolean
+  createLimitOrder(
+    portfolioId: ID!
+    type: OrderType!
+    symbol: String!
+    targetPrice: Float!
+    quantity: Float
+    usdAmount: Float
+    expiresAt: String
+  ): Order
+  cancelOrder(orderId: ID!): Order
+  deposit(amount: Float!): User
+  withdraw(amount: Float!): User
+  updateProfile(username: String, email: String, language: String): User
+  changePassword(oldPassword: String!, newPassword: String!): Boolean
+  repairMyBalance: Boolean
+  toggleVisibility(portfolioId: ID!, isPublic: Boolean!): Portfolio
+}

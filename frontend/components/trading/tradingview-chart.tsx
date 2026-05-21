@@ -11,7 +11,7 @@ export function TradingViewChart({
   symbol, 
   interval = '1D', 
   width = '100%', 
-  height = '100%' 
+  height = 400 
 }: TradingViewChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [error, setError] = useState<string | null>(null);
@@ -76,9 +76,14 @@ export function TradingViewChart({
         containerRef.current.id = `tradingview-chart-${Math.random().toString(36).substr(2, 9)}`;
       }
 
+      // Prepare width and height for TradingView options
+      // If they're numbers, treat as pixels; if strings, use as-is (for % etc)
+      const widgetWidth = typeof width === 'number' ? width : width;
+      const widgetHeight = typeof height === 'number' ? height : height;
+
       const options = {
-        width: width.toString(),
-        height: height.toString(),
+        width: widgetWidth,
+        height: widgetHeight,
         symbol: getTradingViewSymbol(symbol),
         interval: interval as any,
         timezone: 'Etc/UTC',

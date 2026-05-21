@@ -484,14 +484,12 @@ const calculateRSI = (data: FundamentalPricePoint[], period: number): number | n
         {/* Price Chart */}
         <div className="mb-8">
           <h2 className="text-2xl font-semibold text-white mb-4">Historial de precios</h2>
-          <div className="h-[500px]">
-            <TradingViewChart
-              symbol={symbol}
-              interval="1D"
-              width="100%"
-              height="100%"
-            />
-          </div>
+          <TradingViewChart
+            symbol={symbol}
+            interval="1D"
+            width="100%"
+            height={500}
+          />
         </div>
         
         {/* Educational Indicators */}

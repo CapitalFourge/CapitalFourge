@@ -7,8 +7,8 @@ import { motion } from "framer-motion";
 import { ArrowLeft, ExternalLink, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TradeDialog } from "@/components/trading/trade-dialog";
-import { EnhancedPriceChart } from "@/components/trading/enhanced-price-chart";
 import { IndicatorSelector } from "@/components/trading/indicator-selector";
+import { TradingViewChart } from "@/components/trading/tradingview-chart";
 import { LiquidityHeatmap } from "@/components/trading/liquidity-heatmap";
 import { IndicatorData } from "@/lib/indicatorTypes";
 import {
@@ -631,12 +631,11 @@ export default function AssetDetailPage() {
           
           {chartData.length > 0 ? (
             <div className="h-[400px]">
-              <EnhancedPriceChart
-                data={chartData}
-                indicators={indicatorsData}
-                chartType={chartType}
-                showPriceArea={true}
-                className="h-full"
+              <TradingViewChart
+                symbol={symbol}
+                interval={candleTimeframe === "1D" ? "D" : candleTimeframe === "1W" ? "W" : "M"}
+                width="100%"
+                height="100%"
               />
             </div>
           ) : (

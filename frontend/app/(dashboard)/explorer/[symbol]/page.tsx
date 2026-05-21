@@ -22,9 +22,58 @@ const ASSET_DATA_QUERY = gql`
       website
     }
     priceHistory(symbol: $symbol, days: 365) {
-      price
+      open
+      high
+      low
+      close
       date
       volume
+      marketCap
+      trailingPe
+      forwardPe
+      pegRatio
+      priceToBook
+      priceToSales
+      enterpriseToEbitda
+      profitMargins
+      operatingMargins
+      returnOnEquity
+      returnOnAssets
+      debtToEquity
+      currentRatio
+      quickRatio
+      dividendYield
+      freeCashFlow
+      circulatingSupply
+      totalSupply
+      maxSupply
+      inflationRate
+      fdv
+      activeAddresses
+      transactionVolume
+      transactionCount
+      feesGenerated
+      tvl
+      hashRate
+      stakingRatio
+      nakamotoCoefficient
+      orderBookDepth
+      developerActivity
+      userGrowth
+      revenue
+      priceToFeesRatio
+      bitcoinDominance
+      fearGreedIndex
+      inventoryLevels
+      costOfProduction
+      allInSustainingCost
+      reserveReplacementRatio
+      contangoBackwardation
+      dollarIndexExposure
+      inflationCorrelation
+      opecSpareCapacity
+      chineseDemandIndex
+      weatherIndex
     }
     technicalIndicators(symbol: $symbol, days: 365) {
       id
@@ -61,6 +110,61 @@ interface Position {
   currentPrice?: number;
 }
 
+interface FundamentalPricePoint {
+  date: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume?: number | null;
+  marketCap?: number | null;
+  trailingPe?: number | null;
+  forwardPe?: number | null;
+  pegRatio?: number | null;
+  priceToBook?: number | null;
+  priceToSales?: number | null;
+  enterpriseToEbitda?: number | null;
+  profitMargins?: number | null;
+  operatingMargins?: number | null;
+  returnOnEquity?: number | null;
+  returnOnAssets?: number | null;
+  debtToEquity?: number | null;
+  currentRatio?: number | null;
+  quickRatio?: number | null;
+  dividendYield?: number | null;
+  freeCashFlow?: number | null;
+  circulatingSupply?: number | null;
+  totalSupply?: number | null;
+  maxSupply?: number | null;
+  inflationRate?: number | null;
+  fdv?: number | null;
+  activeAddresses?: number | null;
+  transactionVolume?: number | null;
+  transactionCount?: number | null;
+  feesGenerated?: number | null;
+  tvl?: number | null;
+  hashRate?: number | null;
+  stakingRatio?: number | null;
+  nakamotoCoefficient?: number | null;
+  orderBookDepth?: number | null;
+  developerActivity?: number | null;
+  userGrowth?: number | null;
+  revenue?: number | null;
+  priceToFeesRatio?: number | null;
+  bitcoinDominance?: number | null;
+  fearGreedIndex?: number | null;
+  inventoryLevels?: number | null;
+  costOfProduction?: number | null;
+  allInSustainingCost?: number | null;
+  reserveReplacementRatio?: number | null;
+  contangoBackwardation?: number | null;
+  dollarIndexExposure?: number | null;
+  inflationCorrelation?: number | null;
+  opecSpareCapacity?: number | null;
+  chineseDemandIndex?: number | null;
+  weatherIndex?: number | null;
+}
+
 export default function AssetDetailPage() {
   const { symbol } = useParams<{ symbol: string }>();
   const [selectedDays, setSelectedDays] = useState(30);
@@ -76,16 +180,20 @@ export default function AssetDetailPage() {
   const priceHistory = data?.priceHistory || [];
   const technicalIndicators = data?.technicalIndicators || [];
   const portfolios = data?.portfolios || [];
+  const latestFundamental = priceHistory[priceHistory.length - 1] as FundamentalPricePoint | undefined;
 
   const fullChartData = useMemo(
     () =>
       priceHistory
-        .map((point: { date: string; price: number; volume?: number }) => ({
+        .map((point: FundamentalPricePoint) => ({
           date: point.date,
-          price: point.price,
+          open: point.open || point.close,
+          high: point.high || point.close,
+          low: point.low || point.close,
+          close: point.close,
           volume: point.volume || 0,
         }))
-        .filter((point: { date: string; price: number }) => !Number.isNaN(Date.parse(point.date)) && point.price > 0),
+        .filter((point: { date: string; close: number }) => !Number.isNaN(Date.parse(point.date)) && point.close > 0),
     [priceHistory]
   );
 
@@ -175,6 +283,85 @@ export default function AssetDetailPage() {
     return null;
   }, [portfolios, symbol]);
 
+  const fundamentalMetrics = useMemo(() => {
+    if (!latestFundamental) {
+      return [];
+    }
+
+    const percent = (value?: number | null) =>
+      value && value !== 0 ? `${(value * 100).toFixed(2)}%` : null;
+    const currency = (value?: number | null) =>
+      value && value !== 0 ? `$${value.toLocaleString(undefined, { maximumFractionDigits: 2 })}` : null;
+    const number = (value?: number | null) =>
+      value && value !== 0 ? value.toLocaleString(undefined, { maximumFractionDigits: 2 }) : null;
+
+    const common = [
+      { label: "Volumen", value: number(latestFundamental.volume) },
+      { label: "Capitalizacion", value: currency(latestFundamental.marketCap) },
+      { label: "Revenue", value: currency(latestFundamental.revenue) },
+    ];
+
+    const stock = [
+      { label: "Trailing P/E", value: number(latestFundamental.trailingPe) },
+      { label: "Forward P/E", value: number(latestFundamental.forwardPe) },
+      { label: "PEG Ratio", value: number(latestFundamental.pegRatio) },
+      { label: "Price/Book", value: number(latestFundamental.priceToBook) },
+      { label: "Price/Sales", value: number(latestFundamental.priceToSales) },
+      { label: "EV/EBITDA", value: number(latestFundamental.enterpriseToEbitda) },
+      { label: "Margen neto", value: percent(latestFundamental.profitMargins) },
+      { label: "Margen operativo", value: percent(latestFundamental.operatingMargins) },
+      { label: "ROE", value: percent(latestFundamental.returnOnEquity) },
+      { label: "ROA", value: percent(latestFundamental.returnOnAssets) },
+      { label: "Debt/Equity", value: number(latestFundamental.debtToEquity) },
+      { label: "Current Ratio", value: number(latestFundamental.currentRatio) },
+      { label: "Quick Ratio", value: number(latestFundamental.quickRatio) },
+      { label: "Dividend Yield", value: percent(latestFundamental.dividendYield) },
+      { label: "Free Cash Flow", value: currency(latestFundamental.freeCashFlow) },
+    ];
+
+    const crypto = [
+      { label: "FDV", value: currency(latestFundamental.fdv) },
+      { label: "Circulating Supply", value: number(latestFundamental.circulatingSupply) },
+      { label: "Total Supply", value: number(latestFundamental.totalSupply) },
+      { label: "Max Supply", value: number(latestFundamental.maxSupply) },
+      { label: "Inflation Rate", value: percent(latestFundamental.inflationRate) },
+      { label: "Active Addresses", value: number(latestFundamental.activeAddresses) },
+      { label: "Transaction Volume", value: currency(latestFundamental.transactionVolume) },
+      { label: "Transaction Count", value: number(latestFundamental.transactionCount) },
+      { label: "Fees Generated", value: currency(latestFundamental.feesGenerated) },
+      { label: "TVL", value: currency(latestFundamental.tvl) },
+      { label: "Hash Rate", value: number(latestFundamental.hashRate) },
+      { label: "Staking Ratio", value: percent(latestFundamental.stakingRatio) },
+      { label: "Nakamoto Coefficient", value: number(latestFundamental.nakamotoCoefficient) },
+      { label: "Order Book Depth", value: currency(latestFundamental.orderBookDepth) },
+      { label: "Developer Activity", value: number(latestFundamental.developerActivity) },
+      { label: "User Growth", value: percent(latestFundamental.userGrowth) },
+      { label: "Price/Fees Ratio", value: number(latestFundamental.priceToFeesRatio) },
+      { label: "BTC Dominance", value: percent(latestFundamental.bitcoinDominance) },
+      { label: "Fear & Greed", value: number(latestFundamental.fearGreedIndex) },
+    ];
+
+    const commodity = [
+      { label: "Inventory Levels", value: number(latestFundamental.inventoryLevels) },
+      { label: "Cost of Production", value: currency(latestFundamental.costOfProduction) },
+      { label: "AISC", value: currency(latestFundamental.allInSustainingCost) },
+      { label: "Reserve Replacement", value: percent(latestFundamental.reserveReplacementRatio) },
+      { label: "Contango/Backwardation", value: number(latestFundamental.contangoBackwardation) },
+      { label: "Dollar Index Exposure", value: number(latestFundamental.dollarIndexExposure) },
+      { label: "Inflation Correlation", value: number(latestFundamental.inflationCorrelation) },
+      { label: "OPEC Spare Capacity", value: number(latestFundamental.opecSpareCapacity) },
+      { label: "Chinese Demand", value: number(latestFundamental.chineseDemandIndex) },
+      { label: "Weather Index", value: number(latestFundamental.weatherIndex) },
+    ];
+
+    const categorySpecific =
+      asset?.category === "CRYPTO" ? crypto :
+      asset?.category === "COMMODITIES" ? commodity :
+      stock;
+
+    return [...common, ...categorySpecific].filter((metric) => metric.value);
+  }, [asset?.category, latestFundamental]);
+
   if (loading && !data) {
     return <div className="flex min-h-[60vh] items-center justify-center text-slate-400">Cargando activo...</div>;
   }
@@ -241,7 +428,7 @@ export default function AssetDetailPage() {
             <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Precio actual</p>
             <p className="mt-2 text-3xl font-semibold text-white">
               {chartData.length > 0 ? 
-                `$${chartData[chartData.length - 1].price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 
+                `$${chartData[chartData.length - 1].close.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 
                 '$0.00'}
             </p>
           </div>
@@ -251,10 +438,10 @@ export default function AssetDetailPage() {
             <p className="mt-2 text-2xl font-semibold">
               {chartData.length >= 2 ? 
                 (
-                  ((chartData[chartData.length - 1].price - chartData[chartData.length - 2].price) / chartData[chartData.length - 2].price) * 100
+                  ((chartData[chartData.length - 1].close - chartData[chartData.length - 2].close) / chartData[chartData.length - 2].close) * 100
                 ).toFixed(2) + '%' : 
                 '0.00%'}
-              <span className={(chartData.length >= 2) ? (chartData[chartData.length - 1].price > chartData[chartData.length - 2].price ? 'text-emerald-400' : 'text-rose-400') : undefined}>
+              <span className={(chartData.length >= 2) ? (chartData[chartData.length - 1].close > chartData[chartData.length - 2].close ? 'text-emerald-400' : 'text-rose-400') : undefined}>
               </span>
             </p>
           </div>
@@ -350,6 +537,29 @@ export default function AssetDetailPage() {
             selectedIndicators={selectedIndicators} 
             onChange={setSelectedIndicators} 
           />
+        </div>
+
+        <div className="mb-8">
+          <div className="mb-4">
+            <h2 className="text-2xl font-semibold text-white">Analisis fundamental</h2>
+            <p className="mt-1 text-sm text-slate-400">
+              Sintesis de metricas clave segun la categoria del activo usando el ultimo snapshot fundamental disponible.
+            </p>
+          </div>
+          {fundamentalMetrics.length > 0 ? (
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {fundamentalMetrics.map((metric) => (
+                <div key={metric.label} className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
+                  <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500">{metric.label}</p>
+                  <p className="mt-2 text-lg font-semibold text-white">{metric.value}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-3xl border border-dashed border-white/10 bg-white/[0.03] px-5 py-6 text-sm text-slate-400">
+              Aun no hay suficientes datos fundamentales estructurados para este activo.
+            </div>
+          )}
         </div>
 
         <div className="mb-8">

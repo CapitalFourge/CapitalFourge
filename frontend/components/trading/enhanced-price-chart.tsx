@@ -96,6 +96,7 @@ export function EnhancedPriceChart({
     () =>
       data.map((point) => ({
         date: point.date,
+        price: point.close,
         open: point.open,
         high: point.high,
         low: point.low,
@@ -124,7 +125,8 @@ export function EnhancedPriceChart({
 
   const secondaryAxisValues = chartData.flatMap((point) =>
     Object.entries(point)
-      .filter(([key, value]) => key !== "date" && key !== "price" && typeof value === "number")
+      .filter(([key, value]) => key !== "date" && typeof value === "number")
+      .filter(([key]) => !["price", "open", "high", "low", "close", "volume"].includes(key))
       .filter(([key]) => !PRICE_AXIS_INDICATORS.has(key))
       .map(([, value]) => Number(value))
   );

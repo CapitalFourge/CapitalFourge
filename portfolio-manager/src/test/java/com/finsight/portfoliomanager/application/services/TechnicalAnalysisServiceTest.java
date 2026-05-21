@@ -74,7 +74,11 @@ class TechnicalAnalysisServiceTest {
         return java.util.stream.IntStream.range(0, length)
                 .mapToObj(index -> PricePoint.newBuilder()
                         .setDate("2026-01-" + String.format("%02d", (index % 28) + 1))
-                        .setPrice(basePrice + (index * step) + ((index % 5) * 0.35))
+                        .setOpen(basePrice + (index * step))
+                        .setHigh(basePrice + (index * step) + 1.2)
+                        .setLow(basePrice + (index * step) - 1.1)
+                        .setClose(basePrice + (index * step) + ((index % 5) * 0.35))
+                        .setVolume(1000 + (index * 25))
                         .build())
                 .toList();
     }

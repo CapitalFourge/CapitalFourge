@@ -139,8 +139,10 @@ public class PortfolioGraphQLController {
         }
         return com.finsight.proto.Asset.newBuilder()
                 .setSymbol(info.getSymbol())
-                .setName(info.getName())
-                .setCategory(info.getCategory())
+                .setName(info.getName() != null ? info.getName() : "")
+                .setCategory(info.getCategory() != null ? info.getCategory() : "")
+                .setDescription(info.getDescription() != null ? info.getDescription() : "")
+                .setWebsite(info.getWebsite() != null ? info.getWebsite() : "")
                 .build();
     }
 

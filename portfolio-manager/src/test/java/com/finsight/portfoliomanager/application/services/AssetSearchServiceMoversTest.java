@@ -96,6 +96,13 @@ class AssetSearchServiceMoversTest {
     }
 
     private static PricePoint point(double price) {
-        return PricePoint.newBuilder().setPrice(price).setDate("2026-05-12").build();
+        return PricePoint.newBuilder()
+                .setDate("2026-05-12")
+                .setOpen(price)
+                .setHigh(price)
+                .setLow(price)
+                .setClose(price)
+                .setVolume(1000)
+                .build();
     }
 }

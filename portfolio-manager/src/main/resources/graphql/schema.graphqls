@@ -134,9 +134,58 @@ type Query {
 }
 
 type PricePoint {
-  price: Float!
-  date: String!
+  open: Float!
+  high: Float!
+  low: Float!
+  close: Float!
   volume: Float
+  date: String!
+  marketCap: Float
+  trailingPe: Float
+  forwardPe: Float
+  pegRatio: Float
+  priceToBook: Float
+  priceToSales: Float
+  enterpriseToEbitda: Float
+  profitMargins: Float
+  operatingMargins: Float
+  returnOnEquity: Float
+  returnOnAssets: Float
+  debtToEquity: Float
+  currentRatio: Float
+  quickRatio: Float
+  dividendYield: Float
+  freeCashFlow: Float
+  circulatingSupply: Float
+  totalSupply: Float
+  maxSupply: Float
+  inflationRate: Float
+  fdv: Float
+  activeAddresses: Float
+  transactionVolume: Float
+  transactionCount: Float
+  feesGenerated: Float
+  tvl: Float
+  hashRate: Float
+  stakingRatio: Float
+  nakamotoCoefficient: Float
+  orderBookDepth: Float
+  developerActivity: Float
+  userGrowth: Float
+  revenue: Float
+  priceToFeesRatio: Float
+  bitcoinDominance: Float
+  fearGreedIndex: Float
+  inventoryLevels: Float
+  costOfProduction: Float
+  allInSustainingCost: Float
+  reserveReplacementRatio: Float
+  contangoBackwardation: Float
+  dollarIndexExposure: Float
+  inflationCorrelation: Float
+  opecSpareCapacity: Float
+  chineseDemandIndex: Float
+  weatherIndex: Float
 }
 extend type Query {
   priceHistory(symbol: String!, days: Int!): [PricePoint]

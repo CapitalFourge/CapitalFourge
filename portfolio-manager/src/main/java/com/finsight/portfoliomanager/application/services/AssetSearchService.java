@@ -40,6 +40,8 @@ public class AssetSearchService {
                             .symbol(a.getSymbol())
                             .name(a.getName())
                             .category(a.getCategory())
+                            .description(a.getDescription())
+                            .website(a.getWebsite())
                             .build())
                     .collect(Collectors.toList());
         } catch (Exception e) {
@@ -181,8 +183,8 @@ public class AssetSearchService {
                 return null;
             }
 
-            double latestPrice = history.get(history.size() - 1).getPrice();
-            double previousPrice = history.get(history.size() - 2).getPrice();
+            double latestPrice = history.get(history.size() - 1).getClose();
+            double previousPrice = history.get(history.size() - 2).getClose();
 
             if (previousPrice == 0) {
                 return null;
@@ -206,6 +208,21 @@ public class AssetSearchService {
         }
     }
 
+    public AssetInfo getAssetInfo(String symbol) {
+        if (symbol == null || symbol.isBlank()) {
+            return null;
+        }
+
+        return getCategorizedAssets(null).stream()
+                .filter(asset -> symbol.equalsIgnoreCase(asset.getSymbol()))
+                .findFirst()
+                .orElse(AssetInfo.builder()
+                        .symbol(symbol)
+                        .name(getAssetName(symbol))
+                        .category(inferCategory(symbol))
+                        .build());
+    }
+
     private Comparator<AssetMover> getMoverComparator(String sort) {
         return switch (sort) {
             case "gain" -> Comparator.comparingDouble(AssetMover::getChangePercent).reversed();
@@ -218,11 +235,15 @@ public class AssetSearchService {
         private String symbol;
         private String name;
         private String category;
+        private String description;
+        private String website;
 
-        private AssetInfo(String symbol, String name, String category) {
+        private AssetInfo(String symbol, String name, String category, String description, String website) {
             this.symbol = symbol;
             this.name = name;
             this.category = category;
+            this.description = description;
+            this.website = website;
         }
 
         public static Builder builder() {
@@ -233,6 +254,8 @@ public class AssetSearchService {
             private String symbol;
             private String name;
             private String category;
+            private String description;
+            private String website;
 
             public Builder symbol(String s) {
                 this.symbol = s;
@@ -249,8 +272,18 @@ public class AssetSearchService {
                 return this;
             }
 
+            public Builder description(String d) {
+                this.description = d;
+                return this;
+            }
+
+            public Builder website(String w) {
+                this.website = w;
+                return this;
+            }
+
             public AssetInfo build() {
-                return new AssetInfo(symbol, name, category);
+                return new AssetInfo(symbol, name, category, description, website);
             }
         }
 
@@ -264,6 +297,14 @@ public class AssetSearchService {
 
         public String getCategory() {
             return category;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public String getWebsite() {
+            return website;
         }
     }
 
@@ -405,5 +446,18 @@ public class AssetSearchService {
         private boolean isExpired() {
             return System.currentTimeMillis() - createdAt > MOVERS_CACHE_TTL_MS;
         }
+    }
+
+    private String inferCategory(String symbol) {
+        if (symbol.endsWith("-USD")) {
+            return "CRYPTO";
+        }
+        if (symbol.endsWith("=F")) {
+            return "COMMODITIES";
+        }
+        if (symbol.endsWith("=X")) {
+            return "FOREX";
+        }
+        return "STOCKS";
     }
 }

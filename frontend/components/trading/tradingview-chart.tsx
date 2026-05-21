@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface TradingViewChartProps {
   symbol: string;
@@ -14,12 +14,17 @@ export function TradingViewChart({
   height = '100%' 
 }: TradingViewChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const scriptLoadedRef = useRef(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
+    // Reset state when props change
+    setError(null);
+    setIsLoading(true);
+    
     // Load TradingView widget script only once
-    if (!scriptLoadedRef.current) {
-      scriptLoadedRef.current = true;
+    if (!((window as any).tvScriptLoaded)) {
+      (window as any).tvScriptLoaded = true;
       
       const script = document.createElement('script');
       script.src = 'https://s3.tradingview.com/tv.js';
@@ -32,9 +37,8 @@ export function TradingViewChart({
       };
       script.onerror = () => {
         console.error('Failed to load TradingView script');
-        if (containerRef.current) {
-          containerRef.current.innerHTML = '<div class="p-4 text-center text-red-400">Error cargando TradingView widget</div>';
-        }
+        setError('Error cargando TradingView widget');
+        setIsLoading(false);
       };
       document.body.appendChild(script);
     } else {
@@ -44,27 +48,34 @@ export function TradingViewChart({
 
     return () => {
       // Cleanup widget on unmount
-      if (window.tradingViewWidgetInstance) {
-        window.tradingViewWidgetInstance.remove();
-        window.tradingViewWidgetInstance = null;
+      if ((window as any).tradingViewWidgetInstance) {
+        (window as any).tradingViewWidgetInstance.remove();
+        (window as any).tradingViewWidgetInstance = null;
       }
     };
   }, [symbol, interval, width, height]);
+
   const initializeChart = () => {
     // Return early if container is not available
     if (!containerRef.current) {
       console.warn('Container ref is not available yet');
+      setIsLoading(false);
       return;
     }
 
     // Destroy previous instance if exists
-    if (window.tradingViewWidgetInstance) {
-      window.tradingViewWidgetInstance.remove();
-      window.tradingViewWidgetInstance = null;
+    if ((window as any).tradingViewWidgetInstance) {
+      (window as any).tradingViewWidgetInstance.remove();
+      (window as any).tradingViewWidgetInstance = null;
     }
 
     // Check if TradingView is available
     if (window.TradingView && typeof window.TradingView.widget === 'function') {
+      // Ensure container has an ID for TradingView to mount to
+      if (!containerRef.current.id) {
+        containerRef.current.id = `tradingview-chart-${Math.random().toString(36).substr(2, 9)}`;
+      }
+
       const options = {
         width: width.toString(),
         height: height.toString(),
@@ -78,17 +89,19 @@ export function TradingViewChart({
         enable_publishing: false,
         hide_side_toolbar: false,
         allow_symbol_change: true,
-        studies: [],
+        studies: [], // No studies by default as requested
+        container_id: containerRef.current.id // Critical: tell TradingView where to mount
       };
 
       try {
-        window.tradingViewWidgetInstance = new window.TradingView.widget(
-          options,
-          containerRef.current
-        );
-        widgetInitializedRef.current = true;
+        // Initialize widget - it will mount itself to the container_id element
+        (window as any).tradingViewWidgetInstance = new window.TradingView.widget(options);
+        setIsLoading(false);
+        setError(null);
       } catch (error) {
         console.error('Error initializing TradingView widget:', error);
+        setError('Error inicializando TradingView widget');
+        setIsLoading(false);
         if (containerRef.current) {
           containerRef.current.innerHTML = '<div class="p-4 text-center text-red-400">Error inicializando TradingView widget</div>';
         }
@@ -96,6 +109,7 @@ export function TradingViewChart({
     } else {
       // TradingView not ready yet
       console.warn('TradingView not ready yet');
+      setIsLoading(false);
       if (containerRef.current) {
         containerRef.current.innerHTML = '<div class="p-4 text-center text-yellow-400">Cargando gráfico...</div>';
       }
@@ -107,6 +121,14 @@ export function TradingViewChart({
     // For now, return as is; user may need to adjust
     return sym;
   };
+
+  if (error) {
+    return <div className="p-4 text-center text-red-400">{error}</div>;
+  }
+
+  if (isLoading) {
+    return <div className="p-4 text-center text-yellow-400">Cargando gráfico...</div>;
+  }
 
   return <div ref={containerRef} style={{ width, height }} />;
 }

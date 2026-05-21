@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { TradeDialog } from "@/components/trading/trade-dialog";
 import { TradingViewChart } from "@/components/trading/tradingview-chart";
 import { LiquidityHeatmap } from "@/components/trading/liquidity-heatmap";
+import { FUNDAMENTAL_METRIC_CATALOG, FundamentalCategory, FundamentalMetricDefinition } from "@/lib/fundamental-metric-catalog";
 
 const ASSET_DATA_QUERY = gql`
   query GetAssetData($symbol: String!) {
@@ -315,12 +316,60 @@ export default function AssetDetailPage() {
       return acc;
     }, new Map<string, FundamentalMetricItem[]>());
 
-    return Array.from(grouped.entries()).map(([section, metrics]) => ({
-      section,
-      summary: sectionSummaries[section] ?? "Lectura complementaria para entender mejor el estado del activo.",
-      metrics,
-    }));
-  }, [asset?.category, latestFundamental]);
+  return Array.from(grouped.entries()).map(([section, metrics]) => ({
+    section,
+    summary: sectionSummaries[section] ?? "Lectura complementaria para entender mejor el estado del activo.",
+    metrics,
+  }));
+}, [asset?.category, latestFundamental]);
+
+// Calculate EMA (Exponential Moving Average)
+const calculateEMA = (data: FundamentalPricePoint[], period: number): number | null => {
+  if (data.length < period) return null;
+  
+  const multiplier = 2 / (period + 1);
+  let ema = data.slice(0, period).reduce((sum, point) => sum + point.close, 0) / period; // SMA for first EMA
+  
+  for (let i = period; i < data.length; i++) {
+    ema = (data[i].close - ema) * multiplier + ema;
+  }
+  
+  return ema;
+};
+
+// Calculate RSI (Relative Strength Index)
+const calculateRSI = (data: FundamentalPricePoint[], period: number): number | null => {
+  if (data.length < period + 1) return null;
+  
+  let gains = 0;
+  let losses = 0;
+  
+  for (let i = 1; i <= period; i++) {
+    const change = data[data.length - i].close - data[data.length - i - 1].close;
+    if (change >= 0) {
+      gains += change;
+    } else {
+      losses += Math.abs(change);
+    }
+  }
+  
+  let avgGain = gains / period;
+  let avgLoss = losses / period;
+  
+  for (let i = period + 1; i < data.length; i++) {
+    const change = data[data.length - i].close - data[data.length - i - 1].close;
+    const gain = Math.max(change, 0);
+    const loss = Math.max(-change, 0);
+    
+    avgGain = (avgGain * (period - 1) + gain) / period;
+    avgLoss = (avgLoss * (period - 1) + loss) / period;
+  }
+  
+  if (avgLoss === 0) return 100;
+  
+  const rs = avgGain / avgLoss;
+  return 100 - (100 / (1 + rs));
+};
 
   if (loading && !data) {
     return <div className="flex min-h-[60vh] items-center justify-center text-slate-400">Cargando activo...</div>;
@@ -435,7 +484,7 @@ export default function AssetDetailPage() {
         {/* Price Chart */}
         <div className="mb-8">
           <h2 className="text-2xl font-semibold text-white mb-4">Historial de precios</h2>
-          <div className="h-[400px]">
+          <div className="h-[500px]">
             <TradingViewChart
               symbol={symbol}
               interval="1D"
@@ -444,6 +493,47 @@ export default function AssetDetailPage() {
             />
           </div>
         </div>
+        
+        {/* Educational Indicators */}
+        {fullChartData.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-2xl font-semibold text-white mb-4">Indicadores Educativos</h2>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {/* EMA 20 */}
+              <div className="rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-4">
+                <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500">EMA 20</p>
+                <p className="mt-2 text-xl font-semibold text-white">
+                  {calculateEMA(fullChartData, 20)?.toFixed(2) ?? 'Calculando...'}
+                </p>
+                <p className="mt-2 text-xs leading-5 text-slate-400">
+                  Media móvil exponencial de 20 períodos. Indica la tendencia promedio de precios.
+                </p>
+              </div>
+              
+              {/* RSI 14 */}
+              <div className="rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-4">
+                <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500">RSI 14</p>
+                <p className="mt-2 text-xl font-semibold text-white">
+                  {calculateRSI(fullChartData, 14)?.toFixed(2) ?? 'Calculando...'}
+                </p>
+                <p className="mt-2 text-xs leading-5 text-slate-400">
+                  Índice de fuerza relativa de 14 períodos. Mide la velocidad y cambio de movimientos de precio.
+                </p>
+              </div>
+              
+              {/* Current Price */}
+              <div className="rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-4">
+                <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500">Precio Actual</p>
+                <p className="mt-2 text-xl font-semibold text-white">
+                  {latestDailyPoint ? `$${latestDailyPoint.close.toFixed(2)}` : '$0.00'}
+                </p>
+                <p className="mt-2 text-xs leading-5 text-slate-400">
+                  Precio de cierre más reciente del activo.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Analisis fundamental */}
         <div className="mb-8">

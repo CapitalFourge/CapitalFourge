@@ -70,7 +70,8 @@ export function TradingViewChart({
     }
 
     // Check if TradingView is available
-    if (window.TradingView && typeof window.TradingView.widget === 'function') {
+    const tradingView = (window as any).TradingView;
+    if (tradingView && typeof tradingView.widget === 'function') {
       // Ensure container has an ID for TradingView to mount to
       if (!containerRef.current.id) {
         containerRef.current.id = `tradingview-chart-${Math.random().toString(36).substr(2, 9)}`;
@@ -100,7 +101,7 @@ export function TradingViewChart({
 
       try {
         // Initialize widget - it will mount itself to the container_id element
-        (window as any).tradingViewWidgetInstance = new window.TradingView.widget(options);
+        (window as any).tradingViewWidgetInstance = new (window as any).TradingView.widget(options);
         setIsLoading(false);
         setError(null);
       } catch (error) {

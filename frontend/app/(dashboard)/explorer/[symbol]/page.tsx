@@ -109,7 +109,7 @@ interface FundamentalPricePoint {
   freeCashFlow?: number | null;
   circulatingSupply?: number | null;
   totalSupply?: number | null;
-  maxSupply?: number | null;
+  maxSupple?: number | null;
   inflationRate?: number | null;
   fdv?: number | null;
   activeAddresses?: number | null;
@@ -318,60 +318,60 @@ export default function AssetDetailPage() {
       return acc;
     }, new Map<string, FundamentalMetricItem[]>());
 
-  return Array.from(grouped.entries()).map(([section, metrics]) => ({
-    section,
-    summary: sectionSummaries[section] ?? "Lectura complementaria para entender mejor el estado del activo.",
-    metrics,
-  }));
-}, [asset?.category, latestFundamental]);
+    return Array.from(grouped.entries()).map(([section, metrics]) => ({
+      section,
+      summary: sectionSummaries[section] ?? "Lectura complementaria para entender mejor el estado del activo.",
+      metrics,
+    }));
+  }, [asset?.category, latestFundamental]);
 
-// Calculate EMA (Exponential Moving Average)
-const calculateEMA = (data: FundamentalPricePoint[], period: number): number | null => {
-  if (data.length < period) return null;
-  
-  const multiplier = 2 / (period + 1);
-  let ema = data.slice(0, period).reduce((sum, point) => sum + point.close, 0) / period; // SMA for first EMA
-  
-  for (let i = period; i < data.length; i++) {
-    ema = (data[i].close - ema) * multiplier + ema;
-  }
-  
-  return ema;
-};
-
-// Calculate RSI (Relative Strength Index)
-const calculateRSI = (data: FundamentalPricePoint[], period: number): number | null => {
-  if (data.length < period + 1) return null;
-  
-  let gains = 0;
-  let losses = 0;
-  
-  for (let i = 1; i <= period; i++) {
-    const change = data[data.length - i].close - data[data.length - i - 1].close;
-    if (change >= 0) {
-      gains += change;
-    } else {
-      losses += Math.abs(change);
-    }
-  }
-  
-  let avgGain = gains / period;
-  let avgLoss = losses / period;
-  
-  for (let i = period + 1; i < data.length; i++) {
-    const change = data[data.length - i].close - data[data.length - i - 1].close;
-    const gain = Math.max(change, 0);
-    const loss = Math.max(-change, 0);
+  // Calculate EMA (Exponential Moving Average)
+  const calculateEMA = (data: FundamentalPricePoint[], period: number): number | null => {
+    if (data.length < period) return null;
     
-    avgGain = (avgGain * (period - 1) + gain) / period;
-    avgLoss = (avgLoss * (period - 1) + loss) / period;
-  }
-  
-  if (avgLoss === 0) return 100;
-  
-  const rs = avgGain / avgLoss;
-  return 100 - (100 / (1 + rs));
-};
+    const multiplier = 2 / (period + 1);
+    let ema = data.slice(0, period).reduce((sum, point) => sum + point.close, 0) / period; // SMA for first EMA
+    
+    for (let i = period; i < data.length; i++) {
+      ema = (data[i].close - ema) * multiplier + ema;
+    }
+    
+    return ema;
+  };
+
+  // Calculate RSI (Relative Strength Index)
+  const calculateRSI = (data: FundamentalPricePoint[], period: number): number | null => {
+    if (data.length < period + 1) return null;
+    
+    let gains = 0;
+    let losses = 0;
+    
+    for (let i = 1; i <= period; i++) {
+      const change = data[data.length - i].close - data[data.length - i - 1].close;
+      if (change >= 0) {
+        gains += change;
+      } else {
+        losses += Math.abs(change);
+      }
+    }
+    
+    let avgGain = gains / period;
+    let avgLoss = losses / period;
+    
+    for (let i = period + 1; i < data.length; i++) {
+      const change = data[data.length - i].close - data[data.length - i - 1].close;
+      const gain = Math.max(change, 0);
+      const loss = Math.max(-change, 0);
+      
+      avgGain = (avgGain * (period - 1) + gain) / period;
+      avgLoss = (avgLoss * (period - 1) + loss) / period;
+    }
+    
+    if (avgLoss === 0) return 100;
+    
+    const rs = avgGain / avgLoss;
+    return 100 - (100 / (1 + rs));
+  };
 
   if (loading && !data) {
     return <div className="flex min-h-[60vh] items-center justify-center text-slate-400">Cargando activo...</div>;
@@ -499,18 +499,16 @@ const calculateRSI = (data: FundamentalPricePoint[], period: number): number | n
 
         {/* Price Chart */}
         <div className="mb-8">
-        {/* Price Chart */}
-        <TradingViewChart
-          symbol={symbol}
-          interval="1D"
-          width="100%"
-          height={750}
-        />
+          <TradingViewChart
+            symbol={symbol}
+            interval="1D"
+            width="100%"
+            height={750}
+          />
         </div>
-        
+
         {/* Indicators */}
-        {fullChartData.length > 0 && (
-          {showIndicators && (
+        {showIndicators && (
           <div className="mb-8">
             <h2 className="text-2xl font-semibold text-white mb-4">Indicadores</h2>
             <div className="space-y-4">
@@ -642,9 +640,7 @@ const calculateRSI = (data: FundamentalPricePoint[], period: number): number | n
                   <div className="flex justify-between items-start">
                     <div>
                       <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500">Máximo 24h</p>
-                      <p className="mt-2 text-xl font-semibold text-white">
-                        {latestDailyPoint ? `$${latestDailyPoint.high.toFixed(2)}` : 'N/A'}
-                      </p>
+                      {latestDailyPoint ? `$${latestDailyPoint.high.toFixed(2)}` : 'N/A'}
                     </div>
                     <button 
                       onClick={(e) => {
@@ -690,10 +686,8 @@ const calculateRSI = (data: FundamentalPricePoint[], period: number): number | n
                   <div>
                     <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500">Market Cap</p>
                     <p className="mt-2 text-xl font-semibold text-white">
-                      {latestDailyPoint ? 
-                        latestDailyPoint.marketCap !== null && latestDailyPoint.marketCap !== undefined ?
-                          `$${latestDailyPoint.marketCap.toLocaleString(undefined)}` : 
-                          'N/A' : 
+                      {latestDailyPoint && latestDailyPoint.marketCap !== null && latestDailyPoint.marketCap !== undefined ?
+                        `$${latestDailyPoint.marketCap.toLocaleString(undefined)}` : 
                         'N/A'}
                     </p>
                   </div>
@@ -715,52 +709,49 @@ const calculateRSI = (data: FundamentalPricePoint[], period: number): number | n
           </div>
         )}
 
-        {/* Analisis fundamental */}
-        <div className="mb-8">
-          {showFundamental && (
-          <h2 className="text-2xl font-semibold text-white mb-4">Analisis fundamental</h2>
-          {fundamentalMetrics.length > 0 ? (
-            <div className="space-y-5">
-              {fundamentalMetrics.map((group) => (
-                <section key={group.section} className="rounded-[1.75rem] border border-white/10 bg-white/[0.03] p-4">
-                  <div className="mb-4">
-                    <p className="text-[10px] uppercase tracking-[0.26em] text-slate-500">{group.section}</p>
-                    <p className="mt-2 text-sm text-slate-400">{group.summary}</p>
-                  </div>
-                  
-                  <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                    {group.metrics.map((metric) => (
-                      <div key={metric.id} className="rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-4">
-                        <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500">{metric.label}</p>
-                        <p className="mt-2 text-xl font-semibold text-white">{metric.value}</p>
-                        <p className="mt-2 text-xs leading-5 text-slate-400">{metric.description}</p>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              ))}
-            </div>
-          ) : (
-            <div className="rounded-3xl border border-dashed border-white/10 bg-white/[0.03] px-5 py-6 text-sm text-slate-400">
-              Aun no hay suficientes datos fundamentales estructurados para este activo.
-            </div>
-          )}
-        </div>
-          )}
+        {/* Análisis Fundamental */}
+        {showFundamental && (
+          <div className="mb-8">
+            <h2 className="text-2xl font-semibold text-white mb-4">Análisis fundamental</h2>
+            {fundamentalMetrics.length > 0 ? (
+              <div className="space-y-5">
+                {fundamentalMetrics.map((group) => (
+                  <section key={group.section} className="rounded-[1.75rem] border border-white/10 bg-white/[0.03] p-4">
+                    <div className="mb-4">
+                      <p className="text-[10px] uppercase tracking-[0.26em] text-slate-500">{group.section}</p>
+                      <p className="mt-2 text-sm text-slate-400">{group.summary}</p>
+                    </div>
+                    
+                    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                      {group.metrics.map((metric) => (
+                        <div key={metric.id} className="rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-4">
+                          <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500">{metric.label}</p>
+                          <p className="mt-2 text-xl font-semibold text-white">{metric.value}</p>
+                          <p className="mt-2 text-xs leading-5 text-slate-400">{metric.description}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-3xl border border-dashed border-white/10 bg-white/[0.03] px-5 py-6 text-sm text-slate-400">
+                Aun no hay suficientes datos fundamentales estructurados para este activo.
+              </div>
+            )}
+          </div>
+        )}
 
-
+        {/* Trading Dialog */}
+        <TradeDialog
+          portfolios={portfolios}
+          defaultType={dialogType}
+          initialSymbol={symbol}
+          isOpen={isDialogOpen}
+          onClose={() => setIsDialogOpen(false)}
+          onOpenChange={(open) => { if (!open) setIsDialogOpen(false); }}
+        />
       </div>
-          )}
-
-      {/* Trading Dialog */}
-      <TradeDialog
-        portfolios={portfolios}
-        defaultType={dialogType}
-        initialSymbol={symbol}
-        isOpen={isDialogOpen}
-        onClose={() => setIsDialogOpen(false)}
-        onOpenChange={(open) => { if (!open) setIsDialogOpen(false); }}
-      />
     </motion.div>
   );
 }

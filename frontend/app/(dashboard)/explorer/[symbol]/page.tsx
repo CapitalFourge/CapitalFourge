@@ -6,7 +6,6 @@ import { gql, useQuery } from "@apollo/client";
 import { motion } from "framer-motion";
 import { ArrowLeft, ExternalLink, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { TradeDialog } from "@/components/trading/trade-dialog";
 import { TradingViewChart } from "@/components/trading/tradingview-chart";
 import { LiquidityHeatmap } from "@/components/trading/liquidity-heatmap";
 import { FUNDAMENTAL_METRIC_CATALOG, FundamentalCategory, FundamentalMetricDefinition } from "@/lib/fundamental-metric-catalog";
@@ -489,7 +488,6 @@ export default function AssetDetailPage() {
             width="100%"
             height={750}
           />
-        </div>
 <div className="flex items-center justify-between p-6 border-b border-white/10">
   <div className="flex items-center gap-4">
            <Button 
@@ -508,6 +506,7 @@ export default function AssetDetailPage() {
            </Button>
   </div>
 </div>
+        </div>
 
         {/* Indicators */}
         {showIndicators && (
@@ -745,14 +744,6 @@ export default function AssetDetailPage() {
         )}
 
         {/* Trading Dialog */}
-        <TradeDialog
-          portfolios={portfolios}
-          defaultType={dialogType}
-          initialSymbol={symbol}
-          isOpen={isDialogOpen}
-          onClose={() => setIsDialogOpen(false)}
-          onOpenChange={(open) => { if (!open) setIsDialogOpen(false); }}
-        />
       </div>
     </motion.div>
   );

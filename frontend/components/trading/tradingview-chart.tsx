@@ -55,6 +55,8 @@ export function TradingViewChart({
         }
       } catch (e) {
         console.error('Error removing TradingView widget:', e);
+        // Even if remove fails, we should still nullify the reference
+        (window as any).tradingViewWidgetInstance = null;
       }
     };
   }, [symbol, interval, width, height]);

@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { gql, useQuery } from "@apollo/client";
 import { motion } from "framer-motion";
-import { ArrowLeft, ExternalLink, Info } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { IndicatorSelector } from "@/components/trading/indicator-selector";
 import { TradingViewChart } from "@/components/trading/tradingview-chart";
@@ -109,7 +109,7 @@ interface FundamentalPricePoint {
   freeCashFlow?: number | null;
   circulatingSupply?: number | null;
   totalSupply?: number | null;
-  maxSupple?: number | null;
+  maxSupply?: number | null;
   inflationRate?: number | null;
   fdv?: number | null;
   activeAddresses?: number | null;

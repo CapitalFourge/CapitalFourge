@@ -7,6 +7,9 @@ const nextConfig = {
     'http://[::1]:3000',
     'http://132.145.205.0:3000'
   ],
+  experimental: {
+    serverActions: {},
+  },
 };
 
 module.exports = nextConfig;

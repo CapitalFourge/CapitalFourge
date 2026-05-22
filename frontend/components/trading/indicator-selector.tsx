@@ -24,6 +24,8 @@ const MAX_INDICATORS = 3;
 
 export function IndicatorSelector({ selectedIndicators, onChange }: IndicatorSelectorProps) {
   const [open, setOpen] = useState(false);
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [detailIndicatorId, setDetailIndicatorId] = useState<string | null>(null);
   const selectedDefinitions = useMemo(
     () => INDICATOR_CATALOG.filter((indicator) => selectedIndicators.includes(indicator.id)),
     [selectedIndicators]
@@ -36,11 +38,21 @@ export function IndicatorSelector({ selectedIndicators, onChange }: IndicatorSel
     }
 
     if (selectedIndicators.length >= MAX_INDICATORS) {
-      window.alert("Limite alcanzado: maximo 3 indicadores simultaneos en esta vista.");
+      window.alert("Límite alcanzado: máximo 3 indicadores simultáneos en esta vista.");
       return;
     }
 
     onChange([...selectedIndicators, indicatorId]);
+  };
+
+  const openDetail = (indicatorId: string) => {
+    setDetailIndicatorId(indicatorId);
+    setDetailOpen(true);
+  };
+
+  const closeDetail = () => {
+    setDetailOpen(false);
+    setDetailIndicatorId(null);
   };
 
   return (
@@ -49,31 +61,32 @@ export function IndicatorSelector({ selectedIndicators, onChange }: IndicatorSel
         <div>
           <p className="text-[10px] uppercase tracking-[0.28em] text-slate-500">Indicadores</p>
           <p className="mt-2 max-w-2xl text-sm text-slate-300">
-            Activa solo los estudios que necesites. Cada indicador incluye una explicacion corta para evitar
-            llenar la grafica con senales redundantes.
+            Activa solo los estudios que necesites. Cada indicador incluye una explicación corta para evitar
+            llenar la gráfica con señales redundantes.
           </p>
         </div>
 
+        <DialogTrigger asChild>
+          <Button
+            type="button"
+            variant="outline"
+            className="h-11 rounded-full border-emerald-400/30 bg-emerald-400/10 px-5 text-emerald-200 hover:bg-emerald-400/15"
+          >
+            <Activity className="h-4 w-4" />
+            Indicadores
+            <Badge variant="outline" className="border-emerald-300/25 bg-transparent text-emerald-100">
+              {selectedIndicators.length}/{MAX_INDICATORS}
+            </Badge>
+          </Button>
+        </DialogTrigger>
+
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button
-              type="button"
-              variant="outline"
-              className="h-11 rounded-full border-emerald-400/30 bg-emerald-400/10 px-5 text-emerald-200 hover:bg-emerald-400/15"
-            >
-              <Activity className="h-4 w-4" />
-              Indicadores
-              <Badge variant="outline" className="border-emerald-300/25 bg-transparent text-emerald-100">
-                {selectedIndicators.length}/{MAX_INDICATORS}
-              </Badge>
-            </Button>
-          </DialogTrigger>
           <DialogContent className="max-h-[80vh] max-w-4xl overflow-y-auto rounded-[2rem] border-white/10 bg-slate-950 p-0 text-white">
             <DialogHeader className="border-b border-white/10 px-6 py-5">
-              <DialogTitle className="text-2xl">Indicadores tecnicos</DialogTitle>
+              <DialogTitle className="text-2xl">Indicadores técnicos</DialogTitle>
               <DialogDescription className="text-slate-400">
-                Selecciona hasta {MAX_INDICATORS} indicadores. La descripcion te dice que mide cada uno y en que caso
-                sirve mas.
+                Selecciona hasta {MAX_INDICATORS} indicadores. La descripción te dice que mide cada uno y en qué caso
+                sirve más.
               </DialogDescription>
             </DialogHeader>
 
@@ -90,18 +103,10 @@ export function IndicatorSelector({ selectedIndicators, onChange }: IndicatorSel
                     <div className="grid gap-3 md:grid-cols-2">
                       {items.map((indicator) => {
                         const active = selectedIndicators.includes(indicator.id);
+                        const isMaxReached = !active && selectedIndicators.length >= MAX_INDICATORS;
 
                         return (
-                          <button
-                            key={indicator.id}
-                            type="button"
-                            onClick={() => toggleIndicator(indicator.id)}
-                            className={`rounded-3xl border px-4 py-4 text-left transition ${
-                              active
-                                ? "border-emerald-400/40 bg-emerald-400/10 shadow-[0_0_0_1px_rgba(74,222,128,0.15)]"
-                                : "border-white/10 bg-white/[0.03] hover:border-white/20 hover:bg-white/[0.05]"
-                            }`}
-                          >
+                          <div key={indicator.id} className="flex flex-col gap-2">
                             <div className="flex items-start justify-between gap-3">
                               <div>
                                 <div className="flex items-center gap-2">
@@ -115,10 +120,29 @@ export function IndicatorSelector({ selectedIndicators, onChange }: IndicatorSel
                                 </div>
                                 <p className="mt-2 text-sm text-slate-300">{indicator.shortDescription}</p>
                               </div>
-                              <Info className="mt-0.5 h-4 w-4 text-slate-500" />
+                              <div className="flex items-end space-x-2">
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() => openDetail(indicator.id)}
+                                  className="text-xs text-blue-400 hover:text-blue-300"
+                                >
+                                  Detalles
+                                </Button>
+                                <Button
+                                  variant={active ? "outline" : "secondary"}
+                                  disabled={isMaxReached}
+                                  onClick={!isMaxReached ? () => toggleIndicator(indicator.id) : undefined}
+                                  className="text-xs px-2 py-1"
+                                >
+                                  {active ? "Quitar" : "Seleccionar"}
+                                </Button>
+                              </div>
                             </div>
-                            <p className="mt-4 text-xs leading-5 text-slate-400">{indicator.usage}</p>
-                          </button>
+                            {active && (
+                              <p className="mt-2 text-xs leading-5 text-slate-400">{indicator.usage}</p>
+                            )}
+                          </div>
                         );
                       })}
                     </div>
@@ -126,6 +150,33 @@ export function IndicatorSelector({ selectedIndicators, onChange }: IndicatorSel
                 );
               })}
             </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Details Dialog */}
+        <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
+          <DialogContent className="max-w-md rounded-[2rem] border-white/10 bg-slate-950 p-6 text-white">
+            <DialogHeader className="border-b border-white/10 pb-4">
+              <DialogTitle className="text-xl font-semibold">
+                {detailIndicatorId ? INDICATOR_CATALOG.find(i => i.id === detailIndicatorId)?.label ?? '' : 'Detalles'}
+              </DialogTitle>
+            </DialogHeader>
+            {detailIndicatorId && (
+              <>
+                <DialogDescription className="mb-4 text-slate-400">
+                  {INDICATOR_CATALOG.find(i => i.id === detailIndicatorId)?.shortDescription}
+                </DialogDescription>
+                <p className="mb-2 text-sm font-semibold text-slate-300">Uso:</p>
+                <p className="mb-4 text-slate-400">
+                  {INDICATOR_CATALOG.find(i => i.id === detailIndicatorId)?.usage}
+                </p>
+              </>
+            )}
+            <DialogTrigger asChild>
+              <Button variant="outline" className="w-full">
+                Cerrar
+              </Button>
+            </DialogTrigger>
           </DialogContent>
         </Dialog>
       </div>

@@ -6,6 +6,7 @@ import { gql, useQuery } from "@apollo/client";
 import { motion } from "framer-motion";
 import { ArrowLeft, ExternalLink, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { IndicatorSelector } from "@/components/trading/indicator-selector";
 import { TradingViewChart } from "@/components/trading/tradingview-chart";
 import { LiquidityHeatmap } from "@/components/trading/liquidity-heatmap";
 import { FUNDAMENTAL_METRIC_CATALOG, FundamentalCategory, FundamentalMetricDefinition } from "@/lib/fundamental-metric-catalog";
@@ -210,6 +211,7 @@ export default function AssetDetailPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [dialogType, setDialogType] = useState<'buy' | 'sell'>('buy');
   const [showIndicators, setShowIndicators] = useState<boolean>(false);
+  const [activeIndicators, setActiveIndicators] = useState<string[]>([]);
   const [showFundamental, setShowFundamental] = useState<boolean>(false);
 
   const { data, loading, error } = useQuery(ASSET_DATA_QUERY, {
@@ -512,201 +514,7 @@ export default function AssetDetailPage() {
         {showIndicators && (
           <div className="mb-8">
             <h2 className="text-2xl font-semibold text-white mb-4">Indicadores</h2>
-            <div className="space-y-4">
-              {/* Price-based Indicators */}
-              <div className="rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500">Precio Actual</p>
-                    <p className="mt-2 text-xl font-semibold text-white">
-                      {latestDailyPoint ? `$${latestDailyPoint.close.toFixed(2)}` : 'N/A'}
-                    </p>
-                  </div>
-                  <button 
-                    onClick={(e) => {
-                      e.preventDefault();
-                      alert('Detalles: El precio actual es el último precio de cierre registrado para este activo. Representa el valor más reciente en que se transó el activo en el mercado.');
-                    }}
-                    className="text-xs text-blue-400 hover:text-blue-300 underline"
-                  >
-                    Detalles
-                  </button>
-                </div>
-                <p className="mt-2 text-xs leading-5 text-slate-400">
-                  Último precio de cierre disponible en los datos históricos.
-                </p>
-              </div>
-              
-              {/* EMA 20 */}
-              <div className="rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500">EMA 20</p>
-                    <p className="mt-2 text-xl font-semibold text-white">
-                      {calculateEMA(fullChartData, 20)?.toFixed(2) ?? 'N/A'}
-                    </p>
-                  </div>
-                  <button 
-                    onClick={(e) => {
-                      e.preventDefault();
-                      alert('Detalles: EMA (Exponential Moving Average) de 20 períodos. Da más peso a los precios recientes y es útil para identificar tendencias a corto-medio plazo. Cuando el precio está por encima de la EMA, sugiere tendencia alcista; por debajo, tendencia bajista.');
-                    }}
-                    className="text-xs text-blue-400 hover:text-blue-300 underline"
-                  >
-                    Detalles
-                  </button>
-                </div>
-                <p className="mt-2 text-xs leading-5 text-slate-400">
-                  Media móvil exponencial que da más importancia a los precios recientes.
-                </p>
-              </div>
-              
-              {/* RSI 14 */}
-              <div className="rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500">RSI 14</p>
-                    <p className="mt-2 text-xl font-semibold text-white">
-                      {calculateRSI(fullChartData, 14)?.toFixed(2) ?? 'N/A'}
-                    </p>
-                  </div>
-                  <button 
-                    onClick={(e) => {
-                      e.preventDefault();
-                      alert('Detalles: RSI (Relative Strength Index) de 14 períodos. Mide la velocidad y magnitud de los movimientos de precio. Valores acima de 70 indican sobrecompra; abaixo de 30 indican sobreventa. Se usa para identificar puntos de reversión potenciales.');
-                    }}
-                    className="text-xs text-blue-400 hover:text-blue-300 underline"
-                  >
-                    Detalles
-                  </button>
-                </div>
-                <p className="mt-2 text-xs leading-5 text-slate-400">
-                  Oscilador que mide la fuerza de los movimientos de precio en una escala de 0-100.
-                </p>
-              </div>
-              
-              {/* Volume Indicators */}
-              <div className="rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500">Volumen (24h)</p>
-                    <p className="mt-2 text-xl font-semibold text-white">
-                      {latestDailyPoint ? latestDailyPoint.volume.toLocaleString(undefined) : 'N/A'}
-                    </p>
-                  </div>
-                  <button 
-                    onClick={(e) => {
-                      e.preventDefault();
-                      alert('Detalles: Volumen de negociación en las últimas 24 horas. Indica el nivel de actividad e interés en el activo. Alto volumen confirma la fuerza de un movimiento de precio; bajo volumen puede indicar falta de convicción.');
-                    }}
-                    className="text-xs text-blue-400 hover:text-blue-300 underline"
-                  >
-                    Detalles
-                  </button>
-                </div>
-                <p className="mt-2 text-xs leading-5 text-slate-400">
-                  Cantidad total de unidades negociadas en el último día.
-                </p>
-              </div>
-              
-              {/* Price Change % */}
-              <div className="rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500">Cambio 24h</p>
-                    <p className="mt-2 text-xl font-semibold text-white">
-                      {latestDailyPoint && previousDailyPoint ? 
-                        (((latestDailyPoint.close - previousDailyPoint.close) / previousDailyPoint.close) * 100).toFixed(2) + '%' : 
-                        'N/A'}
-                    </p>
-                  </div>
-                  <button 
-                    onClick={(e) => {
-                      e.preventDefault();
-                      alert('Detalles: Porcentaje de cambio en el precio durante las últimas 24 horas. Calculado como ((Precio actual - Precio ayer) / Precio ayer) * 100. Indica la dirección y fuerza del movimiento reciente de precio.');
-                    }}
-                    className="text-xs text-blue-400 hover:text-blue-300 underline"
-                  >
-                    Detalles
-                  </button>
-                </div>
-                <p className="mt-2 text-xs leading-5 text-slate-400">
-                  Variación porcentual del precio respecto al día anterior.
-                </p>
-              </div>
-              
-              {/* High/Low */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-4">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500">Máximo 24h</p>
-                      {latestDailyPoint ? `$${latestDailyPoint.high.toFixed(2)}` : 'N/A'}
-                    </div>
-                    <button 
-                      onClick={(e) => {
-                        e.preventDefault();
-                        alert('Detalles: Precio más alto alcanzado durante las últimas 24 horas. Útil para identificar niveles de resistencia y rangos de negociación recientes.');
-                      }}
-                      className="text-xs text-blue-400 hover:text-blue-300 underline"
-                    >
-                      Detalles
-                    </button>
-                  </div>
-                  <p className="mt-2 text-xs leading-5 text-slate-400">
-                    Precio más alto en el período de 24 horas.
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-4">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500">Mínimo 24h</p>
-                      <p className="mt-2 text-xl font-semibold text-white">
-                        {latestDailyPoint ? `$${latestDailyPoint.low.toFixed(2)}` : 'N/A'}
-                      </p>
-                    </div>
-                    <button 
-                      onClick={(e) => {
-                        e.preventDefault();
-                        alert('Detalles: Precio más bajo alcanzado durante las últimas 24 horas. Útil para identificar niveles de soporte y rangos de negociación recientes.');
-                      }}
-                      className="text-xs text-blue-400 hover:text-blue-300 underline"
-                    >
-                      Detalles
-                    </button>
-                  </div>
-                  <p className="mt-2 text-xs leading-5 text-slate-400">
-                    Precio más bajo en el período de 24 horas.
-                  </p>
-                </div>
-              </div>
-              
-              {/* Market Cap */}
-              <div className="rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500">Market Cap</p>
-                    <p className="mt-2 text-xl font-semibold text-white">
-                      {latestDailyPoint && latestDailyPoint.marketCap !== null && latestDailyPoint.marketCap !== undefined ?
-                        `$${latestDailyPoint.marketCap.toLocaleString(undefined)}` : 
-                        'N/A'}
-                    </p>
-                  </div>
-                  <button 
-                    onClick={(e) => {
-                      e.preventDefault();
-                      alert('Detalles: Capitalización de mercado. Valor total de todas las unidades en circulación. Calculado como Precio actual × Supply en circulación. Indica el tamaño relativo del activo en el mercado.');
-                    }}
-                    className="text-xs text-blue-400 hover:text-blue-300 underline"
-                  >
-                    Detalles
-                  </button>
-                </div>
-                <p className="mt-2 text-xs leading-5 text-slate-400">
-                  Valor total de mercado del activo (precio × supply circulante).
-                </p>
-              </div>
-            </div>
+            <IndicatorSelector selectedIndicators={activeIndicators} onChange={setActiveIndicators} />
           </div>
         )}
 

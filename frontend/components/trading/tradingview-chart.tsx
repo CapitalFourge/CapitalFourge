@@ -25,6 +25,8 @@ export function TradingViewChart({
   const [isLoading, setIsLoading] = useState<boolean>(true);
   // Ref to hold the container ID (initialized once)
   const containerIdRef = useRef<string | null>(null);
+  // State to track if TradingView script has loaded
+  const [scriptLoaded, setScriptLoaded] = useState(false);
 
   // Generate container ID once (pure effect)
   useEffect(() => {
@@ -33,10 +35,11 @@ export function TradingViewChart({
     }
   }, []);
 
-  // Flag to ensure we only load the TradingView script once
+  // Load TradingView script once
   useEffect(() => {
     // @ts-ignore - Checking for script load on window
     if ((window as any).__TRADINGVIEW_SCRIPT_LOADED) {
+      setScriptLoaded(true);
       return;
     }
     // @ts-ignore - Setting flag on window
@@ -47,6 +50,7 @@ export function TradingViewChart({
     script.async = true;
     script.onload = () => {
       // Script loaded successfully
+      setScriptLoaded(true);
     };
     script.onerror = () => {
       console.error('Failed to load TradingView script');
@@ -65,10 +69,14 @@ export function TradingViewChart({
 
   // Function to initialize or update the TradingView chart
   useEffect(() => {
-    // If script hasn't loaded yet, wait for it (the onload callback will trigger a re-run via the flag?)
-    // Actually, we rely on the script setting the global flag, but we don't have a state for that.
-    // Instead, we'll check if the widget constructor is available.
-    // We'll also wait for the container to be available.
+    // If script hasn't loaded yet, wait for it
+    if (!scriptLoaded) {
+      setIsLoading(true);
+      setError(null);
+      return;
+    }
+
+    // If container ref not available, wait
     if (!containerRef.current) {
       return;
     }
@@ -127,15 +135,13 @@ export function TradingViewChart({
         }
       }
     } else {
-      // TradingView not ready yet (script may still be loading)
-      console.warn('TradingView not ready yet');
-      setIsLoading(false);
-      if (containerRef.current) {
-        containerRef.current.innerHTML =
-          '<div class="p-4 text-center text-yellow-400">Cargando gráfico...</div>';
-      }
+      // TradingView not ready yet (script may have loaded but widget constructor not available)
+      // Keep loading state, but do not set error or modify container
+      setIsLoading(true);
+      setError(null);
+      // Do NOT modify containerRef.current.innerHTML here as it may interfere with widget mounting
     }
-  }, [symbol, interval, width, height]); // Re-run when these props change
+  }, [symbol, interval, width, height, scriptLoaded]); // Re-run when these props change or script loads
 
   // Cleanup widget on unmount
   useEffect(() => {

@@ -510,6 +510,7 @@ const calculateRSI = (data: FundamentalPricePoint[], period: number): number | n
         
         {/* Indicators */}
         {fullChartData.length > 0 && (
+          {showIndicators && (
           <div className="mb-8">
             <h2 className="text-2xl font-semibold text-white mb-4">Indicadores</h2>
             <div className="space-y-4">
@@ -716,6 +717,7 @@ const calculateRSI = (data: FundamentalPricePoint[], period: number): number | n
 
         {/* Analisis fundamental */}
         <div className="mb-8">
+          {showFundamental && (
           <h2 className="text-2xl font-semibold text-white mb-4">Analisis fundamental</h2>
           {fundamentalMetrics.length > 0 ? (
             <div className="space-y-5">
@@ -744,9 +746,11 @@ const calculateRSI = (data: FundamentalPricePoint[], period: number): number | n
             </div>
           )}
         </div>
+          )}
 
 
       </div>
+          )}
 
       {/* Trading Dialog */}
       <TradeDialog

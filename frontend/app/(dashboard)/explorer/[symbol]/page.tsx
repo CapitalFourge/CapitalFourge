@@ -405,12 +405,22 @@ const calculateRSI = (data: FundamentalPricePoint[], period: number): number | n
           <Button 
             variant="default" 
             onClick={() => {
-              setDialogType('analyze');
+              setDialogType('buy');
               setIsDialogOpen(true);
             }}
             className="text-sm px-4 py-2"
           >
-            Analizar
+            Comprar
+          </Button>
+          <Button 
+            variant="destructive" 
+            onClick={() => {
+              setDialogType('sell');
+              setIsDialogOpen(true);
+            }}
+            className="text-sm px-4 py-2 ml-2"
+          >
+            Vender
           </Button>
           <Button 
             variant="outline" 

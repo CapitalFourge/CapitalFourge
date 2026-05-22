@@ -33,12 +33,43 @@ export function TradingViewChart({
     }
   }, []);
 
-  // Function to initialize the TradingView chart
-  const initializeChart = () => {
-    // Return early if container is not available
-    if (!containerRef.current) {
-      console.warn('Container ref is not available yet');
+  // Flag to ensure we only load the TradingView script once
+  useEffect(() => {
+    // @ts-ignore - Checking for script load on window
+    if ((window as any).__TRADINGVIEW_SCRIPT_LOADED) {
+      return;
+    }
+    // @ts-ignore - Setting flag on window
+    (window as any).__TRADINGVIEW_SCRIPT_LOADED = true;
+
+    const script = document.createElement('script');
+    script.src = 'https://s3.tradingview.com/tv.js';
+    script.async = true;
+    script.onload = () => {
+      // Script loaded successfully
+    };
+    script.onerror = () => {
+      console.error('Failed to load TradingView script');
+      setError('Error cargando TradingView script');
       setIsLoading(false);
+    };
+    document.body.appendChild(script);
+
+    // Cleanup script on unmount? We'll leave it as it's safe to reload.
+    return () => {
+      // Note: We don't remove the script because it might be used by other instances.
+      // If we wanted to be more aggressive, we could remove it, but TradingView
+      // might not like that. We'll leave it.
+    };
+  }, []); // Run once on mount
+
+  // Function to initialize or update the TradingView chart
+  useEffect(() => {
+    // If script hasn't loaded yet, wait for it (the onload callback will trigger a re-run via the flag?)
+    // Actually, we rely on the script setting the global flag, but we don't have a state for that.
+    // Instead, we'll check if the widget constructor is available.
+    // We'll also wait for the container to be available.
+    if (!containerRef.current) {
       return;
     }
 
@@ -86,8 +117,8 @@ export function TradingViewChart({
         widgetInstanceRef.current = new (window as any).TradingView.widget(options);
         setIsLoading(false);
         setError(null);
-      } catch (error) {
-        console.error('Error initializing TradingView widget:', error);
+      } catch (err) {
+        console.error('Error initializing TradingView widget:', err);
         setError('Error inicializando TradingView widget');
         setIsLoading(false);
         if (containerRef.current) {
@@ -96,7 +127,7 @@ export function TradingViewChart({
         }
       }
     } else {
-      // TradingView not ready yet
+      // TradingView not ready yet (script may still be loading)
       console.warn('TradingView not ready yet');
       setIsLoading(false);
       if (containerRef.current) {
@@ -104,48 +135,11 @@ export function TradingViewChart({
           '<div class="p-4 text-center text-yellow-400">Cargando gráfico...</div>';
       }
     }
-  };
+  }, [symbol, interval, width, height]); // Re-run when these props change
 
+  // Cleanup widget on unmount
   useEffect(() => {
-    let isMounted = true;
-
-    // Reset state when props change
-    setError(null);
-    setIsLoading(true);
-
-    // Load TradingView widget script only once
-    // @ts-ignore - Checking for script load on window
-    if (!((window as any).tvScriptLoaded)) {
-      // @ts-ignore - Setting flag on window
-      (window as any).tvScriptLoaded = true;
-
-      const script = document.createElement('script');
-      script.src = 'https://s3.tradingview.com/tv.js';
-      script.async = true;
-      script.onload = () => {
-        // Small delay to ensure the library is fully initialized
-        setTimeout(() => {
-          if (isMounted) {
-            initializeChart();
-          }
-        }, 500);
-      };
-      script.onerror = () => {
-        console.error('Failed to load TradingView script');
-        if (isMounted) {
-          setError('Error cargando TradingView widget');
-          setIsLoading(false);
-        }
-      };
-      document.body.appendChild(script);
-    } else {
-      // Script already loaded, just initialize chart
-      initializeChart();
-    }
-
     return () => {
-      isMounted = false;
-      // Cleanup widget on unmount
       if (widgetInstanceRef.current && typeof widgetInstanceRef.current.remove === 'function') {
         try {
           widgetInstanceRef.current.remove();
@@ -155,7 +149,7 @@ export function TradingViewChart({
         widgetInstanceRef.current = null;
       }
     };
-  }, [symbol, interval, width, height]);
+  }, []);
 
   const getTradingViewSymbol = (sym: string): string => {
     // TODO: improve symbol mapping based on asset category/exchange

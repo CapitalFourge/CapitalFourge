@@ -401,42 +401,26 @@ export default function AssetDetailPage() {
           <ArrowLeft className="h-4 w-4 mr-2" />
           Volver al explorador
         </Button>
-        <div className="flex items-center gap-4">
-          <Button 
-            variant="default" 
-            onClick={() => {
-              setDialogType('buy');
-              setIsDialogOpen(true);
-            }}
-            className="text-sm px-4 py-2"
-          >
-            Comprar
-          </Button>
-          <Button 
-            variant="destructive" 
-            onClick={() => {
-              setDialogType('sell');
-              setIsDialogOpen(true);
-            }}
-            className="text-sm px-4 py-2 ml-2"
-          >
-            Vender
-          </Button>
-          <Button 
-            variant="outline" 
-            onClick={() => setShowIndicators(!showIndicators)}
-            className="text-sm px-4 py-2"
-          >
-            Indicadores {showIndicators ? '▲' : '▼'}
-          </Button>
-          <Button 
-            variant="outline" 
-            onClick={() => setShowFundamental(!showFundamental)}
-            className="text-sm px-4 py-2"
-          >
-            Análisis Fundamental {showFundamental ? '▲' : '▼'}
-          </Button>
-        </div>
+        <div className="flex items-center gap-4">           <Button 
+             variant="default" 
+             onClick={() => {
+               setDialogType('buy');
+               setIsDialogOpen(true);
+             }}
+             className="text-sm px-4 py-2"
+           >
+             Comprar
+           </Button>
+           <Button 
+             variant="destructive" 
+             onClick={() => {
+               setDialogType('sell');
+               setIsDialogOpen(true);
+             }}
+             className="text-sm px-4 py-2 ml-2"
+           >
+             Vender
+           </Button></div>
       </div>
 
       <div className="p-6">
@@ -506,6 +490,24 @@ export default function AssetDetailPage() {
             height={750}
           />
         </div>
+<div className="flex items-center justify-between p-6 border-b border-white/10">
+  <div className="flex items-center gap-4">
+           <Button 
+             variant="outline" 
+             onClick={() => setShowIndicators(!showIndicators)}
+             className="text-sm px-4 py-2"
+           >
+             Indicadores {showIndicators ? '▲' : '▼'}
+           </Button>
+           <Button 
+             variant="outline" 
+             onClick={() => setShowFundamental(!showFundamental)}
+             className="text-sm px-4 py-2"
+           >
+             Análisis Fundamental {showFundamental ? '▲' : '▼'}
+           </Button>
+  </div>
+</div>
 
         {/* Indicators */}
         {showIndicators && (

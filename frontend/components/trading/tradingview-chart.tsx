@@ -21,11 +21,11 @@ export function TradingViewChart({
     // Reset state when props change
     setError(null);
     setIsLoading(true);
-    
+
     // Load TradingView widget script only once
     if (!((window as any).tvScriptLoaded)) {
       (window as any).tvScriptLoaded = true;
-      
+
       const script = document.createElement('script');
       script.src = 'https://s3.tradingview.com/tv.js';
       script.async = true;
@@ -48,9 +48,13 @@ export function TradingViewChart({
 
     return () => {
       // Cleanup widget on unmount
-      if ((window as any).tradingViewWidgetInstance) {
-        (window as any).tradingViewWidgetInstance.remove();
-        (window as any).tradingViewWidgetInstance = null;
+      try {
+        if ((window as any).tradingViewWidgetInstance) {
+          (window as any).tradingViewWidgetInstance.remove();
+          (window as any).tradingViewWidgetInstance = null;
+        }
+      } catch (e) {
+        console.error('Error removing TradingView widget:', e);
       }
     };
   }, [symbol, interval, width, height]);
@@ -64,9 +68,13 @@ export function TradingViewChart({
     }
 
     // Destroy previous instance if exists
-    if ((window as any).tradingViewWidgetInstance) {
-      (window as any).tradingViewWidgetInstance.remove();
-      (window as any).tradingViewWidgetInstance = null;
+    try {
+      if ((window as any).tradingViewWidgetInstance) {
+        (window as any).tradingViewWidgetInstance.remove();
+        (window as any).tradingViewWidgetInstance = null;
+      }
+    } catch (e) {
+      console.error('Error removing previous TradingView widget:', e);
     }
 
     // Check if TradingView is available

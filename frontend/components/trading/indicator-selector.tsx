@@ -12,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogClose,
 } from "@/components/ui/dialog";
 import { INDICATOR_CATALOG, INDICATOR_CATEGORIES } from "@/lib/indicator-catalog";
 
@@ -172,11 +173,11 @@ export function IndicatorSelector({ selectedIndicators, onChange }: IndicatorSel
                 </p>
               </>
             )}
-            <DialogTrigger asChild>
+            <DialogClose asChild>
               <Button variant="outline" className="w-full">
                 Cerrar
               </Button>
-            </DialogTrigger>
+            </DialogClose>
           </DialogContent>
         </Dialog>
       </div>

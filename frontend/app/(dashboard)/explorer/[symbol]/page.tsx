@@ -513,7 +513,6 @@ export default function AssetDetailPage() {
           </div>
         </div>
         </div>
-        </div>
 
         {/* Indicators */}
         {showIndicators && (

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Activity, Check, Info, X } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +31,11 @@ export function IndicatorSelector({ selectedIndicators, onChange }: IndicatorSel
     () => INDICATOR_CATALOG.filter((indicator) => selectedIndicators.includes(indicator.id)),
     [selectedIndicators]
   );
+
+  // Auto-open dialog when component mounts
+  useEffect(() => {
+    setOpen(true);
+  }, []);
 
   const toggleIndicator = (indicatorId: string) => {
     if (selectedIndicators.includes(indicatorId)) {
@@ -66,20 +71,6 @@ export function IndicatorSelector({ selectedIndicators, onChange }: IndicatorSel
             llenar la gráfica con señales redundantes.
           </p>
         </div>
-
-        <DialogTrigger asChild>
-          <Button
-            type="button"
-            variant="outline"
-            className="h-11 rounded-full border-emerald-400/30 bg-emerald-400/10 px-5 text-emerald-200 hover:bg-emerald-400/15"
-          >
-            <Activity className="h-4 w-4" />
-            Indicadores
-            <Badge variant="outline" className="border-emerald-300/25 bg-transparent text-emerald-100">
-              {selectedIndicators.length}/{MAX_INDICATORS}
-            </Badge>
-          </Button>
-        </DialogTrigger>
 
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogContent className="max-h-[80vh] max-w-4xl overflow-y-auto rounded-[2rem] border-white/10 bg-slate-950 p-0 text-white">

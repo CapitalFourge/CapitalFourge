@@ -489,25 +489,28 @@ export default function AssetDetailPage() {
             interval="1D"
             width="100%"
             height={750}
+            indicators={activeIndicators}
           />
-<div className="flex items-center justify-between p-6 border-b border-white/10">
-  <div className="flex items-center gap-4">
-           <Button 
-             variant="outline" 
-             onClick={() => setShowIndicators(!showIndicators)}
-             className="text-sm px-4 py-2"
-           >
-             Indicadores {showIndicators ? '▲' : '▼'}
-           </Button>
-           <Button 
-             variant="outline" 
-             onClick={() => setShowFundamental(!showFundamental)}
-             className="text-sm px-4 py-2"
-           >
-             Análisis Fundamental {showFundamental ? '▲' : '▼'}
-           </Button>
-  </div>
-</div>
+        </div>
+        
+        <div className="flex items-center justify-between p-6 border-b border-white/10">
+          <div className="flex items-center gap-4">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowIndicators(!showIndicators)}
+              className="text-sm px-4 py-2"
+            >
+              Indicadores {activeIndicators.length}/3 {showIndicators ? '▲' : '▼'}
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowFundamental(!showFundamental)}
+              className="text-sm px-4 py-2"
+            >
+              Análisis Fundamental {showFundamental ? '▲' : '▼'}
+            </Button>
+          </div>
+        </div>
         </div>
 
         {/* Indicators */}
@@ -552,7 +555,6 @@ export default function AssetDetailPage() {
         )}
 
         {/* Trading Dialog */}
-      </div>
-    </motion.div>
+     </motion.div>
   );
 }

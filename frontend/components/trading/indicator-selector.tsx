@@ -5,6 +5,7 @@ import { Activity, Check, Info, X } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+
 import {
   Dialog,
   DialogContent,
@@ -20,8 +21,6 @@ interface IndicatorSelectorProps {
   selectedIndicators: string[];
   onChange: (indicators: string[]) => void;
 }
-
-const MAX_INDICATORS = 3;
 
 export function IndicatorSelector({ selectedIndicators, onChange }: IndicatorSelectorProps) {
   const [open, setOpen] = useState(false);
@@ -43,11 +42,7 @@ export function IndicatorSelector({ selectedIndicators, onChange }: IndicatorSel
       return;
     }
 
-    if (selectedIndicators.length >= MAX_INDICATORS) {
-      window.alert("Límite alcanzado: máximo 3 indicadores simultáneos en esta vista.");
-      return;
-    }
-
+    // REMOVED LIMIT: No more maximum indicators restriction
     onChange([...selectedIndicators, indicatorId]);
   };
 
@@ -77,7 +72,7 @@ export function IndicatorSelector({ selectedIndicators, onChange }: IndicatorSel
             <DialogHeader className="border-b border-white/10 px-6 py-5">
               <DialogTitle className="text-2xl">Indicadores técnicos</DialogTitle>
               <DialogDescription className="text-slate-400">
-                Selecciona hasta {MAX_INDICATORS} indicadores. La descripción te dice que mide cada uno y en qué caso
+                Selecciona los indicadores que deseas aplicar. La descripción te dice que mide cada uno y en qué caso
                 sirve más.
               </DialogDescription>
             </DialogHeader>
@@ -95,7 +90,6 @@ export function IndicatorSelector({ selectedIndicators, onChange }: IndicatorSel
                     <div className="grid gap-3 md:grid-cols-2">
                       {items.map((indicator) => {
                         const active = selectedIndicators.includes(indicator.id);
-                        const isMaxReached = !active && selectedIndicators.length >= MAX_INDICATORS;
 
                         return (
                           <div key={indicator.id} className="flex flex-col gap-2">
@@ -123,8 +117,7 @@ export function IndicatorSelector({ selectedIndicators, onChange }: IndicatorSel
                                 </Button>
                                 <Button
                                   variant={active ? "outline" : "secondary"}
-                                  disabled={isMaxReached}
-                                  onClick={!isMaxReached ? () => toggleIndicator(indicator.id) : undefined}
+                                  onClick={() => toggleIndicator(indicator.id)}
                                   className="text-xs px-2 py-1"
                                 >
                                   {active ? "Quitar" : "Seleccionar"}
@@ -144,35 +137,36 @@ export function IndicatorSelector({ selectedIndicators, onChange }: IndicatorSel
             </div>
           </DialogContent>
         </Dialog>
-
-        {/* Details Dialog */}
-        <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
-          <DialogContent className="max-w-md rounded-[2rem] border-white/10 bg-slate-950 p-6 text-white">
-            <DialogHeader className="border-b border-white/10 pb-4">
-              <DialogTitle className="text-xl font-semibold">
-                {detailIndicatorId ? INDICATOR_CATALOG.find(i => i.id === detailIndicatorId)?.label ?? '' : 'Detalles'}
-              </DialogTitle>
-            </DialogHeader>
-            {detailIndicatorId && (
-              <>
-                <DialogDescription className="mb-4 text-slate-400">
-                  {INDICATOR_CATALOG.find(i => i.id === detailIndicatorId)?.shortDescription}
-                </DialogDescription>
-                <p className="mb-2 text-sm font-semibold text-slate-300">Uso:</p>
-                <p className="mb-4 text-slate-400">
-                  {INDICATOR_CATALOG.find(i => i.id === detailIndicatorId)?.usage}
-                </p>
-              </>
-            )}
-            <DialogClose asChild>
-              <Button variant="outline" className="w-full">
-                Cerrar
-              </Button>
-            </DialogClose>
-          </DialogContent>
-        </Dialog>
       </div>
 
+      {/* Details Dialog */}
+      <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
+        <DialogContent className="max-w-md rounded-[2rem] border-white/10 bg-slate-950 p-6 text-white">
+          <DialogHeader className="border-b border-white/10 pb-4">
+            <DialogTitle className="text-xl font-semibold">
+              {detailIndicatorId ? INDICATOR_CATALOG.find(i => i.id === detailIndicatorId)?.label ?? '' : 'Detalles'}
+            </DialogTitle>
+          </DialogHeader>
+          {detailIndicatorId && (
+            <>
+              <DialogDescription className="mb-4 text-slate-400">
+                {INDICATOR_CATALOG.find(i => i.id === detailIndicatorId)?.shortDescription}
+              </DialogDescription>
+              <p className="mb-2 text-sm font-semibold text-slate-300">Uso:</p>
+              <p className="mb-4 text-slate-400">
+                {INDICATOR_CATALOG.find(i => i.id === detailIndicatorId)?.usage}
+              </p>
+            </>
+          )}
+          <DialogClose asChild>
+            <Button variant="outline" className="w-full">
+              Cerrar
+            </Button>
+          </DialogClose>
+        </DialogContent>
+      </Dialog>
+
+      {/* ALWAYS show selected indicators outside the dialog */}
       <div className="mt-4 flex flex-wrap gap-2">
         {selectedDefinitions.length > 0 ? (
           selectedDefinitions.map((indicator) => (

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { IndicatorSelector } from "@/components/trading/indicator-selector";
 import { TradingViewChart } from "@/components/trading/tradingview-chart";
 import { LiquidityHeatmap } from "@/components/trading/liquidity-heatmap";
+import { FundamentalMetricSelector } from "@/components/trading/fundamental-metric-selector";
 import { FUNDAMENTAL_METRIC_CATALOG, FundamentalCategory, FundamentalMetricDefinition } from "@/lib/fundamental-metric-catalog";
 
 const ASSET_DATA_QUERY = gql`
@@ -213,6 +214,7 @@ export default function AssetDetailPage() {
   const [showIndicators, setShowIndicators] = useState<boolean>(false);
   const [activeIndicators, setActiveIndicators] = useState<string[]>([]);
   const [showFundamental, setShowFundamental] = useState<boolean>(false);
+  const [activeFundamentals, setActiveFundamentals] = useState<string[]>([]);
 
   const { data, loading, error } = useQuery(ASSET_DATA_QUERY, {
     variables: { symbol: symbol },
@@ -492,7 +494,6 @@ export default function AssetDetailPage() {
             indicators={activeIndicators}
           />
         </div>
-        
         <div className="flex items-center justify-between p-6 border-b border-white/10">
           <div className="flex items-center gap-4">
             <Button 
@@ -500,7 +501,7 @@ export default function AssetDetailPage() {
               onClick={() => setShowIndicators(!showIndicators)}
               className="text-sm px-4 py-2"
             >
-              Indicadores {activeIndicators.length}/3 {showIndicators ? '▲' : '▼'}
+              Indicadores {activeIndicators.length} {showIndicators ? '▲' : '▼'}
             </Button>
             <Button 
               variant="outline" 
@@ -510,6 +511,7 @@ export default function AssetDetailPage() {
               Análisis Fundamental {showFundamental ? '▲' : '▼'}
             </Button>
           </div>
+        </div>
         </div>
         </div>
 
@@ -525,32 +527,11 @@ export default function AssetDetailPage() {
         {showFundamental && (
           <div className="mb-8">
             <h2 className="text-2xl font-semibold text-white mb-4">Análisis fundamental</h2>
-            {fundamentalMetrics.length > 0 ? (
-              <div className="space-y-5">
-                {fundamentalMetrics.map((group) => (
-                  <section key={group.section} className="rounded-[1.75rem] border border-white/10 bg-white/[0.03] p-4">
-                    <div className="mb-4">
-                      <p className="text-[10px] uppercase tracking-[0.26em] text-slate-500">{group.section}</p>
-                      <p className="mt-2 text-sm text-slate-400">{group.summary}</p>
-                    </div>
-                    
-                    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                      {group.metrics.map((metric) => (
-                        <div key={metric.id} className="rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-4">
-                          <p className="text-[10px] uppercase tracking-[0.22em] text-slate-500">{metric.label}</p>
-                          <p className="mt-2 text-xl font-semibold text-white">{metric.value}</p>
-                          <p className="mt-2 text-xs leading-5 text-slate-400">{metric.description}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </section>
-                ))}
-              </div>
-            ) : (
-              <div className="rounded-3xl border border-dashed border-white/10 bg-white/[0.03] px-5 py-6 text-sm text-slate-400">
-                Aun no hay suficientes datos fundamentales estructurados para este activo.
-              </div>
-            )}
+            <FundamentalMetricSelector
+              selectedMetrics={activeFundamentals}
+              onChange={setActiveFundamentals}
+              assetCategory={asset?.category}
+            />
           </div>
         )}
 

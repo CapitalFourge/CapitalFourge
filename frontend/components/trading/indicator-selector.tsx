@@ -1,9 +1,11 @@
 'use client';
 
-import { Check, X } from "lucide-react";
+import { useState } from "react";
+import { Check } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 import { INDICATOR_CATALOG, INDICATOR_CATEGORIES } from "@/lib/indicator-catalog";
 
@@ -14,6 +16,8 @@ interface IndicatorSelectorProps {
 }
 
 export function IndicatorSelector({ selectedIndicators, onChange, maxIndicators = 6 }: IndicatorSelectorProps) {
+  const [showExamplesFor, setShowExamplesFor] = useState<string | null>(null);
+
   const toggleIndicator = (indicatorId: string) => {
     if (selectedIndicators.includes(indicatorId)) {
       onChange(selectedIndicators.filter((id) => id !== indicatorId));
@@ -26,6 +30,8 @@ export function IndicatorSelector({ selectedIndicators, onChange, maxIndicators 
     onChange([...selectedIndicators, indicatorId]);
   };
 
+  const indicator = showExamplesFor ? INDICATOR_CATALOG.find(i => i.id === showExamplesFor) : null;
+
   return (
     <div className="rounded-[1.75rem] border border-white/10 bg-slate-950/45 p-4">
       <div className="mb-4">
@@ -33,7 +39,7 @@ export function IndicatorSelector({ selectedIndicators, onChange, maxIndicators 
           Selecciona hasta {maxIndicators} indicadores. Aparecerán en el gráfico de TradingView.
         </p>
       </div>
-      
+
       {INDICATOR_CATEGORIES.map((category) => {
         const items = INDICATOR_CATALOG.filter((indicator) => indicator.category === category);
 
@@ -62,13 +68,23 @@ export function IndicatorSelector({ selectedIndicators, onChange, maxIndicators 
                         </div>
                         <p className="mt-1 text-sm text-slate-300">{indicator.shortDescription}</p>
                       </div>
-                      <Button
-                        variant={active ? "outline" : "secondary"}
-                        onClick={() => toggleIndicator(indicator.id)}
-                        className="text-xs px-2 py-1"
-                      >
-                        {active ? "Quitar" : "Seleccionar"}
-                      </Button>
+                      <div className="flex flex-col gap-2">
+                        <Button
+                          variant={active ? "outline" : "secondary"}
+                          onClick={() => toggleIndicator(indicator.id)}
+                          className="text-xs px-2 py-1"
+                        >
+                          {active ? "Quitar" : "Seleccionar"}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setShowExamplesFor(indicator.id)}
+                          className="text-xs px-2 py-1 text-slate-400 hover:text-white"
+                        >
+                          Ejemplos
+                        </Button>
+                      </div>
                     </div>
                     {active && (
                       <p className="mt-2 text-xs leading-5 text-emerald-400/70">{indicator.usage}</p>
@@ -80,6 +96,19 @@ export function IndicatorSelector({ selectedIndicators, onChange, maxIndicators 
           </section>
         );
       })}
+
+      <Dialog open={!!showExamplesFor} onOpenChange={() => setShowExamplesFor(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {indicator?.label} - Ejemplos
+            </DialogTitle>
+            <DialogDescription className="whitespace-pre-line">
+              {indicator?.examples}
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

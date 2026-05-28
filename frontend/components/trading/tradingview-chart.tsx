@@ -130,12 +130,12 @@ function mapIndicatorsToStudies(indicatorIds: string[]): any[] {
     wma: { id: 'WMA', inputs: { length: 9 } },
     rsi: { id: 'RSI', inputs: { length: 14 } },
     macd: { id: 'MACD', inputs: { fastLength: 12, slowLength: 26, signalLength: 9 } },
-    stochastic: { id: 'Stoch', inputs: { %k': 14, '%d': 3 } },
+    stochastic: { id: 'Stoch', inputs: { k: 14, d: 3 } },
     roc: { id: 'ROC', inputs: { length: 10 } },
     bollinger: { id: 'BB', inputs: { length: 20, stdDev: 2 } },
     obv: { id: 'OBV' },
   };
-  
+
   return indicatorIds
     .filter(id => studyMap[id])
     .slice(0, 6)

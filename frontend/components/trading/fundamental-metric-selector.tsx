@@ -1,10 +1,12 @@
 'use client';
 
-import { Check, X } from "lucide-react";
+import { useState } from "react";
+import { Check } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 import { FUNDAMENTAL_METRIC_CATALOG, FundamentalCategory } from "@/lib/fundamental-metric-catalog";
 
@@ -16,8 +18,10 @@ interface FundamentalMetricSelectorProps {
 }
 
 export function FundamentalMetricSelector({ selectedMetrics, onChange, assetCategory, onMetricSelect }: FundamentalMetricSelectorProps) {
-  const filteredMetrics = !assetCategory 
-    ? FUNDAMENTAL_METRIC_CATALOG 
+  const [showExamplesFor, setShowExamplesFor] = useState<string | null>(null);
+
+  const filteredMetrics = !assetCategory
+    ? FUNDAMENTAL_METRIC_CATALOG
     : FUNDAMENTAL_METRIC_CATALOG.filter(metric =>
         metric.categories.includes(assetCategory as FundamentalCategory)
       );
@@ -31,6 +35,8 @@ export function FundamentalMetricSelector({ selectedMetrics, onChange, assetCate
     onMetricSelect?.(metricId);
   };
 
+  const metric = showExamplesFor ? FUNDAMENTAL_METRIC_CATALOG.find(m => m.id === showExamplesFor) : null;
+
   return (
     <div className="rounded-[1.75rem] border border-white/10 bg-slate-950/45 p-4">
       <div className="mb-4">
@@ -38,7 +44,7 @@ export function FundamentalMetricSelector({ selectedMetrics, onChange, assetCate
           Selecciona las métricas fundamentales que deseas ver. Incluyen valor actual y contexto.
         </p>
       </div>
-      
+
       <div className="space-y-6">
         {Array.from(
           filteredMetrics.reduce((acc, metric) => {
@@ -72,13 +78,23 @@ export function FundamentalMetricSelector({ selectedMetrics, onChange, assetCate
                     </CardHeader>
                     <CardContent>
                       <p className="text-sm text-slate-300">{metric.description}</p>
-                      <Button
-                        variant={active ? "outline" : "secondary"}
-                        onClick={() => toggleMetric(metric.id)}
-                        className="mt-2 text-xs"
-                      >
-                        {active ? "Quitar" : "Seleccionar"}
-                      </Button>
+                      <div className="mt-2 flex gap-2">
+                        <Button
+                          variant={active ? "outline" : "secondary"}
+                          onClick={() => toggleMetric(metric.id)}
+                          className="text-xs"
+                        >
+                          {active ? "Quitar" : "Seleccionar"}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setShowExamplesFor(metric.id)}
+                          className="text-xs text-slate-400 hover:text-white"
+                        >
+                          Ejemplos
+                        </Button>
+                      </div>
                     </CardContent>
                   </Card>
                 );
@@ -87,6 +103,19 @@ export function FundamentalMetricSelector({ selectedMetrics, onChange, assetCate
           </section>
         ))}
       </div>
+
+      <Dialog open={!!showExamplesFor} onOpenChange={() => setShowExamplesFor(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {metric?.label} - Ejemplos
+            </DialogTitle>
+            <DialogDescription className="whitespace-pre-line">
+              {metric?.examples}
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

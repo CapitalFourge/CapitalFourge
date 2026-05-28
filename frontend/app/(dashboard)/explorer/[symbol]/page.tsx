@@ -148,70 +148,8 @@ interface FundamentalMetricItem {
   value: string;
 }
 
-interface FundamentalMetricSection {
-  section: string;
-  summary: string;
-  metrics: FundamentalMetricItem[];
-}
-
-type ChartType = "area" | "line" | "candles";
-type CandleTimeframe = "1D" | "1W" | "1M";
-
-function startOfWeek(date: Date) {
-  const copy = new Date(date);
-  const day = copy.getDay();
-  const diff = day === 0 ? -6 : 1 - day;
-  copy.setDate(copy.getDate() + diff);
-  copy.setHours(0, 0, 0, 0);
-  return copy;
-}
-
-function aggregateCandles<
-  T extends { date: string; open: number; high: number; low: number; close: number; volume: number }
->(points: T[], timeframe: CandleTimeframe): T[] {
-  if (timeframe === "1D" || points.length <= 1) {
-    return points;
-  }
-
-  const grouped = new Map<string, T[]>();
-
-  for (const point of points) {
-    const date = new Date(point.date);
-    if (Number.isNaN(date.getTime())) {
-      continue;
-    }
-
-    const key =
-      timeframe === "1W"
-        ? startOfWeek(date).toISOString().slice(0, 10)
-        : `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
-
-    const current = grouped.get(key) ?? [];
-    current.push(point);
-    grouped.set(key, current);
-  }
-
-  return Array.from(grouped.values()).map((bucket) => {
-    const sorted = [...bucket].sort((a, b) => Date.parse(a.date) - Date.parse(b.date));
-    const first = sorted[0];
-    const last = sorted[sorted.length - 1];
-
-    return {
-      ...last,
-      date: last.date,
-      open: first.open,
-      high: Math.max(...sorted.map((point) => point.high)),
-      low: Math.min(...sorted.map((point) => point.low)),
-      close: last.close,
-      volume: sorted.reduce((sum, point) => sum + point.volume, 0),
-    };
-  });
-}
-
 export default function AssetDetailPage() {
   const { symbol } = useParams<{ symbol: string }>();
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [dialogType, setDialogType] = useState<'buy' | 'sell'>('buy');
   const [showIndicators, setShowIndicators] = useState<boolean>(false);
   const [activeIndicators, setActiveIndicators] = useState<string[]>([]);
   const [showFundamental, setShowFundamental] = useState<boolean>(false);
@@ -226,7 +164,6 @@ export default function AssetDetailPage() {
   const portfolios = data?.portfolios || [];
   const latestFundamental = priceHistory[priceHistory.length - 1] as FundamentalPricePoint | undefined;
 
-  // Process price history for stats and fundamentals
   const fullChartData = useMemo(() => {
     return priceHistory
       .map((point: FundamentalPricePoint) => ({
@@ -243,7 +180,6 @@ export default function AssetDetailPage() {
   const latestDailyPoint = fullChartData[fullChartData.length - 1];
   const previousDailyPoint = fullChartData[fullChartData.length - 2];
 
-  // Find user's position in this asset
   const userPosition = useMemo(() => {
     for (const portfolio of portfolios) {
       const position = portfolio.positions.find((p: Position) => p.symbol === symbol);
@@ -258,85 +194,12 @@ export default function AssetDetailPage() {
     return null;
   }, [portfolios, symbol]);
 
-  const fundamentalMetrics = useMemo<FundamentalMetricSection[]>(() => {
-    if (!latestFundamental) {
-      return [];
-    }
-
-    const category: FundamentalCategory =
-      asset?.category === "CRYPTO" ? "CRYPTO" : asset?.category === "COMMODITIES" ? "COMMODITIES" : "STOCKS";
-
-    const sectionSummaries: Record<string, string> = {
-      Actividad: "Contexto base de tamano, liquidez y traccion del activo.",
-      Valoracion: "Multiples para juzgar cuanto esta pagando el mercado por el activo.",
-      Rentabilidad: "Metricas para entender eficiencia y capacidad de generar retorno.",
-      Solidez: "Senales de balance y liquidez para evaluar resiliencia financiera.",
-      "Retorno al accionista": "Variables ligadas a caja libre y distribucion de valor.",
-      Tokenomics: "Variables de oferta que condicionan dilucion, escasez y valor relativo.",
-      "On-chain": "Uso economico de la red y actividad registrada en la cadena.",
-      "Seguridad de red": "Metricas que ayudan a entender robustez y descentralizacion.",
-      Mercado: "Lecturas de liquidez, sentimiento y traccion del ecosistema.",
-      "Oferta y demanda": "Factores fisicos o estructurales que tensionan el equilibrio del commodity.",
-      "Curva y macro": "Variables macro y de futuros que suelen mover la narrativa del activo.",
-    };
-
-    const formatMetricValue = (definition: FundamentalMetricDefinition, rawValue?: number | null) => {
-      if (rawValue === undefined || rawValue === null || rawValue === 0) {
-        return null;
-      }
-
-      if (definition.formatter === "percent") {
-        return `${(rawValue * 100).toFixed(2)}%`;
-      }
-
-      if (definition.formatter === "currency") {
-        return `$${rawValue.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
-      }
-
-      return rawValue.toLocaleString(undefined, { maximumFractionDigits: 2 });
-    };
-
-    const grouped = FUNDAMENTAL_METRIC_CATALOG.reduce<Map<string, FundamentalMetricItem[]>>((acc, definition) => {
-      if (!definition.categories.includes(category)) {
-        return acc;
-      }
-
-      const rawValue = latestFundamental[definition.id as keyof FundamentalPricePoint];
-      if (typeof rawValue !== "number" && rawValue !== null && rawValue !== undefined) {
-        return acc;
-      }
-
-      const value = formatMetricValue(definition, rawValue);
-      if (!value) {
-        return acc;
-      }
-
-      const current = acc.get(definition.section) ?? [];
-      current.push({
-        id: definition.id,
-        label: definition.label,
-        description: definition.description,
-        value,
-      });
-      acc.set(definition.section, current);
-      return acc;
-    }, new Map<string, FundamentalMetricItem[]>());
-
-    return Array.from(grouped.entries()).map(([section, metrics]) => ({
-      section,
-      summary: sectionSummaries[section] ?? "Lectura complementaria para entender mejor el estado del activo.",
-      metrics,
-    }));
-  }, [asset?.category, latestFundamental]);
-
-  // Calculate SMA (Simple Moving Average) - default period 9
   const calculateSMA = (data: FundamentalPricePoint[], period: number = 9): number | null => {
     if (data.length < period) return null;
     const sum = data.slice(-period).reduce((acc, point) => acc + point.close, 0);
     return sum / period;
   };
 
-  // Calculate EMA (Exponential Moving Average)
   const calculateEMA = (data: FundamentalPricePoint[], period: number = 9): number | null => {
     if (data.length < period) return null;
     
@@ -350,7 +213,6 @@ export default function AssetDetailPage() {
     return ema;
   };
 
-  // Calculate RSI (Relative Strength Index)
   const calculateRSI = (data: FundamentalPricePoint[], period: number = 14): number | null => {
     if (data.length < period + 1) return null;
     
@@ -384,7 +246,6 @@ export default function AssetDetailPage() {
     return 100 - (100 / (1 + rs));
   };
 
-  // Calculate indicator values based on selection
   const indicatorValues = useMemo(() => {
     const values: Record<string, number | null> = {};
     const closeData = priceHistory.filter((p: FundamentalPricePoint) => typeof p.close === 'number');
@@ -401,13 +262,13 @@ export default function AssetDetailPage() {
           values[indicatorId] = calculateRSI(closeData, 14);
           break;
         case 'wma':
-          values[indicatorId] = calculateSMA(closeData, 9); // Simplified as SMA
+          values[indicatorId] = calculateSMA(closeData, 9);
           break;
         case 'macd':
-          values[indicatorId] = null; // Requires histogram calculation
+          values[indicatorId] = null;
           break;
         case 'stochastic':
-          values[indicatorId] = null; // Requires high/low calculation
+          values[indicatorId] = null;
           break;
         case 'roc':
           if (closeData.length >= 10) {
@@ -417,10 +278,10 @@ export default function AssetDetailPage() {
           }
           break;
         case 'bollinger':
-          values[indicatorId] = null; // Requires complex bands
+          values[indicatorId] = null;
           break;
         case 'obv':
-          values[indicatorId] = null; // Requires volume accumulation
+          values[indicatorId] = null;
           break;
         default:
           values[indicatorId] = null;
@@ -448,7 +309,7 @@ export default function AssetDetailPage() {
     return <div className="flex min-h-[60vh] items-center justify-center text-slate-400">Activo no encontrado.</div>;
   }
 
-return (
+  return (
     <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="min-h-screen bg-black/50">
       <div className="flex items-center justify-between p-6 border-b border-white/10">
         <Button variant="outline" onClick={() => {
@@ -460,20 +321,12 @@ return (
         <div className="flex items-center gap-4">
           <Button 
             variant="default" 
-            onClick={() => {
-              setDialogType('buy');
-              setIsDialogOpen(true);
-            }}
             className="text-sm px-4 py-2"
           >
             Comprar
           </Button>
           <Button 
             variant="destructive" 
-            onClick={() => {
-              setDialogType('sell');
-              setIsDialogOpen(true);
-            }}
             className="text-sm px-4 py-2"
           >
             Vender
@@ -482,14 +335,12 @@ return (
       </div>
 
       <div className="p-6 space-y-8">
-        {/* Asset Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-white">{asset.symbol}</h1>
           <p className="mt-2 text-xl font-light text-slate-300">{asset.name}</p>
           <p className="mt-1 text-sm text-slate-400">{asset.category}</p>
         </div>
 
-        {/* Asset Stats */}
         <div className="grid gap-6 md:grid-cols-4 mb-8">
           <div className="flex flex-col items-center p-4 bg-white/[0.03] rounded-xl">
             <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Precio actual</p>
@@ -539,7 +390,6 @@ return (
           </div>
         </div>
 
-        {/* Price Chart */}
         <div className="mb-8">
           <TradingViewChart
             symbol={symbol}
@@ -550,7 +400,6 @@ return (
           />
         </div>
 
-        {/* Action Bar */}
         <div className="flex items-center gap-4 border-b border-white/10 pb-4 mb-8">
           <Button 
             variant={showIndicators ? "default" : "outline"}
@@ -568,7 +417,6 @@ return (
           </Button>
         </div>
 
-        {/* Indicators Selector - Inline */}
         {showIndicators && (
           <div className="mb-8">
             <h2 className="text-2xl font-semibold text-white mb-4">Indicadores técnicos</h2>
@@ -579,7 +427,6 @@ return (
           </div>
         )}
 
-        {/* Selected Indicators - Show calculated values in cards */}
         {activeIndicators.length > 0 && (
           <div className="mb-6">
             <h3 className="text-lg font-semibold text-white mb-3">Indicadores calculados</h3>
@@ -616,7 +463,6 @@ return (
           </div>
         )}
 
-        {/* Fundamental Analysis Selector - Inline */}
         {showFundamental && (
           <div className="mb-8">
             <h2 className="text-2xl font-semibold text-white mb-4">Análisis fundamental</h2>
@@ -628,7 +474,6 @@ return (
           </div>
         )}
 
-{/* Selected Fundamentals - Show value, label and description in cards */}
         {activeFundamentals.length > 0 && (
           <div className="mb-6">
             <h3 className="text-lg font-semibold text-white mb-3">Métricas fundamentales seleccionadas</h3>
@@ -672,38 +517,6 @@ return (
             </div>
           </div>
         )}
-      </div>
-    </motion.div>
-  );
-}
-                }
-                
-                return (
-                  <Card key={metric.id} className="border-white/10 bg-slate-950/45">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-base flex items-center justify-between">
-                        {metric.label}
-                        <button
-                          type="button"
-                          onClick={() => setActiveFundamentals(activeFundamentals.filter(id => id !== metric.id))}
-                          className="rounded-full text-slate-400 transition hover:text-white"
-                          aria-label={`Quitar ${metric.label}`}
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-xl font-semibold text-emerald-400">{displayValue}</p>
-                      <CardDescription className="mt-1 text-slate-400">{metric.description}</CardDescription>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </div>
       </div>
     </motion.div>
   );

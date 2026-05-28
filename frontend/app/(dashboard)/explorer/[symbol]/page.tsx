@@ -341,19 +341,19 @@ export default function AssetDetailPage() {
           <span className="text-sm text-slate-400">{asset.category}</span>
         </div>
 
-        <div className="flex flex-wrap items-center gap-6 mb-8">
-          <div className="flex items-baseline gap-3">
+        <div className="flex flex-wrap gap-6 mb-8">
+          <div className="flex items-center gap-2">
             <span className="text-xs uppercase tracking-[0.24em] text-slate-400">Precio actual</span>
-            <span className="text-3xl font-semibold text-white">
+            <span className="text-2xl font-semibold text-white">
               {latestDailyPoint ? 
                 `$${latestDailyPoint.close.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 
                 '$0.00'}
             </span>
           </div>
           
-          <div className="flex items-baseline gap-2">
+          <div className="flex items-center gap-2">
             <span className="text-xs uppercase tracking-[0.24em] text-slate-400">Cambio 24h</span>
-            <span className="text-xl font-semibold">
+            <span className="text-lg font-semibold">
               {latestDailyPoint && previousDailyPoint ? 
                 (
                   <span className={latestDailyPoint.close > previousDailyPoint.close ? 'text-emerald-400' : 'text-rose-400'}>
@@ -364,23 +364,23 @@ export default function AssetDetailPage() {
             </span>
           </div>
           
-          <div className="flex items-baseline gap-2">
+          <div className="flex items-center gap-2">
             <span className="text-xs uppercase tracking-[0.24em] text-slate-400">Volumen 24h</span>
-            <span className="text-xl font-semibold text-white">
+            <span className="text-lg font-semibold text-white">
               {latestDailyPoint ? 
                 latestDailyPoint.volume.toLocaleString(undefined) : 
                 '0'}
             </span>
           </div>
           
-          <div className="flex items-baseline gap-2">
+          <div className="flex items-center gap-2">
             <span className="text-xs uppercase tracking-[0.24em] text-slate-400">Posición</span>
             {userPosition ? (
-              <span className="text-xl font-semibold text-white">
-                {userPosition.quantity} en {userPosition.portfolioName}
+              <span className="text-lg font-semibold text-white">
+                {userPosition.quantity} {userPosition.portfolioName}
               </span>
             ) : (
-              <span className="text-xl font-semibold text-white">0</span>
+              <span className="text-lg font-semibold text-white">0</span>
             )}
           </div>
         </div>

@@ -81,6 +81,12 @@ export default function ExplorerPage() {
     variables: { category: selectedCategory === "ALL" ? null : selectedCategory },
   });
 
+  const { data: searchData, loading: searchLoading } = useQuery(SEARCH_SYMBOLS_QUERY, {
+    variables: { query: searchTerm, limit: 10 },
+    skip: searchTerm.trim().length < 1,
+    fetchPolicy: "network-only"
+  });
+
   const assets = useMemo(() => ((data?.assetsByCategory as Asset[] | undefined) ?? []), [data?.assetsByCategory]);
   const portfolios = useMemo(
     () =>
@@ -91,20 +97,22 @@ export default function ExplorerPage() {
     [data?.portfolios]
   );
 
-  const filteredAssets = useMemo(() => {
-    if (searchTerm.trim() === "") return assets;
-    return assets.filter((asset) => {
-      const term = searchTerm.toLowerCase();
-      return asset.symbol.toLowerCase().includes(term) || asset.name?.toLowerCase().includes(term);
-    });
-  }, [assets, searchTerm]);
+  // Use search results if searching, otherwise use category-filtered assets
+  const displayAssets = useMemo(() => {
+    if (searchTerm.trim() !== "") {
+      return (searchData?.searchSymbols as Asset[] | undefined) ?? [];
+    }
+    return assets;
+  }, [searchTerm, searchData?.searchSymbols, assets]);
+
+  const isLoading = loading || searchLoading;
 
   // Check if search term looks like a symbol that could exist but isn't shown
   const isValidSymbolFormat = searchTerm.trim().length >= 1 && 
     searchTerm.trim().toUpperCase().match(/^([A-Z]{1,5})(\-[A-Z]{3})?(\=\w{1,2})?$/);
   const showSearchNavigation = searchTerm.trim().length > 0 && 
-    filteredAssets.length === 0 && 
-    !loading;
+    displayAssets.length === 0 && 
+    !isLoading;
 
   if (error) {
     return (
@@ -163,11 +171,11 @@ export default function ExplorerPage() {
       </section>
 
       <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-        {loading
+        {isLoading
           ? Array.from({ length: 8 }).map((_, index) => (
               <div key={index} className="panel h-[240px] animate-pulse" />
             ))
-          : filteredAssets.map((asset, index) => (
+          : displayAssets.map((asset, index) => (
               <motion.div
                 key={asset.symbol}
                 initial={{ opacity: 0, y: 20 }}
@@ -178,13 +186,13 @@ export default function ExplorerPage() {
                   <CardHeader className="px-6 pt-6">
                     <div className="flex items-start justify-between gap-4">
                       <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs uppercase tracking-[0.22em] text-slate-400">
-                        {asset.category}
+                        {asset.category || "DESCRUBIR"}
                       </span>
                       <Info className="h-4 w-4 text-slate-500" />
                     </div>
                     <CardTitle className="mt-5 flex flex-col gap-2">
                       <span className="text-3xl font-semibold tracking-[-0.04em] text-white">{asset.symbol}</span>
-                      <span className="text-sm font-normal text-slate-400">{asset.name || "Instrumento sin descripción"}</span>
+                      <span className="text-sm font-normal text-slate-400">{asset.name || "Hacer clic para ver detalles"}</span>
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="mt-auto space-y-4 px-6 pb-6">
@@ -200,7 +208,7 @@ export default function ExplorerPage() {
               </motion.div>
             ))}
 
-        {!loading && filteredAssets.length === 0 && showSearchNavigation && (
+        {!isLoading && displayAssets.length === 0 && showSearchNavigation && (
           <div className="panel col-span-full flex min-h-[300px] flex-col items-center justify-center p-10 text-center">
             <Activity className="h-10 w-10 text-slate-500" />
             <h2 className="mt-6 text-2xl font-semibold text-white">No se encontró "{searchTerm}" en los instrumentos mostrados.</h2>

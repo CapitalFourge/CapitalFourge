@@ -335,53 +335,55 @@ export default function AssetDetailPage() {
       </div>
 
       <div className="p-6 space-y-8">
-        <div className="mb-8 flex items-baseline gap-4">
-          <h1 className="text-4xl font-bold text-white">{asset.symbol}</h1>
-          <span className="text-xl font-light text-slate-300">{asset.name}</span>
-          <span className="text-sm text-slate-400">{asset.category}</span>
-        </div>
-
-        <div className="flex flex-wrap gap-6 mb-8">
-          <div className="flex items-center gap-2">
-            <span className="text-xs uppercase tracking-[0.24em] text-slate-400">Precio actual</span>
-            <span className="text-2xl font-semibold text-white">
-              {latestDailyPoint ? 
-                `$${latestDailyPoint.close.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 
-                '$0.00'}
-            </span>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 mb-8">
+          <div className="flex items-baseline gap-4">
+            <h1 className="text-4xl font-bold text-white">{asset.symbol}</h1>
+            <span className="text-xl font-light text-slate-300">{asset.name}</span>
+            <span className="text-sm text-slate-400">{asset.category}</span>
           </div>
           
-          <div className="flex items-center gap-2">
-            <span className="text-xs uppercase tracking-[0.24em] text-slate-400">Cambio 24h</span>
-            <span className="text-lg font-semibold">
-              {latestDailyPoint && previousDailyPoint ? 
-                (
-                  <span className={latestDailyPoint.close > previousDailyPoint.close ? 'text-emerald-400' : 'text-rose-400'}>
-                    {(((latestDailyPoint.close - previousDailyPoint.close) / previousDailyPoint.close) * 100).toFixed(2)}%
-                  </span>
-                ) : 
-                '0.00%'}
-            </span>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <span className="text-xs uppercase tracking-[0.24em] text-slate-400">Volumen 24h</span>
-            <span className="text-lg font-semibold text-white">
-              {latestDailyPoint ? 
-                latestDailyPoint.volume.toLocaleString(undefined) : 
-                '0'}
-            </span>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <span className="text-xs uppercase tracking-[0.24em] text-slate-400">Posición</span>
-            {userPosition ? (
-              <span className="text-lg font-semibold text-white">
-                {userPosition.quantity} {userPosition.portfolioName}
-              </span>
-            ) : (
-              <span className="text-lg font-semibold text-white">0</span>
-            )}
+          <div className="flex flex-wrap gap-2">
+            <div className="flex flex-col items-center p-4 bg-white/[0.03] rounded-xl">
+              <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Precio actual</p>
+              <p className="mt-1 text-xl font-semibold text-white">
+                {latestDailyPoint ? 
+                  `$${latestDailyPoint.close.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 
+                  '$0.00'}
+              </p>
+            </div>
+            
+            <div className="flex flex-col items-center p-4 bg-white/[0.03] rounded-xl">
+              <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Cambio 24h</p>
+              <p className="mt-1 text-lg font-semibold">
+                {latestDailyPoint && previousDailyPoint ? 
+                  (
+                    <span className={latestDailyPoint.close > previousDailyPoint.close ? 'text-emerald-400' : 'text-rose-400'}>
+                      {(((latestDailyPoint.close - previousDailyPoint.close) / previousDailyPoint.close) * 100).toFixed(2)}%
+                    </span>
+                  ) : 
+                  '0.00%'}
+              </p>
+            </div>
+            
+            <div className="flex flex-col items-center p-4 bg-white/[0.03] rounded-xl">
+              <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Volumen 24h</p>
+              <p className="mt-1 text-lg font-semibold text-white">
+                {latestDailyPoint ? 
+                  latestDailyPoint.volume.toLocaleString(undefined) : 
+                  '0'}
+              </p>
+            </div>
+            
+            <div className="flex flex-col items-center p-4 bg-white/[0.03] rounded-xl">
+              <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Posición</p>
+              {userPosition ? (
+                <p className="mt-1 text-lg font-semibold text-white">
+                  {userPosition.quantity}
+                </p>
+              ) : (
+                <p className="mt-1 text-lg font-semibold text-white">0</p>
+              )}
+            </div>
           </div>
         </div>
 

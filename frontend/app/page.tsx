@@ -7,9 +7,27 @@ import { ArrowRight, BarChart3, ShieldCheck, Sparkles, Wallet } from "lucide-rea
 import { Button } from "@/components/ui/button";
 
 const stats = [
-  { label: "Activos monitoreados", value: "250+", detail: "Cobertura multi-mercado en una sola vista." },
-  { label: "Latencia operativa", value: "< 120 ms", detail: "Diseñado para seguimiento y ejecución inmediata." },
-  { label: "Workflows automatizados", value: "24/7", detail: "Control de carteras con contexto en tiempo real." },
+  { label: "Activos disponibles", value: "250+", detail: "Acciones, crypto, commodities y forex en un solo lugar." },
+  { label: "Tiempo de respuesta", value: "< 120 ms", detail: "Datos en tiempo real para tus decisiones de trading." },
+  { label: "Disponible 24/7", value: "Siempre activo", detail: "Accede a tu portafolio desde cualquier dispositivo." },
+];
+
+const features = [
+  {
+    icon: Wallet,
+    title: "Tu portafolio claro",
+    copy: "Ve tu dinero, ganancias y pérdidas sin complicaciones. Todo en un solo lugar.",
+  },
+  {
+    icon: BarChart3,
+    title: "Aprende y practica trading",
+    copy: "Analiza miles de activos con indicadores, estrategias y gráficos profesionales.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Superate con el ranking",
+    copy: "Comparte tu portafolio publico y compite contra otros traders.",
+  },
 ];
 
 const features = [
@@ -71,23 +89,23 @@ export default function Home() {
             transition={{ duration: 0.75, ease: "easeOut" }}
             className="hero-glow"
           >
-            <p className="eyebrow mb-5">Plataforma financiera moderna</p>
+            <p className="eyebrow mb-5">Tu academia de trading</p>
             <h1 className="max-w-4xl text-5xl font-semibold leading-[0.94] tracking-[-0.05em] text-white md:text-7xl">
-              Una interfaz de patrimonio que <span className="text-gradient">se siente profesional</span> desde la primera decisión.
+              Aprende, practica y conviértete en un <span className="text-gradient">trader rentable</span>.
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300">
-              FinSight reúne portafolios, exploración de mercados y operaciones en un workspace más limpio, más sobrio y más confiable para trabajar capital.
+              FinSight te ayuda a aprender trading con herramientas profesionales: estrategias comprobadas, indicadores técnicos, análisis fundamental y un ranking para superarte.
             </p>
 
             <div className="mt-8 flex flex-wrap gap-4">
               <Button asChild size="lg" className="animate-sheen rounded-full bg-emerald-300 px-7 text-slate-950 hover:bg-emerald-200">
                 <Link href="/login">
-                  Abrir plataforma
+                  Comenzar ahora
                   <ArrowRight />
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="rounded-full border-white/12 bg-white/[0.03] px-7 text-white hover:bg-white/[0.08]">
-                <Link href="/register">Probar flujo de registro</Link>
+                <Link href="/strategies">Ver estrategias</Link>
               </Button>
             </div>
 

@@ -1,9 +1,11 @@
 package com.finsight.portfoliomanager.application.ports.in;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.Optional;
 
 import com.finsight.portfoliomanager.application.ports.dto.auth.*;
+import com.finsight.portfoliomanager.domain.Role;
 import com.finsight.portfoliomanager.domain.User;
 
 public interface UserUseCase {
@@ -32,4 +34,11 @@ public interface UserUseCase {
     User deposit(UUID userId, java.math.BigDecimal amount);
 
     User withdraw(UUID userId, java.math.BigDecimal amount);
+
+    // ADMIN
+    List<User> adminGetAllUsers();
+
+    void adminSetRole(UUID userId, Role role);
+
+    void adminDeactivateUser(UUID userId);
 }

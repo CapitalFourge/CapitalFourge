@@ -6,6 +6,8 @@ type User {
   cashBalance: Float!
   lockedBalance: Float!
   language: String!
+  active: Boolean!
+  createdAt: String
 }
 
 type StockPrice {
@@ -131,6 +133,7 @@ type Query {
   leaderboard: [Portfolio]
   sharedPortfolio(slug: String!): Portfolio
   asset(symbol: String!): Asset
+  adminUsers: [User]
 }
 
 type PricePoint {
@@ -250,4 +253,6 @@ type Mutation {
   changePassword(oldPassword: String!, newPassword: String!): Boolean
   repairMyBalance: Boolean
   toggleVisibility(portfolioId: ID!, isPublic: Boolean!): Portfolio
+  adminSetRole(userId: ID!, role: String!): User
+  adminDeactivateUser(userId: ID!): Boolean
 }

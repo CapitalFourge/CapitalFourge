@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  BarChart3,
   Compass,
   History,
   LayoutDashboard,
@@ -13,18 +14,38 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { useMemo } from "react";
+import { gql, useQuery } from "@apollo/client";
 
 const navigation = [
   { href: "/dashboard", label: "Resumen", icon: LayoutDashboard },
   { href: "/portfolio", label: "Portafolios", icon: Wallet },
   { href: "/explorer", label: "Mercados", icon: Compass },
+  { href: "/strategies", label: "Estrategias", icon: BarChart3 },
   { href: "/transactions", label: "Movimientos", icon: History },
   { href: "/settings", label: "Configuración", icon: Settings },
-  { href: "/admin", label: "Admin", icon: ShieldCheck },
 ];
+
+const ME_QUERY = gql`
+  query GetMe {
+    me {
+      id
+      role
+    }
+  }
+`;
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { data } = useQuery(ME_QUERY, { fetchPolicy: "cache-and-network" });
+
+  const isAdmin = useMemo(() => {
+    return data?.me?.role === "ADMIN";
+  }, [data]);
+
+  const allNavigation = isAdmin
+    ? [...navigation, { href: "/admin", label: "Admin", icon: ShieldCheck }]
+    : navigation;
 
   return (
     <div className="min-h-screen bg-dashboard">
@@ -42,8 +63,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </div>
             </div>
 
-            <nav className="mt-6 flex-1 space-y-2">
-              {navigation.map((item) => {
+<nav className="mt-6 flex-1 space-y-2">
+               {allNavigation.map((item) => {
                 const Icon = item.icon;
                 const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
 
@@ -67,11 +88,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
             <div className="space-y-4 border-t border-white/10 pt-5">
               <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-4">
-                <p className="text-xs uppercase tracking-[0.28em] text-slate-400">Workspace</p>
-                <p className="mt-2 text-lg font-semibold text-white">Mercado en vivo</p>
+                <p className="text-xs uppercase tracking-[0.28em] text-slate-400">Tu cuenta</p>
+                <p className="mt-2 text-lg font-semibold text-white">Lista para operar</p>
                 <div className="mt-3 flex items-center gap-2 text-sm text-slate-300">
                   <span className="status-dot" />
-                  Sincronización activa
+                  Datos en tiempo real
                 </div>
               </div>
 
@@ -106,9 +127,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 Salir
               </button>
             </div>
-            <div className="flex gap-2 overflow-x-auto scrollbar-subtle">
-              {navigation.map((item) => {
-                const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+<div className="flex gap-2 overflow-x-auto scrollbar-subtle">
+               {allNavigation.map((item) => {
+                 const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
 
                 return (
                   <Link

@@ -9,8 +9,10 @@ import { Button } from "@/components/ui/button";
 import { IndicatorSelector } from "@/components/trading/indicator-selector";
 import { TradingViewChart } from "@/components/trading/tradingview-chart";
 import { FundamentalMetricSelector } from "@/components/trading/fundamental-metric-selector";
+import { DrawingToolSelector } from "@/components/trading/drawing-tool-selector";
 import { INDICATOR_CATALOG, IndicatorDefinition } from "@/lib/indicator-catalog";
 import { FUNDAMENTAL_METRIC_CATALOG, FundamentalMetricDefinition } from "@/lib/fundamental-metric-catalog";
+import { DRAWING_TOOL_CATALOG, DrawingTool } from "@/lib/chart-drawing-catalog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 const ASSET_DATA_QUERY = gql`
@@ -154,6 +156,8 @@ export default function AssetDetailPage() {
   const [activeIndicators, setActiveIndicators] = useState<string[]>([]);
   const [showFundamental, setShowFundamental] = useState<boolean>(false);
   const [activeFundamentals, setActiveFundamentals] = useState<string[]>([]);
+  const [showDrawingTools, setShowDrawingTools] = useState<boolean>(false);
+  const [activeDrawingTools, setActiveDrawingTools] = useState<DrawingTool[]>([]);
 
   const { data, loading, error } = useQuery(ASSET_DATA_QUERY, {
     variables: { symbol: symbol },
@@ -335,55 +339,57 @@ export default function AssetDetailPage() {
       </div>
 
       <div className="p-6 space-y-8">
-        <div className="mb-8 flex items-baseline gap-4">
-          <h1 className="text-4xl font-bold text-white">{asset.symbol}</h1>
-          <span className="text-xl font-light text-slate-300">{asset.name}</span>
-          <span className="text-sm text-slate-400">{asset.category}</span>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-6 mb-8">
-          <div className="flex items-baseline gap-3">
-            <span className="text-xs uppercase tracking-[0.24em] text-slate-400">Precio actual</span>
-            <span className="text-3xl font-semibold text-white">
-              {latestDailyPoint ? 
-                `$${latestDailyPoint.close.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 
-                '$0.00'}
-            </span>
-          </div>
-          
-          <div className="flex items-baseline gap-2">
-            <span className="text-xs uppercase tracking-[0.24em] text-slate-400">Cambio 24h</span>
-            <span className="text-xl font-semibold">
-              {latestDailyPoint && previousDailyPoint ? 
-                (
-                  <span className={latestDailyPoint.close > previousDailyPoint.close ? 'text-emerald-400' : 'text-rose-400'}>
-                    {(((latestDailyPoint.close - previousDailyPoint.close) / previousDailyPoint.close) * 100).toFixed(2)}%
-                  </span>
-                ) : 
-                '0.00%'}
-            </span>
-          </div>
-          
-          <div className="flex items-baseline gap-2">
-            <span className="text-xs uppercase tracking-[0.24em] text-slate-400">Volumen 24h</span>
-            <span className="text-xl font-semibold text-white">
-              {latestDailyPoint ? 
-                latestDailyPoint.volume.toLocaleString(undefined) : 
-                '0'}
-            </span>
-          </div>
-          
-          <div className="flex items-baseline gap-2">
-            <span className="text-xs uppercase tracking-[0.24em] text-slate-400">Posición</span>
-            {userPosition ? (
-              <span className="text-xl font-semibold text-white">
-                {userPosition.quantity} en {userPosition.portfolioName}
-              </span>
-            ) : (
-              <span className="text-xl font-semibold text-white">0</span>
-            )}
-          </div>
-        </div>
+<div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-8">
+           <div className="flex items-baseline gap-4">
+             <h1 className="text-4xl font-bold text-white">{asset.symbol}</h1>
+             <span className="text-xl font-light text-slate-300">{asset.name}</span>
+             <span className="text-sm text-slate-400">{asset.category}</span>
+           </div>
+           
+           <div className="flex flex-wrap items-center gap-6">
+             <div className="flex flex-col items-center p-4 bg-white/[0.03] rounded-xl">
+               <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Precio actual</p>
+               <p className="mt-1 text-xl font-semibold text-white">
+                 {latestDailyPoint ? 
+                   `$${latestDailyPoint.close.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 
+                   '$0.00'}
+               </p>
+             </div>
+             
+             <div className="flex flex-col items-center p-4 bg-white/[0.03] rounded-xl">
+               <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Cambio 24h</p>
+               <p className="mt-1 text-lg font-semibold">
+                 {latestDailyPoint && previousDailyPoint ? 
+                   (
+                     <span className={latestDailyPoint.close > previousDailyPoint.close ? 'text-emerald-400' : 'text-rose-400'}>
+                       {(((latestDailyPoint.close - previousDailyPoint.close) / previousDailyPoint.close) * 100).toFixed(2)}%
+                     </span>
+                   ) : 
+                   '0.00%'}
+               </p>
+             </div>
+             
+             <div className="flex flex-col items-center p-4 bg-white/[0.03] rounded-xl">
+               <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Volumen 24h</p>
+               <p className="mt-1 text-lg font-semibold text-white">
+                 {latestDailyPoint ? 
+                   latestDailyPoint.volume.toLocaleString(undefined) : 
+                   '0'}
+               </p>
+             </div>
+             
+             <div className="flex flex-col items-center p-4 bg-white/[0.03] rounded-xl">
+               <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Posición</p>
+               {userPosition ? (
+                 <p className="mt-1 text-lg font-semibold text-white">
+                   {userPosition.quantity}
+                 </p>
+               ) : (
+                 <p className="mt-1 text-lg font-semibold text-white">0</p>
+               )}
+             </div>
+           </div>
+         </div>
 
         <div className="mb-8">
           <TradingViewChart
@@ -409,6 +415,13 @@ export default function AssetDetailPage() {
             className="text-sm px-4 py-2"
           >
             Análisis Fundamental {activeFundamentals.length > 0 && `(${activeFundamentals.length})`}
+          </Button>
+          <Button 
+            variant={showDrawingTools ? "default" : "outline"}
+            onClick={() => setShowDrawingTools(!showDrawingTools)}
+            className="text-sm px-4 py-2"
+          >
+            Figuras técnicas {activeDrawingTools.length > 0 && `(${activeDrawingTools.length})`}
           </Button>
         </div>
 
@@ -510,6 +523,16 @@ export default function AssetDetailPage() {
                 );
               })}
             </div>
+          </div>
+        )}
+
+        {showDrawingTools && (
+          <div className="mb-8">
+            <h2 className="text-2xl font-semibold text-white mb-4">Figuras técnicas</h2>
+            <DrawingToolSelector
+              selectedTools={activeDrawingTools}
+              onChange={setActiveDrawingTools}
+            />
           </div>
         )}
       </div>

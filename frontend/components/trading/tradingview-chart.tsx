@@ -1,5 +1,3 @@
-'use client';
-
 import { useEffect, useRef, useState } from 'react';
 
 interface TradingViewChartProps {
@@ -19,6 +17,8 @@ export function TradingViewChart({
 }: TradingViewChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetInstanceRef = useRef<any | null>(null);
+  const chartRef = useRef<any | null>(null);
+  const appliedStudiesRef = useRef<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const containerIdRef = useRef<string | null>(null);
@@ -29,6 +29,29 @@ export function TradingViewChart({
       containerIdRef.current = `tradingview-chart-${Math.random().toString(36).substr(2, 9)}`;
     }
   }, []);
+
+  const applyStudies = (chart: any, indicatorIds: string[]) => {
+    // Clear previous studies that we applied
+    appliedStudiesRef.current.forEach(studyId => {
+      try {
+        chart.removeStudy(studyId);
+      } catch (e) {
+        console.warn('Could not remove study:', e);
+      }
+    });
+    appliedStudiesRef.current = [];
+
+    // Apply new studies
+    const studies = mapIndicatorsToStudies(indicatorIds);
+    studies.forEach(study => {
+      try {
+        const studyId = chart.addStudy(study.id, study.inputs || {});
+        appliedStudiesRef.current.push(studyId);
+      } catch (e) {
+        console.warn('Could not add study:', e);
+      }
+    });
+  };
 
   const initializeChart = () => {
     if (!containerRef.current) {
@@ -50,6 +73,7 @@ export function TradingViewChart({
         console.warn('Error removing widget:', e);
       }
       widgetInstanceRef.current = null;
+      chartRef.current = null;
       
       // Clear the container content
       while (containerRef.current.firstChild) {
@@ -60,7 +84,6 @@ export function TradingViewChart({
     // @ts-ignore - TradingView widget types are not available
     const tradingView = (window as any).TradingView;
     if (tradingView && typeof tradingView.widget === 'function') {
-      const studies = mapIndicatorsToStudies(indicators);
       const options = {
         width,
         height,
@@ -73,14 +96,19 @@ export function TradingViewChart({
         toolbar_bg: '#f1f3f6',
         enable_publishing: false,
         hide_side_toolbar: false,
-        allow_symbol_change: true,
-        studies,
-        container_id: containerRef.current.id,
+        allow_symbol_change: true
       };
 
       try {
         const widget = new (window as any).TradingView.widget(options);
         widgetInstanceRef.current = widget;
+        
+        // Apply studies when chart is ready
+        widget.onChartReady && widget.onChartReady(() => {
+          chartRef.current = widget.activeChart();
+          applyStudies(chartRef.current, indicators);
+        });
+        
         setIsLoading(false);
         setError(null);
       } catch (err) {
@@ -117,9 +145,10 @@ export function TradingViewChart({
     initializeChart();
   }, [symbol, interval, width, height]);
 
+  // Apply indicators without reloading the widget
   useEffect(() => {
-    if (!(window as any).__TRADINGVIEW_SCRIPT_LOADED || !widgetInstanceRef.current) return;
-    initializeChart();
+    if (!(window as any).__TRADINGVIEW_SCRIPT_LOADED || !chartRef.current) return;
+    applyStudies(chartRef.current, indicators);
   }, [indicators]);
 
   useEffect(() => {

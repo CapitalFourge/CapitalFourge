@@ -4,13 +4,14 @@ import { useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { gql, useQuery } from "@apollo/client";
 import { motion } from "framer-motion";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { IndicatorSelector } from "@/components/trading/indicator-selector";
 import { TradingViewChart } from "@/components/trading/tradingview-chart";
-import { LiquidityHeatmap } from "@/components/trading/liquidity-heatmap";
 import { FundamentalMetricSelector } from "@/components/trading/fundamental-metric-selector";
-import { FUNDAMENTAL_METRIC_CATALOG, FundamentalCategory, FundamentalMetricDefinition } from "@/lib/fundamental-metric-catalog";
+import { INDICATOR_CATALOG, IndicatorDefinition } from "@/lib/indicator-catalog";
+import { FUNDAMENTAL_METRIC_CATALOG, FundamentalMetricDefinition } from "@/lib/fundamental-metric-catalog";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 const ASSET_DATA_QUERY = gql`
   query GetAssetData($symbol: String!) {
@@ -328,12 +329,19 @@ export default function AssetDetailPage() {
     }));
   }, [asset?.category, latestFundamental]);
 
+  // Calculate SMA (Simple Moving Average) - default period 9
+  const calculateSMA = (data: FundamentalPricePoint[], period: number = 9): number | null => {
+    if (data.length < period) return null;
+    const sum = data.slice(-period).reduce((acc, point) => acc + point.close, 0);
+    return sum / period;
+  };
+
   // Calculate EMA (Exponential Moving Average)
-  const calculateEMA = (data: FundamentalPricePoint[], period: number): number | null => {
+  const calculateEMA = (data: FundamentalPricePoint[], period: number = 9): number | null => {
     if (data.length < period) return null;
     
     const multiplier = 2 / (period + 1);
-    let ema = data.slice(0, period).reduce((sum, point) => sum + point.close, 0) / period; // SMA for first EMA
+    let ema = data.slice(0, period).reduce((sum, point) => sum + point.close, 0) / period;
     
     for (let i = period; i < data.length; i++) {
       ema = (data[i].close - ema) * multiplier + ema;
@@ -343,7 +351,7 @@ export default function AssetDetailPage() {
   };
 
   // Calculate RSI (Relative Strength Index)
-  const calculateRSI = (data: FundamentalPricePoint[], period: number): number | null => {
+  const calculateRSI = (data: FundamentalPricePoint[], period: number = 14): number | null => {
     if (data.length < period + 1) return null;
     
     let gains = 0;
@@ -375,6 +383,52 @@ export default function AssetDetailPage() {
     const rs = avgGain / avgLoss;
     return 100 - (100 / (1 + rs));
   };
+
+  // Calculate indicator values based on selection
+  const indicatorValues = useMemo(() => {
+    const values: Record<string, number | null> = {};
+    const closeData = priceHistory.filter((p: FundamentalPricePoint) => typeof p.close === 'number');
+    
+    activeIndicators.forEach(indicatorId => {
+      switch (indicatorId) {
+        case 'sma':
+          values[indicatorId] = calculateSMA(closeData, 9);
+          break;
+        case 'ema':
+          values[indicatorId] = calculateEMA(closeData, 9);
+          break;
+        case 'rsi':
+          values[indicatorId] = calculateRSI(closeData, 14);
+          break;
+        case 'wma':
+          values[indicatorId] = calculateSMA(closeData, 9); // Simplified as SMA
+          break;
+        case 'macd':
+          values[indicatorId] = null; // Requires histogram calculation
+          break;
+        case 'stochastic':
+          values[indicatorId] = null; // Requires high/low calculation
+          break;
+        case 'roc':
+          if (closeData.length >= 10) {
+            const current = closeData[closeData.length - 1].close;
+            const past = closeData[closeData.length - 10].close;
+            values[indicatorId] = ((current - past) / past) * 100;
+          }
+          break;
+        case 'bollinger':
+          values[indicatorId] = null; // Requires complex bands
+          break;
+        case 'obv':
+          values[indicatorId] = null; // Requires volume accumulation
+          break;
+        default:
+          values[indicatorId] = null;
+      }
+    });
+    
+    return values;
+  }, [priceHistory, activeIndicators]);
 
   if (loading && !data) {
     return <div className="flex min-h-[60vh] items-center justify-center text-slate-400">Cargando activo...</div>;
@@ -491,7 +545,7 @@ return (
             symbol={symbol}
             interval="1D"
             width="100%"
-            height={750}
+            height={600}
             indicators={activeIndicators}
           />
         </div>
@@ -514,17 +568,57 @@ return (
           </Button>
         </div>
 
-        {/* Indicators Section */}
+        {/* Indicators Selector - Inline */}
         {showIndicators && (
-          <div>
+          <div className="mb-8">
             <h2 className="text-2xl font-semibold text-white mb-4">Indicadores técnicos</h2>
-            <IndicatorSelector selectedIndicators={activeIndicators} onChange={setActiveIndicators} />
+            <IndicatorSelector 
+              selectedIndicators={activeIndicators} 
+              onChange={setActiveIndicators} 
+            />
           </div>
         )}
 
-        {/* Fundamental Analysis Section */}
+        {/* Selected Indicators - Show calculated values in cards */}
+        {activeIndicators.length > 0 && (
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-white mb-3">Indicadores calculados</h3>
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+              {INDICATOR_CATALOG.filter((i: IndicatorDefinition) => activeIndicators.includes(i.id)).map((indicator: IndicatorDefinition) => {
+                const value = indicatorValues[indicator.id];
+                const displayValue = value !== null && value !== undefined 
+                  ? (indicator.id === 'rsi' ? `${value.toFixed(2)}` : `$${value.toLocaleString(undefined, { maximumFractionDigits: 2 })}`)
+                  : "-";
+                
+                return (
+                  <Card key={indicator.id} className="border-white/10 bg-slate-950/45">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-base flex items-center justify-between">
+                        {indicator.label}: <span className="text-emerald-400">{displayValue}</span>
+                        <button
+                          type="button"
+                          onClick={() => setActiveIndicators(activeIndicators.filter(id => id !== indicator.id))}
+                          className="rounded-full text-slate-400 transition hover:text-white"
+                          aria-label={`Quitar ${indicator.label}`}
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <CardDescription className="text-slate-400 text-xs">{indicator.shortDescription}</CardDescription>
+                      <p className="mt-2 text-xs text-emerald-400/70">{indicator.usage}</p>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Fundamental Analysis Selector - Inline */}
         {showFundamental && (
-          <div>
+          <div className="mb-8">
             <h2 className="text-2xl font-semibold text-white mb-4">Análisis fundamental</h2>
             <FundamentalMetricSelector
               selectedMetrics={activeFundamentals}
@@ -533,6 +627,83 @@ return (
             />
           </div>
         )}
+
+{/* Selected Fundamentals - Show value, label and description in cards */}
+        {activeFundamentals.length > 0 && (
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-white mb-3">Métricas fundamentales seleccionadas</h3>
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+              {FUNDAMENTAL_METRIC_CATALOG.filter((m: FundamentalMetricDefinition) => activeFundamentals.includes(m.id)).map((metric: FundamentalMetricDefinition) => {
+                const rawValue = latestFundamental?.[metric.id as keyof FundamentalPricePoint];
+                let displayValue = "-";
+                
+                if (rawValue !== undefined && rawValue !== null && rawValue !== 0) {
+                  if (metric.formatter === "percent") {
+                    displayValue = `${(rawValue * 100).toFixed(2)}%`;
+                  } else if (metric.formatter === "currency") {
+                    displayValue = `$${rawValue.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+                  } else {
+                    displayValue = rawValue.toLocaleString(undefined, { maximumFractionDigits: 2 });
+                  }
+                }
+                
+                return (
+                  <Card key={metric.id} className="border-white/10 bg-slate-950/45">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-base flex items-center justify-between">
+                        {metric.label}
+                        <button
+                          type="button"
+                          onClick={() => setActiveFundamentals(activeFundamentals.filter(id => id !== metric.id))}
+                          className="rounded-full text-slate-400 transition hover:text-white"
+                          aria-label={`Quitar ${metric.label}`}
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-xl font-semibold text-emerald-400">{displayValue}</p>
+                      <CardDescription className="mt-1 text-slate-400">{metric.description}</CardDescription>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+                }
+                
+                return (
+                  <Card key={metric.id} className="border-white/10 bg-slate-950/45">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-base flex items-center justify-between">
+                        {metric.label}
+                        <button
+                          type="button"
+                          onClick={() => setActiveFundamentals(activeFundamentals.filter(id => id !== metric.id))}
+                          className="rounded-full text-slate-400 transition hover:text-white"
+                          aria-label={`Quitar ${metric.label}`}
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-xl font-semibold text-emerald-400">{displayValue}</p>
+                      <CardDescription className="mt-1 text-slate-400">{metric.description}</CardDescription>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
       </div>
     </motion.div>
   );

@@ -8,6 +8,7 @@ export interface FundamentalMetricDefinition {
   section: string;
   formatter: FundamentalFormatter;
   categories: FundamentalCategory[];
+  examples?: string;
 }
 
 export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
@@ -18,6 +19,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "Actividad",
     formatter: "number",
     categories: ["STOCKS", "CRYPTO", "COMMODITIES"],
+    examples: "Volumen alto en rompimiento confirma la ruptura. Volumen decreciente en tendencia = debilidad. Usar promedio 30 dias como referencia.",
   },
   {
     id: "marketCap",
@@ -26,6 +28,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "Actividad",
     formatter: "currency",
     categories: ["STOCKS", "CRYPTO", "COMMODITIES"],
+    examples: "Market cap > $10B = empresa grande. En crypto, >$1B = proyecto consolidado. Ratio market cap/ventas para valoracion.",
   },
   {
     id: "revenue",
@@ -34,6 +37,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "Actividad",
     formatter: "currency",
     categories: ["STOCKS", "CRYPTO", "COMMODITIES"],
+    examples: "Crecimiento de revenue trimestral > 10% = salud corporativa. Revenue en crypto = fees protocolares. YoY growth > 20% es fuerte.",
   },
   {
     id: "trailingPe",
@@ -42,6 +46,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "Valoracion",
     formatter: "number",
     categories: ["STOCKS"],
+    examples: "P/E < 15 = barato, > 30 = caro. Comparar con sector. P/E en caída + revenue creciendo = compra.",
   },
   {
     id: "forwardPe",
@@ -50,6 +55,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "Valoracion",
     formatter: "number",
     categories: ["STOCKS"],
+    examples: "Forward P/E < Trailing P/E = mejora esperada. Analyst estimates reliability. Reversion a la media.",
   },
   {
     id: "pegRatio",
@@ -58,6 +64,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "Valoracion",
     formatter: "number",
     categories: ["STOCKS"],
+    examples: "PEG < 1 = barato con crecimiento. PEG > 2 = caro aun con growth. Usar en crecimiento tech.",
   },
   {
     id: "priceToBook",
@@ -66,6 +73,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "Valoracion",
     formatter: "number",
     categories: ["STOCKS"],
+    examples: "P/B < 1.5 = barato sectorial. P/B > 4 = valoracion alta. Acciones de valor often < 1.5.",
   },
   {
     id: "priceToSales",
@@ -74,6 +82,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "Valoracion",
     formatter: "number",
     categories: ["STOCKS"],
+    examples: "P/S < 2 = barato con potencial. P/S > 10 = alta valoracion. Ideal para empresas sin ganancias.",
   },
   {
     id: "enterpriseToEbitda",
@@ -82,6 +91,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "Valoracion",
     formatter: "number",
     categories: ["STOCKS"],
+    examples: "EV/EBITDA < 8 = barato. > 15 = caro sectorial. Usar en adquisiciones empresariales.",
   },
   {
     id: "profitMargins",
@@ -90,6 +100,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "Rentabilidad",
     formatter: "percent",
     categories: ["STOCKS"],
+    examples: "Margen neto > 20% = alta eficiencia. Margen creciente = mejora operativa. Comparar con competidores.",
   },
   {
     id: "operatingMargins",
@@ -98,6 +109,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "Rentabilidad",
     formatter: "percent",
     categories: ["STOCKS"],
+    examples: "Margen operativo creciente = mejor antes de impuestos. Margen estable = negocio predecible. Ideal > 15%.",
   },
   {
     id: "returnOnEquity",
@@ -106,6 +118,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "Rentabilidad",
     formatter: "percent",
     categories: ["STOCKS"],
+    examples: "ROE > 15% = eficiente. ROE > 25% + P/E < 15 = valor oculto. ROE decreciente = alerta.",
   },
   {
     id: "returnOnAssets",
@@ -114,6 +127,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "Rentabilidad",
     formatter: "percent",
     categories: ["STOCKS"],
+    examples: "ROA > 10% = eficiente con activos. Bancos: ROA > 1% es bueno. ROA creciente + ROE creciente = salud.",
   },
   {
     id: "debtToEquity",
@@ -122,6 +136,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "Solidez",
     formatter: "number",
     categories: ["STOCKS"],
+    examples: "D/E < 0.5 = bajo apalancamiento. D/E > 2 = alto riesgo. Sector financials toleran mas deuda.",
   },
   {
     id: "currentRatio",
@@ -130,6 +145,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "Solidez",
     formatter: "number",
     categories: ["STOCKS"],
+    examples: "Current ratio > 1.5 = salud liquidez. < 1 = alerta. Retail ideal > 1.5, tech puede ser menor.",
   },
   {
     id: "quickRatio",
@@ -138,6 +154,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "Solidez",
     formatter: "number",
     categories: ["STOCKS"],
+    examples: "Quick ratio > 1 = liquidez sin inventario. Quick ratio < 0.5 = potencial problema. Usar en acciones de crecimiento.",
   },
   {
     id: "dividendYield",
@@ -146,6 +163,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "Retorno al accionista",
     formatter: "percent",
     categories: ["STOCKS"],
+    examples: "Yield > 3% + crecimiento dividendos = income estable. Yield > 6% = verificar sostenibilidad. REITs often > 4%.",
   },
   {
     id: "freeCashFlow",
@@ -154,6 +172,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "Retorno al accionista",
     formatter: "currency",
     categories: ["STOCKS"],
+    examples: "FCF creciente + dividendos = compañia saludable. FCF negativo persistente = alerta. Usar FCF yield = FCF/market cap.",
   },
   {
     id: "fdv",
@@ -162,6 +181,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "Tokenomics",
     formatter: "currency",
     categories: ["CRYPTO"],
+    examples: "FDV vs Market Cap ratio. FDV/Price < 2 = tokens casi todos en circulacion. Para proyectos nuevos, FDV acaso > realidad.",
   },
   {
     id: "circulatingSupply",
@@ -170,6 +190,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "Tokenomics",
     formatter: "number",
     categories: ["CRYPTO"],
+    examples: "Circulating supply alto + FDV similar = tokens transparente. Team/VC tokens locked = supply futuro controlado.",
   },
   {
     id: "totalSupply",
@@ -178,6 +199,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "Tokenomics",
     formatter: "number",
     categories: ["CRYPTO"],
+    examples: "Total supply creciente rapido = inflacion alta. Comparar burn rate vs emision. Eth 2.0 reducira inflation.",
   },
   {
     id: "maxSupply",
@@ -186,6 +208,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "Tokenomics",
     formatter: "number",
     categories: ["CRYPTO"],
+    examples: "Max supply limitado + alta demanda = escasez futura. Bitcoin 21M es el ejemplo clasico. Sin max supply requiere trust.",
   },
   {
     id: "inflationRate",
@@ -194,6 +217,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "Tokenomics",
     formatter: "percent",
     categories: ["CRYPTO"],
+    examples: "Inflation < 5% = sostenible. Inflation > 20% = high sell pressure. Eth 2.0 bajo < 5% con staking.",
   },
   {
     id: "activeAddresses",
@@ -202,6 +226,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "On-chain",
     formatter: "number",
     categories: ["CRYPTO"],
+    examples: "Active addresses creciendo + precio estable = acumulacion. Correlacion con revenue/on-chain metrics.",
   },
   {
     id: "transactionVolume",
@@ -210,6 +235,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "On-chain",
     formatter: "currency",
     categories: ["CRYPTO"],
+    examples: "Transaction volume alto + fees altos = actividad real. Usar promedio 30 dias como referencia. Bull markets = volumen creciente.",
   },
   {
     id: "transactionCount",
@@ -218,6 +244,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "On-chain",
     formatter: "number",
     categories: ["CRYPTO"],
+    examples: "Tx count alto = frecuencia de actividad. Combinar con active addresses para metric de engagement. Defi = tx counts altos.",
   },
   {
     id: "feesGenerated",
@@ -226,6 +253,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "On-chain",
     formatter: "currency",
     categories: ["CRYPTO"],
+    examples: "Fees altos + usuarios estables = valor real. Fees como % de revenue. Eth fees altos en bull markets.",
   },
   {
     id: "tvl",
@@ -234,6 +262,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "On-chain",
     formatter: "currency",
     categories: ["CRYPTO"],
+    examples: "TVL alto + hacks bajos = protocol seguro. TVL/market cap ratio para valoracion. TVL creciente + token bajando = oportunidad.",
   },
   {
     id: "hashRate",
@@ -242,6 +271,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "Seguridad de red",
     formatter: "number",
     categories: ["CRYPTO"],
+    examples: "Hash rate alto = seguridad PoW. Hash rate creciente = mas mineros. Bajar hash rate = vulnerabilidad.",
   },
   {
     id: "stakingRatio",
@@ -250,6 +280,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "Seguridad de red",
     formatter: "percent",
     categories: ["CRYPTO"],
+    examples: "Staking > 50% = alta seguridad pero menor liquididad. Inflacion - staking ratio = yield neto. Busca ratio creciente.",
   },
   {
     id: "nakamotoCoefficient",
@@ -258,6 +289,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "Seguridad de red",
     formatter: "number",
     categories: ["CRYPTO"],
+    examples: "NC > 5 = descentralizado. NC < 3 = centralizacion alta. Pools validadores para NC.",
   },
   {
     id: "orderBookDepth",
@@ -266,6 +298,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "Mercado",
     formatter: "currency",
     categories: ["CRYPTO"],
+    examples: "Depth alto = slippage bajo en grandes trades. Depth disminuyendo = posible volatilidad. Ideal 5% slippage.",
   },
   {
     id: "developerActivity",
@@ -274,6 +307,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "Mercado",
     formatter: "number",
     categories: ["CRYPTO"],
+    examples: "Developer activity alto + token barato = alpha early. GitHub commits como proxy. Merge activity en mainnet.",
   },
   {
     id: "userGrowth",
@@ -282,6 +316,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "Mercado",
     formatter: "percent",
     categories: ["CRYPTO"],
+    examples: "User growth > 20% MoM = adopcion alta. Usuarios activos diarios como metric. Cohort retention rates.",
   },
   {
     id: "priceToFeesRatio",
@@ -290,6 +325,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "Mercado",
     formatter: "number",
     categories: ["CRYPTO"],
+    examples: "Price/Fees bajo + fees crecientes = valor oculto. Fee yield = fees/market cap. Comparar con multiples tradicionales.",
   },
   {
     id: "bitcoinDominance",
@@ -298,6 +334,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "Mercado",
     formatter: "percent",
     categories: ["CRYPTO"],
+    examples: "BTC dominance bajando = altseason. Alta dominance = vuelo a refugio. Ideal para timing de etfs.",
   },
   {
     id: "fearGreedIndex",
@@ -306,6 +343,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "Mercado",
     formatter: "number",
     categories: ["CRYPTO"],
+    examples: "Fear < 20 + precios oversold = compra. Greed > 80 = toma de ganancias. Divergencia con precios.",
   },
   {
     id: "inventoryLevels",
@@ -314,6 +352,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "Oferta y demanda",
     formatter: "number",
     categories: ["COMMODITIES"],
+    examples: "Inventarios bajos + demanda alta = precios altos. EIA reports como referencia. Inventories en gas natural.",
   },
   {
     id: "costOfProduction",
@@ -322,6 +361,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "Oferta y demanda",
     formatter: "currency",
     categories: ["COMMODITIES"],
+    examples: "Precio > cost of production = margen positiva. Pisos en oro: $1200/oz. Oil breakeven varia por campo.",
   },
   {
     id: "allInSustainingCost",
@@ -330,6 +370,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "Oferta y demanda",
     formatter: "currency",
     categories: ["COMMODITIES"],
+    examples: "AISC oro bajo = minas baratas. AISC vs precio oro para timing. Minas con AISC creciendo = costos altos.",
   },
   {
     id: "reserveReplacementRatio",
@@ -338,6 +379,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "Oferta y demanda",
     formatter: "percent",
     categories: ["COMMODITIES"],
+    examples: "Ratio > 100% = reservas sostenidas. Mineras con ratio bajo = agotamiento. Petrolio: replacement ratio.",
   },
   {
     id: "contangoBackwardation",
@@ -346,6 +388,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "Curva y macro",
     formatter: "number",
     categories: ["COMMODITIES"],
+    examples: "Backwardation = escasez inmediata. Contango = abundancia futura. Ideal backwardation profundo para compras.",
   },
   {
     id: "dollarIndexExposure",
@@ -354,6 +397,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "Curva y macro",
     formatter: "number",
     categories: ["COMMODITIES"],
+    examples: "Commodities con alta exposicion DXY bajan con dolar fuerte. Oil suele tener correlacion negativa. Gold a veces positiva.",
   },
   {
     id: "inflationCorrelation",
@@ -362,6 +406,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "Curva y macro",
     formatter: "number",
     categories: ["COMMODITIES"],
+    examples: "Commodities como hedge inflation. Correlation > 0.5 para cobertura. TIPS vs commodities correlacion.",
   },
   {
     id: "opecSpareCapacity",
@@ -370,6 +415,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "Curva y macro",
     formatter: "number",
     categories: ["COMMODITIES"],
+    examples: "Spare capacity bajo = oil bullish. OPEC+ production decisions. Iran/Iraq capacity offline.",
   },
   {
     id: "chineseDemandIndex",
@@ -378,6 +424,7 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "Curva y macro",
     formatter: "number",
     categories: ["COMMODITIES"],
+    examples: "Demanda china creciente = base metales bullish. Caixin PMI como proxy. Importaciones china como indicador.",
   },
   {
     id: "weatherIndex",
@@ -386,5 +433,6 @@ export const FUNDAMENTAL_METRIC_CATALOG: FundamentalMetricDefinition[] = [
     section: "Curva y macro",
     formatter: "number",
     categories: ["COMMODITIES"],
+    examples: "Weather index para agricultura: sequia = food bullish. Gas natural invierno = demanda alta. Usar NOAA forecasts.",
   },
 ];

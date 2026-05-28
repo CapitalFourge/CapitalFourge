@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { useMemo } from "react";
+import { gql, useQuery } from "@apollo/client";
 
 const navigation = [
   { href: "/dashboard", label: "Resumen", icon: LayoutDashboard },
@@ -24,8 +26,26 @@ const navigation = [
   { href: "/settings", label: "Configuración", icon: Settings },
 ];
 
+const ME_QUERY = gql`
+  query GetMe {
+    me {
+      id
+      role
+    }
+  }
+`;
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { data } = useQuery(ME_QUERY, { fetchPolicy: "cache-and-network" });
+
+  const isAdmin = useMemo(() => {
+    return data?.me?.role === "ADMIN";
+  }, [data]);
+
+  const allNavigation = isAdmin
+    ? [...navigation, { href: "/admin", label: "Admin", icon: ShieldCheck }]
+    : navigation;
 
   return (
     <div className="min-h-screen bg-dashboard">
@@ -43,8 +63,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </div>
             </div>
 
-            <nav className="mt-6 flex-1 space-y-2">
-              {navigation.map((item) => {
+<nav className="mt-6 flex-1 space-y-2">
+               {allNavigation.map((item) => {
                 const Icon = item.icon;
                 const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
 
@@ -107,9 +127,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 Salir
               </button>
             </div>
-            <div className="flex gap-2 overflow-x-auto scrollbar-subtle">
-              {navigation.map((item) => {
-                const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+<div className="flex gap-2 overflow-x-auto scrollbar-subtle">
+               {allNavigation.map((item) => {
+                 const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
 
                 return (
                   <Link

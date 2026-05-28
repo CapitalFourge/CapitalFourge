@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -232,6 +233,28 @@ public class UserService implements UserUseCase {
 
         user.setCashBalance(current.subtract(amount));
         return userRepository.save(user);
+    }
+
+    @Override
+    public List<User> adminGetAllUsers() {
+        return userRepository.findAll();
+    }
+
+    @Override
+    public void adminSetRole(UUID userId, Role role) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setRole(role);
+        userRepository.save(user);
+    }
+
+    @Override
+    public void adminDeactivateUser(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setActive(false);
+        userRepository.save(user);
+        refreshTokenRepository.deleteByUserId(userId);
     }
 
 }

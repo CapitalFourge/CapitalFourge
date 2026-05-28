@@ -21,6 +21,7 @@ import com.finsight.portfoliomanager.application.ports.in.PortfolioUseCase;
 import com.finsight.portfoliomanager.application.ports.in.UserUseCase;
 import com.finsight.portfoliomanager.application.ports.out.UserRepository;
 import com.finsight.portfoliomanager.domain.Portfolio;
+import com.finsight.portfoliomanager.domain.Role;
 import com.finsight.portfoliomanager.domain.User;
 import com.finsight.portfoliomanager.infrastructure.grpc.GrpcFinancialDataClient;
 import com.finsight.proto.PricePoint;
@@ -66,6 +67,19 @@ public class PortfolioGraphQLController {
         }
 
         return user;
+    }
+
+    @QueryMapping
+    public List<User> adminUsers(@AuthenticationPrincipal UUID userId) {
+        if (userId == null) {
+            throw new RuntimeException("Authentication required");
+        }
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        if (!user.isAdmin()) {
+            throw new RuntimeException("Admin access required");
+        }
+        return userUseCase.adminGetAllUsers();
     }
 
     @QueryMapping
@@ -221,6 +235,35 @@ public class PortfolioGraphQLController {
     @MutationMapping
     public Portfolio toggleVisibility(@Argument UUID portfolioId, @Argument boolean isPublic) {
         return portfolioUseCase.toggleVisibility(portfolioId, isPublic);
+    }
+
+    @MutationMapping
+    public User adminSetRole(@Argument UUID userId, @Argument String role, @AuthenticationPrincipal UUID currentUserId) {
+        if (currentUserId == null) {
+            throw new RuntimeException("Authentication required");
+        }
+        User currentUser = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        if (!currentUser.isAdmin()) {
+            throw new RuntimeException("Admin access required");
+        }
+        userUseCase.adminSetRole(userId, Role.valueOf(role));
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Target user not found"));
+    }
+
+    @MutationMapping
+    public Boolean adminDeactivateUser(@Argument UUID userId, @AuthenticationPrincipal UUID currentUserId) {
+        if (currentUserId == null) {
+            throw new RuntimeException("Authentication required");
+        }
+        User currentUser = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        if (!currentUser.isAdmin()) {
+            throw new RuntimeException("Admin access required");
+        }
+        userUseCase.adminDeactivateUser(userId);
+        return true;
     }
 
     @GraphQlExceptionHandler

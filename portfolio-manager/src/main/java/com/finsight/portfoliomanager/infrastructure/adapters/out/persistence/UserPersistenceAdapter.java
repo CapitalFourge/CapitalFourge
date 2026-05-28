@@ -1,5 +1,6 @@
 package com.finsight.portfoliomanager.infrastructure.adapters.out.persistence;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -46,6 +47,13 @@ public class UserPersistenceAdapter implements UserRepository {
         UserEntity entity = toEntity(user);
         UserEntity saved = jpaRepository.save(entity);
         return toDomain(saved);
+    }
+
+    @Override
+    public List<User> findAll() {
+        return jpaRepository.findAll().stream()
+                .map(this::toDomain)
+                .toList();
     }
 
     private UserEntity toEntity(User domain) {

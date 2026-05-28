@@ -9,8 +9,10 @@ import { Button } from "@/components/ui/button";
 import { IndicatorSelector } from "@/components/trading/indicator-selector";
 import { TradingViewChart } from "@/components/trading/tradingview-chart";
 import { FundamentalMetricSelector } from "@/components/trading/fundamental-metric-selector";
+import { DrawingToolSelector } from "@/components/trading/drawing-tool-selector";
 import { INDICATOR_CATALOG, IndicatorDefinition } from "@/lib/indicator-catalog";
 import { FUNDAMENTAL_METRIC_CATALOG, FundamentalMetricDefinition } from "@/lib/fundamental-metric-catalog";
+import { DRAWING_TOOL_CATALOG, DrawingTool } from "@/lib/chart-drawing-catalog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 const ASSET_DATA_QUERY = gql`
@@ -154,6 +156,8 @@ export default function AssetDetailPage() {
   const [activeIndicators, setActiveIndicators] = useState<string[]>([]);
   const [showFundamental, setShowFundamental] = useState<boolean>(false);
   const [activeFundamentals, setActiveFundamentals] = useState<string[]>([]);
+  const [showDrawingTools, setShowDrawingTools] = useState<boolean>(false);
+  const [activeDrawingTools, setActiveDrawingTools] = useState<DrawingTool[]>([]);
 
   const { data, loading, error } = useQuery(ASSET_DATA_QUERY, {
     variables: { symbol: symbol },
@@ -412,6 +416,13 @@ export default function AssetDetailPage() {
           >
             Análisis Fundamental {activeFundamentals.length > 0 && `(${activeFundamentals.length})`}
           </Button>
+          <Button 
+            variant={showDrawingTools ? "default" : "outline"}
+            onClick={() => setShowDrawingTools(!showDrawingTools)}
+            className="text-sm px-4 py-2"
+          >
+            Figuras técnicas {activeDrawingTools.length > 0 && `(${activeDrawingTools.length})`}
+          </Button>
         </div>
 
         {showIndicators && (
@@ -512,6 +523,16 @@ export default function AssetDetailPage() {
                 );
               })}
             </div>
+          </div>
+        )}
+
+        {showDrawingTools && (
+          <div className="mb-8">
+            <h2 className="text-2xl font-semibold text-white mb-4">Figuras técnicas</h2>
+            <DrawingToolSelector
+              selectedTools={activeDrawingTools}
+              onChange={setActiveDrawingTools}
+            />
           </div>
         )}
       </div>

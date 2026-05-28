@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  BarChart3,
   Compass,
   History,
   LayoutDashboard,
@@ -18,6 +19,7 @@ const navigation = [
   { href: "/dashboard", label: "Resumen", icon: LayoutDashboard },
   { href: "/portfolio", label: "Portafolios", icon: Wallet },
   { href: "/explorer", label: "Mercados", icon: Compass },
+  { href: "/strategies", label: "Estrategias", icon: BarChart3 },
   { href: "/transactions", label: "Movimientos", icon: History },
   { href: "/settings", label: "Configuración", icon: Settings },
   { href: "/admin", label: "Admin", icon: ShieldCheck },

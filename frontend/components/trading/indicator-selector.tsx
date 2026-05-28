@@ -1,7 +1,7 @@
 'use client';
 
-import { useMemo, useState, useEffect } from "react";
-import { Activity, Check, Info, X } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Check, X } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,7 +23,6 @@ interface IndicatorSelectorProps {
 }
 
 export function IndicatorSelector({ selectedIndicators, onChange }: IndicatorSelectorProps) {
-  const [open, setOpen] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
   const [detailIndicatorId, setDetailIndicatorId] = useState<string | null>(null);
   const selectedDefinitions = useMemo(
@@ -31,29 +30,17 @@ export function IndicatorSelector({ selectedIndicators, onChange }: IndicatorSel
     [selectedIndicators]
   );
 
-  // Auto-open dialog when component mounts
-  useEffect(() => {
-    setOpen(true);
-  }, []);
-
   const toggleIndicator = (indicatorId: string) => {
     if (selectedIndicators.includes(indicatorId)) {
       onChange(selectedIndicators.filter((id) => id !== indicatorId));
       return;
     }
-
-    // REMOVED LIMIT: No more maximum indicators restriction
     onChange([...selectedIndicators, indicatorId]);
   };
 
   const openDetail = (indicatorId: string) => {
     setDetailIndicatorId(indicatorId);
     setDetailOpen(true);
-  };
-
-  const closeDetail = () => {
-    setDetailOpen(false);
-    setDetailIndicatorId(null);
   };
 
   return (
@@ -67,7 +54,12 @@ export function IndicatorSelector({ selectedIndicators, onChange }: IndicatorSel
           </p>
         </div>
 
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant="outline" className="text-sm px-4 py-2">
+              Gestionar indicadores {selectedIndicators.length > 0 && `(${selectedIndicators.length})`}
+            </Button>
+          </DialogTrigger>
           <DialogContent className="max-h-[80vh] max-w-4xl overflow-y-auto rounded-[2rem] border-white/10 bg-slate-950 p-0 text-white">
             <DialogHeader className="border-b border-white/10 px-6 py-5">
               <DialogTitle className="text-2xl">Indicadores técnicos</DialogTitle>
@@ -139,7 +131,6 @@ export function IndicatorSelector({ selectedIndicators, onChange }: IndicatorSel
         </Dialog>
       </div>
 
-      {/* Details Dialog */}
       <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
         <DialogContent className="max-w-md rounded-[2rem] border-white/10 bg-slate-950 p-6 text-white">
           <DialogHeader className="border-b border-white/10 pb-4">
@@ -166,7 +157,6 @@ export function IndicatorSelector({ selectedIndicators, onChange }: IndicatorSel
         </DialogContent>
       </Dialog>
 
-      {/* ALWAYS show selected indicators outside the dialog */}
       <div className="mt-4 flex flex-wrap gap-2">
         {selectedDefinitions.length > 0 ? (
           selectedDefinitions.map((indicator) => (

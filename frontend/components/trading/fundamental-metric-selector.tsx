@@ -1,7 +1,7 @@
 'use client';
 
-import { useMemo, useState, useEffect } from "react";
-import { Activity, Check, Info, X } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Check, X } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,15 +20,13 @@ import { FUNDAMENTAL_METRIC_CATALOG, FundamentalCategory } from "@/lib/fundament
 interface FundamentalMetricSelectorProps {
   selectedMetrics: string[];
   onChange: (metrics: string[]) => void;
-  assetCategory?: string; // e.g., "STOCKS", "CRYPTO", "COMMODITIES"
+  assetCategory?: string;
 }
 
 export function FundamentalMetricSelector({ selectedMetrics, onChange, assetCategory }: FundamentalMetricSelectorProps) {
-  const [open, setOpen] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
   const [detailMetricId, setDetailMetricId] = useState<string | null>(null);
 
-  // Filter metrics by asset category if provided
   const filteredMetrics = useMemo(() => {
     if (!assetCategory) return FUNDAMENTAL_METRIC_CATALOG;
     return FUNDAMENTAL_METRIC_CATALOG.filter(metric =>
@@ -41,29 +39,17 @@ export function FundamentalMetricSelector({ selectedMetrics, onChange, assetCate
     [selectedMetrics, filteredMetrics]
   );
 
-  // Auto-open dialog when component mounts
-  useEffect(() => {
-    setOpen(true);
-  }, []);
-
   const toggleMetric = (metricId: string) => {
     if (selectedMetrics.includes(metricId)) {
       onChange(selectedMetrics.filter((id) => id !== metricId));
       return;
     }
-
-    // NO LIMIT: No maximum metrics restriction
     onChange([...selectedMetrics, metricId]);
   };
 
   const openDetail = (metricId: string) => {
     setDetailMetricId(metricId);
     setDetailOpen(true);
-  };
-
-  const closeDetail = () => {
-    setDetailOpen(false);
-    setDetailMetricId(null);
   };
 
   return (
@@ -76,7 +62,12 @@ export function FundamentalMetricSelector({ selectedMetrics, onChange, assetCate
           </p>
         </div>
 
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant="outline" className="text-sm px-4 py-2">
+              Gestionar métricas {selectedMetrics.length > 0 && `(${selectedMetrics.length})`}
+            </Button>
+          </DialogTrigger>
           <DialogContent className="max-h-[80vh] max-w-4xl overflow-y-auto rounded-[2rem] border-white/10 bg-slate-950 p-0 text-white">
             <DialogHeader className="border-b border-white/10 px-6 py-5">
               <DialogTitle className="text-2xl">Métricas Fundamentales</DialogTitle>
@@ -87,7 +78,6 @@ export function FundamentalMetricSelector({ selectedMetrics, onChange, assetCate
             </DialogHeader>
 
             <div className="space-y-6 px-6 py-6">
-              {/* Group metrics by section */}
               {Array.from(
                 filteredMetrics.reduce((acc, metric) => {
                   const section = metric.section;
@@ -138,9 +128,6 @@ export function FundamentalMetricSelector({ selectedMetrics, onChange, assetCate
                               </Button>
                             </div>
                           </div>
-                          {active && (
-                            <p className="mt-2 text-xs leading-5 text-slate-400">{metric.description}</p>
-                          )}
                         </div>
                       );
                     })}
@@ -152,7 +139,6 @@ export function FundamentalMetricSelector({ selectedMetrics, onChange, assetCate
         </Dialog>
       </div>
 
-      {/* Details Dialog */}
       <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
         <DialogContent className="max-w-md rounded-[2rem] border-white/10 bg-slate-950 p-6 text-white">
           <DialogHeader className="border-b border-white/10 pb-4">
@@ -165,10 +151,6 @@ export function FundamentalMetricSelector({ selectedMetrics, onChange, assetCate
               <DialogDescription className="mb-4 text-slate-400">
                 {filteredMetrics.find(m => m.id === detailMetricId)?.description}
               </DialogDescription>
-              <p className="mb-2 text-sm font-semibold text-slate-300">Uso:</p>
-              <p className="mb-4 text-slate-400">
-                {filteredMetrics.find(m => m.id === detailMetricId)?.description}
-              </p>
             </>
           )}
           <DialogClose asChild>
@@ -179,7 +161,6 @@ export function FundamentalMetricSelector({ selectedMetrics, onChange, assetCate
         </DialogContent>
       </Dialog>
 
-      {/* ALWAYS show selected metrics outside the dialog */}
       <div className="mt-4 flex flex-wrap gap-2">
         {selectedDefinitions.length > 0 ? (
           selectedDefinitions.map((metric) => (

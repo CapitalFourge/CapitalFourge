@@ -394,39 +394,40 @@ export default function AssetDetailPage() {
     return <div className="flex min-h-[60vh] items-center justify-center text-slate-400">Activo no encontrado.</div>;
   }
 
-  return (
+return (
     <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="min-h-screen bg-black/50">
       <div className="flex items-center justify-between p-6 border-b border-white/10">
         <Button variant="outline" onClick={() => {
-          // Go back to explorer
           window.history.back();
         }}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Volver al explorador
         </Button>
-        <div className="flex items-center gap-4">           <Button 
-             variant="default" 
-             onClick={() => {
-               setDialogType('buy');
-               setIsDialogOpen(true);
-             }}
-             className="text-sm px-4 py-2"
-           >
-             Comprar
-           </Button>
-           <Button 
-             variant="destructive" 
-             onClick={() => {
-               setDialogType('sell');
-               setIsDialogOpen(true);
-             }}
-             className="text-sm px-4 py-2 ml-2"
-           >
-             Vender
-           </Button></div>
+        <div className="flex items-center gap-4">
+          <Button 
+            variant="default" 
+            onClick={() => {
+              setDialogType('buy');
+              setIsDialogOpen(true);
+            }}
+            className="text-sm px-4 py-2"
+          >
+            Comprar
+          </Button>
+          <Button 
+            variant="destructive" 
+            onClick={() => {
+              setDialogType('sell');
+              setIsDialogOpen(true);
+            }}
+            className="text-sm px-4 py-2"
+          >
+            Vender
+          </Button>
+        </div>
       </div>
 
-      <div className="p-6">
+      <div className="p-6 space-y-8">
         {/* Asset Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-white">{asset.symbol}</h1>
@@ -450,11 +451,11 @@ export default function AssetDetailPage() {
             <p className="mt-2 text-2xl font-semibold">
               {latestDailyPoint && previousDailyPoint ? 
                 (
-                  ((latestDailyPoint.close - previousDailyPoint.close) / previousDailyPoint.close) * 100
-                ).toFixed(2) + '%' : 
+                  <span className={latestDailyPoint.close > previousDailyPoint.close ? 'text-emerald-400' : 'text-rose-400'}>
+                    {(((latestDailyPoint.close - previousDailyPoint.close) / previousDailyPoint.close) * 100).toFixed(2)}%
+                  </span>
+                ) : 
                 '0.00%'}
-              <span className={(latestDailyPoint && previousDailyPoint) ? (latestDailyPoint.close > previousDailyPoint.close ? 'text-emerald-400' : 'text-rose-400') : undefined}>
-              </span>
             </p>
           </div>
           
@@ -494,37 +495,36 @@ export default function AssetDetailPage() {
             indicators={activeIndicators}
           />
         </div>
-        <div className="flex items-center justify-between p-6 border-b border-white/10">
-          <div className="flex items-center gap-4">
-            <Button 
-              variant="outline" 
-              onClick={() => setShowIndicators(!showIndicators)}
-              className="text-sm px-4 py-2"
-            >
-              Indicadores{activeIndicators.length > 0 ? ` ${activeIndicators.length}` : '' } {showIndicators ? '▲' : '▼'}
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => setShowFundamental(!showFundamental)}
-              className="text-sm px-4 py-2"
-            >
-              Análisis Fundamental {showFundamental ? '▲' : '▼'}
-            </Button>
-          </div>
-        </div>
+
+        {/* Action Bar */}
+        <div className="flex items-center gap-4 border-b border-white/10 pb-4 mb-8">
+          <Button 
+            variant={showIndicators ? "default" : "outline"}
+            onClick={() => setShowIndicators(!showIndicators)}
+            className="text-sm px-4 py-2"
+          >
+            Indicadores {activeIndicators.length > 0 && `(${activeIndicators.length})`}
+          </Button>
+          <Button 
+            variant={showFundamental ? "default" : "outline"}
+            onClick={() => setShowFundamental(!showFundamental)}
+            className="text-sm px-4 py-2"
+          >
+            Análisis Fundamental {activeFundamentals.length > 0 && `(${activeFundamentals.length})`}
+          </Button>
         </div>
 
-        {/* Indicators */}
+        {/* Indicators Section */}
         {showIndicators && (
-          <div className="mb-8">
-            <h2 className="text-2xl font-semibold text-white mb-4">Indicadores</h2>
+          <div>
+            <h2 className="text-2xl font-semibold text-white mb-4">Indicadores técnicos</h2>
             <IndicatorSelector selectedIndicators={activeIndicators} onChange={setActiveIndicators} />
           </div>
         )}
 
-        {/* Análisis Fundamental */}
+        {/* Fundamental Analysis Section */}
         {showFundamental && (
-          <div className="mb-8">
+          <div>
             <h2 className="text-2xl font-semibold text-white mb-4">Análisis fundamental</h2>
             <FundamentalMetricSelector
               selectedMetrics={activeFundamentals}
@@ -533,8 +533,7 @@ export default function AssetDetailPage() {
             />
           </div>
         )}
-
-        {/* Trading Dialog */}
-     </motion.div>
+      </div>
+    </motion.div>
   );
 }

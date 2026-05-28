@@ -112,7 +112,7 @@ public class GrpcFinancialDataClient {
             System.err.println("gRPC Get Symbols Error: " + e.getMessage());
             // Fallback to static list if gRPC call fails
             return List.of(
-                    "AAPL", "GOOGL", "MSFT", "AMZN", "TSLA", "META", "NVDA", "NFLX", "AMD",
+                    "AAPL", "ADBE", "GOOGL", "MSFT", "AMZN", "TSLA", "META", "NVDA", "NFLX", "AMD",
                     "BTC-USD", "ETH-USD", "SOL-USD", "ADA-USD", "DOT-USD", "XRP-USD",
                     "GC=F", "SI=F", "CL=F", "NG=F", "EURUSD=X", "GBPUSD=X");
         }
@@ -125,5 +125,19 @@ public class GrpcFinancialDataClient {
                 .map(Asset::getName)
                 .findFirst()
                 .orElse(symbol);
+    }
+
+    public List<Asset> searchSymbols(String query) {
+        try {
+            SearchRequest request = SearchRequest.newBuilder()
+                    .setQuery(query)
+                    .setLimit(5)
+                    .build();
+            CategorizedAssetsResponse response = financialDataClient.searchSymbols(request);
+            return response.getAssetsList();
+        } catch (Exception e) {
+            System.err.println("gRPC Search Symbols Error: " + e.getMessage());
+            return List.of();
+        }
     }
 }

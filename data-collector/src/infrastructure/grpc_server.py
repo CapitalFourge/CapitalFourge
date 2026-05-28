@@ -317,6 +317,7 @@ class FinancialDataServicer(financial_data_pb2_grpc.FinancialDataServiceServicer
         assets = [
             # Stocks
             {"symbol": "AAPL", "name": "Apple Inc.", "category": "STOCKS"},
+            {"symbol": "ADBE", "name": "Adobe Inc.", "category": "STOCKS"},
             {"symbol": "GOOGL", "name": "Alphabet Inc.", "category": "STOCKS"},
             {"symbol": "MSFT", "name": "Microsoft Corp.", "category": "STOCKS"},
             {"symbol": "AMZN", "name": "Amazon.com Inc.", "category": "STOCKS"},
@@ -381,13 +382,53 @@ class FinancialDataServicer(financial_data_pb2_grpc.FinancialDataServiceServicer
         return financial_data_pb2.CategorizedAssetsResponse(assets=proto_assets)
 
     def GetAvailableSymbols(self, request, context):
-        # Para mantener consistencia, extraemos los símbolos de la lista de activos categorizados
-        # En un sistema real, esto vendría de una base de datos o archivo de configuración
-        categorized_assets = self.GetCategorizedAssets(None, None).assets
-        available_symbols = [a.symbol for a in categorized_assets]
-        
         print(f"📋 gRPC Request received for available symbols")
-        return financial_data_pb2.SymbolsResponse(symbols=available_symbols)
+        # Return curated list of popular symbols for autocomplete
+        # This helps users discover common assets while still allowing custom searches
+        popular_symbols = [
+            "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "NVDA", "META", "NFLX", "AMD", "DIS",
+            "BTC-USD", "ETH-USD", "SOL-USD", "ADA-USD", "DOT-USD", "XRP-USD",
+            "GC=F", "SI=F", "CL=F", "NG=F", "HG=F",
+            "EURUSD=X", "GBPUSD=X", "USDJPY=X"
+        ]
+        return financial_data_pb2.SymbolsResponse(symbols=popular_symbols)
+
+    def SearchSymbols(self, request, context):
+        # Allow searching any symbol - validate with yfinance if it exists
+        query = request.query.upper()
+        print(f"🔍 Search request for: {query}")
+        
+        # First check if it's a known symbol
+        known_symbols = {a["symbol"] for a in [
+            {"symbol": "AAPL"}, {"symbol": "GOOGL"}, {"symbol": "MSFT"}, {"symbol": "AMZN"},
+            {"symbol": "TSLA"}, {"symbol": "NVDA"}, {"symbol": "NFLX"}, {"symbol": "AMD"},
+            {"symbol": "META"}, {"symbol": "BRK-B"}, {"symbol": "V"}, {"symbol": "JPM"},
+            {"symbol": "DIS"}, {"symbol": "MA"},
+        ]}
+        
+        # Try to validate the symbol exists in yfinance
+        try:
+            ticker = yf.Ticker(query)
+            info = ticker.info
+            name = info.get('shortName') or info.get('longName') or info.get('displayName')
+            
+            if name or ticker.fast_info:
+                # Symbol is valid, return it
+                proto_assets = [financial_data_pb2.Asset(
+                    symbol=query,
+                    name=name,
+                    category="",  # Will be inferred by frontend
+                    description="",
+                    website=""
+                )]
+                print(f"✅ Valid symbol found: {query} -> {name}")
+            else:
+                proto_assets = []
+        except Exception as e:
+            print(f"⚠️ Error validating symbol {query}: {e}")
+            proto_assets = []
+        
+        return financial_data_pb2.CategorizedAssetsResponse(assets=proto_assets)
 
 def serve():
     try:

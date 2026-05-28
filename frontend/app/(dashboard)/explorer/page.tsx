@@ -37,6 +37,15 @@ const EXPLORER_QUERY = gql`
   }
 `;
 
+const SEARCH_SYMBOLS_QUERY = gql`
+  query SearchSymbols($query: String!, $limit: Int!) {
+    searchSymbols(query: $query, limit: $limit) {
+      symbol
+      name
+    }
+  }
+`;
+
 const CATEGORIES = [
   { id: "ALL", name: "Todos", icon: Globe },
   { id: "STOCKS", name: "Acciones", icon: TrendingUp },
@@ -83,17 +92,19 @@ export default function ExplorerPage() {
   );
 
   const filteredAssets = useMemo(() => {
+    if (searchTerm.trim() === "") return assets;
     return assets.filter((asset) => {
       const term = searchTerm.toLowerCase();
       return asset.symbol.toLowerCase().includes(term) || asset.name?.toLowerCase().includes(term);
     });
   }, [assets, searchTerm]);
 
-  const portfolioPositions = useMemo(() => {
-    const map = new Map<string, PortfolioPosition[]>();
-    portfolios.forEach((portfolio) => map.set(portfolio.id, portfolio.positions));
-    return map;
-  }, [portfolios]);
+  // Check if search term looks like a symbol that could exist but isn't shown
+  const isValidSymbolFormat = searchTerm.trim().length >= 1 && 
+    searchTerm.trim().toUpperCase().match(/^([A-Z]{1,5})(\-[A-Z]{3})?(\=\w{1,2})?$/);
+  const showSearchNavigation = searchTerm.trim().length > 0 && 
+    filteredAssets.length === 0 && 
+    !loading;
 
   if (error) {
     return (
@@ -120,9 +131,9 @@ export default function ExplorerPage() {
             <Search className="h-4 w-4 text-slate-400" />
             <input
               type="text"
-              placeholder="Buscar por símbolo o nombre"
+              placeholder="Buscar por símbolo o nombre (ej: ADBE, TSLA, BTC-USD)"
               value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
+              onChange={(event) => setSearchTerm(event.target.value.toUpperCase())}
               className="w-full bg-transparent text-sm text-white outline-none placeholder:text-slate-500"
             />
           </div>
@@ -189,13 +200,24 @@ export default function ExplorerPage() {
               </motion.div>
             ))}
 
-        {!loading && filteredAssets.length === 0 && (
+        {!loading && filteredAssets.length === 0 && showSearchNavigation && (
           <div className="panel col-span-full flex min-h-[300px] flex-col items-center justify-center p-10 text-center">
             <Activity className="h-10 w-10 text-slate-500" />
-            <h2 className="mt-6 text-2xl font-semibold text-white">No hay resultados con esos filtros.</h2>
-            <p className="mt-3 max-w-md text-sm leading-7 text-slate-400">
-              Ajusta la categoría o el término de búsqueda para ampliar el universo visible.
-            </p>
+            <h2 className="mt-6 text-2xl font-semibold text-white">No se encontró "{searchTerm}" en los instrumentos mostrados.</h2>
+            {isValidSymbolFormat ? (
+              <div className="mt-4">
+                <p className="text-sm leading-7 text-slate-400 mb-4">
+                  ¿Quieres ver el gráfico y análisis de {searchTerm}?
+                </p>
+                <Button asChild variant="default" className="rounded-2xl">
+                  <Link href={`/explorer/${searchTerm}`}>Ver gráfico de {searchTerm}</Link>
+                </Button>
+              </div>
+            ) : (
+              <p className="mt-3 max-w-md text-sm leading-7 text-slate-400">
+                Ingresa un símbolo válido (ej: AAPL, ADBE, TSLA, BTC-USD, EURUSD=X).
+              </p>
+            )}
           </div>
         )}
       </section>

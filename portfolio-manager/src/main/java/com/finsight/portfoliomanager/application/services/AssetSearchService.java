@@ -54,6 +54,7 @@ public class AssetSearchService {
             fallback.add(AssetInfo.builder().symbol("ETH-USD").name("Ethereum").category("CRYPTO").build());
             fallback.add(AssetInfo.builder().symbol("SOL-USD").name("Solana").category("CRYPTO").build());
             fallback.add(AssetInfo.builder().symbol("AAPL").name("Apple Inc.").category("STOCKS").build());
+            fallback.add(AssetInfo.builder().symbol("ADBE").name("Adobe Inc.").category("STOCKS").build());
             fallback.add(AssetInfo.builder().symbol("MSFT").name("Microsoft Corp.").category("STOCKS").build());
             fallback.add(AssetInfo.builder().symbol("NVDA").name("NVIDIA Corp.").category("STOCKS").build());
             fallback.add(AssetInfo.builder().symbol("GC=F").name("Gold").category("COMMODITIES").build());
@@ -77,15 +78,48 @@ public class AssetSearchService {
     }
 
     public List<AssetSuggestion> searchSymbols(String query, int limit) {
-        if (query == null || query.trim().length() < 2) {
+        if (query == null || query.trim().length() < 1) {
             return List.of();
         }
 
         try {
+            String upperQuery = query.trim().toUpperCase();
+            
+            // Check if the query looks like a stock/crypto symbol (allow direct navigation)
+            boolean isSymbolFormat = upperQuery.matches("^[A-Z]{1,5}(\\-[A-Z]{3})?(\\=\\w{1,2})?$");
+            
+            if (isSymbolFormat) {
+                // Try to validate symbol exists via gRPC search
+                try {
+                    List<com.finsight.proto.Asset> validatedAssets = grpcClient.searchSymbols(upperQuery);
+                    if (!validatedAssets.isEmpty()) {
+                        return validatedAssets.stream()
+                                .map(a -> AssetSuggestion.builder()
+                                        .symbol(a.getSymbol())
+                                        .name(a.getName())
+                                        .build())
+                                .collect(Collectors.toList());
+                    }
+                    // If gRPC search doesn't find it, still create a suggestion for direct navigation
+                    // The frontend will handle validation when navigating
+                    return List.of(AssetSuggestion.builder()
+                            .symbol(upperQuery)
+                            .name(null)
+                            .build());
+                } catch (Exception e) {
+                    log.debug("Symbol validation failed, allowing navigation: {}", upperQuery);
+                    // Allow navigation to symbol even if validation fails
+                    return List.of(AssetSuggestion.builder()
+                            .symbol(upperQuery)
+                            .name(null)
+                            .build());
+                }
+            }
+
             // Get all available symbols from data collector
             List<String> allSymbols = grpcClient.getAllAvailableSymbols();
+            
             log.info("🔍 Search query: '{}', Total available symbols: {}", query, allSymbols.size());
-            log.info("📋 Available symbols: {}", allSymbols);
 
             String queryLower = query.toLowerCase();
 

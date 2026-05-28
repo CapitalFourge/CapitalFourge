@@ -12,6 +12,12 @@ service FinancialDataService {
   rpc GetPriceHistory (HistoryRequest) returns (HistoryResponse);
   rpc GetAvailableSymbols (EmptyRequest) returns (SymbolsResponse);
   rpc GetCategorizedAssets (EmptyRequest) returns (CategorizedAssetsResponse);
+  rpc SearchSymbols (SearchRequest) returns (CategorizedAssetsResponse);
+}
+
+message SearchRequest {
+  string query = 1;
+  int32 limit = 2;
 }
 
 message Asset {

@@ -335,25 +335,25 @@ export default function AssetDetailPage() {
       </div>
 
       <div className="p-6 space-y-8">
-        <div className="mb-8">
+        <div className="mb-8 flex items-baseline gap-4">
           <h1 className="text-4xl font-bold text-white">{asset.symbol}</h1>
-          <p className="mt-2 text-xl font-light text-slate-300">{asset.name}</p>
-          <p className="mt-1 text-sm text-slate-400">{asset.category}</p>
+          <span className="text-xl font-light text-slate-300">{asset.name}</span>
+          <span className="text-sm text-slate-400">{asset.category}</span>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-4 mb-8">
-          <div className="flex flex-col items-center p-4 bg-white/[0.03] rounded-xl">
-            <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Precio actual</p>
-            <p className="mt-2 text-3xl font-semibold text-white">
+        <div className="flex flex-wrap items-center gap-6 mb-8">
+          <div className="flex items-baseline gap-3">
+            <span className="text-xs uppercase tracking-[0.24em] text-slate-400">Precio actual</span>
+            <span className="text-3xl font-semibold text-white">
               {latestDailyPoint ? 
                 `$${latestDailyPoint.close.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 
                 '$0.00'}
-            </p>
+            </span>
           </div>
           
-          <div className="flex flex-col items-center p-4 bg-white/[0.03] rounded-xl">
-            <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Cambio 24h</p>
-            <p className="mt-2 text-2xl font-semibold">
+          <div className="flex items-baseline gap-2">
+            <span className="text-xs uppercase tracking-[0.24em] text-slate-400">Cambio 24h</span>
+            <span className="text-xl font-semibold">
               {latestDailyPoint && previousDailyPoint ? 
                 (
                   <span className={latestDailyPoint.close > previousDailyPoint.close ? 'text-emerald-400' : 'text-rose-400'}>
@@ -361,31 +361,26 @@ export default function AssetDetailPage() {
                   </span>
                 ) : 
                 '0.00%'}
-            </p>
+            </span>
           </div>
           
-          <div className="flex flex-col items-center p-4 bg-white/[0.03] rounded-xl">
-            <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Volumen 24h</p>
-            <p className="mt-2 text-2xl font-semibold text-white">
+          <div className="flex items-baseline gap-2">
+            <span className="text-xs uppercase tracking-[0.24em] text-slate-400">Volumen 24h</span>
+            <span className="text-xl font-semibold text-white">
               {latestDailyPoint ? 
                 latestDailyPoint.volume.toLocaleString(undefined) : 
                 '0'}
-            </p>
+            </span>
           </div>
           
-          <div className="flex flex-col items-center p-4 bg-white/[0.03] rounded-xl">
-            <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Posición</p>
+          <div className="flex items-baseline gap-2">
+            <span className="text-xs uppercase tracking-[0.24em] text-slate-400">Posición</span>
             {userPosition ? (
-              <>
-                <p className="mt-2 text-xl font-semibold text-white">
-                  {userPosition.quantity}
-                </p>
-                <p className="text-sm text-slate-400">
-                  En {userPosition.portfolioName}
-                </p>
-              </>
+              <span className="text-xl font-semibold text-white">
+                {userPosition.quantity} en {userPosition.portfolioName}
+              </span>
             ) : (
-              <p className="mt-2 text-xl font-semibold text-white">0</p>
+              <span className="text-xl font-semibold text-white">0</span>
             )}
           </div>
         </div>

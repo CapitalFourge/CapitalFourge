@@ -40,6 +40,23 @@ export function TradingViewChart({
       containerRef.current.id = containerIdRef.current;
     }
 
+    // Clean up previous widget if exists
+    if (widgetInstanceRef.current) {
+      try {
+        if ((widgetInstanceRef.current as any).remove) {
+          (widgetInstanceRef.current as any).remove();
+        }
+      } catch (e) {
+        console.warn('Error removing widget:', e);
+      }
+      widgetInstanceRef.current = null;
+      
+      // Clear the container content
+      while (containerRef.current.firstChild) {
+        containerRef.current.removeChild(containerRef.current.firstChild);
+      }
+    }
+
     // @ts-ignore - TradingView widget types are not available
     const tradingView = (window as any).TradingView;
     if (tradingView && typeof tradingView.widget === 'function') {
@@ -107,7 +124,16 @@ export function TradingViewChart({
 
   useEffect(() => {
     return () => {
-      widgetInstanceRef.current = null;
+      if (widgetInstanceRef.current) {
+        try {
+          if ((widgetInstanceRef.current as any).remove) {
+            (widgetInstanceRef.current as any).remove();
+          }
+        } catch (e) {
+          console.warn('Error cleaning up widget:', e);
+        }
+        widgetInstanceRef.current = null;
+      }
     };
   }, []);
 

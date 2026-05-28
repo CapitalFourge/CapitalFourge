@@ -27,15 +27,15 @@ export function FundamentalMetricSelector({ selectedMetrics, onChange, assetCate
   const [open, setOpen] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
   const [detailMetricId, setDetailMetricId] = useState<string | null>(null);
-  
+
   // Filter metrics by asset category if provided
   const filteredMetrics = useMemo(() => {
     if (!assetCategory) return FUNDAMENTAL_METRIC_CATALOG;
-    return FUNDAMENTAL_METRIC_CATALOG.filter(metric => 
+    return FUNDAMENTAL_METRIC_CATALOG.filter(metric =>
       metric.categories.includes(assetCategory as FundamentalCategory)
     );
   }, [assetCategory]);
-  
+
   const selectedDefinitions = useMemo(
     () => filteredMetrics.filter((metric) => selectedMetrics.includes(metric.id)),
     [selectedMetrics, filteredMetrics]
@@ -118,7 +118,7 @@ export function FundamentalMetricSelector({ selectedMetrics, onChange, assetCate
                                   </Badge>
                                 )}
                               </div>
-                              <p className="mt-2 text-sm text-slate-300">{metric.shortDescription}</p>
+                              <p className="mt-2 text-sm text-slate-300">{metric.description}</p>
                             </div>
                             <div className="flex items-end space-x-2">
                               <Button
@@ -163,7 +163,7 @@ export function FundamentalMetricSelector({ selectedMetrics, onChange, assetCate
           {detailMetricId && (
             <>
               <DialogDescription className="mb-4 text-slate-400">
-                {filteredMetrics.find(m => m.id === detailMetricId)?.shortDescription}
+                {filteredMetrics.find(m => m.id === detailMetricId)?.description}
               </DialogDescription>
               <p className="mb-2 text-sm font-semibold text-slate-300">Uso:</p>
               <p className="mb-4 text-slate-400">

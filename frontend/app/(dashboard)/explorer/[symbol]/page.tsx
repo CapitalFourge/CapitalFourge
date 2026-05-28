@@ -501,7 +501,7 @@ export default function AssetDetailPage() {
               onClick={() => setShowIndicators(!showIndicators)}
               className="text-sm px-4 py-2"
             >
-              Indicadores {activeIndicators.length} {showIndicators ? '▲' : '▼'}
+              Indicadores{activeIndicators.length > 0 ? ` ${activeIndicators.length}` : '' } {showIndicators ? '▲' : '▼'}
             </Button>
             <Button 
               variant="outline" 

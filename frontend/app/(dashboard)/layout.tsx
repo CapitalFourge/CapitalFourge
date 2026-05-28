@@ -22,7 +22,6 @@ const navigation = [
   { href: "/strategies", label: "Estrategias", icon: BarChart3 },
   { href: "/transactions", label: "Movimientos", icon: History },
   { href: "/settings", label: "Configuración", icon: Settings },
-  { href: "/admin", label: "Admin", icon: ShieldCheck },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -69,11 +68,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
             <div className="space-y-4 border-t border-white/10 pt-5">
               <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-4">
-                <p className="text-xs uppercase tracking-[0.28em] text-slate-400">Workspace</p>
-                <p className="mt-2 text-lg font-semibold text-white">Mercado en vivo</p>
+                <p className="text-xs uppercase tracking-[0.28em] text-slate-400">Tu cuenta</p>
+                <p className="mt-2 text-lg font-semibold text-white">Lista para operar</p>
                 <div className="mt-3 flex items-center gap-2 text-sm text-slate-300">
                   <span className="status-dot" />
-                  Sincronización activa
+                  Datos en tiempo real
                 </div>
               </div>
 

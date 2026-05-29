@@ -15,24 +15,6 @@ const stats = [
 const features = [
   {
     icon: Wallet,
-    title: "Tu portafolio claro",
-    copy: "Ve tu dinero, ganancias y pérdidas sin complicaciones. Todo en un solo lugar.",
-  },
-  {
-    icon: BarChart3,
-    title: "Aprende y practica trading",
-    copy: "Analiza miles de activos con indicadores, estrategias y gráficos profesionales.",
-  },
-  {
-    icon: ShieldCheck,
-    title: "Superate con el ranking",
-    copy: "Comparte tu portafolio publico y compite contra otros traders.",
-  },
-];
-
-const features = [
-  {
-    icon: Wallet,
     title: "Control patrimonial claro",
     copy: "Caja, posiciones, bloqueos y rendimiento neto visibles sin navegar entre pantallas inconexas.",
   },

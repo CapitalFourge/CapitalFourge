@@ -59,14 +59,14 @@ export function TradingViewChart({
   const containerIdRef = useRef<string | null>(null);
   const mountedRef = useRef(true);
 
-  const safeSetState = useMemo(() => ({
-    setError: (msg: string) => {
-      if (mountedRef.current) setError(msg);
-    },
-    setIsLoading: (loading: boolean) => {
-      if (mountedRef.current) setIsLoading(loading);
-    },
-  }), []);
+const safeSetState = useMemo(() => ({
+     setError: (msg: string | null) => {
+       if (mountedRef.current) setError(msg);
+     },
+     setIsLoading: (loading: boolean) => {
+       if (mountedRef.current) setIsLoading(loading);
+     },
+   }), []);
 
   useEffect(() => {
     if (containerIdRef.current === null) {
@@ -216,7 +216,7 @@ export function TradingViewChart({
   return <div ref={containerRef} style={{ width, height }} />;
 }
 
-function mapIndicatorsToStudies(indicatorIds: string[]): WidgetStudyMap[] {
+function mapIndicatorsToStudies(indicatorIds: string[]): { id: string; inputs?: Record<string, unknown> }[] {
   const studyMap: WidgetStudyMap = {
     sma: { id: 'SMA', inputs: { length: 9, source: 'close' } },
     ema: { id: 'EMA', inputs: { length: 9, source: 'close' } },

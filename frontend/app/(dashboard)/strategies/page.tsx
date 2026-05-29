@@ -9,13 +9,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 
 const STRATEGIES_QUERY = gql`
   query GetStrategies {
-    # Por ahora usamos datos mock, en el futuro vendran del backend
-    # portfolios {
-    #   id
-    #   name
-    #   performance
-    #   isPublic
-    # }
+    portfolios {
+      id
+      name
+      performance
+      isPublic
+    }
   }
 `;
 

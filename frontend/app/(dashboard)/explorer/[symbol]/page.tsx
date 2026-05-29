@@ -491,7 +491,7 @@ export default function AssetDetailPage() {
                 const rawValue = latestFundamental?.[metric.id as keyof FundamentalPricePoint];
                 let displayValue = "-";
                 
-                if (rawValue !== undefined && rawValue !== null && rawValue !== 0) {
+                if (typeof rawValue === "number" && rawValue !== 0) {
                   if (metric.formatter === "percent") {
                     displayValue = `${(rawValue * 100).toFixed(2)}%`;
                   } else if (metric.formatter === "currency") {

@@ -211,7 +211,7 @@ export default function ExplorerPage() {
         {!isLoading && displayAssets.length === 0 && showSearchNavigation && (
           <div className="panel col-span-full flex min-h-[300px] flex-col items-center justify-center p-10 text-center">
             <Activity className="h-10 w-10 text-slate-500" />
-            <h2 className="mt-6 text-2xl font-semibold text-white">No se encontró "{searchTerm}" en los instrumentos mostrados.</h2>
+            <h2 className="mt-6 text-2xl font-semibold text-white">No se encontr&oacute; &quot;{searchTerm}&quot; en los instrumentos mostrados.</h2>
             {isValidSymbolFormat ? (
               <div className="mt-4">
                 <p className="text-sm leading-7 text-slate-400 mb-4">

@@ -245,7 +245,7 @@ export function EnhancedPriceChart({
     setSelectedAnnotationId(normalized.id);
   };
 
-  const updateAnnotationFromDrag = (currentPoint: OverlayPoint) => {
+  const updateAnnotationFromDrag = useCallback((currentPoint: OverlayPoint) => {
     if (!dragState) {
       return;
     }
@@ -302,7 +302,7 @@ export function EnhancedPriceChart({
         annotation.id === annotationId ? normalizeAnnotation(nextAnnotation) : annotation
       )
     );
-  };
+  }, [dragState]);
 
   useEffect(() => {
     if (!dragState) {
@@ -329,7 +329,7 @@ export function EnhancedPriceChart({
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [dragState]);
+  }, [dragState, updateAnnotationFromDrag]);
 
   const handleOverlayMouseDown = (event: ReactMouseEvent<HTMLDivElement>) => {
     const point = getOverlayPoint(event);

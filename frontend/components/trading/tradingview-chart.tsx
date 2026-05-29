@@ -17,10 +17,10 @@ interface TradingViewGlobal extends Window {
   TradingView?: {
     widget: new (options: WidgetOptions) => TradingViewWidget;
   };
-  __TRADINGVIEW_SCRIPT_LOADED?: boolean;
 }
 
 interface WidgetOptions {
+  container_id: string;
   width: string | number;
   height: string | number;
   symbol: string;
@@ -43,6 +43,10 @@ interface TradingViewChartProps {
   indicators?: string[];
 }
 
+function generateContainerId(): string {
+  return `tradingview-chart-${Date.now().toString(36)}-${Math.random().toString(36).substr(2, 9)}`;
+}
+
 export function TradingViewChart({
   symbol,
   interval = '1D',
@@ -50,29 +54,23 @@ export function TradingViewChart({
   height = 400,
   indicators = [],
 }: TradingViewChartProps) {
+  const containerIdRef = useRef<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetInstanceRef = useRef<TradingViewWidget | null>(null);
   const chartRef = useRef<TradingViewChart | null>(null);
   const appliedStudiesRef = useRef<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const containerIdRef = useRef<string | null>(null);
   const mountedRef = useRef(true);
 
 const safeSetState = useMemo(() => ({
-     setError: (msg: string | null) => {
-       if (mountedRef.current) setError(msg);
-     },
-     setIsLoading: (loading: boolean) => {
-       if (mountedRef.current) setIsLoading(loading);
-     },
-   }), []);
-
-  useEffect(() => {
-    if (containerIdRef.current === null) {
-      containerIdRef.current = `tradingview-chart-${Math.random().toString(36).substr(2, 9)}`;
-    }
-  }, []);
+      setError: (msg: string | null) => {
+        if (mountedRef.current) setError(msg);
+      },
+      setIsLoading: (loading: boolean) => {
+        if (mountedRef.current) setIsLoading(loading);
+      },
+    }), [setError, setIsLoading]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -104,41 +102,39 @@ const safeSetState = useMemo(() => ({
     });
   }, []);
 
-  const createWidget = useCallback(() => {
+  const initWidget = useCallback(() => {
     const container = containerRef.current;
-    if (!container) {
-      safeSetState.setIsLoading(false);
-      return;
+    if (!container || !container.parentElement || !containerIdRef.current || !mountedRef.current) {
+      return false;
     }
 
-    if (container && !container.id && containerIdRef.current) {
+    const windowWithTV = window as unknown as TradingViewGlobal;
+    if (!windowWithTV.TradingView || typeof windowWithTV.TradingView.widget !== 'function') {
+      return false;
+    }
+
+    // Ensure container has ID
+    if (!container.id) {
       container.id = containerIdRef.current;
-    }
-
-    if (!container.parentNode || !mountedRef.current) {
-      safeSetState.setIsLoading(false);
-      return;
     }
 
     if (widgetInstanceRef.current) {
       try {
-        if (widgetInstanceRef.current.remove) {
-          widgetInstanceRef.current.remove();
-        }
+        widgetInstanceRef.current.remove?.();
       } catch (e) {
         console.warn('Error removing widget:', e);
       }
       widgetInstanceRef.current = null;
-      chartRef.current = null;
-
-      while (container.firstChild) {
-        container.removeChild(container.firstChild);
-      }
+    }
+    chartRef.current = null;
+    appliedStudiesRef.current = [];
+    while (container.firstChild) {
+      container.removeChild(container.firstChild);
     }
 
-    const windowWithTV = window as unknown as TradingViewGlobal;
-    if (windowWithTV.TradingView && typeof windowWithTV.TradingView.widget === 'function') {
-      const options: WidgetOptions = {
+    try {
+      const widget = new windowWithTV.TradingView.widget({
+        container_id: containerIdRef.current,
         width,
         height,
         symbol: getTradingViewSymbol(symbol),
@@ -151,71 +147,101 @@ const safeSetState = useMemo(() => ({
         enable_publishing: false,
         hide_side_toolbar: false,
         allow_symbol_change: true
-      };
+      });
+      widgetInstanceRef.current = widget;
 
-      try {
-        const widget = new windowWithTV.TradingView.widget(options);
-        widgetInstanceRef.current = widget;
+      widget.onChartReady?.(() => {
+        chartRef.current = widget.activeChart ? widget.activeChart() : null;
+        if (chartRef.current) {
+          applyStudies(chartRef.current, indicators);
+        }
+      });
 
-        widget.onChartReady?.(() => {
-          chartRef.current = widget.activeChart
-            ? widget.activeChart()
-            : null;
-          if (chartRef.current) {
-            applyStudies(chartRef.current, indicators);
-          }
-        });
-
-        safeSetState.setIsLoading(false);
-        safeSetState.setError(null);
-      } catch (err) {
-        console.error('Error initializing TradingView widget:', err);
-        safeSetState.setError('Error inicializando TradingView widget');
-        safeSetState.setIsLoading(false);
-        widgetInstanceRef.current = null;
-      }
+      safeSetState.setIsLoading(false);
+      safeSetState.setError(null);
+      return true;
+    } catch (err) {
+      console.error('Error initializing TradingView widget:', err);
+      safeSetState.setError('Error inicializando TradingView widget');
+      safeSetState.setIsLoading(false);
+      widgetInstanceRef.current = null;
+      return false;
     }
   }, [symbol, interval, width, height, indicators, applyStudies, safeSetState]);
 
   useEffect(() => {
-    const windowWithTV = window as unknown as TradingViewGlobal;
-    if (windowWithTV.__TRADINGVIEW_SCRIPT_LOADED) {
-      createWidget();
-      return;
-    }
-    windowWithTV.__TRADINGVIEW_SCRIPT_LOADED = true;
-
-    const script = document.createElement('script');
-    script.src = 'https://s3.tradingview.com/tv.js';
-    script.async = true;
-    script.onload = () => {
+    // Poll for container and script
+    let cancelled = false;
+    let scriptLoaded = false;
+    const pollInterval = setInterval(() => {
+      if (cancelled || !mountedRef.current) {
+        clearInterval(pollInterval);
+        return;
+      }
+      
       const container = containerRef.current;
-      if (container && container.parentNode && mountedRef.current) {
-        createWidget();
-      } else {
+      if (!container) return;
+      
+      // Set ID on first access
+      if (!containerIdRef.current) {
+        containerIdRef.current = generateContainerId();
+      }
+      
+      // Check if container is in DOM
+      if (!container.parentElement) return;
+      
+      // Set ID on DOM element
+      if (!container.id) {
+        container.id = containerIdRef.current;
+      }
+      
+      // Check if script is loaded, if not load it
+      const windowWithTV = window as unknown as TradingViewGlobal;
+      if (!windowWithTV.TradingView && !scriptLoaded) {
+        scriptLoaded = true;
+        const script = document.createElement('script');
+        script.src = 'https://s3.tradingview.com/tv.js';
+        script.async = true;
+        script.onerror = () => {
+          console.error('Failed to load TradingView script');
+          safeSetState.setError('Error cargando TradingView script');
+          safeSetState.setIsLoading(false);
+        };
+        document.body.appendChild(script);
+        return;
+      }
+      
+      // Check if script is now available
+      if (!windowWithTV.TradingView) return;
+      
+      // All conditions met, initialize
+      if (initWidget()) {
+        clearInterval(pollInterval);
+      }
+    }, 50);
+
+    // Timeout after 5 seconds
+    const timeout = setTimeout(() => {
+      if (!cancelled && mountedRef.current) {
+        clearInterval(pollInterval);
         safeSetState.setIsLoading(false);
       }
-    };
-    script.onerror = () => {
-      console.error('Failed to load TradingView script');
-      safeSetState.setError('Error cargando TradingView script');
-      safeSetState.setIsLoading(false);
-    };
-    document.body.appendChild(script);
+    }, 5000);
 
     return () => {
+      cancelled = true;
+      clearInterval(pollInterval);
+      clearTimeout(timeout);
       if (widgetInstanceRef.current) {
         try {
-          if (widgetInstanceRef.current.remove) {
-            widgetInstanceRef.current.remove();
-          }
+          widgetInstanceRef.current.remove?.();
         } catch (e) {
           console.warn('Error cleaning up widget:', e);
         }
         widgetInstanceRef.current = null;
       }
     };
-  }, [createWidget, safeSetState]);
+  }, [initWidget, safeSetState]);
 
   if (error) {
     return <div className="p-4 text-center text-red-400">{error}</div>;

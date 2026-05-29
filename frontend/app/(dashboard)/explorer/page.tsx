@@ -105,6 +105,13 @@ export default function ExplorerPage() {
     return assets;
   }, [searchTerm, searchData?.searchSymbols, assets]);
 
+  // Filter assets to only show real assets with category when not searching
+  const filteredAssets = useMemo(() => {
+    if (searchTerm.trim() !== "") return displayAssets;
+    // Only show assets that have a valid category (real assets)
+    return displayAssets.filter(asset => asset.category && asset.category !== "DESCRUBIR");
+  }, [searchTerm, displayAssets]);
+
   const isLoading = loading || searchLoading;
 
   // Check if search term looks like a symbol that could exist but isn't shown
@@ -175,7 +182,7 @@ export default function ExplorerPage() {
           ? Array.from({ length: 8 }).map((_, index) => (
               <div key={index} className="panel h-[240px] animate-pulse" />
             ))
-          : displayAssets.map((asset, index) => (
+          : filteredAssets.map((asset, index) => (
               <motion.div
                 key={asset.symbol}
                 initial={{ opacity: 0, y: 20 }}

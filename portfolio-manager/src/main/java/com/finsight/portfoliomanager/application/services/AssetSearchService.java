@@ -84,84 +84,86 @@ public class AssetSearchService {
 
         try {
             String upperQuery = query.trim().toUpperCase();
-            
-            // Check if the query looks like a stock/crypto symbol (allow direct navigation)
-            boolean isSymbolFormat = upperQuery.matches("^[A-Z]{1,5}(\\-[A-Z]{3})?(\\=\\w{1,2})?$");
-            
-            if (isSymbolFormat) {
-                // Try to validate symbol exists via gRPC search
-                try {
-                    List<com.finsight.proto.Asset> validatedAssets = grpcClient.searchSymbols(upperQuery);
-                    if (!validatedAssets.isEmpty()) {
-                        return validatedAssets.stream()
-                                .map(a -> AssetSuggestion.builder()
-                                        .symbol(a.getSymbol())
-                                        .name(a.getName())
-                                        .build())
-                                .collect(Collectors.toList());
-                    }
-                    // If gRPC search doesn't find it, still create a suggestion for direct navigation
-                    // The frontend will handle validation when navigating
-                    return List.of(AssetSuggestion.builder()
-                            .symbol(upperQuery)
-                            .name(null)
-                            .build());
-                } catch (Exception e) {
-                    log.debug("Symbol validation failed, allowing navigation: {}", upperQuery);
-                    // Allow navigation to symbol even if validation fails
-                    return List.of(AssetSuggestion.builder()
-                            .symbol(upperQuery)
-                            .name(null)
-                            .build());
-                }
-            }
 
-            // Get all available symbols from data collector
-            List<String> allSymbols = grpcClient.getAllAvailableSymbols();
-            
-            log.info("🔍 Search query: '{}', Total available symbols: {}", query, allSymbols.size());
+            // Get all categorized assets which have both symbol AND name
+            List<com.finsight.proto.Asset> allAssets = grpcClient.getCategorizedAssets();
+
+            log.info("🔍 Search query: '{}', Total available assets: {}", query, allAssets.size());
 
             String queryLower = query.toLowerCase();
 
-            // Filter and rank by similarity with priority:
-            // 1. Exact match (e.g., "BTC" matches "BTC")
-            // 2. Starts with query (e.g., "BTC" matches "BTC-USD")
-            // 3. Contains query (e.g., "BTC" matches "ABTC")
-            List<AssetSuggestion> results = allSymbols.stream()
-                    .filter(symbol -> symbol.toLowerCase().contains(queryLower))
+            // Search both symbol AND name fields
+            List<AssetSuggestion> results = allAssets.stream()
+                    .filter(asset -> {
+                        String symbolLower = asset.getSymbol().toLowerCase();
+                        String nameLower = asset.getName() != null ? asset.getName().toLowerCase() : "";
+                        return symbolLower.contains(queryLower) ||
+                               nameLower.contains(queryLower);
+                    })
                     .sorted((a, b) -> {
-                        String aLower = a.toLowerCase();
-                        String bLower = b.toLowerCase();
+                        String aSymbol = a.getSymbol().toLowerCase();
+                        String bSymbol = b.getSymbol().toLowerCase();
+                        String aName = a.getName() != null ? a.getName().toLowerCase() : "";
+                        String bName = b.getName() != null ? b.getName().toLowerCase() : "";
 
-                        // Priority 1: Exact match
-                        boolean aExact = aLower.equals(queryLower);
-                        boolean bExact = bLower.equals(queryLower);
-                        if (aExact && !bExact) {
-                            return -1;
-                        }
-                        if (!aExact && bExact) {
-                            return 1;
-                        }
+                        // Priority 1: Symbol exact match
+                        boolean aSymbolExact = aSymbol.equals(queryLower);
+                        boolean bSymbolExact = bSymbol.equals(queryLower);
+                        if (aSymbolExact && !bSymbolExact) return -1;
+                        if (!aSymbolExact && bSymbolExact) return 1;
 
-                        // Priority 2: Starts with query
-                        boolean aStarts = aLower.startsWith(queryLower);
-                        boolean bStarts = bLower.startsWith(queryLower);
-                        if (aStarts && !bStarts) {
-                            return -1;
-                        }
-                        if (!aStarts && bStarts) {
-                            return 1;
-                        }
+                        // Priority 2: Name exact match
+                        boolean aNameExact = aName.equals(queryLower);
+                        boolean bNameExact = bName.equals(queryLower);
+                        if (aNameExact && !bNameExact) return -1;
+                        if (!aNameExact && bNameExact) return 1;
 
-                        // Priority 3: Alphabetical order for same priority
-                        return a.compareTo(b);
+                        // Priority 3: Symbol starts with query
+                        boolean aStarts = aSymbol.startsWith(queryLower);
+                        boolean bStarts = bSymbol.startsWith(queryLower);
+                        if (aStarts && !bStarts) return -1;
+                        if (!aStarts && bStarts) return 1;
+
+                        // Priority 4: Name starts with query
+                        boolean aNameStarts = aName.startsWith(queryLower);
+                        boolean bNameStarts = bName.startsWith(queryLower);
+                        if (aNameStarts && !bNameStarts) return -1;
+                        if (!aNameStarts && bNameStarts) return 1;
+
+                        // Priority 5: Alphabetical order for same priority
+                        return a.getSymbol().compareTo(b.getSymbol());
                     })
                     .limit(limit)
-                    .map(symbol -> AssetSuggestion.builder()
-                            .symbol(symbol)
-                            .name(getAssetName(symbol))
+                    .map(asset -> AssetSuggestion.builder()
+                            .symbol(asset.getSymbol())
+                            .name(asset.getName())
                             .build())
                     .collect(Collectors.toList());
+
+            // If no results found but symbol looks valid, check if it has price data
+            if (results.isEmpty() && upperQuery.matches("^[A-Z]{1,5}(\\-[A-Z]{3})?(\\=\\w{1,2})?$")) {
+                try {
+                    String assetName = grpcClient.getAssetName(upperQuery);
+                    // If we get a name or the symbol exists, create a suggestion
+                    if (assetName != null && !assetName.equals(upperQuery)) {
+                        results.add(AssetSuggestion.builder()
+                                .symbol(upperQuery)
+                                .name(assetName)
+                                .build());
+                    } else {
+                        // Validate symbol exists by checking if we can get price history
+                        List<com.finsight.proto.PricePoint> history = grpcClient.getPriceHistory(upperQuery, 1);
+                        if (history != null && !history.isEmpty()) {
+                            results.add(AssetSuggestion.builder()
+                                    .symbol(upperQuery)
+                                    .name(null) // Will show symbol as name
+                                    .build());
+                        }
+                    }
+                } catch (Exception e) {
+                    log.debug("Could not validate symbol {}: {}", upperQuery, e.getMessage());
+                }
+            }
 
             log.info("✅ Found {} results for query '{}': {}", results.size(), query,
                     results.stream().map(AssetSuggestion::getSymbol).collect(Collectors.toList()));

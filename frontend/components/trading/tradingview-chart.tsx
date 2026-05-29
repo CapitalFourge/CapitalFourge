@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 
 interface TradingViewWidget {
@@ -63,14 +65,14 @@ export function TradingViewChart({
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const mountedRef = useRef(true);
 
-const safeSetState = useMemo(() => ({
-      setError: (msg: string | null) => {
-        if (mountedRef.current) setError(msg);
-      },
-      setIsLoading: (loading: boolean) => {
-        if (mountedRef.current) setIsLoading(loading);
-      },
-    }), [setError, setIsLoading]);
+  const safeSetState = useMemo(() => ({
+    setError: (msg: string | null) => {
+      if (mountedRef.current) setError(msg);
+    },
+    setIsLoading: (loading: boolean) => {
+      if (mountedRef.current) setIsLoading(loading);
+    },
+  }), [setError, setIsLoading]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -113,7 +115,6 @@ const safeSetState = useMemo(() => ({
       return false;
     }
 
-    // Ensure container has ID
     if (!container.id) {
       container.id = containerIdRef.current;
     }
@@ -170,63 +171,80 @@ const safeSetState = useMemo(() => ({
   }, [symbol, interval, width, height, indicators, applyStudies, safeSetState]);
 
   useEffect(() => {
-    // Poll for container and script
     let cancelled = false;
-    let scriptLoaded = false;
+    const initWidgetCalled = { current: false };
+
+    const loadTradingViewScript = (): Promise<void> => {
+      return new Promise((resolve, reject) => {
+        const windowWithTV = window as unknown as TradingViewGlobal;
+        if (windowWithTV.TradingView) {
+          resolve();
+          return;
+        }
+
+        // Check if script tag already exists
+        const existingScript = document.querySelector('script[src*="tradingview.com/tv.js"]');
+        if (existingScript) {
+          // Script is loading, wait for it
+          existingScript.addEventListener('load', () => resolve());
+          existingScript.addEventListener('error', () => reject(new Error('Script load error')));
+          return;
+        }
+
+        const script = document.createElement('script');
+        script.src = 'https://s3.tradingview.com/tv.js';
+        script.async = true;
+        script.crossOrigin = 'anonymous';
+        script.onload = () => resolve();
+        script.onerror = () => {
+          console.error('Failed to load TradingView script');
+          reject(new Error('Failed to load TradingView script'));
+        };
+        document.head.appendChild(script);
+      });
+    };
+
     const pollInterval = setInterval(() => {
       if (cancelled || !mountedRef.current) {
         clearInterval(pollInterval);
         return;
       }
-      
+
       const container = containerRef.current;
       if (!container) return;
-      
-      // Set ID on first access
+
       if (!containerIdRef.current) {
         containerIdRef.current = generateContainerId();
       }
-      
-      // Check if container is in DOM
+
       if (!container.parentElement) return;
-      
-      // Set ID on DOM element
+
       if (!container.id) {
         container.id = containerIdRef.current;
       }
-      
-      // Check if script is loaded, if not load it
-      const windowWithTV = window as unknown as TradingViewGlobal;
-      if (!windowWithTV.TradingView && !scriptLoaded) {
-        scriptLoaded = true;
-        const script = document.createElement('script');
-        script.src = 'https://s3.tradingview.com/tv.js';
-        script.async = true;
-        script.onerror = () => {
-          console.error('Failed to load TradingView script');
-          safeSetState.setError('Error cargando TradingView script');
-          safeSetState.setIsLoading(false);
-        };
-        document.body.appendChild(script);
-        return;
-      }
-      
-      // Check if script is now available
-      if (!windowWithTV.TradingView) return;
-      
-      // All conditions met, initialize
-      if (initWidget()) {
-        clearInterval(pollInterval);
-      }
-    }, 50);
 
-    // Timeout after 5 seconds
+      const windowWithTV = window as unknown as TradingViewGlobal;
+      if (windowWithTV.TradingView && !initWidgetCalled.current) {
+        initWidgetCalled.current = true;
+        if (initWidget()) {
+          clearInterval(pollInterval);
+        }
+      }
+    }, 200);
+
+    loadTradingViewScript().catch((e) => {
+      console.error(e);
+      safeSetState.setError('Error cargando TradingView script. Verifique conexión a internet.');
+      safeSetState.setIsLoading(false);
+      clearInterval(pollInterval);
+    });
+
     const timeout = setTimeout(() => {
       if (!cancelled && mountedRef.current) {
         clearInterval(pollInterval);
         safeSetState.setIsLoading(false);
       }
-    }, 5000);
+    }, 15000);
 
     return () => {
       cancelled = true;
@@ -251,7 +269,15 @@ const safeSetState = useMemo(() => ({
     return <div className="p-4 text-center text-yellow-400">Cargando gráfico...</div>;
   }
 
-  return <div ref={containerRef} style={{ width, height }} />;
+  return <div ref={containerRef} style={{ width, height, minHeight: typeof height === 'number' ? height : '400px' }} />;
+}
+
+export function TradingViewChartFallback({ symbol }: { symbol: string }) {
+  return (
+    <div className="flex h-96 w-full items-center justify-center rounded-xl border border-white/10 bg-slate-950/45">
+      <p className="text-slate-400">Gráfico para {symbol} no disponible</p>
+    </div>
+  );
 }
 
 function mapIndicatorsToStudies(indicatorIds: string[]): { id: string; inputs?: Record<string, unknown> }[] {

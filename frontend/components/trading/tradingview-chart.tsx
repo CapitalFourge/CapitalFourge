@@ -115,6 +115,11 @@ const safeSetState = useMemo(() => ({
       container.id = containerIdRef.current;
     }
 
+    if (!container.parentNode || !mountedRef.current) {
+      safeSetState.setIsLoading(false);
+      return;
+    }
+
     if (widgetInstanceRef.current) {
       try {
         if (widgetInstanceRef.current.remove) {
@@ -183,7 +188,14 @@ const safeSetState = useMemo(() => ({
     const script = document.createElement('script');
     script.src = 'https://s3.tradingview.com/tv.js';
     script.async = true;
-    script.onload = createWidget;
+    script.onload = () => {
+      const container = containerRef.current;
+      if (container && container.parentNode && mountedRef.current) {
+        createWidget();
+      } else {
+        safeSetState.setIsLoading(false);
+      }
+    };
     script.onerror = () => {
       console.error('Failed to load TradingView script');
       safeSetState.setError('Error cargando TradingView script');

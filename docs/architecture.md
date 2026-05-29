@@ -21,3 +21,14 @@
 - **Ports & Adapters**: Decoupling domain from infrastructure.
 - **Dependency Inversion**: High-level modules don't depend on low-level modules.
 - **DTO boundaries**: Clear separation between API contracts and internal domain.
+
+## Role-Based Access Control
+The system implements role-based access control with the following roles:
+
+- **USER**: Default role for registered users. Can manage portfolios, execute trades, and view personal data.
+- **ADMIN**: Elevated privileges for system administration. Can:
+  - View all registered users via `adminUsers` query
+  - Change user roles via `adminSetRole` mutation
+  - Deactivate user accounts via `adminDeactivateUser` mutation
+
+The `User` domain entity contains an `isAdmin()` helper method that checks if `role == Role.ADMIN`. All admin mutations verify the requesting user has admin privileges before execution.

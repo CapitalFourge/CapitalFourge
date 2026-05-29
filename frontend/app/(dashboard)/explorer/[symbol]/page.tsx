@@ -181,9 +181,10 @@ export default function AssetDetailPage() {
       .filter((point: { date: string; close: number }) => !Number.isNaN(Date.parse(point.date)) && point.close > 0);
   }, [priceHistory]);
 
-  const latestDailyPoint = fullChartData[fullChartData.length - 1];
-  const previousDailyPoint = fullChartData[fullChartData.length - 2];
+  const latestDailyPoint = useMemo(() => fullChartData[fullChartData.length - 1], [fullChartData]);
+  const previousDailyPoint = useMemo(() => fullChartData[fullChartData.length - 2], [fullChartData]);
 
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const userPosition = useMemo(() => {
     for (const portfolio of portfolios) {
       const position = portfolio.positions.find((p: Position) => p.symbol === symbol);

@@ -7,7 +7,11 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.test.context.ActiveProfiles;
 
-@SpringBootTest
+// Disable embedded Redis auto-start for unit tests
+@SpringBootTest(properties = {
+    "spring.data.redis.enabled=false",
+    "spring.redis.enabled=false"
+})
 @ActiveProfiles("test")
 class PortfolioManagerApplicationTests {
 

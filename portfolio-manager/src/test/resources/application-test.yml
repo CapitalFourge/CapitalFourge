@@ -9,11 +9,11 @@ spring:
     hibernate:
       ddl-auto: create-drop
     show-sql: false
-  data:
-    redis:
-      host: localhost
-      port: 6379
-  
+  # Disable Redis auto-connection in tests
+  redis:
+    listener:
+      enabled: false
+
 logging:
   level:
     root: INFO

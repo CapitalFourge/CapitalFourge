@@ -21,6 +21,10 @@ import com.finsight.portfoliomanager.application.ports.out.UserRepository;
 import com.finsight.portfoliomanager.domain.Role;
 import com.finsight.portfoliomanager.domain.User;
 
+/**
+ * Tests for admin panel user management features.
+ * These tests use Mockito to mock external dependencies.
+ */
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
 

@@ -27,22 +27,17 @@ export function TradingViewChart({
 
   const initializeChart = () => {
     if (!containerRef.current) {
-      setIsLoading(false);
-      return;
+      return false;
     }
 
     // Clear previous widget content
-    if (containerRef.current) {
-      while (containerRef.current.firstChild) {
-        containerRef.current.removeChild(containerRef.current.firstChild);
-      }
+    while (containerRef.current.firstChild) {
+      containerRef.current.removeChild(containerRef.current.firstChild);
     }
 
     const tradingView = (window as any).TradingView;
     if (!tradingView || typeof tradingView.widget !== 'function') {
-      setIsLoading(true);
-      setError(null);
-      return;
+      return false;
     }
 
     // Generate unique container ID for this symbol to avoid conflicts
@@ -69,22 +64,19 @@ export function TradingViewChart({
     try {
       const widget = new (window as any).TradingView.widget(options);
       widgetInstanceRef.current = widget;
-      setIsLoading(false);
-      setError(null);
+      return true;
     } catch (err) {
       console.error('Error initializing TradingView widget:', err);
-      setError('Error inicializando TradingView widget');
-      setIsLoading(false);
-      widgetInstanceRef.current = null;
+      return false;
     }
   };
 
-  // Load TradingView script
+  // Load TradingView script and initialize
   useEffect(() => {
     let cancelled = false;
 
-    const loadScript = () => {
-      return new Promise<void>((resolve) => {
+    const loadScript = (): Promise<void> => {
+      return new Promise((resolve) => {
         if ((window as any).TradingView) {
           scriptLoadedRef.current = true;
           resolve();
@@ -112,14 +104,36 @@ export function TradingViewChart({
       });
     };
 
-    loadScript().then(() => {
-      if (!cancelled && scriptLoadedRef.current) {
-        initializeChart();
+    // Poll for container to be ready
+    const pollInterval = setInterval(() => {
+      if (cancelled) {
+        clearInterval(pollInterval);
+        return;
       }
-    });
+
+      if (containerRef.current && scriptLoadedRef.current) {
+        if (initializeChart()) {
+          setIsLoading(false);
+          setError(null);
+          clearInterval(pollInterval);
+        }
+      }
+    }, 100);
+
+    loadScript();
+
+    // Timeout
+    const timeout = setTimeout(() => {
+      if (!cancelled && isLoading) {
+        setIsLoading(false);
+      }
+      clearInterval(pollInterval);
+    }, 10000);
 
     return () => {
       cancelled = true;
+      clearInterval(pollInterval);
+      clearTimeout(timeout);
       // Clean up widget on unmount
       if (widgetInstanceRef.current && typeof widgetInstanceRef.current.remove === 'function') {
         try {
@@ -134,9 +148,38 @@ export function TradingViewChart({
 
   // Re-initialize when symbol changes
   useEffect(() => {
-    if (scriptLoadedRef.current) {
-      initializeChart();
+    if (!scriptLoadedRef.current) return;
+
+    // Clean up previous widget
+    if (widgetInstanceRef.current && typeof widgetInstanceRef.current.remove === 'function') {
+      try {
+        widgetInstanceRef.current.remove();
+      } catch (e) {
+        console.warn('Error cleaning up widget:', e);
+      }
     }
+
+    setIsLoading(true);
+    
+    // Re-initialize with polling
+    const pollInterval = setInterval(() => {
+      if (containerRef.current && scriptLoadedRef.current) {
+        if (initializeChart()) {
+          setIsLoading(false);
+          clearInterval(pollInterval);
+        }
+      }
+    }, 50);
+
+    const timeout = setTimeout(() => {
+      clearInterval(pollInterval);
+      setIsLoading(false);
+    }, 5000);
+
+    return () => {
+      clearInterval(pollInterval);
+      clearTimeout(timeout);
+    };
   }, [symbol, interval]);
 
   // Handle indicators changes

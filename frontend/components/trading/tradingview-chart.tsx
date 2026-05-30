@@ -23,117 +23,93 @@ export function TradingViewChart({
   const widgetInstanceRef = useRef<any | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const initializedRef = useRef(false);
 
-  // Load TradingView script
-  useEffect(() => {
-    let cancelled = false;
-    initializedRef.current = false;
+  const initializeChart = () => {
+    if (!containerRef.current) return false;
 
-    const tryInitialize = () => {
-      if (!containerRef.current) return;
-
-      const tradingView = (window as any).TradingView;
-      if (!tradingView || typeof tradingView.widget !== 'function') return;
-
-      // Clean previous content
-      while (containerRef.current.firstChild) {
-        containerRef.current.removeChild(containerRef.current.firstChild);
-      }
-
-      const containerId = `tradingview-chart-${symbol}-${Date.now()}`;
-      containerRef.current.id = containerId;
-
-      const options = {
-        width,
-        height,
-        symbol: symbol,
-        interval,
-        timezone: 'Etc/UTC',
-        theme: 'dark',
-        style: '1',
-        locale: 'en',
-        toolbar_bg: '#f1f3f6',
-        enable_publishing: false,
-        hide_side_toolbar: false,
-        allow_symbol_change: true,
-        studies: indicators,
-        container_id: containerId,
-      };
-
-      try {
-        const widget = new (window as any).TradingView.widget(options);
-        widgetInstanceRef.current = widget;
-        initializedRef.current = true;
-        setIsLoading(false);
-        setError(null);
-        return true;
-      } catch (err) {
-        console.error('Error initializing TradingView widget:', err);
-        setError('Error inicializando TradingView widget');
-        setIsLoading(false);
-        return false;
-      }
-    };
-
-    // Check if already loaded
-    if ((window as any).TradingView) {
-      const interval = setInterval(() => {
-        if (cancelled) {
-          clearInterval(interval);
-          return;
-        }
-        if (tryInitialize()) {
-          clearInterval(interval);
-        }
-      }, 50);
-      return () => {
-        cancelled = true;
-        clearInterval(interval);
-      };
+    // Clear previous content
+    while (containerRef.current.firstChild) {
+      containerRef.current.removeChild(containerRef.current.firstChild);
     }
 
-    // Load script
-    (window as any).__TRADINGVIEW_SCRIPT_LOADED = true;
-    const script = document.createElement('script');
-    script.src = 'https://s3.tradingview.com/tv.js';
-    script.async = true;
-    script.onload = () => {
-      if (cancelled) return;
-      const interval = setInterval(() => {
-        if (tryInitialize()) {
-          clearInterval(interval);
-        }
-      }, 50);
+    const tradingView = (window as any).TradingView;
+    if (!tradingView || typeof tradingView.widget !== 'function') {
+      setIsLoading(true);
+      setError(null);
+      return false;
+    }
+
+    const containerId = `tradingview-chart-${symbol}`;
+    containerRef.current.id = containerId;
+
+    const options = {
+      width,
+      height,
+      symbol: symbol,
+      interval,
+      timezone: 'Etc/UTC',
+      theme: 'dark',
+      style: '1',
+      locale: 'en',
+      toolbar_bg: '#f1f3f6',
+      enable_publishing: false,
+      hide_side_toolbar: false,
+      allow_symbol_change: true,
+      studies: indicators,
+      container_id: containerId,
     };
-    script.onerror = () => {
-      console.error('Failed to load TradingView script');
-      if (!cancelled) {
+
+    try {
+      const widget = new (window as any).TradingView.widget(options);
+      widgetInstanceRef.current = widget;
+      setIsLoading(false);
+      setError(null);
+      return true;
+    } catch (err) {
+      console.error('Error initializing TradingView widget:', err);
+      setError('Error inicializando TradingView widget');
+      setIsLoading(false);
+      return false;
+    }
+  };
+
+  // Load TradingView script once
+  useEffect(() => {
+    (window as any).__TRADINGVIEW_SCRIPT_LOADED = true;
+
+    if (!(window as any).TradingView) {
+      const script = document.createElement('script');
+      script.src = 'https://s3.tradingview.com/tv.js';
+      script.async = true;
+      script.onerror = () => {
         setError('Error cargando TradingView script');
         setIsLoading(false);
-      }
-    };
-    document.body.appendChild(script);
+      };
+      document.body.appendChild(script);
+    }
 
-    // Timeout
-    const timeout = setTimeout(() => {
-      if (!cancelled && isLoading) {
-        setIsLoading(false);
-      }
-    }, 10000);
-
-    return () => {
-      cancelled = true;
-      clearTimeout(timeout);
-      // Clean up widget
-      if (widgetInstanceRef.current && typeof widgetInstanceRef.current.remove === 'function') {
-        try {
-          widgetInstanceRef.current.remove();
-        } catch (e) {
-          console.warn('Error cleaning up widget:', e);
+    // Poll until container is ready
+    const pollInterval = setInterval(() => {
+      if (containerRef.current && (window as any).TradingView) {
+        if (initializeChart()) {
+          clearInterval(pollInterval);
         }
       }
-      widgetInstanceRef.current = null;
+    }, 30);
+
+    const timeout = setTimeout(() => {
+      clearInterval(pollInterval);
+      if (isLoading) setIsLoading(false);
+    }, 5000);
+
+    return () => {
+      clearInterval(pollInterval);
+      clearTimeout(timeout);
+      if (widgetInstanceRef.current?.remove) {
+        try {
+          widgetInstanceRef.current.remove();
+        } catch (e) {}
+      }
     };
   }, []);
 
@@ -141,82 +117,43 @@ export function TradingViewChart({
   useEffect(() => {
     if (!(window as any).TradingView) return;
 
-    // Clean up previous widget
-    if (widgetInstanceRef.current && typeof widgetInstanceRef.current.remove === 'function') {
+    // Cleanup old widget
+    if (widgetInstanceRef.current?.remove) {
       try {
         widgetInstanceRef.current.remove();
-      } catch (e) {
-        console.warn('Error cleaning up widget:', e);
-      }
+      } catch (e) {}
     }
     widgetInstanceRef.current = null;
-
     setIsLoading(true);
-    
-    let cancelled = false;
-    const timeout = setTimeout(() => {
-      if (!cancelled) setIsLoading(false);
-    }, 5000);
 
-    const interval = setInterval(() => {
-      if (cancelled) {
-        clearInterval(interval);
-        return;
-      }
+    // Poll until container is ready with dimensions
+    const pollInterval = setInterval(() => {
       if (containerRef.current) {
-        // Clean previous content
-        while (containerRef.current.firstChild) {
-          containerRef.current.removeChild(containerRef.current.firstChild);
-        }
-
-        const containerId = `tradingview-chart-${symbol}-${Date.now()}`;
-        containerRef.current.id = containerId;
-
-        const options = {
-          width,
-          height,
-          symbol: symbol,
-          interval,
-          timezone: 'Etc/UTC',
-          theme: 'dark',
-          style: '1',
-          locale: 'en',
-          toolbar_bg: '#f1f3f6',
-          enable_publishing: false,
-          hide_side_toolbar: false,
-          allow_symbol_change: true,
-          studies: indicators,
-          container_id: containerId,
-        };
-
-        try {
-          const widget = new (window as any).TradingView.widget(options);
-          widgetInstanceRef.current = widget;
-          setIsLoading(false);
-          clearInterval(interval);
-        } catch (err) {
-          console.error('Error re-initializing widget:', err);
+        const rect = containerRef.current.getBoundingClientRect();
+        // Initialize even with 0 dimensions (widget will handle it)
+        if (initializeChart()) {
+          clearInterval(pollInterval);
         }
       }
-    }, 50);
+    }, 30);
+
+    const timeout = setTimeout(() => {
+      clearInterval(pollInterval);
+      if (isLoading) setIsLoading(false);
+    }, 3000);
 
     return () => {
-      cancelled = true;
-      clearInterval(interval);
+      clearInterval(pollInterval);
       clearTimeout(timeout);
     };
   }, [symbol, interval]);
 
-  // Handle indicators changes
+  // Handle indicators
   useEffect(() => {
-    if (!widgetInstanceRef.current) return;
-
-    if (typeof widgetInstanceRef.current.setStudies === 'function') {
+    if (widgetInstanceRef.current?.setStudies) {
       try {
         widgetInstanceRef.current.setStudies(indicators);
-      } catch (err) {
-        console.warn('Failed to update studies:', err);
-      }
+      } catch (err) {}
     }
   }, [indicators]);
 

@@ -394,6 +394,7 @@ export default function AssetDetailPage() {
 
         <div className="mb-8">
           <TradingViewChart
+            key={symbol}
             symbol={symbol}
             interval="1D"
             width="100%"

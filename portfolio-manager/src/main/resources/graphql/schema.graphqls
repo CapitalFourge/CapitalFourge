@@ -80,6 +80,7 @@ type Order {
 type AssetSuggestion {
   symbol: String!
   name: String
+  category: String
 }
 
 type Asset {

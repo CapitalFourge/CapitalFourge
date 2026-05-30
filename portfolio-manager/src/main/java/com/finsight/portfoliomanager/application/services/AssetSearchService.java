@@ -133,33 +133,36 @@ public class AssetSearchService {
                         // Priority 5: Alphabetical order for same priority
                         return a.getSymbol().compareTo(b.getSymbol());
                     })
-                    .limit(limit)
-                    .map(asset -> AssetSuggestion.builder()
-                            .symbol(asset.getSymbol())
-                            .name(asset.getName())
-                            .build())
-                    .collect(Collectors.toList());
+.limit(limit)
+                     .map(asset -> AssetSuggestion.builder()
+                             .symbol(asset.getSymbol())
+                             .name(asset.getName())
+                             .category(asset.getCategory())
+                             .build())
+                     .collect(Collectors.toList());
 
             // If no results found but symbol looks valid, check if it has price data
             if (results.isEmpty() && upperQuery.matches("^[A-Z]{1,5}(\\-[A-Z]{3})?(\\=\\w{1,2})?$")) {
                 try {
                     String assetName = grpcClient.getAssetName(upperQuery);
                     // If we get a name or the symbol exists, create a suggestion
-                    if (assetName != null && !assetName.equals(upperQuery)) {
-                        results.add(AssetSuggestion.builder()
-                                .symbol(upperQuery)
-                                .name(assetName)
-                                .build());
-                    } else {
-                        // Validate symbol exists by checking if we can get price history
-                        List<com.finsight.proto.PricePoint> history = grpcClient.getPriceHistory(upperQuery, 1);
-                        if (history != null && !history.isEmpty()) {
-                            results.add(AssetSuggestion.builder()
-                                    .symbol(upperQuery)
-                                    .name(null) // Will show symbol as name
-                                    .build());
-                        }
-                    }
+if (assetName != null && !assetName.equals(upperQuery)) {
+                         results.add(AssetSuggestion.builder()
+                                 .symbol(upperQuery)
+                                 .name(assetName)
+                                 .category(inferCategory(upperQuery))
+                                 .build());
+                     } else {
+                         // Validate symbol exists by checking if we can get price history
+                         List<com.finsight.proto.PricePoint> history = grpcClient.getPriceHistory(upperQuery, 1);
+                         if (history != null && !history.isEmpty()) {
+                             results.add(AssetSuggestion.builder()
+                                     .symbol(upperQuery)
+                                     .name(null) // Will show symbol as name
+                                     .category(inferCategory(upperQuery))
+                                     .build());
+                         }
+                     }
                 } catch (Exception e) {
                     log.debug("Could not validate symbol {}: {}", upperQuery, e.getMessage());
                 }
@@ -347,6 +350,7 @@ public class AssetSearchService {
     public static class AssetSuggestion {
         private String symbol;
         private String name;
+        private String category;
 
         public static Builder builder() {
             return new Builder();
@@ -355,6 +359,7 @@ public class AssetSearchService {
         public static class Builder {
             private String symbol;
             private String name;
+            private String category;
 
             public Builder symbol(String s) {
                 this.symbol = s;
@@ -366,14 +371,20 @@ public class AssetSearchService {
                 return this;
             }
 
+            public Builder category(String c) {
+                this.category = c;
+                return this;
+            }
+
             public AssetSuggestion build() {
-                return new AssetSuggestion(symbol, name);
+                return new AssetSuggestion(symbol, name, category);
             }
         }
 
-        private AssetSuggestion(String symbol, String name) {
+        private AssetSuggestion(String symbol, String name, String category) {
             this.symbol = symbol;
             this.name = name;
+            this.category = category;
         }
 
         public String getSymbol() {
@@ -382,6 +393,10 @@ public class AssetSearchService {
 
         public String getName() {
             return name;
+        }
+
+        public String getCategory() {
+            return category;
         }
     }
 

@@ -10,6 +10,7 @@ const SEARCH_SYMBOLS_QUERY = gql`
         searchSymbols(query: $query, limit: $limit) {
             symbol
             name
+            category
         }
     }
 `;
@@ -17,6 +18,7 @@ const SEARCH_SYMBOLS_QUERY = gql`
 interface Symbol {
     symbol: string;
     name?: string;
+    category?: string;
 }
 
 interface SymbolAutocompleteProps {

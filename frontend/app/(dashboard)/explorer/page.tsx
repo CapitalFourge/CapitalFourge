@@ -42,6 +42,7 @@ const SEARCH_SYMBOLS_QUERY = gql`
     searchSymbols(query: $query, limit: $limit) {
       symbol
       name
+      category
     }
   }
 `;

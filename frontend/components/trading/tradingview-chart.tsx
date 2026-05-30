@@ -24,14 +24,6 @@ export function TradingViewChart({
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const scriptLoadedRef = useRef(false);
-  const containerIdRef = useRef<string | null>(null);
-
-  // Generate container ID once
-  useEffect(() => {
-    if (containerIdRef.current === null) {
-      containerIdRef.current = `tradingview-chart-${Math.random().toString(36).substr(2, 9)}`;
-    }
-  }, []);
 
   const initializeChart = () => {
     if (!containerRef.current) {
@@ -39,8 +31,11 @@ export function TradingViewChart({
       return;
     }
 
-    if (containerRef.current && !containerRef.current.id && containerIdRef.current) {
-      containerRef.current.id = containerIdRef.current;
+    // Clear previous widget content
+    if (containerRef.current) {
+      while (containerRef.current.firstChild) {
+        containerRef.current.removeChild(containerRef.current.firstChild);
+      }
     }
 
     const tradingView = (window as any).TradingView;
@@ -49,6 +44,10 @@ export function TradingViewChart({
       setError(null);
       return;
     }
+
+    // Generate unique container ID for this symbol to avoid conflicts
+    const uniqueId = `tradingview-chart-${symbol}-${Date.now()}`;
+    containerRef.current.id = uniqueId;
 
     const options = {
       width,
@@ -64,7 +63,7 @@ export function TradingViewChart({
       hide_side_toolbar: false,
       allow_symbol_change: true,
       studies: indicators,
-      container_id: containerRef.current.id,
+      container_id: uniqueId,
     };
 
     try {
@@ -80,47 +79,65 @@ export function TradingViewChart({
     }
   };
 
-  // Load TradingView script only once
+  // Load TradingView script
   useEffect(() => {
-    if ((window as any).__TRADINGVIEW_SCRIPT_LOADED) {
-      scriptLoadedRef.current = true;
-      initializeChart();
-      return;
-    }
+    let cancelled = false;
 
-    (window as any).__TRADINGVIEW_SCRIPT_LOADED = true;
+    const loadScript = () => {
+      return new Promise<void>((resolve) => {
+        if ((window as any).TradingView) {
+          scriptLoadedRef.current = true;
+          resolve();
+          return;
+        }
 
-    const script = document.createElement('script');
-    script.src = 'https://s3.tradingview.com/tv.js';
-    script.async = true;
-    script.onload = () => {
-      scriptLoadedRef.current = true;
-      initializeChart();
+        const script = document.createElement('script');
+        script.src = 'https://s3.tradingview.com/tv.js';
+        script.async = true;
+        script.onload = () => {
+          if (!cancelled) {
+            scriptLoadedRef.current = true;
+            resolve();
+          }
+        };
+        script.onerror = () => {
+          console.error('Failed to load TradingView script');
+          if (!cancelled) {
+            setError('Error cargando TradingView script');
+            setIsLoading(false);
+            resolve();
+          }
+        };
+        document.body.appendChild(script);
+      });
     };
-    script.onerror = () => {
-      console.error('Failed to load TradingView script');
-      setError('Error cargando TradingView script');
-      setIsLoading(false);
-    };
-    document.body.appendChild(script);
+
+    loadScript().then(() => {
+      if (!cancelled && scriptLoadedRef.current) {
+        initializeChart();
+      }
+    });
 
     return () => {
+      cancelled = true;
+      // Clean up widget on unmount
+      if (widgetInstanceRef.current && typeof widgetInstanceRef.current.remove === 'function') {
+        try {
+          widgetInstanceRef.current.remove();
+        } catch (e) {
+          console.warn('Error cleaning up widget:', e);
+        }
+      }
       widgetInstanceRef.current = null;
     };
   }, []);
 
-  // Re-run when props change (except indicators)
+  // Re-initialize when symbol changes
   useEffect(() => {
-    if (!scriptLoadedRef.current) {
-      setIsLoading(true);
-      setError(null);
-      return;
+    if (scriptLoadedRef.current) {
+      initializeChart();
     }
-
-    if (!containerRef.current) return;
-
-    initializeChart();
-  }, [symbol, interval, width, height]);
+  }, [symbol, interval]);
 
   // Handle indicators changes
   useEffect(() => {

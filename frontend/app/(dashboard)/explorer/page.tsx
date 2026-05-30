@@ -215,26 +215,26 @@ export default function ExplorerPage() {
               </motion.div>
             ))}
 
-        {!isLoading && displayAssets.length === 0 && showSearchNavigation && (
-          <div className="panel col-span-full flex min-h-[300px] flex-col items-center justify-center p-10 text-center">
-            <Activity className="h-10 w-10 text-slate-500" />
-            <h2 className="mt-6 text-2xl font-semibold text-white">No se encontr&oacute; &quot;{searchTerm}&quot; en los instrumentos mostrados.</h2>
-            {isValidSymbolFormat ? (
-              <div className="mt-4">
-                <p className="text-sm leading-7 text-slate-400 mb-4">
-                  ¿Quieres ver el gráfico y análisis de {searchTerm}?
-                </p>
-                <Button asChild variant="default" className="rounded-2xl">
-                  <Link href={`/explorer/${searchTerm}`}>Ver gráfico de {searchTerm}</Link>
-                </Button>
-              </div>
-            ) : (
-              <p className="mt-3 max-w-md text-sm leading-7 text-slate-400">
-                Ingresa un símbolo válido (ej: AAPL, ADBE, TSLA, BTC-USD, EURUSD=X).
-              </p>
-            )}
-          </div>
-        )}
+{!isLoading && displayAssets.length === 0 && showSearchNavigation && (
+           <div className="panel col-span-full flex min-h-[300px] flex-col items-center justify-center p-10 text-center">
+             <Activity className="h-10 w-10 text-slate-500" />
+             <h2 className="mt-6 text-2xl font-semibold text-white">Buscar &quot;{searchTerm}&quot;</h2>
+             {isValidSymbolFormat ? (
+               <div className="mt-4">
+                 <p className="text-sm leading-7 text-slate-400 mb-4">
+                   ¿Quieres ver el gráfico y análisis de {searchTerm}?
+                 </p>
+                 <Button asChild variant="default" className="rounded-2xl">
+                   <Link href={`/explorer/${searchTerm}`}>Ver gráfico de {searchTerm}</Link>
+                 </Button>
+               </div>
+             ) : (
+               <p className="mt-3 max-w-md text-sm leading-7 text-slate-400">
+                 Ingresa un símbolo válido (ej: AAPL, ADBE, TSLA, BTC-USD, EURUSD=X).
+               </p>
+             )}
+           </div>
+         )}
       </section>
     </motion.div>
   );

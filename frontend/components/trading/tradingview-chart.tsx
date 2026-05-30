@@ -23,83 +23,97 @@ export function TradingViewChart({
   const widgetInstanceRef = useRef<any | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+useEffect(() => {
     let cancelled = false;
     const container = containerRef.current;
     if (!container) return;
 
-    // Clean up previous widget
+    // Clean up previous widget - TradingView removes its own DOM nodes
     if (widgetInstanceRef.current) {
       try {
-        widgetInstanceRef.current.remove();
+        if (typeof widgetInstanceRef.current.remove === 'function') {
+          widgetInstanceRef.current.remove();
+        }
       } catch {}
       widgetInstanceRef.current = null;
     }
 
-    // Clear container
-    while (container.firstChild) {
-      container.removeChild(container.firstChild);
-    }
-
-    const containerId = `tradingview-chart-${symbol}`;
-    container.id = containerId;
-
-    // Load TradingView script if needed
-    const loadScript = (): Promise<void> => {
-      return new Promise((resolve) => {
-        if ((window as any).__TV_LOADED && (window as any).TradingView) {
-          resolve();
-          return;
-        }
-
-        const script = document.createElement('script');
-        script.src = 'https://s3.tradingview.com/tv.js';
-        script.async = true;
-        script.onload = () => {
-          (window as any).__TV_LOADED = true;
-          resolve();
-        };
-        document.head.appendChild(script);
-      });
-    };
-
-    const init = async () => {
-      await loadScript();
-      if (cancelled) return;
+    // Wait for TradingView to clean up DOM, then clear container
+    setTimeout(() => {
+      if (!container || cancelled) return;
       
-      const tradingView = (window as any).TradingView;
-      
-      widgetInstanceRef.current = new tradingView.widget({
-        container_id: containerId,
-        width,
-        height,
-        symbol,
-        interval,
-        timezone: 'Etc/UTC',
-        theme: 'dark',
-        style: '1',
-        locale: 'en',
-        toolbar_bg: '#f1f3f6',
-        enable_publishing: false,
-        hide_side_toolbar: false,
-        allow_symbol_change: true,
-        studies: indicators,
+      const children = Array.from(container.children);
+      children.forEach(child => {
+        try {
+          if (child.parentNode === container) {
+            container.removeChild(child);
+          }
+        } catch {}
       });
-      if (!cancelled) setLoading(false);
-    };
+      
+      const containerId = `tradingview-chart-${symbol}`;
+      container.id = containerId;
+      setLoading(true);
 
-    void init();
+      // Load TradingView script if needed
+      const loadScript = (): Promise<void> => {
+        return new Promise((resolve) => {
+          if ((window as any).__TV_LOADED && (window as any).TradingView) {
+            resolve();
+            return;
+          }
+
+          const script = document.createElement('script');
+          script.src = 'https://s3.tradingview.com/tv.js';
+          script.async = true;
+          script.onload = () => {
+            (window as any).__TV_LOADED = true;
+            resolve();
+          };
+          document.head.appendChild(script);
+        });
+      };
+
+      const init = async () => {
+        await loadScript();
+        if (cancelled) return;
+        
+        const tradingView = (window as any).TradingView;
+        
+        widgetInstanceRef.current = new tradingView.widget({
+          container_id: containerId,
+          width,
+          height,
+          symbol,
+          interval,
+          timezone: 'Etc/UTC',
+          theme: 'dark',
+          style: '1',
+          locale: 'en',
+          toolbar_bg: '#f1f3f6',
+          enable_publishing: false,
+          hide_side_toolbar: false,
+          allow_symbol_change: true,
+          studies: indicators,
+        });
+        if (!cancelled) setLoading(false);
+      };
+
+      void init();
+    }, 0);
 
     return () => {
       cancelled = true;
       if (widgetInstanceRef.current) {
         try {
-          widgetInstanceRef.current.remove();
+          if (typeof widgetInstanceRef.current.remove === 'function') {
+            widgetInstanceRef.current.remove();
+          }
         } catch {}
         widgetInstanceRef.current = null;
       }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [symbol, interval]);
 
   return (

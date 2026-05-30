@@ -1,6 +1,6 @@
 "use client";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any, react-hooks/exhaustive-deps, react-hooks/set-state-in-effect */
 
 import { useEffect, useRef, useState } from 'react';
 
@@ -23,95 +23,158 @@ export function TradingViewChart({
   const widgetInstanceRef = useRef<any | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const scriptLoadedRef = useRef(false);
 
-  // Initialize widget
-  useEffect(() => {
-    // Load script if needed
-    if (!(window as any).__TV_LOADED) {
-      (window as any).__TV_LOADED = true;
-      const script = document.createElement('script');
-      script.src = 'https://s3.tradingview.com/tv.js';
-      script.async = true;
-      script.onerror = () => {
-        setError('Error cargando script TradingView');
-        setIsLoading(false);
-      };
-      document.body.appendChild(script);
+  const initializeChart = () => {
+    if (!containerRef.current) {
+      setIsLoading(false);
+      return;
     }
 
-    // Try initialize when both script and container ready
-    const tryInit = () => {
-      if (!containerRef.current) return;
-      
-      const tradingView = (window as any).TradingView;
-      if (!tradingView?.widget) {
-        // Script not ready, wait more
-        setTimeout(tryInit, 50);
-        return;
-      }
-
-      // Clean previous widget
-      if (widgetInstanceRef.current?.remove) {
-        try { widgetInstanceRef.current.remove(); } catch (e) {}
-      }
-
-      // Set container ID
-      containerRef.current.id = `tradingview-${symbol}`;
-      
-      // Clear content
+    // Clear previous widget content
+    if (containerRef.current) {
       while (containerRef.current.firstChild) {
         containerRef.current.removeChild(containerRef.current.firstChild);
       }
+    }
 
-      try {
-        const widget = new tradingView.widget({
-          container_id: containerRef.current.id,
-          width,
-          height,
-          symbol,
-          interval,
-          timezone: 'Etc/UTC',
-          theme: 'dark',
-          style: '1',
-          locale: 'en',
-          toolbar_bg: '#f1f3f6',
-          enable_publishing: false,
-          hide_side_toolbar: false,
-          allow_symbol_change: true,
-          studies: indicators,
-        });
-        widgetInstanceRef.current = widget;
-        setIsLoading(false);
-        setError(null);
-      } catch (err) {
-        console.error('Error initializing TradingView widget:', err);
-        setError('Error inicializando TradingView widget');
-        setIsLoading(false);
-      }
+    const tradingView = (window as any).TradingView;
+    if (!tradingView || typeof tradingView.widget !== 'function') {
+      setIsLoading(true);
+      setError(null);
+      return;
+    }
+
+    // Generate unique container ID for this symbol to avoid conflicts
+    const uniqueId = `tradingview-chart-${symbol}-${Date.now()}`;
+    containerRef.current.id = uniqueId;
+
+    const options = {
+      width,
+      height,
+      symbol: getTradingViewSymbol(symbol),
+      interval,
+      timezone: 'Etc/UTC',
+      theme: 'dark',
+      style: '1',
+      locale: 'en',
+      toolbar_bg: '#f1f3f6',
+      enable_publishing: false,
+      hide_side_toolbar: false,
+      allow_symbol_change: true,
+      studies: indicators,
+      container_id: uniqueId,
     };
 
-    // Initial attempt
-    tryInit();
-    
-    // Poll for container if not ready
-    const interval = setInterval(tryInit, 50);
-    const timeout = setTimeout(() => clearInterval(interval), 10000);
+    try {
+      const widget = new (window as any).TradingView.widget(options);
+      widgetInstanceRef.current = widget;
+      setIsLoading(false);
+      setError(null);
+    } catch (err) {
+      console.error('Error initializing TradingView widget:', err);
+      setError('Error inicializando TradingView widget');
+      setIsLoading(false);
+      widgetInstanceRef.current = null;
+    }
+  };
+
+  // Load TradingView script
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadScript = () => {
+      return new Promise<void>((resolve) => {
+        if ((window as any).TradingView) {
+          scriptLoadedRef.current = true;
+          resolve();
+          return;
+        }
+
+        const script = document.createElement('script');
+        script.src = 'https://s3.tradingview.com/tv.js';
+        script.async = true;
+        script.onload = () => {
+          if (!cancelled) {
+            scriptLoadedRef.current = true;
+            resolve();
+          }
+        };
+        script.onerror = () => {
+          console.error('Failed to load TradingView script');
+          if (!cancelled) {
+            setError('Error cargando TradingView script');
+            setIsLoading(false);
+            resolve();
+          }
+        };
+        document.body.appendChild(script);
+      });
+    };
+
+    loadScript().then(() => {
+      if (!cancelled && scriptLoadedRef.current) {
+        // Poll for container availability
+        const pollInterval = setInterval(() => {
+          if (cancelled) {
+            clearInterval(pollInterval);
+            return;
+          }
+          if (containerRef.current) {
+            clearInterval(pollInterval);
+            initializeChart();
+          }
+        }, 30);
+      }
+    });
 
     return () => {
-      clearInterval(interval);
-      clearTimeout(timeout);
-      if (widgetInstanceRef.current?.remove) {
-        try { widgetInstanceRef.current.remove(); } catch (e) {}
+      cancelled = true;
+      // Clean up widget on unmount
+      if (widgetInstanceRef.current && typeof widgetInstanceRef.current.remove === 'function') {
+        try {
+          widgetInstanceRef.current.remove();
+        } catch (e) {
+          console.warn('Error cleaning up widget:', e);
+        }
       }
+      widgetInstanceRef.current = null;
     };
-  }, [symbol, interval, width, height]);
+  }, []);
 
-  // Update indicators
+  // Re-initialize when symbol changes
   useEffect(() => {
-    if (widgetInstanceRef.current?.setStudies) {
+    if (scriptLoadedRef.current) {
+      // Clean up previous widget
+      if (widgetInstanceRef.current && typeof widgetInstanceRef.current.remove === 'function') {
+        try {
+          widgetInstanceRef.current.remove();
+        } catch (e) {}
+      }
+      widgetInstanceRef.current = null;
+      
+      // Poll for container availability
+      const pollInterval = setInterval(() => {
+        if (containerRef.current) {
+          clearInterval(pollInterval);
+          initializeChart();
+        }
+      }, 30);
+      
+      return () => clearInterval(pollInterval);
+    }
+  }, [symbol, interval]);
+
+  // Handle indicators changes
+  useEffect(() => {
+    if (!scriptLoadedRef.current || !widgetInstanceRef.current) return;
+
+    if (typeof widgetInstanceRef.current.setStudies === 'function') {
       try {
         widgetInstanceRef.current.setStudies(indicators);
-      } catch (err) {}
+      } catch (err) {
+        console.warn('Failed to update studies:', err);
+      }
     }
   }, [indicators]);
 
@@ -123,5 +186,9 @@ export function TradingViewChart({
     return <div className="p-4 text-center text-yellow-400">Cargando gráfico...</div>;
   }
 
-  return <div ref={containerRef} style={{ width, height, minHeight: typeof height === 'number' ? `${height}px` : height }} />;
+  return <div ref={containerRef} style={{ width, height }} />;
+}
+
+function getTradingViewSymbol(sym: string): string {
+  return sym;
 }

@@ -24,16 +24,16 @@ export function InfoTooltip({ title, description }: InfoTooltipProps) {
 
       {open && (
         <span
-          className="absolute left-1/2 top-full z-50 mt-2 w-72 -translate-x-1/2 rounded-2xl border border-white/10 bg-slate-900 p-4 text-left shadow-2xl"
+          className="absolute left-1/2 top-full z-[9999] mt-2 w-72 -translate-x-1/2 rounded-2xl border border-white/10 bg-slate-900 p-4 text-left shadow-2xl"
           onMouseEnter={() => setOpen(true)}
           onMouseLeave={() => setOpen(false)}
         >
-          <div className="flex items-start justify-between">
+          <div className="flex items-start justify-between gap-2">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-200">{title}</p>
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="text-slate-400 hover:text-white"
+              className="shrink-0 text-slate-400 hover:text-white"
               aria-label="Cerrar ayuda"
             >
               <X className="h-3 w-3" />

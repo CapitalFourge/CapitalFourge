@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { BarChart3, TrendingUp, Target, Shield } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 const STRATEGIES_QUERY = gql`
   query GetStrategies {
@@ -110,13 +111,26 @@ export default function StrategiesPage() {
   return (
     <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }} className="space-y-6">
       <section className="panel p-6 sm:p-7">
-        <div>
-          <p className="eyebrow">Estrategias comprobadas</p>
-          <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] text-white sm:text-5xl">Aprende y aplica.</h1>
-          <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-300 sm:text-base">
-            Estrategias con datos reales de rendimiento. Filtra por categoria y encuentra la que mejor se adapte a tu estilo.
-          </p>
+        <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+          <div className="max-w-3xl">
+            <p className="eyebrow">Estrategias comprobadas</p>
+            <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] text-white sm:text-5xl">Aprende y aplica.</h1>
+            <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-300 sm:text-base">
+              Estrategias con datos reales de rendimiento. Filtra por categoria y encuentra la que mejor se adapte a tu estilo.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 self-end">
+            <InfoTooltip
+              title="Estrategias"
+              description="Las estrategias son planes de inversión predefinidos con datos históricos reales. Elige una según tu perfil de riesgo (agresivo o conservador) y aplícala creando un portafolio. Están aquí para que aprendas a operar sin empezar de cero."
+            />
+          </div>
         </div>
+            <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] text-white sm:text-5xl">Aprende y aplica.</h1>
+            <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-300 sm:text-base">
+              Estrategias con datos reales de rendimiento. Filtra por categoria y encuentra la que mejor se adapte a tu estilo.
+            </p>
+          </div>
 
         <div className="mt-6 flex flex-wrap gap-3">
           {CATEGORIES.map((category) => {

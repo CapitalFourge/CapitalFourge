@@ -15,6 +15,7 @@ import { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 const GET_LEADERBOARD = gql`
   query GetLeaderboard {
@@ -76,7 +77,13 @@ export default function LeaderboardPage() {
         </div>
         
         <div className="relative z-10 max-w-3xl">
-          <p className="eyebrow">Arquitectura de éxito</p>
+          <div className="flex items-center gap-3">
+            <p className="eyebrow">Arquitectura de éxito</p>
+            <InfoTooltip
+              title="Ranking Global"
+              description="El leaderboard muestra los portafolios públicos con mejor rendimiento. Compara tus resultados con otros traders y aprende de sus estrategias. Solo los portafolios marcados como públicos aparecen aquí."
+            />
+          </div>
           <h1 className="mt-4 text-5xl font-bold tracking-tight text-white sm:text-6xl">
             TOP Estrategias Globales.
           </h1>

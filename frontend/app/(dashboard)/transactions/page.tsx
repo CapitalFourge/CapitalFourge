@@ -6,6 +6,7 @@ import { History } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 const TRANSACTIONS_QUERY = gql`
   query GetTransactions {
@@ -85,11 +86,19 @@ export default function TransactionsPage() {
   return (
     <div className="space-y-6">
       <section className="panel p-6 sm:p-7">
-        <p className="eyebrow">Registro operativo</p>
-        <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] text-white sm:text-5xl">Transacciones.</h1>
-        <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
-          Consolida compras, ventas y movimientos de efectivo en una sola tabla operativa.
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="eyebrow">Registro operativo</p>
+            <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] text-white sm:text-5xl">Transacciones.</h1>
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
+              Consolida compras, ventas y movimientos de efectivo en una sola tabla operativa.
+            </p>
+          </div>
+          <InfoTooltip
+            title="Movimientos"
+            description="Aquí se registran todas tus compras, ventas y movimientos de efectivo (recargas y retiros). Cada entrada tiene fecha, tipo, activo, cantidad, precio y total."
+          />
+        </div>
       </section>
 
       <Card className="panel border-white/10 py-0">

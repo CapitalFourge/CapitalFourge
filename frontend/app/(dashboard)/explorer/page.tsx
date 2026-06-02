@@ -16,6 +16,7 @@ import { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 const EXPLORER_QUERY = gql`
   query GetExplorerData($category: String) {
@@ -136,7 +137,13 @@ export default function ExplorerPage() {
       <section className="panel p-6 sm:p-7">
         <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
           <div>
-            <p className="eyebrow">Exploración de mercado</p>
+            <div className="flex items-center gap-3">
+              <p className="eyebrow">Exploración de mercado</p>
+              <InfoTooltip
+                title="Mercados"
+                description="Explora activos financieros de todo el mundo: acciones, criptomonedas, materias primas y divisas. Busca por símbolo, filtra por categoría y accede al gráfico de cada activo para analizarlo."
+              />
+            </div>
             <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] text-white sm:text-5xl">Instrumentos globales.</h1>
             <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-300 sm:text-base">
               Filtra por categoría, busca por símbolo y abre una operación sin salir del contexto de análisis.

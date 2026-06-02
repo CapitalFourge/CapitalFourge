@@ -7,6 +7,7 @@ type User {
   lockedBalance: Float!
   language: String!
   active: Boolean!
+  showWelcome: Boolean!
   createdAt: String
 }
 
@@ -124,6 +125,10 @@ type Query {
   portfolio(id: ID!): Portfolio
   portfolios: [Portfolio]
   notifications: [Notification]
+  myFeedbacks: [Feedback]
+  allFeedbacks: [Feedback]
+  feedbacksByCategory(category: FeedbackCategory!): [Feedback]
+  unreadFeedbacks: [Feedback]
   orders: [Order]
   ordersByPortfolio(portfolioId: ID!): [Order]
   order(id: ID!): Order
@@ -203,6 +208,23 @@ type Notification {
   timestamp: String!
 }
 
+type Feedback {
+  id: ID!
+  userId: ID!
+  username: String!
+  category: String!
+  message: String!
+  createdAt: String!
+  read: Boolean!
+}
+
+enum FeedbackCategory {
+  QUEJA
+  RECLAMO
+  SUGERENCIA
+  OTRO
+}
+
 type AuthResult {
   token: String!
   refreshToken: String!
@@ -254,6 +276,8 @@ type Mutation {
   changePassword(oldPassword: String!, newPassword: String!): Boolean
   repairMyBalance: Boolean
   toggleVisibility(portfolioId: ID!, isPublic: Boolean!): Portfolio
+  dismissWelcome: User
+  submitFeedback(category: FeedbackCategory!, message: String!): Feedback
   adminSetRole(userId: ID!, role: String!): User
   adminDeactivateUser(userId: ID!): Boolean
 }

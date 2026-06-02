@@ -9,6 +9,7 @@ import { useMemo, useState } from "react";
 import { CashActionDialog } from "@/components/trading/cash-action-dialog";
 import { TradeDialog } from "@/components/trading/trade-dialog";
 import { Button } from "@/components/ui/button";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 const DASHBOARD_QUERY = gql`
   query GetDashboardData($sort: String!, $limit: Int!) {
@@ -196,11 +197,17 @@ export default function DashboardPage() {
                 </CashActionDialog>
               </div>
 
-              <div className="panel-muted flex items-center gap-3 self-start px-4 py-3 xl:self-end">
-                <span className="status-dot" />
-                <div>
-                  <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Sistema</p>
-                  <p className="text-sm font-medium text-white">Conectado en tiempo real</p>
+              <div className="flex items-center gap-2 self-end">
+                <InfoTooltip
+                  title="Panel principal"
+                  description="Aquí ves tu patrimonio total, caja disponible, capital invertido y saldo retenido. Usa 'Recarga' para agregar dinero de papel sin límites y 'Retiro' para mover fondos entre cuentas."
+                />
+                <div className="panel-muted flex items-center gap-3 px-4 py-3">
+                  <span className="status-dot" />
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Sistema</p>
+                    <p className="text-sm font-medium text-white">Conectado en tiempo real</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -232,9 +239,15 @@ export default function DashboardPage() {
             <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
               <div>
                 <p className="eyebrow">Portafolios</p>
-                <h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-white">
-                  {portfolios.length > 0 ? "Vista consolidada de tus carteras" : "Aun no tienes portafolios"}
-                </h2>
+                <div className="mt-2 flex items-center gap-3">
+                  <h2 className="text-2xl font-semibold tracking-[-0.03em] text-white">
+                    {portfolios.length > 0 ? "Vista consolidada de tus carteras" : "Aun no tienes portafolios"}
+                  </h2>
+                  <InfoTooltip
+                    title="Portafolio"
+                    description="Un portafolio es un conjunto de activos financieros organizados bajo una estrategia. Puedes crear uno desde 'Crear mi primer portafolio'. Los portafolios pueden ser privados (solo los ves tú) o públicos (los ven tú y otros usuarios en el leaderboard)."
+                  />
+                </div>
                 <p className="mt-2 max-w-2xl text-sm text-slate-400">
                   {portfolios.length > 0
                     ? "Revisa desempeno, posiciones activas y accesos directos para operar sin salir del tablero."

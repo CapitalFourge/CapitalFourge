@@ -16,21 +16,78 @@ import {
 import { cn } from "@/lib/utils";
 import { useMemo } from "react";
 import { gql, useQuery } from "@apollo/client";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
+import { WelcomeDialog } from "@/components/ui/welcome-dialog";
 
 const navigation = [
-  { href: "/dashboard", label: "Resumen", icon: LayoutDashboard },
-  { href: "/portfolio", label: "Portafolios", icon: Wallet },
-  { href: "/explorer", label: "Mercados", icon: Compass },
-  { href: "/strategies", label: "Estrategias", icon: BarChart3 },
-  { href: "/transactions", label: "Movimientos", icon: History },
-  { href: "/settings", label: "Configuración", icon: Settings },
+  {
+    href: "/dashboard",
+    label: "Resumen",
+    icon: LayoutDashboard,
+    info: {
+      title: "Resumen",
+      description:
+        "Panel principal donde ves tu patrimonio total, caja disponible, capital invertido y saldo retenido en un solo vistazo.",
+    },
+  },
+  {
+    href: "/portfolio",
+    label: "Portafolios",
+    icon: Wallet,
+    info: {
+      title: "Portafolios",
+      description:
+        "Un portafolio es un conjunto de activos financieros organizados en una estrategia. Crea varios con diferentes perfiles de riesgo.",
+    },
+  },
+  {
+    href: "/explorer",
+    label: "Mercados",
+    icon: Compass,
+    info: {
+      title: "Mercados",
+      description:
+        "Explora activos globales: acciones, criptomonedas, materias primas y divisas. Busca por símbolo o filtra por categoría.",
+    },
+  },
+  {
+    href: "/strategies",
+    label: "Estrategias",
+    icon: BarChart3,
+    info: {
+      title: "Estrategias",
+      description:
+        "Planes de inversión predefinidos con datos reales de rendimiento. Aplícalas a tus portafolios según tu perfil de riesgo.",
+    },
+  },
+  {
+    href: "/transactions",
+    label: "Movimientos",
+    icon: History,
+    info: {
+      title: "Movimientos",
+      description:
+        "Historial completo de compras, ventas, depósitos y retiros. Lleva el control de toda tu actividad operativa.",
+    },
+  },
+  {
+    href: "/settings",
+    label: "Configuración",
+    icon: Settings,
+    info: {
+      title: "Configuración",
+      description:
+        "Ajusta tu perfil, cambia tu contraseña, exporta reportes PDF y personaliza la aplicación.",
+    },
+  },
 ];
 
 const ME_QUERY = gql`
-  query GetMe {
+  query GetMeForWelcome {
     me {
       id
       role
+      showWelcome
     }
   }
 `;
@@ -80,7 +137,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     )}
                   >
                     <Icon className="h-4 w-4" />
-                    <span className="font-medium">{item.label}</span>
+                    <span className="font-medium flex-1">{item.label}</span>
+                    {item.info && <InfoTooltip title={item.info.title} description={item.info.description} />}
                   </Link>
                 );
               })}
@@ -150,6 +208,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <main className="min-w-0 flex-1 rounded-[2rem] border border-white/8 bg-slate-950/28 p-4 backdrop-blur-xl sm:p-6 lg:p-7">
             {children}
           </main>
+          <WelcomeDialog />
         </div>
       </div>
     </div>

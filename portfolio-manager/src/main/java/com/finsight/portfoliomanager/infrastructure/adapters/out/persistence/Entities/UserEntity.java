@@ -54,4 +54,8 @@ public class UserEntity {
     @Column(name = "language", length = 2, nullable = false)
     @Builder.Default
     private String language = "ES";
+
+    @Column(name = "show_welcome", nullable = false)
+    @Builder.Default
+    private boolean showWelcome = true;
 }

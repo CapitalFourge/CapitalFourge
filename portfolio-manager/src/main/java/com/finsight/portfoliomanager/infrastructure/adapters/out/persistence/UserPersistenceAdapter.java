@@ -69,6 +69,7 @@ public class UserPersistenceAdapter implements UserRepository {
         entity.setCashBalance(domain.getCashBalance());
         entity.setLockedBalance(domain.getLockedBalance());
         entity.setLanguage(domain.getLanguage());
+        entity.setShowWelcome(domain.isShowWelcome());
         return entity;
     }
 
@@ -85,6 +86,7 @@ public class UserPersistenceAdapter implements UserRepository {
         user.setCashBalance(entity.getCashBalance());
         user.setLockedBalance(entity.getLockedBalance());
         user.setLanguage(entity.getLanguage() != null ? entity.getLanguage() : mapLanguage(null));
+        user.setShowWelcome(entity.isShowWelcome());
         return user;
     }
 

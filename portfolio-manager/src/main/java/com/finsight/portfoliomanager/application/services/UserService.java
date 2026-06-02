@@ -257,4 +257,12 @@ public class UserService implements UserUseCase {
         refreshTokenRepository.deleteByUserId(userId);
     }
 
+    @Override
+    public User dismissWelcome(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setShowWelcome(false);
+        return userRepository.save(user);
+    }
+
 }

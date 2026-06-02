@@ -8,6 +8,7 @@ import {
   Download,
   FileText,
   Loader2,
+  MessageSquare,
   RefreshCw,
   Shield,
   User,
@@ -28,6 +29,13 @@ const ME_QUERY = gql`
     portfolios {
       id
       name
+    }
+    myFeedbacks {
+      id
+      category
+      message
+      createdAt
+      read
     }
   }
 `;
@@ -54,7 +62,28 @@ const REPAIR_BALANCE = gql`
   }
 `;
 
-type TabKey = "profile" | "security" | "reports";
+const SUBMIT_FEEDBACK = gql`
+  mutation SubmitFeedback($category: FeedbackCategory!, $message: String!) {
+    submitFeedback(category: $category, message: $message) {
+      id
+      category
+      message
+      createdAt
+      read
+    }
+  }
+`;
+
+type FeedbackCategoryInput = "QUEJA" | "RECLAMO" | "SUGERENCIA" | "OTRO";
+
+const feedbackCategories: Record<FeedbackCategoryInput, string> = {
+  QUEJA: "Queja",
+  RECLAMO: "Reclamo",
+  SUGERENCIA: "Sugerencia",
+  OTRO: "Otro",
+};
+
+type TabKey = "profile" | "security" | "reports" | "feedback";
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<TabKey>("profile");
@@ -71,8 +100,14 @@ export default function SettingsPage() {
   const [updateProfileMutation, { loading: updatingProfile }] = useMutation(UPDATE_PROFILE);
   const [changePasswordMutation, { loading: changingPassword }] = useMutation(CHANGE_PASSWORD);
   const [repairBalanceMutation, { loading: repairingBalance }] = useMutation(REPAIR_BALANCE);
+  const [submitFeedbackMutation, { loading: submittingFeedback }] = useMutation(SUBMIT_FEEDBACK);
+
+  const [feedbackCategory, setFeedbackCategory] = useState<FeedbackCategoryInput>("SUGERENCIA");
+  const [feedbackMessage, setFeedbackMessage] = useState("");
 
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  const feedbacks = data?.myFeedbacks || [];
 
   React.useEffect(() => {
     if (data?.me) {
@@ -127,6 +162,26 @@ export default function SettingsPage() {
     }
   };
 
+  const handleSubmitFeedback = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setMessage(null);
+
+    if (!feedbackMessage.trim()) {
+      setMessage({ type: "error", text: "Escribe tu mensaje antes de enviarlo." });
+      return;
+    }
+
+    try {
+      await submitFeedbackMutation({
+        variables: { category: feedbackCategory, message: feedbackMessage.trim() },
+      });
+      setMessage({ type: "success", text: "Tu comentario se envió correctamente. Gracias." });
+      setFeedbackMessage("");
+    } catch (err: unknown) {
+      setMessage({ type: "error", text: (err as Error).message });
+    }
+  };
+
   const downloadReport = async (portfolioId: string, portfolioName: string) => {
     try {
       const token = localStorage.getItem("access_token");
@@ -170,6 +225,7 @@ export default function SettingsPage() {
     { id: "profile", label: "Perfil", icon: User },
     { id: "security", label: "Seguridad", icon: Shield },
     { id: "reports", label: "Reportes", icon: FileText },
+    { id: "feedback", label: "Comentarios", icon: MessageSquare },
   ];
 
   return (
@@ -384,6 +440,82 @@ export default function SettingsPage() {
                 <div className="rounded-[1.5rem] border border-dashed border-white/10 p-8 text-center text-sm text-slate-400">
                   No hay portafolios disponibles para exportar.
                 </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === "feedback" && (
+            <div className="space-y-6">
+              <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-5">
+                <p className="text-lg font-semibold text-white">Comentarios, quejas y reclamos</p>
+                <p className="mt-2 text-sm leading-7 text-slate-300">
+                  Tu opinión es muy importante. Envía sugerencias, reporta problemas o cuéntanos cómo podemos mejorar FinSight.
+                </p>
+              </div>
+
+              <form onSubmit={handleSubmitFeedback} className="space-y-5">
+                <div className="space-y-2">
+                  <label className="text-xs uppercase tracking-[0.24em] text-slate-400">Categoría</label>
+                  <div className="flex flex-wrap gap-2">
+                    {(Object.keys(feedbackCategories) as FeedbackCategoryInput[]).map((option) => {
+                      const active = feedbackCategory === option;
+                      return (
+                        <button
+                          key={option}
+                          type="button"
+                          onClick={() => setFeedbackCategory(option)}
+                          className={`rounded-full border px-4 py-2 text-xs font-medium transition ${
+                            active
+                              ? "border-emerald-300/40 bg-emerald-300/12 text-white"
+                              : "border-white/10 bg-white/[0.03] text-slate-300 hover:bg-white/[0.06]"
+                          }`}
+                        >
+                          {feedbackCategories[option]}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs uppercase tracking-[0.24em] text-slate-400">Tu mensaje</label>
+                  <textarea
+                    value={feedbackMessage}
+                    onChange={(event) => setFeedbackMessage(event.target.value)}
+                    className="h-32 w-full rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-sm text-white placeholder:text-slate-500 outline-none"
+                    placeholder="Describe tu comentario, queja o sugerencia con el mayor detalle posible..."
+                  />
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={submittingFeedback}
+                  className="h-12 rounded-2xl bg-emerald-300 px-6 text-slate-950 hover:bg-emerald-200"
+                >
+                  {submittingFeedback ? <Loader2 className="h-4 w-4 animate-spin" /> : "Enviar comentario"}
+                </Button>
+              </form>
+
+              {feedbacks.length > 0 ? (
+                <div className="space-y-3">
+                  <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Mis comentarios anteriores</p>
+                  {feedbacks.map((feedback: Record<string, unknown>) => (
+                    <div key={feedback.id as string} className="rounded-[1.4rem] border border-white/10 bg-white/[0.03] p-4">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs uppercase tracking-[0.22em] text-slate-400">{feedback.category as string}</p>
+                        <span className="text-[10px] font-mono uppercase tracking-[0.22em] text-slate-500">
+                          {new Date(feedback.createdAt as string).toLocaleDateString("es-ES")}
+                        </span>
+                      </div>
+                      <p className="mt-2 text-sm leading-7 text-slate-200">{feedback.message as string}</p>
+                      <p className="mt-1 text-xs text-slate-500">
+                        {feedback.read ? "Leído" : "Pendiente de revisión"}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Aún no has enviado comentarios.</p>
               )}
             </div>
           )}

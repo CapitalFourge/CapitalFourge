@@ -41,4 +41,6 @@ public interface UserUseCase {
     void adminSetRole(UUID userId, Role role);
 
     void adminDeactivateUser(UUID userId);
+
+    User dismissWelcome(UUID userId);
 }

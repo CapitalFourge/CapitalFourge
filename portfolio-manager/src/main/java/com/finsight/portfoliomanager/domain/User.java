@@ -29,6 +29,8 @@ public class User {
     private BigDecimal cashBalance = BigDecimal.ZERO;
     @Builder.Default
     private BigDecimal lockedBalance = BigDecimal.ZERO;
+    @Builder.Default
+    private boolean showWelcome = true;
 
     public boolean isActive() {
         return this.active;

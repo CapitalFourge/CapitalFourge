@@ -58,4 +58,12 @@ public class UserGraphQLController {
         portfolioUseCase.repairUserBalance(userId);
         return true;
     }
+
+    @MutationMapping
+    public User dismissWelcome(@AuthenticationPrincipal UUID userId) {
+        if (userId == null) {
+            throw new RuntimeException("User not authenticated");
+        }
+        return userUseCase.dismissWelcome(userId);
+    }
 }

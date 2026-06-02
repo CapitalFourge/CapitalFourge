@@ -126,11 +126,6 @@ export default function StrategiesPage() {
             />
           </div>
         </div>
-            <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] text-white sm:text-5xl">Aprende y aplica.</h1>
-            <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-300 sm:text-base">
-              Estrategias con datos reales de rendimiento. Filtra por categoria y encuentra la que mejor se adapte a tu estilo.
-            </p>
-          </div>
 
         <div className="mt-6 flex flex-wrap gap-3">
           {CATEGORIES.map((category) => {

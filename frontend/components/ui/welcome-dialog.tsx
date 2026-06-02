@@ -24,14 +24,18 @@ const DISMISS_WELCOME = gql`
 `;
 
 export function WelcomeDialog() {
-  const { data } = useQuery(ME_QUERY);
-  const [dismissWelcome] = useMutation(DISMISS_WELCOME);
-
-  const isOpen = data?.me?.showWelcome ?? true;
+  const { data, loading } = useQuery(ME_QUERY);
+  const [dismissWelcome] = useMutation(DISMISS_WELCOME, {
+    refetchQueries: [{ query: ME_QUERY }],
+  });
 
   const handleClose = async () => {
     await dismissWelcome();
   };
+
+  if (loading) return null;
+
+  const isOpen = data?.me?.showWelcome ?? false;
 
   if (!isOpen) return null;
 

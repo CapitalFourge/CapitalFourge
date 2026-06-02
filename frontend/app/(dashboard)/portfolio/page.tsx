@@ -4,6 +4,7 @@ import Link from "next/link";
 import { gql, useQuery } from "@apollo/client";
 import { motion } from "framer-motion";
 import { Activity, ArrowUpRight, BriefcaseBusiness, Wallet } from "lucide-react";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 import { CreatePortfolioDialog } from "@/components/trading/create-portfolio-dialog";
 import { DeletePortfolioButton } from "@/components/trading/delete-portfolio-button";
@@ -61,7 +62,13 @@ export default function PortfoliosPage() {
     <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }} className="space-y-6">
       <section className="panel flex flex-col gap-6 p-6 sm:flex-row sm:items-end sm:justify-between sm:p-7">
         <div>
-          <p className="eyebrow">Arquitectura de carteras</p>
+          <div className="flex items-center gap-3">
+            <p className="eyebrow">Arquitectura de carteras</p>
+            <InfoTooltip
+              title="Portafolio"
+              description="Un portafolio es un conjunto de activos financieros organizados bajo una estrategia de inversión. Crea uno desde 'Crear mi primer portafolio'. Puede ser privado (solo lo ves tú) o público (aparece en el leaderboard para que otros lo vean)."
+            />
+          </div>
           <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] text-white sm:text-5xl">Tus portafolios activos.</h1>
           <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
             Organiza estrategias, revisa rendimiento histórico y entra al detalle de cada cartera sin perder contexto.

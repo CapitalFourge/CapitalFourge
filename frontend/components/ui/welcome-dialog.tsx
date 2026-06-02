@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { gql, useMutation, useQuery } from "@apollo/client";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { gql, useMutation, useQuery } from "@apollo/client";
 import { Sparkles } from "lucide-react";
 
 const ME_QUERY = gql`
@@ -27,18 +26,14 @@ const DISMISS_WELCOME = gql`
 export function WelcomeDialog() {
   const { data } = useQuery(ME_QUERY);
   const [dismissWelcome] = useMutation(DISMISS_WELCOME);
-  const [isOpen, setIsOpen] = useState(false);
 
-  useEffect(() => {
-    if (data?.me?.showWelcome) {
-      setIsOpen(true);
-    }
-  }, [data?.me?.showWelcome]);
+  const isOpen = data?.me?.showWelcome ?? true;
 
   const handleClose = async () => {
     await dismissWelcome();
-    setIsOpen(false);
   };
+
+  if (!isOpen) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>

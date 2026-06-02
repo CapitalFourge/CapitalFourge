@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { gql, useMutation, useQuery } from "@apollo/client";
@@ -26,17 +27,21 @@ const DISMISS_WELCOME = gql`
 export function WelcomeDialog() {
   const { data } = useQuery(ME_QUERY);
   const [dismissWelcome] = useMutation(DISMISS_WELCOME);
+  const [isOpen, setIsOpen] = useState(false);
 
-  const showWelcome = data?.me?.showWelcome ?? true;
+  useEffect(() => {
+    if (data?.me?.showWelcome) {
+      setIsOpen(true);
+    }
+  }, [data?.me?.showWelcome]);
 
-  if (!showWelcome) return null;
+  const handleClose = async () => {
+    await dismissWelcome();
+    setIsOpen(false);
+  };
 
   return (
-    <Dialog open={showWelcome} onOpenChange={(open) => {
-      if (!open) {
-        dismissWelcome();
-      }
-    }}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-lg" showCloseButton={false}>
         <DialogHeader>
           <div className="flex items-center gap-2">
@@ -56,7 +61,7 @@ export function WelcomeDialog() {
 
         <DialogFooter>
           <Button
-            onClick={() => dismissWelcome()}
+            onClick={handleClose}
             className="h-11 rounded-full bg-emerald-300 px-6 text-slate-950 hover:bg-emerald-200"
           >
             Entendido, empecemos

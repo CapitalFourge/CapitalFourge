@@ -12,6 +12,35 @@ interface TradingViewChartProps {
   indicators?: string[];
 }
 
+function mapSymbolForTradingView(symbol: string): string {
+  const upperSymbol = symbol.toUpperCase();
+  
+  // Colombian stocks - BVC exchange
+  if (upperSymbol === "EC" || upperSymbol === "ECOPETROL") return "BVC:ECOL";
+  if (upperSymbol === "AVAL") return "BVC:AVAL";
+  if (upperSymbol === "BANCOLOMBIA" || upperSymbol === "BANCO") return "BVC:BANCOLOMBIA";
+  if (upperSymbol === "PF") return "BVC:PF";
+  if (upperSymbol === "CEMEX") return "BVC:CEMEXCOL";
+  
+  // Crypto pairs - convert -USD to USDT format
+  if (upperSymbol.endsWith("-USD") && !upperSymbol.includes("=")) {
+    const base = upperSymbol.replace("-USD", "");
+    return `BINANCE:${base}USDT`;
+  }
+  
+  // Forex pairs
+  if (upperSymbol.endsWith("=X")) {
+    return `FX_IDC:${upperSymbol}`;
+  }
+  
+  // Commodities
+  if (upperSymbol.endsWith("=F")) {
+    return `TVC:${upperSymbol.replace("=F", "")}`;
+  }
+  
+  return upperSymbol;
+}
+
 export function TradingViewChart({
   symbol,
   interval = '1D',
@@ -57,28 +86,29 @@ export function TradingViewChart({
       });
     };
 
-    // Initialize widget
-    const init = async () => {
-      await loadScript();
-      const tradingView = (window as any).TradingView;
-      
-      widgetInstanceRef.current = new tradingView.widget({
-        container_id: containerId,
-        width,
-        height,
-        symbol,
-        interval,
-        timezone: 'Etc/UTC',
-        theme: 'dark',
-        style: '1',
-        locale: 'en',
-        toolbar_bg: '#f1f3f6',
-        enable_publishing: false,
-        hide_side_toolbar: false,
-        allow_symbol_change: true,
-        studies: indicators,
-      });
-    };
+// Initialize widget
+     const init = async () => {
+       await loadScript();
+       const tradingView = (window as any).TradingView;
+       const tvSymbol = mapSymbolForTradingView(symbol);
+       
+       widgetInstanceRef.current = new tradingView.widget({
+         container_id: containerId,
+         width,
+         height,
+         symbol: tvSymbol,
+         interval,
+         timezone: 'Etc/UTC',
+         theme: 'dark',
+         style: '1',
+         locale: 'en',
+         toolbar_bg: '#f1f3f6',
+         enable_publishing: false,
+         hide_side_toolbar: false,
+         allow_symbol_change: true,
+         studies: indicators,
+       });
+     };
 
     void init();
 

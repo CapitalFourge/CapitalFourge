@@ -97,6 +97,12 @@ public class GrpcFinancialDataClient {
                 fallback.add(Asset.newBuilder().setSymbol("EURUSD=X").setName("EUR/USD").setCategory("FOREX").build());
                 fallback.add(Asset.newBuilder().setSymbol("GBPUSD=X").setName("GBP/USD").setCategory("FOREX").build());
                 fallback.add(Asset.newBuilder().setSymbol("USDJPY=X").setName("USD/JPY").setCategory("FOREX").build());
+                // Colombian stocks
+                fallback.add(Asset.newBuilder().setSymbol("EC").setName("Ecopetrol S.A.").setCategory("STOCKS").build());
+                fallback.add(Asset.newBuilder().setSymbol("AVAL").setName("Grupo Aval Acciones y Valores").setCategory("STOCKS").build());
+                fallback.add(Asset.newBuilder().setSymbol("BANCOLOMBIA").setName("Bancolombia S.A.").setCategory("STOCKS").build());
+                fallback.add(Asset.newBuilder().setSymbol("PF").setName("Pfizer S.A.").setCategory("STOCKS").build());
+                fallback.add(Asset.newBuilder().setSymbol("CEMEX").setName("CEMEX S.A.").setCategory("STOCKS").build());
                 return fallback;
             }
             return List.of();
@@ -110,11 +116,12 @@ public class GrpcFinancialDataClient {
             return response.getSymbolsList();
         } catch (Exception e) {
             System.err.println("gRPC Get Symbols Error: " + e.getMessage());
-            // Fallback to static list if gRPC call fails
-            return List.of(
-                    "AAPL", "ADBE", "GOOGL", "MSFT", "AMZN", "TSLA", "META", "NVDA", "NFLX", "AMD",
-                    "BTC-USD", "ETH-USD", "SOL-USD", "ADA-USD", "DOT-USD", "XRP-USD",
-                    "GC=F", "SI=F", "CL=F", "NG=F", "EURUSD=X", "GBPUSD=X");
+// Fallback to static list if gRPC call fails
+             return List.of(
+                     "AAPL", "ADBE", "GOOGL", "MSFT", "AMZN", "TSLA", "META", "NVDA", "NFLX", "AMD",
+                     "EC", "AVAL", "BANCOLOMBIA", "PF", "CEMEX",
+                     "BTC-USD", "ETH-USD", "SOL-USD", "ADA-USD", "DOT-USD", "XRP-USD",
+                     "GC=F", "SI=F", "CL=F", "NG=F", "EURUSD=X", "GBPUSD=X");
         }
     }
 

@@ -142,7 +142,8 @@ public class AssetSearchService {
                      .collect(Collectors.toList());
 
             // If no results found but symbol looks valid, check if it has price data
-            if (results.isEmpty() && upperQuery.matches("^[A-Z]{1,5}(\\-[A-Z]{3})?(\\=\\w{1,2})?$")) {
+            // Allow Colombian stock tickers (EC, AVAL, BANCOLOMBIA, etc.) and standard formats
+            if (results.isEmpty() && upperQuery.matches("^[A-Z]{1,12}(\\-[A-Z]{3})?(\\=\\w{1,2})?$")) {
                 try {
                     String assetName = grpcClient.getAssetName(upperQuery);
                     // If we get a name or the symbol exists, create a suggestion
@@ -508,6 +509,13 @@ if (assetName != null && !assetName.equals(upperQuery)) {
         }
         if (symbol.endsWith("=X")) {
             return "FOREX";
+        }
+        // Colombian stock tickers
+        if (symbol.equals("EC") || symbol.equals("ECOL") || 
+            symbol.equals("AVAL") || symbol.equals("BANCOLOMBIA") || 
+            symbol.equals("PF") || symbol.equals("CEMEX") || 
+            symbol.equals("CEMEXCOL")) {
+            return "STOCKS";
         }
         return "STOCKS";
     }

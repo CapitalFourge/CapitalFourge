@@ -110,7 +110,7 @@ export function TradingViewChart({
        });
      };
 
-    void init();
+     void init();
 
     return () => {
       if (widgetInstanceRef.current) {
@@ -120,7 +120,7 @@ export function TradingViewChart({
         widgetInstanceRef.current = null;
       }
     };
-  }, [symbol, interval]);
+  }, [symbol, interval, width, height, indicators]);
 
   useEffect(() => {
     if (widgetInstanceRef.current?.setStudies) {

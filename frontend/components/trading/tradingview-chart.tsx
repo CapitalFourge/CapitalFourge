@@ -15,16 +15,33 @@ interface TradingViewChartProps {
 function mapSymbolForTradingView(symbol: string): string {
   const upperSymbol = symbol.toUpperCase();
   
-  // Colombian stocks - BVC exchange
+  // Colombian stocks - BVC exchange (Bolsa de Valores de Colombia)
   if (upperSymbol === "EC" || upperSymbol === "ECOPETROL") return "BVC:ECOL";
   if (upperSymbol === "AVAL") return "BVC:AVAL";
   if (upperSymbol === "BANCOLOMBIA" || upperSymbol === "BANCO") return "BVC:BANCOLOMBIA";
   if (upperSymbol === "PF") return "BVC:PF";
   if (upperSymbol === "CEMEX") return "BVC:CEMEXCOL";
   
-  // Crypto pairs - convert -USD to USDT format
+  // Crypto pairs - TradingView format for price charts
   if (upperSymbol.endsWith("-USD") && !upperSymbol.includes("=")) {
     const base = upperSymbol.replace("-USD", "");
+    // Map common symbols to correct TradingView format
+    const cryptoMap: Record<string, string> = {
+      'DOGE': 'BINANCE:DOGEUSDT',
+      'BTC': 'BINANCE:BTCUSDT',
+      'ETH': 'BINANCE:ETHUSDT',
+      'SOL': 'BINANCE:SOLUSDT',
+      'ADA': 'BINANCE:ADAUSDT',
+      'DOT': 'BINANCE:DOTUSDT',
+      'XRP': 'BINANCE:XRPUSDT',
+      'MATIC': 'BINANCE:MATICUSDT',
+      'AVAX': 'BINANCE:AVAXUSDT',
+      'LINK': 'BINANCE:LINKUSDT',
+    };
+    if (cryptoMap[base]) {
+      return cryptoMap[base];
+    }
+    // Default format for other cryptos
     return `BINANCE:${base}USDT`;
   }
   
@@ -33,7 +50,7 @@ function mapSymbolForTradingView(symbol: string): string {
     return `FX_IDC:${upperSymbol}`;
   }
   
-  // Commodities
+  // Commodities (TVC prefix for Yahoo Finance commodities)
   if (upperSymbol.endsWith("=F")) {
     return `TVC:${upperSymbol.replace("=F", "")}`;
   }

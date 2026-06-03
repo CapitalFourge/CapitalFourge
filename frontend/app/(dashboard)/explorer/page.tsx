@@ -116,9 +116,10 @@ export default function ExplorerPage() {
 
   const isLoading = loading || searchLoading;
 
-  // Check if search term looks like a symbol that could exist but isn't shown
-  const isValidSymbolFormat = searchTerm.trim().length >= 1 && 
-    searchTerm.trim().toUpperCase().match(/^([A-Z]{1,5})(\-[A-Z]{3})?(\=\w{1,2})?$/);
+// Check if search term looks like a symbol that could exist but isn't shown
+   // Allow letters, numbers, hyphens, equals, and parentheses
+   const isValidSymbolFormat = searchTerm.trim().length >= 1 && 
+     searchTerm.trim().toUpperCase().match(/^[A-Z0-9\.\-\(\)]+$/);
   const showSearchNavigation = searchTerm.trim().length > 0 && 
     displayAssets.length === 0 && 
     !isLoading;

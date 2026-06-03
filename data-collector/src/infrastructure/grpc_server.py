@@ -96,8 +96,20 @@ class FinancialDataServicer(financial_data_pb2_grpc.FinancialDataServiceServicer
 
         return financial_data_pb2.BatchStockResponse(prices=result) 
 
-    def GetPriceHistory(self, request, context):
-        ticker = yf.Ticker(request.symbol)
+def GetPriceHistory(self, request, context):
+         # Map Colombian symbols to yfinance format
+         symbol = request.symbol
+         colombian_map = {
+             'EC': 'ECOL.BOG',  # Ecopetrol en yfinance
+             'ECOL': 'ECOL.BOG',
+             'AVAL': 'AVAL.BOG',
+             'BANCOLOMBIA': 'BANCOLOMBIA.BOG',
+             'PF': 'PFAVAL.BOG',  # Pfizer/Grupo Aval
+             'CEMEX': 'CEMEX.BOG',
+         }
+         yf_symbol = colombian_map.get(symbol, symbol)
+         
+         ticker = yf.Ticker(yf_symbol)
         hist = ticker.history(period=f"{request.days}d")
         info = ticker.info  # Get fundamental data
         
@@ -312,60 +324,66 @@ class FinancialDataServicer(financial_data_pb2_grpc.FinancialDataServiceServicer
             history=points
         )
 
-    def GetCategorizedAssets(self, request, context):
-        # Lista de activos categorizados
-        assets = [
-            # Stocks
-            {"symbol": "AAPL", "name": "Apple Inc.", "category": "STOCKS"},
-            {"symbol": "ADBE", "name": "Adobe Inc.", "category": "STOCKS"},
-            {"symbol": "GOOGL", "name": "Alphabet Inc.", "category": "STOCKS"},
-            {"symbol": "MSFT", "name": "Microsoft Corp.", "category": "STOCKS"},
-            {"symbol": "AMZN", "name": "Amazon.com Inc.", "category": "STOCKS"},
-            {"symbol": "TSLA", "name": "Tesla, Inc.", "category": "STOCKS"},
-            {"symbol": "NVDA", "name": "NVIDIA Corporation", "category": "STOCKS"},
-            {"symbol": "NFLX", "name": "Netflix, Inc.", "category": "STOCKS"},
-            {"symbol": "AMD", "name": "Advanced Micro Devices", "category": "STOCKS"},
-            {"symbol": "META", "name": "Meta Platforms, Inc.", "category": "STOCKS"},
-            {"symbol": "BRK-B", "name": "Berkshire Hathaway", "category": "STOCKS"},
-            {"symbol": "V", "name": "Visa Inc.", "category": "STOCKS"},
-            {"symbol": "JPM", "name": "JPMorgan Chase & Co.", "category": "STOCKS"},
-            {"symbol": "DIS", "name": "The Walt Disney Co.", "category": "STOCKS"},
-            {"symbol": "MA", "name": "Mastercard Inc.", "category": "STOCKS"},
-            
-            # Crypto
-            {"symbol": "BTC-USD", "name": "Bitcoin", "category": "CRYPTO"},
-            {"symbol": "ETH-USD", "name": "Ethereum", "category": "CRYPTO"},
-            {"symbol": "SOL-USD", "name": "Solana", "category": "CRYPTO"},
-            {"symbol": "ADA-USD", "name": "Cardano", "category": "CRYPTO"},
-            {"symbol": "DOT-USD", "name": "Polkadot", "category": "CRYPTO"},
-            {"symbol": "XRP-USD", "name": "XRP", "category": "CRYPTO"},
-            {"symbol": "DOGE-USD", "name": "Dogecoin", "category": "CRYPTO"},
-            {"symbol": "MATIC-USD", "name": "Polygon", "category": "CRYPTO"},
-            {"symbol": "LINK-USD", "name": "Chainlink", "category": "CRYPTO"},
-            {"symbol": "AVAX-USD", "name": "Avalanche", "category": "CRYPTO"},
-            
-            # Commodities
-            {"symbol": "GC=F", "name": "Gold", "category": "COMMODITIES"},
-            {"symbol": "SI=F", "name": "Silver", "category": "COMMODITIES"},
-            {"symbol": "CL=F", "name": "Crude Oil", "category": "COMMODITIES"},
-            {"symbol": "NG=F", "name": "Natural Gas", "category": "COMMODITIES"},
-            {"symbol": "HG=F", "name": "Copper", "category": "COMMODITIES"},
-            {"symbol": "BZ=F", "name": "Brent Crude Oil", "category": "COMMODITIES"},
-            {"symbol": "PL=F", "name": "Platinum", "category": "COMMODITIES"},
-            {"symbol": "PA=F", "name": "Palladium", "category": "COMMODITIES"},
-            
-            # Forex
-            {"symbol": "EURUSD=X", "name": "EUR/USD", "category": "FOREX"},
-            {"symbol": "GBPUSD=X", "name": "GBP/USD", "category": "FOREX"},
-            {"symbol": "JPY=X", "name": "USD/JPY", "category": "FOREX"},
-            {"symbol": "MXN=X", "name": "USD/MXN", "category": "FOREX"},
-            {"symbol": "CAD=X", "name": "USD/CAD", "category": "FOREX"},
-            {"symbol": "AUDUSD=X", "name": "AUD/USD", "category": "FOREX"},
-            {"symbol": "CHF=X", "name": "USD/CHF", "category": "FOREX"},
-            {"symbol": "NZDUSD=X", "name": "NZD/USD", "category": "FOREX"},
-            {"symbol": "EURGBP=X", "name": "EUR/GBP", "category": "FOREX"},
-            {"symbol": "EURJPY=X", "name": "EUR/JPY", "category": "FOREX"}
-        ]
+def GetCategorizedAssets(self, request, context):
+         # Lista de activos categorizados
+         assets = [
+             # Stocks
+             {"symbol": "AAPL", "name": "Apple Inc.", "category": "STOCKS"},
+             {"symbol": "ADBE", "name": "Adobe Inc.", "category": "STOCKS"},
+             {"symbol": "GOOGL", "name": "Alphabet Inc.", "category": "STOCKS"},
+             {"symbol": "MSFT", "name": "Microsoft Corp.", "category": "STOCKS"},
+             {"symbol": "AMZN", "name": "Amazon.com Inc.", "category": "STOCKS"},
+             {"symbol": "TSLA", "name": "Tesla, Inc.", "category": "STOCKS"},
+             {"symbol": "NVDA", "name": "NVIDIA Corporation", "category": "STOCKS"},
+             {"symbol": "NFLX", "name": "Netflix, Inc.", "category": "STOCKS"},
+             {"symbol": "AMD", "name": "Advanced Micro Devices", "category": "STOCKS"},
+             {"symbol": "META", "name": "Meta Platforms, Inc.", "category": "STOCKS"},
+             {"symbol": "BRK-B", "name": "Berkshire Hathaway", "category": "STOCKS"},
+             {"symbol": "V", "name": "Visa Inc.", "category": "STOCKS"},
+             {"symbol": "JPM", "name": "JPMorgan Chase & Co.", "category": "STOCKS"},
+             {"symbol": "DIS", "name": "The Walt Disney Co.", "category": "STOCKS"},
+             {"symbol": "MA", "name": "Mastercard Inc.", "category": "STOCKS"},
+             # Colombian stocks
+             {"symbol": "EC", "name": "Ecopetrol S.A.", "category": "STOCKS"},
+             {"symbol": "AVAL", "name": "Grupo Aval Acciones y Valores", "category": "STOCKS"},
+             {"symbol": "BANCOLOMBIA", "name": "Bancolombia S.A.", "category": "STOCKS"},
+             {"symbol": "PF", "name": "Pfizer S.A.", "category": "STOCKS"},
+             {"symbol": "CEMEX", "name": "CEMEX S.A.", "category": "STOCKS"},
+             
+             # Crypto
+             {"symbol": "BTC-USD", "name": "Bitcoin", "category": "CRYPTO"},
+             {"symbol": "ETH-USD", "name": "Ethereum", "category": "CRYPTO"},
+             {"symbol": "SOL-USD", "name": "Solana", "category": "CRYPTO"},
+             {"symbol": "ADA-USD", "name": "Cardano", "category": "CRYPTO"},
+             {"symbol": "DOT-USD", "name": "Polkadot", "category": "CRYPTO"},
+             {"symbol": "XRP-USD", "name": "XRP", "category": "CRYPTO"},
+             {"symbol": "DOGE-USD", "name": "Dogecoin", "category": "CRYPTO"},
+             {"symbol": "MATIC-USD", "name": "Polygon", "category": "CRYPTO"},
+             {"symbol": "LINK-USD", "name": "Chainlink", "category": "CRYPTO"},
+             {"symbol": "AVAX-USD", "name": "Avalanche", "category": "CRYPTO"},
+             
+             # Commodities
+             {"symbol": "GC=F", "name": "Gold", "category": "COMMODITIES"},
+             {"symbol": "SI=F", "name": "Silver", "category": "COMMODITIES"},
+             {"symbol": "CL=F", "name": "Crude Oil", "category": "COMMODITIES"},
+             {"symbol": "NG=F", "name": "Natural Gas", "category": "COMMODITIES"},
+             {"symbol": "HG=F", "name": "Copper", "category": "COMMODITIES"},
+             {"symbol": "BZ=F", "name": "Brent Crude Oil", "category": "COMMODITIES"},
+             {"symbol": "PL=F", "name": "Platinum", "category": "COMMODITIES"},
+             {"symbol": "PA=F", "name": "Palladium", "category": "COMMODITIES"},
+             
+             # Forex
+             {"symbol": "EURUSD=X", "name": "EUR/USD", "category": "FOREX"},
+             {"symbol": "GBPUSD=X", "name": "GBP/USD", "category": "FOREX"},
+             {"symbol": "JPY=X", "name": "USD/JPY", "category": "FOREX"},
+             {"symbol": "MXN=X", "name": "USD/MXN", "category": "FOREX"},
+             {"symbol": "CAD=X", "name": "USD/CAD", "category": "FOREX"},
+             {"symbol": "AUDUSD=X", "name": "AUD/USD", "category": "FOREX"},
+             {"symbol": "CHF=X", "name": "USD/CHF", "category": "FOREX"},
+             {"symbol": "NZDUSD=X", "name": "NZD/USD", "category": "FOREX"},
+             {"symbol": "EURGBP=X", "name": "EUR/GBP", "category": "FOREX"},
+             {"symbol": "EURJPY=X", "name": "EUR/JPY", "category": "FOREX"}
+         ]
         
         print(f"📋 gRPC Request: GetCategorizedAssets")
         
@@ -381,54 +399,59 @@ class FinancialDataServicer(financial_data_pb2_grpc.FinancialDataServiceServicer
         
         return financial_data_pb2.CategorizedAssetsResponse(assets=proto_assets)
 
-    def GetAvailableSymbols(self, request, context):
-        print(f"📋 gRPC Request received for available symbols")
-        # Return curated list of popular symbols for autocomplete
-        # This helps users discover common assets while still allowing custom searches
-        popular_symbols = [
-            "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "NVDA", "META", "NFLX", "AMD", "DIS",
-            "BTC-USD", "ETH-USD", "SOL-USD", "ADA-USD", "DOT-USD", "XRP-USD",
-            "GC=F", "SI=F", "CL=F", "NG=F", "HG=F",
-            "EURUSD=X", "GBPUSD=X", "USDJPY=X"
-        ]
-        return financial_data_pb2.SymbolsResponse(symbols=popular_symbols)
+def GetAvailableSymbols(self, request, context):
+         print(f"📋 gRPC Request received for available symbols")
+         # Return curated list of popular symbols for autocomplete
+         # This helps users discover common assets while still allowing custom searches
+         popular_symbols = [
+             "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "NVDA", "META", "NFLX", "AMD", "DIS",
+             "EC", "AVAL", "BANCOLOMBIA", "PF", "CEMEX",  # Colombian stocks
+             "BTC-USD", "ETH-USD", "SOL-USD", "ADA-USD", "DOT-USD", "XRP-USD",
+             "GC=F", "SI=F", "CL=F", "NG=F", "HG=F",
+             "EURUSD=X", "GBPUSD=X", "USDJPY=X"
+         ]
+         return financial_data_pb2.SymbolsResponse(symbols=popular_symbols)
 
-    def SearchSymbols(self, request, context):
-        # Allow searching any symbol - validate with yfinance if it exists
-        query = request.query.upper()
-        print(f"🔍 Search request for: {query}")
-        
-        # First check if it's a known symbol
-        known_symbols = {a["symbol"] for a in [
-            {"symbol": "AAPL"}, {"symbol": "GOOGL"}, {"symbol": "MSFT"}, {"symbol": "AMZN"},
-            {"symbol": "TSLA"}, {"symbol": "NVDA"}, {"symbol": "NFLX"}, {"symbol": "AMD"},
-            {"symbol": "META"}, {"symbol": "BRK-B"}, {"symbol": "V"}, {"symbol": "JPM"},
-            {"symbol": "DIS"}, {"symbol": "MA"},
-        ]}
-        
-        # Try to validate the symbol exists in yfinance
-        try:
-            ticker = yf.Ticker(query)
-            info = ticker.info
-            name = info.get('shortName') or info.get('longName') or info.get('displayName')
-            
-            if name or ticker.fast_info:
-                # Symbol is valid, return it
-                proto_assets = [financial_data_pb2.Asset(
-                    symbol=query,
-                    name=name,
-                    category="",  # Will be inferred by frontend
-                    description="",
-                    website=""
-                )]
-                print(f"✅ Valid symbol found: {query} -> {name}")
-            else:
-                proto_assets = []
-        except Exception as e:
-            print(f"⚠️ Error validating symbol {query}: {e}")
-            proto_assets = []
-        
-        return financial_data_pb2.CategorizedAssetsResponse(assets=proto_assets)
+def SearchSymbols(self, request, context):
+         # Allow searching any symbol - validate with yfinance if it exists
+         query = request.query.upper()
+         print(f"🔍 Search request for: {query}")
+         
+         # Colombian stocks mapping to yfinance format
+         colombian_map = {
+             'EC': 'ECOL.BOG', 'ECOPETROL': 'ECOL.BOG',
+             'AVAL': 'AVAL.BOG',
+             'BANCOLOMBIA': 'BANCOLOMBIA.BOG', 'BANCO': 'BANCOLOMBIA.BOG',
+             'PF': 'PFAVAL.BOG',
+             'CEMEX': 'CEMEX.BOG',
+         }
+         
+         yf_query = colombian_map.get(query, query)
+         is_colombian = query in colombian_map
+         
+         # Try to validate the symbol exists in yfinance
+         try:
+             ticker = yf.Ticker(yf_query)
+             info = ticker.info
+             name = info.get('shortName') or info.get('longName') or info.get('displayName')
+             
+             if name or ticker.fast_info:
+                 # Symbol is valid, return it with original query symbol
+                 proto_assets = [financial_data_pb2.Asset(
+                     symbol=query,
+                     name=name,
+                     category="STOCKS" if is_colombian else "",  # Colombian stocks are STOCKS
+                     description="",
+                     website=""
+                 )]
+                 print(f"✅ Valid symbol found: {query} -> {name}")
+             else:
+                 proto_assets = []
+         except Exception as e:
+             print(f"⚠️ Error validating symbol {query}: {e}")
+             proto_assets = []
+         
+         return financial_data_pb2.CategorizedAssetsResponse(assets=proto_assets)
 
 def serve():
     try:

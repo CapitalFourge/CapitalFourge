@@ -1,6 +1,7 @@
 "use client";
 
 import { gql, useQuery } from "@apollo/client";
+import { motion } from "framer-motion";
 import { History } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -84,22 +85,22 @@ export default function TransactionsPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <section className="panel p-6 sm:p-7">
-        <div className="flex items-center justify-between">
-          <div>
+    <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }} className="space-y-6">
+      <div className="panel flex flex-col gap-6 p-6 sm:flex-row sm:items-end sm:justify-between sm:p-7">
+        <div>
+          <div className="flex items-center gap-3">
             <p className="eyebrow">Registro operativo</p>
-            <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] text-white sm:text-5xl">Transacciones.</h1>
-            <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
-              Consolida compras, ventas y movimientos de efectivo en una sola tabla operativa.
-            </p>
+            <InfoTooltip
+              title="Movimientos"
+              description="Aquí se registran todas tus compras, ventas y movimientos de efectivo (recargas y retiros). Cada entrada tiene fecha, tipo, activo, cantidad, precio y total."
+            />
           </div>
-          <InfoTooltip
-            title="Movimientos"
-            description="Aquí se registran todas tus compras, ventas y movimientos de efectivo (recargas y retiros). Cada entrada tiene fecha, tipo, activo, cantidad, precio y total."
-          />
+          <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] text-white sm:text-5xl">Transacciones.</h1>
+          <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
+            Consolida compras, ventas y movimientos de efectivo en una sola tabla operativa.
+          </p>
         </div>
-      </section>
+      </div>
 
       <Card className="panel border-white/10 py-0">
         <CardHeader className="flex flex-row items-center justify-between px-6 pt-6">
@@ -158,10 +159,10 @@ export default function TransactionsPage() {
                   ))
                 )}
               </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
+</Table>
+           </div>
+         </CardContent>
+       </Card>
+     </motion.div>
+   );
 }

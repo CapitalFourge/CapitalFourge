@@ -10,6 +10,7 @@ import { IndicatorSelector } from "@/components/trading/indicator-selector";
 import { TradingViewChart } from "@/components/trading/tradingview-chart";
 import { FundamentalMetricSelector } from "@/components/trading/fundamental-metric-selector";
 import { DrawingToolSelector } from "@/components/trading/drawing-tool-selector";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { INDICATOR_CATALOG, IndicatorDefinition } from "@/lib/indicator-catalog";
 import { FUNDAMENTAL_METRIC_CATALOG, FundamentalMetricDefinition } from "@/lib/fundamental-metric-catalog";
 import { DRAWING_TOOL_CATALOG, DrawingTool } from "@/lib/chart-drawing-catalog";
@@ -404,27 +405,45 @@ export default function AssetDetailPage() {
         </div>
 
         <div className="flex items-center gap-4 border-b border-white/10 pb-4 mb-8">
-          <Button 
-            variant={showIndicators ? "default" : "outline"}
-            onClick={() => setShowIndicators(!showIndicators)}
-            className="text-sm px-4 py-2"
-          >
-            Indicadores {activeIndicators.length > 0 && `(${activeIndicators.length})`}
-          </Button>
-          <Button 
-            variant={showFundamental ? "default" : "outline"}
-            onClick={() => setShowFundamental(!showFundamental)}
-            className="text-sm px-4 py-2"
-          >
-            Análisis Fundamental {activeFundamentals.length > 0 && `(${activeFundamentals.length})`}
-          </Button>
-          <Button 
-            variant={showDrawingTools ? "default" : "outline"}
-            onClick={() => setShowDrawingTools(!showDrawingTools)}
-            className="text-sm px-4 py-2"
-          >
-            Figuras técnicas {activeDrawingTools.length > 0 && `(${activeDrawingTools.length})`}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant={showIndicators ? "default" : "outline"}
+              onClick={() => setShowIndicators(!showIndicators)}
+              className="text-sm px-4 py-2"
+            >
+              Indicadores {activeIndicators.length > 0 && `(${activeIndicators.length})`}
+            </Button>
+            <InfoTooltip
+              title="Indicadores"
+              description="Herramientas que procesan datos de precios para generar señales. Se calculan automáticamente y aparecen sobre el gráfico."
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant={showFundamental ? "default" : "outline"}
+              onClick={() => setShowFundamental(!showFundamental)}
+              className="text-sm px-4 py-2"
+            >
+              Análisis Fundamental {activeFundamentals.length > 0 && `(${activeFundamentals.length})`}
+            </Button>
+            <InfoTooltip
+              title="Análisis Fundamental"
+              description="Datos financieros que miden salud y valoración de una empresa o activo. Compara métricas con el sector para evaluar oportunidades."
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant={showDrawingTools ? "default" : "outline"}
+              onClick={() => setShowDrawingTools(!showDrawingTools)}
+              className="text-sm px-4 py-2"
+            >
+              Figuras técnicas {activeDrawingTools.length > 0 && `(${activeDrawingTools.length})`}
+            </Button>
+            <InfoTooltip
+              title="Figuras técnicas"
+              description="Herramientas de dibujo para identificar patrones, niveles de soporte/resistencia y proyecciones de precio en gráficos."
+            />
+          </div>
         </div>
 
         {showIndicators && (

@@ -32,7 +32,7 @@
 | `portfolios` | User's portfolios | Required |
 | `leaderboard` | Public portfolio leaderboard | None |
 | `sharedPortfolio(slug)` | Shared portfolio by slug | None |
-| `searchSymbols(query, limit)` | Search trading symbols | None |
+| `searchSymbols(query, limit)` | Search trading symbols (tiered: categorized list first, then dynamic yfinance with LATAM suffix fallback) | None |
 | `assetsByCategory(category)` | Assets by category | None |
 | `assetMovers(sort, limit)` | Top market movers | None |
 | `technicalIndicators(symbol, days)` | Technical indicators | None |

@@ -67,6 +67,7 @@ COLOMBIAN_MAP = {
     'PF': 'PFAVAL.BOG',
     'CEMEX': 'CEMEX.BOG',
     'CEMEXCOL': 'CEMEX.BOG',
+    'CIBEST': 'CIBEST.CL',
 }
 
 LATAM_SUFFIXES = ['.BOG', '.CL', '.MX', '.SA', '.AR', '.PE']
@@ -109,15 +110,7 @@ class FinancialDataServicer(financial_data_pb2_grpc.FinancialDataServiceServicer
 
     def GetPriceHistory(self, request, context):
         symbol = request.symbol
-        colombian_map = {
-            'EC': 'ECOL.BOG',
-            'ECOL': 'ECOL.BOG',
-            'AVAL': 'AVAL.BOG',
-            'BANCOLOMBIA': 'BANCOLOMBIA.BOG',
-            'PF': 'PFAVAL.BOG',
-            'CEMEX': 'CEMEX.BOG',
-        }
-        yf_symbol = colombian_map.get(symbol, symbol)
+        yf_symbol = resolve_yfinance_symbol(symbol)
 
         ticker = yf.Ticker(yf_symbol)
         hist = ticker.history(period=f"{request.days}d")
@@ -236,7 +229,7 @@ class FinancialDataServicer(financial_data_pb2_grpc.FinancialDataServiceServicer
         popular_symbols = [
             "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "NVDA", "META", "NFLX", "AMD", "DIS",
             "EC", "AVAL", "BANCOLOMBIA", "PF", "CEMEX",
-            "CIB", "ISA", "ETB", "BOGOTA", "CELSIA",
+            "CIB", "CIBEST", "ISA", "ETB", "BOGOTA", "CELSIA",
             "BTC-USD", "ETH-USD", "SOL-USD", "ADA-USD", "DOT-USD", "XRP-USD",
             "GC=F", "SI=F", "CL=F", "NG=F", "HG=F",
             "EURUSD=X", "GBPUSD=X", "USDJPY=X"
@@ -285,6 +278,7 @@ class FinancialDataServicer(financial_data_pb2_grpc.FinancialDataServiceServicer
 
         print(f"❌ No results for: {query}")
         return financial_data_pb2.CategorizedAssetsResponse(assets=[])
+
 
 def serve():
     try:

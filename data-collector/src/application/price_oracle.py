@@ -1,4 +1,9 @@
 import yfinance as yf
+import redis
+import os
+import json
+
+from datetime import datetime
 
 COLOMBIAN_MAP = {
     'EC': 'ECOL.BOG', 'ECOPETROL': 'ECOL.BOG',
@@ -21,12 +26,6 @@ def resolve_yfinance_symbol(symbol: str):
         except Exception:
             continue
     return symbol
-
-import redis
-import os
-import json
-
-from datetime import datetime
 
 class PriceOracle:
     def __init__(self):

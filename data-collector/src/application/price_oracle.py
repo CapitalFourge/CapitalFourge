@@ -1,4 +1,27 @@
 import yfinance as yf
+
+COLOMBIAN_MAP = {
+    'EC': 'ECOL.BOG', 'ECOPETROL': 'ECOL.BOG',
+    'AVAL': 'AVAL.BOG',
+    'BANCOLOMBIA': 'BANCOLOMBIA.BOG', 'BANCO': 'BANCOLOMBIA.BOG',
+    'PF': 'PFAVAL.BOG',
+    'CEMEX': 'CEMEX.BOG',
+}
+
+LATAM_SUFFIXES = ['.BOG', '.CL', '.MX', '.SA', '.AR', '.PE']
+
+def resolve_yfinance_symbol(symbol: str):
+    if symbol in COLOMBIAN_MAP:
+        return COLOMBIAN_MAP[symbol]
+    for s in LATAM_SUFFIXES:
+        try:
+            t = yf.Ticker(symbol + s)
+            if t.info:
+                return symbol + s
+        except Exception:
+            continue
+    return symbol
+
 import redis
 import os
 import json
@@ -13,6 +36,7 @@ class PriceOracle:
 
     def fetch_and_cache(self, symbol: str):
         try:
+            symbol = resolve_yfinance_symbol(symbol)
             ticker = yf.Ticker(symbol)
             fast_info = ticker.fast_info
             if fast_info is None:

@@ -66,6 +66,11 @@ We use **port 5433** for the PostgreSQL container to avoid conflicts with local 
 - [x] **Multi-timeframe Analysis**: Added timeframe selector (1D, 1W, 1M, 3M, 6M, 1Y, YTD, ALL)
 - [x] **Indicator Limitations**: Free tier limited to 3 indicators simultaneously (upgrade path for monetization)
 - [x] **Enhanced Price Chart**: Interactive chart with multiple Y-axes for different indicator types
+- [x] **Dynamic Symbol Search (branch `search-fixes`)**: `searchSymbols` now matches tier-1 categorized assets, then falls back to dynamic yfinance resolution with LATAM exchange suffixes (`.BOG`, `.CL`, `.MX`, `.SA`, `.AR`, `.PE`). This removes the hardcoded-only limitation for Colombian stocks (e.g. `CIB`, `ISA`, `ETB`, `BOGOTA`, `CELSIA`). Live-price paths in `data-collector` resolve through `resolve_yfinance_symbol()` before Redis caching.
+- [x] **Price Oracle LATAM Mapping**: `PriceOracle.fetch_and_cache()` now resolves Colombian/LATAM aliases before fetching via yfinance, fixing the zero-price issue in historical and portfolio views.
+- [x] **TradingView Chart Mapping**: TradingView chart component now maps Colombian tickers (BVC/Colombia) to the correct `BVC:*` exchange format, so chart data matches the resolved exchange symbol.
+- [x] **Explorer Fallbacks**: `app/(dashboard)/explorer/[symbol]` now maps BVC/Colombia-related tickets before live fetch, preventing 404s when the raw input lacks an exchange suffix.
+- [x] **Java Inference Update**: `AssetSearchService.inferCategory()` now covers the broadened Colombian ticker set, keeping category filters consistent across the search surface.
 
 ## 🔮 Future Roadmap (Phase 7+)
 - [ ] **AI Quant Analyst**: Large Language Model integration for portfolio risk assessment.
@@ -73,3 +78,9 @@ We use **port 5433** for the PostgreSQL container to avoid conflicts with local 
 - [ ] **Real-time Price WebSockets**: Live asset price updates with interactive TradingView-style charts.
 - [ ] **Automated Finsight Portfolio**: Rule-based portfolio using technical indicators for buy/sell signals.
 - [ ] **Portfolio Ranking System**: Public leaderboard showcasing top-performing strategies.
+
+## Deployment Note
+Last rebuilt and deployed from search-fixes branch on Thu Jun  4 11:31:37 UTC 2026
+
+## Rebuild Note
+Latest rebuild from search-fixes branch: Thu Jun  4 13:56:21 UTC 2026

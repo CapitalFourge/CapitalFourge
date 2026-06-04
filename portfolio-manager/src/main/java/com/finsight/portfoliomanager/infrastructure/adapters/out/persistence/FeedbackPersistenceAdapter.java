@@ -54,7 +54,7 @@ public class FeedbackPersistenceAdapter implements FeedbackRepository {
 
     @Override
     public List<Feedback> findByCategory(Feedback.Category category) {
-        return jpaRepository.findByCategory(category).stream()
+        return jpaRepository.findByCategory(FeedbackEntity.Category.valueOf(category.name())).stream()
                 .map(this::toDomain)
                 .collect(Collectors.toList());
     }

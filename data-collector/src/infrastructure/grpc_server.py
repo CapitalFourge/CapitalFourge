@@ -178,7 +178,6 @@ class FinancialDataServicer(financial_data_pb2_grpc.FinancialDataServiceServicer
             {"symbol": "BANCOLOMBIA", "name": "Bancolombia S.A.", "category": "STOCKS"},
             {"symbol": "PF", "name": "Pfizer S.A.", "category": "STOCKS"},
             {"symbol": "CEMEX", "name": "CEMEX S.A.", "category": "STOCKS"},
-            {"symbol": "CIB", "name": "Grupo de Inversiones Suramericano", "category": "STOCKS"},
             {"symbol": "ISA", "name": "ISA Interconexión Eléctrica", "category": "STOCKS"},
             {"symbol": "ETB", "name": "Empresa de Telecomunicaciones de Bogotá", "category": "STOCKS"},
             {"symbol": "BOGOTA", "name": "Banco de Bogotá", "category": "STOCKS"},
@@ -229,7 +228,7 @@ class FinancialDataServicer(financial_data_pb2_grpc.FinancialDataServiceServicer
         popular_symbols = [
             "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "NVDA", "META", "NFLX", "AMD", "DIS",
             "EC", "AVAL", "BANCOLOMBIA", "PF", "CEMEX",
-            "CIB", "CIBEST", "ISA", "ETB", "BOGOTA", "CELSIA",
+            "CIBEST", "ISA", "ETB", "BOGOTA", "CELSIA",
             "BTC-USD", "ETH-USD", "SOL-USD", "ADA-USD", "DOT-USD", "XRP-USD",
             "GC=F", "SI=F", "CL=F", "NG=F", "HG=F",
             "EURUSD=X", "GBPUSD=X", "USDJPY=X"

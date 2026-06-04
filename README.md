@@ -81,3 +81,6 @@ We use **port 5433** for the PostgreSQL container to avoid conflicts with local 
 
 ## Deployment Note
 Last rebuilt and deployed from search-fixes branch on Thu Jun  4 11:31:37 UTC 2026
+
+## Rebuild Note
+Latest rebuild from search-fixes branch: Thu Jun  4 13:56:21 UTC 2026

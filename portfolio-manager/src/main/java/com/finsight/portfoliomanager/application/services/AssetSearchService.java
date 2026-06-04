@@ -511,10 +511,10 @@ if (assetName != null && !assetName.equals(upperQuery)) {
             return "FOREX";
         }
         // Colombian stock tickers
-        if (symbol.equals("EC") || symbol.equals("ECOL") || 
-            symbol.equals("AVAL") || symbol.equals("BANCOLOMBIA") || 
-            symbol.equals("PF") || symbol.equals("CEMEX") || 
-            symbol.equals("CEMEXCOL")) {
+        if (symbol.equals("EC") || symbol.equals("ECOL") ||
+            symbol.equals("AVAL") || symbol.equals("BANCOLOMBIA") ||
+            symbol.equals("PF") || symbol.equals("CEMEX") ||
+            symbol.equals("CEMEXCOL") || symbol.equals("CIBEST")) {
             return "STOCKS";
         }
         return "STOCKS";

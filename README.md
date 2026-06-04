@@ -73,3 +73,6 @@ We use **port 5433** for the PostgreSQL container to avoid conflicts with local 
 - [ ] **Real-time Price WebSockets**: Live asset price updates with interactive TradingView-style charts.
 - [ ] **Automated Finsight Portfolio**: Rule-based portfolio using technical indicators for buy/sell signals.
 - [ ] **Portfolio Ranking System**: Public leaderboard showcasing top-performing strategies.
+
+## Deployment Note
+Last rebuilt and deployed from search-fixes branch on Thu Jun  4 11:31:37 UTC 2026

@@ -198,6 +198,17 @@ const CATEGORIES = [
   { id: "Estacional", name: "Estacional", icon: Moon },
 ];
 
+const getRiskColorClass = (riskLevel: string): string => {
+  switch (riskLevel) {
+    case "Bajo": return "text-emerald-400";
+    case "Bajo-Moderado": return "text-lime-400";
+    case "Moderado": return "text-yellow-400";
+    case "Moderado-Alto": return "text-orange-400";
+    case "Alto": return "text-rose-400";
+    default: return "text-red-400";
+  }
+};
+
 export default function StrategiesPage() {
   const [selectedCategory, setSelectedCategory] = useState("all");
 
@@ -280,7 +291,7 @@ export default function StrategiesPage() {
                 <div className="grid grid-cols-4 gap-3 text-center">
                   <div>
                     <p className="text-xs text-slate-400">Win Rate</p>
-                    <p className="text-lg font-semibold text-emerald-400">{strategy.winRate}%</p>
+                    <p className="text-lg font-semibold text-emerald-400>{strategy.winRate}%</p>
                   </div>
                   <div>
                     <p className="text-xs text-slate-400>Retorno Anual</p>
@@ -307,14 +318,7 @@ export default function StrategiesPage() {
                   </div>
                   <div>
                     <p className="text-xs text-slate-400>Nivel Riesgo</p>
-                    <p className="text-lg font-semibold {
-                      strategy.riskLevel === "Bajo" ? "text-emerald-400" :
-                      strategy.riskLevel === "Bajo-Moderado" ? "text-lime-400" :
-                      strategy.riskLevel === "Moderado" ? "text-yellow-400" :
-                      strategy.riskLevel === "Moderado-Alto" ? "text-orange-400" :
-                      strategy.riskLevel === "Alto" ? "text-rose-400" :
-                      "text-red-400"
-                    }>{strategy.riskLevel}</p>
+                    <p className={`text-lg font-semibold ${getRiskColorClass(strategy.riskLevel)}`}>{strategy.riskLevel}</p>
                   </div>
                 </div>
               </CardContent>

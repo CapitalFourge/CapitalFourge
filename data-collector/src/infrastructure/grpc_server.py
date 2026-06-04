@@ -178,9 +178,7 @@ class FinancialDataServicer(financial_data_pb2_grpc.FinancialDataServiceServicer
             {"symbol": "BANCOLOMBIA", "name": "Bancolombia S.A.", "category": "STOCKS"},
             {"symbol": "PF", "name": "Pfizer S.A.", "category": "STOCKS"},
             {"symbol": "CEMEX", "name": "CEMEX S.A.", "category": "STOCKS"},
-
             {"symbol": "ISA", "name": "ISA Interconexión Eléctrica", "category": "STOCKS"},
-            {"symbol": "ETB", "name": "Empresa de Telecomunicaciones de Bogotá", "category": "STOCKS"},
             {"symbol": "BOGOTA", "name": "Banco de Bogotá", "category": "STOCKS"},
             {"symbol": "CELSIA", "name": "CELSIA Energía", "category": "STOCKS"},
             {"symbol": "BTC-USD", "name": "Bitcoin", "category": "CRYPTO"},

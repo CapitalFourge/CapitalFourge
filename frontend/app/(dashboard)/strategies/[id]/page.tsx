@@ -1,24 +1,11 @@
 'use client';
 
-import { useState } from "react";
-import { gql, useQuery } from "@apollo/client";
-import { motion } from "framer-motion";
-import Link from "next/link";
-import { BarChart3, TrendingUp, Target, Shield, Zap, Activity, PieChart, Monitor, DollarSign, Calendar, Moon, Sun } from "lucide-react";
-
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { InfoTooltip } from "@/components/ui/info-tooltip";
-
-const STRATEGIES_QUERY = gql`
-  query GetStrategies {
-    portfolios {
-      id
-      name
-      performance
-      isPublic
-    }
-  }
-`;
+import { useParams } from 'next/navigation';
+import { motion } from 'framer-motion';
+import Link from 'next/link';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { InfoTooltip } from '@/components/ui/info-tooltip';
+import { BarChart3, TrendingUp, Target, Shield, Zap, Activity, PieChart, Monitor, DollarSign, Calendar, Moon, Sun } from 'lucide-react';
 
 interface Strategy {
   id: string;
@@ -196,7 +183,7 @@ const CATEGORIES = [
   { id: "Media-Reversion", name: "Media-Reversion", icon: Zap },
   { id: "Indicadores", name: "Indicadores", icon: Activity },
   { id: "Valor", name: "Valor", icon: DollarSign },
-  { id: "Estacional", name: "Estacional", icon: Moon },
+  { id: "Estacional", name: "Estacional", icon: Moon }
 ];
 
 const getRiskColorClass = (riskLevel: string): string => {
@@ -210,12 +197,25 @@ const getRiskColorClass = (riskLevel: string): string => {
   }
 };
 
-export default function StrategiesPage() {
-  const [selectedCategory, setSelectedCategory] = useState("all");
+export default function StrategyDetailPage() {
+  const params = useParams<{ id: string }>();
+  const { id } = params;
 
-  const filteredStrategies = STRATEGIES.filter(strategy =>
-    selectedCategory === "all" || strategy.category === selectedCategory
-  );
+  const strategy = STRATEGIES.find(s => s.id.trim() === id.trim());
+
+  if (!strategy) {
+    return (
+      <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}>
+        <section className="panel p-6">
+          <h2 className="text-2xl font-semibold text-white mb-4">Estrategia no encontrada</h2>
+          <p className="text-sm text-slate-300">La estrategia solicitada no existe.</p>
+          <Link href="../" className="inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm transition duration-200 border-white/10 bg-white/[0.03] text-slate-300 hover:bg-white/[0.06]">
+            <span>← Volver a estrategias</span>
+          </Link>
+        </section>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }} className="space-y-6">
@@ -223,97 +223,94 @@ export default function StrategiesPage() {
         <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
           <div className="max-w-3xl">
             <div className="flex items-center gap-3">
-              <p className="eyebrow">Estrategias Profesionales Comprobadas</p>
+              <p className="eyebrow">Estrategia Detallada</p>
               <InfoTooltip
-                title="Estrategias de Trading"
-                description="Cada estrategia incluye backtesting extensivo con métricas profesionales de rendimiento. Basadas en metodologías usadas por instituciones financieras y traders profesionales."
+                title="Ver detalles de la estrategia"
+                description="Información completa de la estrategia seleccionada con todas sus métricas y características."
               />
             </div>
-            <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] text-white sm:text-5xl">Aprende y aplica estrategias ganadoras</h1>
+            <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] text-white sm:text-5xl">{strategy.name}</h1>
             <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-300 sm:text-base">
-              Estrategias verificadas con datos históricos reales, métricas de riesgo ajustadas y reglas claras de entrada/salida. Filtra por categoría para encontrar tu estilo.
+              {strategy.description}
             </p>
           </div>
-        </div>
-
-        <div className="mt-6 flex flex-wrap gap-3">
-          {CATEGORIES.map((category) => {
-            const Icon = category.icon;
-            const active = selectedCategory === category.id;
-
-            return (
-              <button
-                key={category.id}
-                onClick={() => setSelectedCategory(category.id)}
-                className={`inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm transition ${
-                  active
-                    ? "border-emerald-300/40 bg-emerald-300/12 text-white"
-                    : "border-white/10 bg-white/[0.03] text-slate-300 hover:bg-white/[0.06]"
-                }`}
-              >
-                <Icon className="h-4 w-4" />
-                {category.name}
-              </button>
-            );
-          })}
         </div>
       </section>
 
       <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-        {filteredStrategies.map((strategy, index) => (
-          <motion.div
-            key={strategy.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.35, delay: index * 0.04 }}
-          >
-            <Link href={`/strategies/${strategy.id}`} passHref>
-              <Card className="panel border-white/10 hover:border-white/20 transition-border cursor-pointer hover:shadow-lg">
-                <CardHeader className="pb-4">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="text-xl font-semibold text-white">{strategy.name}</CardTitle>
-                      <div className="flex items-baseline gap-2 mt-1">
-                        <span className="text-xs text-slate-400 uppercase">{strategy.category}</span>
-                        <span className="text-xs text-slate-500">|</span>
-                        <span className="text-xs text-slate-400">{strategy.timeframe}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 text-xs text-slate-400">
-                      <span className="font-medium">{strategy.popularity}</span>
-                      <span className="h-4 w-4 text-emerald-400">
-                        <PieChart />
-                      </span>
-                    </div>
+        <motion.div
+          key={strategy.id}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35 }}
+        >
+          <Card className="panel border-white/10 hover:border-white/20 transition-border">
+            <CardHeader>
+              <div className="flex items-start justify-between">
+                <div>
+                  <CardTitle className="text-xl font-semibold text-white">{strategy.name}</CardTitle>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <span className="text-xs text-slate-400 uppercase">{strategy.category}</span>
+                    <span className="text-xs text-slate-500">|</span>
+                    <span className="text-xs text-slate-400">{strategy.timeframe}</span>
                   </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="grid grid-cols-3 gap-4 text-center">
-                    <div>
-                      <p className="text-xs text-slate-400">Win Rate</p>
-                      <p className="text-lg font-semibold text-emerald-400">{strategy.winRate}%</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-400">Max Drawdown</p>
-                      <p className="text-lg font-semibold text-rose-400">{strategy.maxDrawdown}%</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-400">Nivel Riesgo</p>
-                      <p className={`text-lg font-semibold ${getRiskColorClass(strategy.riskLevel)}`}>{strategy.riskLevel}</p>
-                    </div>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-slate-400">
+                  <span className="font-medium">{strategy.popularity}</span>
+                  <span className="h-4 w-4 text-emerald-400">
+                    <PieChart />
+                  </span>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <div className="grid grid-cols-4 gap-3 text-center">
+                  <div>
+                    <p className="text-xs text-slate-400">Win Rate</p>
+                    <p className="text-lg font-semibold text-emerald-400">{strategy.winRate}%</p>
                   </div>
-                </CardContent>
-              </Card>
-            </Link>
-          </motion.div>
-        ))}
+                  <div>
+                    <p className="text-xs text-slate-400">Retorno Anual</p>
+                    <p className="text-lg font-semibold text-white">{strategy.avgReturn}%</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400">Max Drawdown</p>
+                    <p className="text-lg font-semibold text-rose-400">{strategy.maxDrawdown}%</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400">Sharpe Ratio</p>
+                    <p className="text-lg font-semibold text-emerald-300">{strategy.sharpeRatio.toFixed(2)}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="grid grid-cols-3 gap-3 text-center mt-4">
+                  <div>
+                    <p className="text-xs text-slate-400">Profit Factor</p>
+                    <p className="text-lg font-semibold text-emerald-300">{strategy.profitFactor.toFixed(2)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400">Total Trades</p>
+                    <p className="text-lg font-semibold text-white">{strategy.totalTrades}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400">Nivel Riesgo</p>
+                    <p className={`text-lg font-semibold ${getRiskColorClass(strategy.riskLevel)}`}>{strategy.riskLevel}</p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
       </section>
 
       <section className="panel p-6">
-        <h2 className="text-2xl font-semibold text-white mb-4">Cómo usar estas estrategias profesionalmente</h2>
+        <h2 className="text-2xl font-semibold text-white mb-4">Cómo usar esta estrategia profesionalmente</h2>
         <div className="space-y-4 text-sm text-slate-300">
           <p>
-            1. <strong>Entiende el contexto:</strong> Cada estrategia está optimizada para ciertas condiciones de mercado (tendencia, lateral, volatilidad). Usa el explorador para identificar el régimen actual.
+            1. <strong>Entiende el contexto:</strong> Esta estrategia está optimizada para ciertas condiciones de mercado (tendencia, lateral, volatilidad). Usa el explorador para identificar el régimen actual.
           </p>
           <p>
             2. <strong>Prueba rigurosamente:</strong> Antes de usar capital real, practica en el simulador con al menos 50 trades simulados para internalizar las reglas.

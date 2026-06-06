@@ -75,13 +75,28 @@ LATAM_SUFFIXES = ['.BOG', '.CL', '.MX', '.SA', '.AR', '.PE']
 def resolve_yfinance_symbol(symbol: str):
     if symbol in COLOMBIAN_MAP:
         return COLOMBIAN_MAP[symbol]
+    
+    # First try the symbol as-is (for US stocks and others that don't need suffix)
+    try:
+        t = yf.Ticker(symbol)
+        # Check if we got meaningful info (has symbol or shortName)
+        info = t.info
+        if info and ('symbol' in info or 'shortName' in info or 'longName' in info):
+            return symbol
+    except Exception:
+        pass
+    
+    # If that failed, try with LATAM suffixes
     for suffix in LATAM_SUFFIXES:
         try:
             t = yf.Ticker(symbol + suffix)
-            if t.info:
+            info = t.info
+            if info and ('symbol' in info or 'shortName' in info or 'longName' in info):
                 return symbol + suffix
         except Exception:
             continue
+    
+    # Return original symbol if nothing worked
     return symbol
 
 class FinancialDataServicer(financial_data_pb2_grpc.FinancialDataServiceServicer):

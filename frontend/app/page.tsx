@@ -46,11 +46,11 @@ export default function Home() {
         >
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-300 text-sm font-black text-slate-950">
-              FS
+                   CF
             </div>
             <div>
-              <p className="text-sm font-semibold tracking-[0.22em] text-white">FINSIGHT</p>
-              <p className="text-xs text-slate-400">Wealth intelligence workspace</p>
+              <p className="text-sm font-semibold tracking-[0.22em] text-white">CAPITAL FOURGE</p>
+              <p className="text-xs text-slate-400">Where Financial Knowledge Takes Shape.</p>
             </div>
           </div>
 
@@ -75,9 +75,9 @@ export default function Home() {
             <h1 className="max-w-4xl text-5xl font-semibold leading-[0.94] tracking-[-0.05em] text-white md:text-7xl">
               Aprende, practica y conviértete en un <span className="text-gradient">trader rentable</span>.
             </h1>
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300">
-              FinSight te ayuda a aprender trading con herramientas profesionales: estrategias comprobadas, indicadores técnicos, análisis fundamental y un ranking para superarte.
-            </p>
+               <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300">
+               Capital Fourge te ayuda a aprender, practicar y dominar la inversión mediante educación y simulaciones realistas del mercado.
+               </p>
 
             <div className="mt-8 flex flex-wrap gap-4">
               <Button asChild size="lg" className="animate-sheen rounded-full bg-emerald-300 px-7 text-slate-950 hover:bg-emerald-200">

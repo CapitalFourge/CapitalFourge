@@ -1,4 +1,4 @@
-# Finsight – Project Overview (Agent Guide)
+# Capital Fourge – Project Overview (Agent Guide)
 
 *Last Updated: 2025-02-06*
 
@@ -6,7 +6,7 @@
 
 ## Purpose of This Document
 
-This document provides a **high-level overview** of the Finsight platform and acts as a **navigation guide** for developers, AI agents, and maintainers.
+This document provides a **high-level overview** of the Capital Fourge platform and acts as a **navigation guide** for developers, AI agents, and maintainers.
 
 It explains:
 - What the project is
@@ -19,7 +19,7 @@ For implementation details, refer to the linked documents below.
 
 ## Project Summary
 
-**Finsight** is a modular trading and portfolio management platform composed of multiple services:
+**Capital Fourge** is a modular trading and portfolio management platform composed of multiple services:
 
 - A **data ingestion & analytics service**
 - A **core portfolio & business logic service**

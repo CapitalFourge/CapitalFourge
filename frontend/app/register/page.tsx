@@ -68,11 +68,11 @@ export default function RegisterPage() {
           <motion.div initial={{ opacity: 0, x: -18 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.55 }} className="w-full">
             <Link href="/" className="inline-flex items-center gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-300 text-sm font-black text-slate-950">
-                FS
+                 CF
               </div>
               <div>
-                <p className="text-sm font-semibold tracking-[0.24em] text-white">FINSIGHT</p>
-                <p className="text-xs text-slate-400">Institutional-grade workspace</p>
+                 <p className="text-sm font-semibold tracking-[0.24em] text-white">CAPITAL FOURGE</p>
+              <p className="text-xs text-slate-400">Where Financial Knowledge Takes Shape.</p>
               </div>
             </Link>
 
@@ -80,9 +80,9 @@ export default function RegisterPage() {
             <h1 className="mt-4 text-5xl font-semibold tracking-[-0.05em] text-white md:text-6xl">
               Crea una cuenta para empezar a operar con una vista <span className="text-gradient">más seria y moderna</span>.
             </h1>
-            <p className="mt-5 max-w-xl text-base leading-8 text-slate-300">
-              Registra tu perfil y entra a un workspace preparado para carteras, exploración de mercado y reportes desde una misma capa visual.
-            </p>
+               <p className="mt-5 max-w-xl text-base leading-8 text-slate-300">
+               Aprende conceptos financieros, prueba estrategias sin riesgo y construye confianza para invertir con conocimiento.
+               </p>
 
             <div className="mt-10 grid gap-4">
               {requirements.map((item) => (

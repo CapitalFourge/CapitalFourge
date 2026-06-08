@@ -2,16 +2,16 @@
 
 ## Overview
 
-This plan outlines the implementation of advanced trading features for the FinSight platform, including limit orders, improved asset selection, automatic price fetching, and dual trading modes (quantity-based and USD-based).
+This plan outlines the implementation of advanced trading features for the Capital Fourge platform, including limit orders, improved asset selection, automatic price fetching, and dual trading modes (quantity-based and USD-based).
 
 ## Current State Analysis
 
 ### Existing Implementation
 
 - **Frontend**: [`trade-dialog.tsx`](../frontend/components/trading/trade-dialog.tsx) - Basic buy/sell dialog with market orders
-- **Backend**: [`PortfolioService.java`](../portfolio-manager/src/main/java/com/finsight/portfoliomanager/application/services/PortfolioService.java) - Handles buy/sell operations
+- **Backend**: [`PortfolioService.java`](../portfolio-manager/src/main/java/com/Capital Fourge/portfoliomanager/application/services/PortfolioService.java) - Handles buy/sell operations
 - **GraphQL Schema**: [`schema.graphqls`](../portfolio-manager/src/main/resources/graphql/schema.graphqls) - Defines mutations for buyAsset/sellAsset
-- **Domain Models**: [`Transaction.java`](../portfolio-manager/src/main/java/com/finsight/portfoliomanager/domain/Transaction.java), [`Position.java`](../portfolio-manager/src/main/java/com/finsight/portfoliomanager/domain/Position.java)
+- **Domain Models**: [`Transaction.java`](../portfolio-manager/src/main/java/com/Capital Fourge/portfoliomanager/domain/Transaction.java), [`Position.java`](../portfolio-manager/src/main/java/com/Capital Fourge/portfoliomanager/domain/Position.java)
 
 ### Current Issues Identified
 
@@ -181,7 +181,7 @@ sequenceDiagram
 **Create new domain model: `Order.java`**
 
 ```java
-package com.finsight.portfoliomanager.domain;
+package com.Capital Fourge.portfoliomanager.domain;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -235,13 +235,13 @@ public enum OrderStatus {
 **Create: `OrderRepository.java`**
 
 ```java
-package com.finsight.portfoliomanager.application.ports.out;
+package com.Capital Fourge.portfoliomanager.application.ports.out;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import com.finsight.portfoliomanager.domain.Order;
-import com.finsight.portfoliomanager.domain.OrderStatus;
+import com.Capital Fourge.portfoliomanager.domain.Order;
+import com.Capital Fourge.portfoliomanager.domain.OrderStatus;
 
 public interface OrderRepository {
     Order save(Order order);
@@ -259,7 +259,7 @@ public interface OrderRepository {
 **Create: `OrderService.java`**
 
 ```java
-package com.finsight.portfoliomanager.application.services;
+package com.Capital Fourge.portfoliomanager.application.services;
 
 @Service
 @RequiredArgsConstructor
@@ -302,7 +302,7 @@ public class OrderService {
 **Create: `PriceMonitorService.java`**
 
 ```java
-package com.finsight.portfoliomanager.application.services;
+package com.Capital Fourge.portfoliomanager.application.services;
 
 @Service
 @RequiredArgsConstructor
@@ -399,7 +399,7 @@ extend type Mutation {
 **Create: `OrderGraphQLController.java`**
 
 ```java
-package com.finsight.portfoliomanager.infrastructure.adapters.in.graphql;
+package com.Capital Fourge.portfoliomanager.infrastructure.adapters.in.graphql;
 
 @Controller
 @RequiredArgsConstructor
@@ -987,7 +987,7 @@ const handleTrade = async () => {
 **Create: `AssetSearchService.java`**
 
 ```java
-package com.finsight.portfoliomanager.application.services;
+package com.Capital Fourge.portfoliomanager.application.services;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -1525,7 +1525,7 @@ public class PriceUpdatePublisher {
 
 ## Summary
 
-This plan provides a comprehensive roadmap for implementing advanced trading features in the FinSight platform:
+This plan provides a comprehensive roadmap for implementing advanced trading features in the Capital Fourge platform:
 
 1. **Limit Orders**: Full backend and frontend implementation with real-time monitoring
 2. **Improved Sell Selection**: Dropdown with portfolio positions

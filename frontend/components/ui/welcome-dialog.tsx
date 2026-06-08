@@ -45,14 +45,14 @@ export function WelcomeDialog() {
         <DialogHeader>
           <div className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-emerald-300" />
-            <DialogTitle className="text-xl text-white">Bienvenido a FinSight</DialogTitle>
+             <DialogTitle className="text-xl text-white">Bienvenido a Capital Fourge</DialogTitle>
           </div>
           <DialogDescription className="text-sm leading-7 text-slate-300 pt-2">
-            En FinSight queremos que aprendas o mejores tus conocimientos en trading y los puedas demostrar con nuestro leaderboard.
+            En Capital Fourge queremos que aprendas o mejores tus conocimientos en inversión y los puedas demostrar con nuestro ranking de estrategias.
             <br /><br />
-            En esta aplicación podrás recargar dinero de papel sin límites para crear portafolios según tu gusto, con distintos riesgos (agresivo o conservador) o enfoques (eléctrico, IA, automotriz, etc).
+            En esta aplicación podrás recargar dinero de papel sin límites para crear portafolios según tu gusto, con distintos riesgos (agresivo o conservador) o enfoques (tecnológico, energético, inmobiliario, etc).
             <br /><br />
-            Para comenzar, recarga tu cuenta y crea tu primer portafolio. Después ve a Mercado y agrega los activos que quieras a tu portafolio.
+            Para comenzar, recarga tu cuenta y crea tu primer portafolio. Después ve a Mercado y agrega los activos que quieras.
             <br /><br />
             Esperamos ser de mucha utilidad para ti y que aprendas mucho. Cualquier comentario para mejorar lo agradeceríamos mucho.
           </DialogDescription>

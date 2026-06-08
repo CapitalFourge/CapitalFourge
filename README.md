@@ -1,6 +1,6 @@
-# FinSight - Intelligent Portfolio Manager 🐘🚀
+# Capital Fourge - Where Financial Knowledge Takes Shape.
 
-FinSight is a high-performance, intelligent financial ecosystem built with **Hexagonal Architecture** and modern microservices. It features a professional-grade terminal for tracking strategies, market trends, and AI-powered quant analysis.
+**Capital Fourge** es un ecosistema financiero de alto rendimiento diseñado para empoderar a las personas a aprender, practicar y dominar la inversión mediante educación y simulaciones realistas del mercado. Construido con **Hexagonal Architecture** y microservicios modernos.
 
 ## 🏗️ Architecture & Modules
 
@@ -58,7 +58,7 @@ We leverage Redis to power high-frequency features without stressing the relatio
 ## ⚠️ Troubleshooting
 ### PostgreSQL Port Conflict
 We use **port 5433** for the PostgreSQL container to avoid conflicts with local PostgreSQL installations on Windows (which typically use 5432).
-- **App Connection**: `jdbc:postgresql://localhost:5433/finsight_db`
+- **App Connection**: `jdbc:postgresql://localhost:5433/capital_fourge_db`
 - **Docker External Access**: `localhost:5433`
 
 ## 🔮 Recent Enhancements (Phase 6)
@@ -76,7 +76,7 @@ We use **port 5433** for the PostgreSQL container to avoid conflicts with local 
 - [ ] **AI Quant Analyst**: Large Language Model integration for portfolio risk assessment.
 - [ ] **API Gateway Integration**: Unified entry point with rate limiting and JWT security.
 - [ ] **Real-time Price WebSockets**: Live asset price updates with interactive TradingView-style charts.
-- [ ] **Automated Finsight Portfolio**: Rule-based portfolio using technical indicators for buy/sell signals.
+- [ ] **Automated Capital Fourge Portfolio**: Rule-based portfolio using technical indicators for buy/sell signals.
 - [ ] **Portfolio Ranking System**: Public leaderboard showcasing top-performing strategies.
 
 ## Deployment Note

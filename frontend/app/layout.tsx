@@ -6,8 +6,8 @@ import { ApolloWrapper } from "@/components/providers/apollo-wrapper";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "FinSight | Wealth Intelligence Platform",
-  description: "Portfolio management, market monitoring, and execution workflows in one modern financial workspace.",
+  title: "Capital Fourge | Where Financial Knowledge Takes Shape",
+  description: "Aprende conceptos financieros, prueba estrategias en un entorno sin riesgo y construye confianza antes de invertir dinero real.",
 };
 
 export default function RootLayout({

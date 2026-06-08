@@ -95,7 +95,7 @@ export default function SharedPortfolioPage() {
               {portfolio.name}
             </h1>
             <p className="max-w-2xl text-lg text-slate-400">
-              {portfolio.description || "Analizando oportunidades con FinSight Intelligence."}
+              {portfolio.description || "Analizando oportunidades con Capital Fourge Intelligence."}
             </p>
           </div>
           

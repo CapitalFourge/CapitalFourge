@@ -17,4 +17,4 @@ spring:
 logging:
   level:
     root: INFO
-    com.finsight: DEBUG
+    com.capitalfourge: DEBUG

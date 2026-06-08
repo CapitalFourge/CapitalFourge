@@ -1,6 +1,6 @@
-# Guía Paso a Paso para Implementar Todos los Tests - FinSight
+# Guía Paso a Paso para Implementar Todos los Tests - Capital Fourge
 
-Este documento proporciona instrucciones detalladas y paso a paso para implementar todos los tests necesarios para el proyecto FinSight. No se omite ningún detalle.
+Este documento proporciona instrucciones detalladas y paso a paso para implementar todos los tests necesarios para el proyecto Capital Fourge. No se omite ningún detalle.
 
 ---
 
@@ -829,7 +829,7 @@ class TestMongoDBIntegration:
         """Fixture que proporciona una instancia del repositorio."""
         return MongoFinancialDataRepository(
             connection_string="mongodb://localhost:27017",
-            database_name="test_finsight"
+            database_name="test_Capital Fourge"
         )
 
     def test_connection(self, repository):
@@ -910,7 +910,7 @@ class TestRedisIntegration:
 Crea la siguiente estructura de directorios:
 
 ```
-portfolio-manager/src/test/java/com/finsight/portfoliomanager/
+portfolio-manager/src/test/java/com/Capital Fourge/portfoliomanager/
 ├── domain/
 │   ├── UserTest.java
 │   ├── PortfolioTest.java
@@ -935,16 +935,16 @@ portfolio-manager/src/test/java/com/finsight/portfoliomanager/
 
 **Instrucciones:**
 
-1. Navega a `portfolio-manager/src/test/java/com/finsight/portfoliomanager/`
+1. Navega a `portfolio-manager/src/test/java/com/Capital Fourge/portfoliomanager/`
 2. Crea los directorios listados arriba
 3. Crea los archivos de test listados
 
 ### Paso 15: Crear UserTest.java
 
-Crea el archivo `portfolio-manager/src/test/java/com/finsight/portfoliomanager/domain/UserTest.java`:
+Crea el archivo `portfolio-manager/src/test/java/com/Capital Fourge/portfoliomanager/domain/UserTest.java`:
 
 ```java
-package com.finsight.portfoliomanager.domain;
+package com.Capital Fourge.portfoliomanager.domain;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -1021,16 +1021,16 @@ class UserTest {
 
 **Instrucciones:**
 
-1. Crea el archivo `portfolio-manager/src/test/java/com/finsight/portfoliomanager/domain/UserTest.java`
+1. Crea el archivo `portfolio-manager/src/test/java/com/Capital Fourge/portfoliomanager/domain/UserTest.java`
 2. Copia el contenido anterior
 3. Guarda el archivo
 
 ### Paso 16: Crear PortfolioTest.java
 
-Crea el archivo `portfolio-manager/src/test/java/com/finsight/portfoliomanager/domain/PortfolioTest.java`:
+Crea el archivo `portfolio-manager/src/test/java/com/Capital Fourge/portfoliomanager/domain/PortfolioTest.java`:
 
 ```java
-package com.finsight.portfoliomanager.domain;
+package com.Capital Fourge.portfoliomanager.domain;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -1126,16 +1126,16 @@ class PortfolioTest {
 
 **Instrucciones:**
 
-1. Crea el archivo `portfolio-manager/src/test/java/com/finsight/portfoliomanager/domain/PortfolioTest.java`
+1. Crea el archivo `portfolio-manager/src/test/java/com/Capital Fourge/portfoliomanager/domain/PortfolioTest.java`
 2. Copia el contenido anterior
 3. Guarda el archivo
 
 ### Paso 17: Crear PositionTest.java
 
-Crea el archivo `portfolio-manager/src/test/java/com/finsight/portfoliomanager/domain/PositionTest.java`:
+Crea el archivo `portfolio-manager/src/test/java/com/Capital Fourge/portfoliomanager/domain/PositionTest.java`:
 
 ```java
-package com.finsight.portfoliomanager.domain;
+package com.Capital Fourge.portfoliomanager.domain;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -1215,16 +1215,16 @@ class PositionTest {
 
 **Instrucciones:**
 
-1. Crea el archivo `portfolio-manager/src/test/java/com/finsight/portfoliomanager/domain/PositionTest.java`
+1. Crea el archivo `portfolio-manager/src/test/java/com/Capital Fourge/portfoliomanager/domain/PositionTest.java`
 2. Copia el contenido anterior
 3. Guarda el archivo
 
 ### Paso 18: Crear TransactionTest.java
 
-Crea el archivo `portfolio-manager/src/test/java/com/finsight/portfoliomanager/domain/TransactionTest.java`:
+Crea el archivo `portfolio-manager/src/test/java/com/Capital Fourge/portfoliomanager/domain/TransactionTest.java`:
 
 ```java
-package com.finsight.portfoliomanager.domain;
+package com.Capital Fourge.portfoliomanager.domain;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -1293,23 +1293,23 @@ class TransactionTest {
 
 **Instrucciones:**
 
-1. Crea el archivo `portfolio-manager/src/test/java/com/finsight/portfoliomanager/domain/TransactionTest.java`
+1. Crea el archivo `portfolio-manager/src/test/java/com/Capital Fourge/portfoliomanager/domain/TransactionTest.java`
 2. Copia el contenido anterior
 3. Guarda el archivo
 
 ### Paso 19: Crear UserServiceTest.java
 
-Crea el archivo `portfolio-manager/src/test/java/com/finsight/portfoliomanager/application/services/UserServiceTest.java`:
+Crea el archivo `portfolio-manager/src/test/java/com/Capital Fourge/portfoliomanager/application/services/UserServiceTest.java`:
 
 ```java
-package com.finsight.portfoliomanager.application.services;
+package com.Capital Fourge.portfoliomanager.application.services;
 
-import com.finsight.portfoliomanager.application.ports.dto.auth.*;
-import com.finsight.portfoliomanager.application.ports.out.TokenRepository;
-import com.finsight.portfoliomanager.application.ports.out.TokenService;
-import com.finsight.portfoliomanager.application.ports.out.UserRepository;
-import com.finsight.portfoliomanager.domain.Role;
-import com.finsight.portfoliomanager.domain.User;
+import com.Capital Fourge.portfoliomanager.application.ports.dto.auth.*;
+import com.Capital Fourge.portfoliomanager.application.ports.out.TokenRepository;
+import com.Capital Fourge.portfoliomanager.application.ports.out.TokenService;
+import com.Capital Fourge.portfoliomanager.application.ports.out.UserRepository;
+import com.Capital Fourge.portfoliomanager.domain.Role;
+import com.Capital Fourge.portfoliomanager.domain.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -1523,20 +1523,20 @@ class UserServiceTest {
 
 **Instrucciones:**
 
-1. Crea el archivo `portfolio-manager/src/test/java/com/finsight/portfoliomanager/application/services/UserServiceTest.java`
+1. Crea el archivo `portfolio-manager/src/test/java/com/Capital Fourge/portfoliomanager/application/services/UserServiceTest.java`
 2. Copia el contenido anterior
 3. Guarda el archivo
 
 ### Paso 20: Crear PortfolioServiceTest.java
 
-Crea el archivo `portfolio-manager/src/test/java/com/finsight/portfoliomanager/application/services/PortfolioServiceTest.java`:
+Crea el archivo `portfolio-manager/src/test/java/com/Capital Fourge/portfoliomanager/application/services/PortfolioServiceTest.java`:
 
 ```java
-package com.finsight.portfoliomanager.application.services;
+package com.Capital Fourge.portfoliomanager.application.services;
 
-import com.finsight.portfoliomanager.application.ports.out.PortfolioRepository;
-import com.finsight.portfoliomanager.domain.Portfolio;
-import com.finsight.portfoliomanager.domain.Position;
+import com.Capital Fourge.portfoliomanager.application.ports.out.PortfolioRepository;
+import com.Capital Fourge.portfoliomanager.domain.Portfolio;
+import com.Capital Fourge.portfoliomanager.domain.Position;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -1689,21 +1689,21 @@ class PortfolioServiceTest {
 
 **Instrucciones:**
 
-1. Crea el archivo `portfolio-manager/src/test/java/com/finsight/portfoliomanager/application/services/PortfolioServiceTest.java`
+1. Crea el archivo `portfolio-manager/src/test/java/com/Capital Fourge/portfoliomanager/application/services/PortfolioServiceTest.java`
 2. Copia el contenido anterior
 3. Guarda el archivo
 
 ### Paso 21: Crear AuthControllerTest.java
 
-Crea el archivo `portfolio-manager/src/test/java/com/finsight/portfoliomanager/infrastructure/adapters/in/rest/AuthControllerTest.java`:
+Crea el archivo `portfolio-manager/src/test/java/com/Capital Fourge/portfoliomanager/infrastructure/adapters/in/rest/AuthControllerTest.java`:
 
 ```java
-package com.finsight.portfoliomanager.infrastructure.adapters.in.rest;
+package com.Capital Fourge.portfoliomanager.infrastructure.adapters.in.rest;
 
-import com.finsight.portfoliomanager.application.ports.dto.auth.*;
-import com.finsight.portfoliomanager.application.ports.in.UserUseCase;
-import com.finsight.portfoliomanager.domain.Role;
-import com.finsight.portfoliomanager.domain.User;
+import com.Capital Fourge.portfoliomanager.application.ports.dto.auth.*;
+import com.Capital Fourge.portfoliomanager.application.ports.in.UserUseCase;
+import com.Capital Fourge.portfoliomanager.domain.Role;
+import com.Capital Fourge.portfoliomanager.domain.User;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -1814,19 +1814,19 @@ class AuthControllerTest {
 
 **Instrucciones:**
 
-1. Crea el archivo `portfolio-manager/src/test/java/com/finsight/portfoliomanager/infrastructure/adapters/in/rest/AuthControllerTest.java`
+1. Crea el archivo `portfolio-manager/src/test/java/com/Capital Fourge/portfoliomanager/infrastructure/adapters/in/rest/AuthControllerTest.java`
 2. Copia el contenido anterior
 3. Guarda el archivo
 
 ### Paso 22: Crear PortfolioControllerTest.java
 
-Crea el archivo `portfolio-manager/src/test/java/com/finsight/portfoliomanager/infrastructure/adapters/in/rest/PortfolioControllerTest.java`:
+Crea el archivo `portfolio-manager/src/test/java/com/Capital Fourge/portfoliomanager/infrastructure/adapters/in/rest/PortfolioControllerTest.java`:
 
 ```java
-package com.finsight.portfoliomanager.infrastructure.adapters.in.rest;
+package com.Capital Fourge.portfoliomanager.infrastructure.adapters.in.rest;
 
-import com.finsight.portfoliomanager.application.ports.in.PortfolioUseCase;
-import com.finsight.portfoliomanager.domain.Portfolio;
+import com.Capital Fourge.portfoliomanager.application.ports.in.PortfolioUseCase;
+import com.Capital Fourge.portfoliomanager.domain.Portfolio;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -1948,16 +1948,16 @@ class PortfolioControllerTest {
 
 **Instrucciones:**
 
-1. Crea el archivo `portfolio-manager/src/test/java/com/finsight/portfoliomanager/infrastructure/adapters/in/rest/PortfolioControllerTest.java`
+1. Crea el archivo `portfolio-manager/src/test/java/com/Capital Fourge/portfoliomanager/infrastructure/adapters/in/rest/PortfolioControllerTest.java`
 2. Copia el contenido anterior
 3. Guarda el archivo
 
 ### Paso 23: Crear MetricsControllerTest.java
 
-Crea el archivo `portfolio-manager/src/test/java/com/finsight/portfoliomanager/infrastructure/adapters/in/rest/MetricsControllerTest.java`:
+Crea el archivo `portfolio-manager/src/test/java/com/Capital Fourge/portfoliomanager/infrastructure/adapters/in/rest/MetricsControllerTest.java`:
 
 ```java
-package com.finsight.portfoliomanager.infrastructure.adapters.in.rest;
+package com.Capital Fourge.portfoliomanager.infrastructure.adapters.in.rest;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -1988,20 +1988,20 @@ class MetricsControllerTest {
 
 **Instrucciones:**
 
-1. Crea el archivo `portfolio-manager/src/test/java/com/finsight/portfoliomanager/infrastructure/adapters/in/rest/MetricsControllerTest.java`
+1. Crea el archivo `portfolio-manager/src/test/java/com/Capital Fourge/portfoliomanager/infrastructure/adapters/in/rest/MetricsControllerTest.java`
 2. Copia el contenido anterior
 3. Guarda el archivo
 
 ### Paso 24: Crear tests de integración para PostgreSQL
 
-Crea el archivo `portfolio-manager/src/test/java/com/finsight/portfoliomanager/integration/PostgreSQLIntegrationTest.java`:
+Crea el archivo `portfolio-manager/src/test/java/com/Capital Fourge/portfoliomanager/integration/PostgreSQLIntegrationTest.java`:
 
 ```java
-package com.finsight.portfoliomanager.integration;
+package com.Capital Fourge.portfoliomanager.integration;
 
-import com.finsight.portfoliomanager.domain.User;
-import com.finsight.portfoliomanager.domain.Role;
-import com.finsight.portfoliomanager.application.ports.out.UserRepository;
+import com.Capital Fourge.portfoliomanager.domain.User;
+import com.Capital Fourge.portfoliomanager.domain.Role;
+import com.Capital Fourge.portfoliomanager.application.ports.out.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -2069,16 +2069,16 @@ class PostgreSQLIntegrationTest {
 
 **Instrucciones:**
 
-1. Crea el archivo `portfolio-manager/src/test/java/com/finsight/portfoliomanager/integration/PostgreSQLIntegrationTest.java`
+1. Crea el archivo `portfolio-manager/src/test/java/com/Capital Fourge/portfoliomanager/integration/PostgreSQLIntegrationTest.java`
 2. Copia el contenido anterior
 3. Guarda el archivo
 
 ### Paso 25: Crear tests de integración para Redis
 
-Crea el archivo `portfolio-manager/src/test/java/com/finsight/portfoliomanager/integration/RedisIntegrationTest.java`:
+Crea el archivo `portfolio-manager/src/test/java/com/Capital Fourge/portfoliomanager/integration/RedisIntegrationTest.java`:
 
 ```java
-package com.finsight.portfoliomanager.integration;
+package com.Capital Fourge.portfoliomanager.integration;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -2146,18 +2146,18 @@ class RedisIntegrationTest {
 
 **Instrucciones:**
 
-1. Crea el archivo `portfolio-manager/src/test/java/com/finsight/portfoliomanager/integration/RedisIntegrationTest.java`
+1. Crea el archivo `portfolio-manager/src/test/java/com/Capital Fourge/portfoliomanager/integration/RedisIntegrationTest.java`
 2. Copia el contenido anterior
 3. Guarda el archivo
 
 ### Paso 26: Crear tests de integración para gRPC
 
-Crea el archivo `portfolio-manager/src/test/java/com/finsight/portfoliomanager/integration/GrpcIntegrationTest.java`:
+Crea el archivo `portfolio-manager/src/test/java/com/Capital Fourge/portfoliomanager/integration/GrpcIntegrationTest.java`:
 
 ```java
-package com.finsight.portfoliomanager.integration;
+package com.Capital Fourge.portfoliomanager.integration;
 
-import com.finsight.portfoliomanager.infrastructure.grpc.GrpcFinancialDataClient;
+import com.Capital Fourge.portfoliomanager.infrastructure.grpc.GrpcFinancialDataClient;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -2193,7 +2193,7 @@ class GrpcIntegrationTest {
 
 **Instrucciones:**
 
-1. Crea el archivo `portfolio-manager/src/test/java/com/finsight/portfoliomanager/integration/GrpcIntegrationTest.java`
+1. Crea el archivo `portfolio-manager/src/test/java/com/Capital Fourge/portfoliomanager/integration/GrpcIntegrationTest.java`
 2. Copia el contenido anterior
 3. Guarda el archivo
 
@@ -3056,7 +3056,7 @@ jobs:
         env:
           POSTGRES_USER: user
           POSTGRES_PASSWORD: password
-          POSTGRES_DB: finsight_db
+          POSTGRES_DB: Capital Fourge_db
         ports:
           - 5432:5432
         options: >-
@@ -3121,7 +3121,7 @@ jobs:
         env:
           POSTGRES_USER: user
           POSTGRES_PASSWORD: password
-          POSTGRES_DB: finsight_db
+          POSTGRES_DB: Capital Fourge_db
         ports:
           - 5432:5432
       mongodb:
@@ -3215,7 +3215,7 @@ Asegúrate de que:
 
 ## Resumen
 
-Has completado la implementación de todos los tests necesarios para el proyecto FinSight:
+Has completado la implementación de todos los tests necesarios para el proyecto Capital Fourge:
 
 ### Tests Implementados
 

@@ -1,7 +1,7 @@
 services:
     postgres:
         image: postgres:15
-        container_name: finsight-postgres
+        container_name: capital-fourge-postgres
         environment:
             POSTGRES_USER: ${DB_POSTGRES_USER}
             POSTGRES_PASSWORD: ${DB_POSTGRES_PASSWORD}
@@ -18,7 +18,7 @@ services:
 
     mongodb:
         image: mongo:latest
-        container_name: finsight-mongodb
+        container_name: capital-fourge-mongodb
         environment:
             MONGO_INITDB_ROOT_USERNAME: ${DB_MONGO_ROOT_USER}
             MONGO_INITDB_ROOT_PASSWORD: ${DB_MONGO_ROOT_PASSWORD}
@@ -34,7 +34,7 @@ services:
 
     redis:
         image: redis:latest
-        container_name: finsight-redis
+        container_name: capital-fourge-redis
         ports:
             - "6379:6379"
         command: redis-server --requirepass ${DB_REDIS_PASSWORD}
@@ -46,7 +46,7 @@ services:
 
     data-collector:
         build: ./data-collector
-        container_name: finsight-data-collector
+        container_name: capital-fourge-data-collector
         ports:
             - "8000:8000"
             - "50051:50051"
@@ -67,7 +67,7 @@ services:
         build:
             context: ./frontend
             dockerfile: Dockerfile
-        container_name: finsight-frontend
+        container_name: capital-fourge-frontend
         ports:
             - "3000:3000"
         volumes:
@@ -81,7 +81,7 @@ services:
         build: 
             context: .
             dockerfile: portfolio-manager/Dockerfile
-        container_name: finsight-portfolio-manager
+        container_name: capital-fourge-portfolio-manager
         ports:
             - "8080:8080"
         environment:

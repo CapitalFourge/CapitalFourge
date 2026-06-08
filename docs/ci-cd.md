@@ -1,6 +1,6 @@
 # CI/CD & Pipeline Workflow
 
-This document explains the CI/CD architecture for FinSight.
+This document explains the CI/CD architecture for Capital Fourge.
 
 ## Pipeline Overview
 

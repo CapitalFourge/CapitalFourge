@@ -12,14 +12,14 @@ from src.application.services import FinancialDataService
 from src.application.price_oracle import PriceOracle
 
 load_dotenv(dotenv_path="../.env")
-app = FastAPI(title="FinSight Data Collector")
+app = FastAPI(title="Capital Fourge Data Collector")
 
 # 2. Configurar la Infraestructura (Adaptadores)
 mongo_host = os.getenv("DB_MONGO_HOST", "localhost")
 mongo_pass = os.getenv("DB_MONGO_ROOT_PASSWORD")
 uri = f"mongodb://admin:{mongo_pass}@{mongo_host}:27017/?authSource=admin"
 
-repo = MongoFinancialDataRepository(connection_string=uri, database_name="finsight_data")
+repo = MongoFinancialDataRepository(connection_string=uri, database_name="capital_fourge_data")
 processor = PolarsDataProcessor()
 service = FinancialDataService(repository=repo, processor=processor)
 oracle = PriceOracle()

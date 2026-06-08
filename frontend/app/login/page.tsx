@@ -64,18 +64,18 @@ export default function LoginPage() {
           <div>
             <Link href="/" className="inline-flex items-center gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-300 text-sm font-black text-slate-950">
-                FS
+                 CF
               </div>
               <div>
-                <p className="text-sm font-semibold tracking-[0.24em] text-white">FINSIGHT</p>
-                <p className="text-xs text-slate-400">Wealth intelligence platform</p>
+              <p className="text-sm font-semibold tracking-[0.24em] text-white">CAPITAL FOURGE</p>
+              <p className="text-xs text-slate-400">Where Financial Knowledge Takes Shape.</p>
               </div>
             </Link>
 
             <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55 }} className="mt-14 max-w-xl">
-              <p className="eyebrow">Acceso seguro</p>
-              <h1 className="mt-4 text-5xl font-semibold tracking-[-0.05em] text-white md:text-6xl">
-                Opera tus carteras con una interfaz <span className="text-gradient">más limpia y precisa</span>.
+                 <p className="eyebrow">Acceso seguro</p>
+               <h1 className="mt-4 text-5xl font-semibold tracking-[-0.05em] text-white md:text-6xl">
+                 Aprende, practica y domina la inversión con un workspace <span className="text-gradient">sin riesgo</span>.
               </h1>
               <p className="mt-5 text-base leading-8 text-slate-300">
                 Inicia sesión para continuar en un entorno diseñado para seguimiento patrimonial, lectura táctica y ejecución con menos fricción visual.

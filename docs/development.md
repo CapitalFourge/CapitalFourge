@@ -7,7 +7,7 @@
 ```bash
 # Clone the repository
 git clone <repo-url>
-cd finsight
+cd capital-fourge
 
 # Start infrastructure and all backend microservices
 # (PostgreSQL, MongoDB, Redis, data-collector, portfolio-manager)

@@ -1,4 +1,4 @@
-name: CI Finsight
+name: CI Capital Fourge
 
 on:
   push:

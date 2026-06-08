@@ -1,6 +1,6 @@
-# Project Handover: FinSight (Intelligent Microservices)
+# Project Handover: Capital Fourge (Where Financial Knowledge Takes Shape)
 
-**FinSight** is an enterprise-grade investment analytics platform combining **Java Spring Boot**, **Python (Polars/AI)**, and **React**.
+**Capital Fourge** es una plataforma de análisis de inversiones de nivel empresarial que combina **Java Spring Boot**, **Python (Polars/AI)**, y **React**.
 
 ## 🏗️ Architecture: Distributed Microservices
 The project follows **Hexagonal/Clean Architecture** principles within each service.
@@ -38,7 +38,7 @@ The project follows **Hexagonal/Clean Architecture** principles within each serv
 We are currently in **Phase 1: Infrastructure Setup**. 
 
 ### Local Infrastructure Specs (`docker-compose.yml`):
-- **Postgres**: User: `user`, Pwd: `password`, DB: `finsight_db`, Port: `5432`.
+- **Postgres**: User: `user`, Pwd: `password`, DB: `capital_fourge_db`, Port: `5432`.
 - **MongoDB**: Port: `27017`.
 - **Redis**: Port: `6379`.
 

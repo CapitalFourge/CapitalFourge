@@ -20,7 +20,7 @@ export function Sidebar() {
     return (
         <aside className="w-64 border-r border-white/10 bg-black/50 backdrop-blur-xl flex flex-col">
             <div className="p-8">
-                <h2 className="text-xl font-bold tracking-tighter text-white">FINSIGHT</h2>
+                <h2 className="text-xl font-bold tracking-tighter text-white">CAPITAL FOURGE</h2>
             </div>
 
             <nav className="flex-1 px-4 space-y-2">

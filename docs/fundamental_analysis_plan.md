@@ -1,7 +1,7 @@
-# Finsight Fundamental Analysis Implementation Plan
+# Capital Fourge Fundamental Analysis Plan
 
 ## Overview
-This plan outlines the phased implementation of fundamental analysis capabilities in the Finsight trading platform, starting with immediately measurable metrics from existing data sources and expanding to cover stocks, commodities, and cryptocurrencies.
+This plan outlines the phased implementation of fundamental analysis capabilities in the Capital Fourge trading platform, starting with immediately measurable metrics from existing data sources and expanding to cover stocks, commodities, and cryptocurrencies.
 
 ## Guiding Principles
 1. **Start with what's measurable**: Focus on quantifiable metrics from structured data sources (omit geopolitics/news-dependent items initially)
@@ -232,7 +232,7 @@ message Fundamentals {
 - Positive feedback from 2+ pilot users
 
 ### Long-term (After All Phases)
-- Users can perform complete fundamental analysis without leaving Finsight
+- Users can perform complete fundamental analysis without leaving Capital Fourge
 - Reduction in external tool reliance (TradingView, Yahoo Finance, etc.)
 - Increased user engagement time (metric: avg session duration)
 - Foundation for future quantamental strategies

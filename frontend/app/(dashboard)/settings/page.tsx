@@ -449,7 +449,7 @@ export default function SettingsPage() {
               <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-5">
                 <p className="text-lg font-semibold text-white">Comentarios, quejas y reclamos</p>
                 <p className="mt-2 text-sm leading-7 text-slate-300">
-                  Tu opinión es muy importante. Envía sugerencias, reporta problemas o cuéntanos cómo podemos mejorar FinSight.
+                  Tu opinión es muy importante. Envía sugerencias, reporta problemas o cuéntanos cómo podemos mejorar Capital Fourge.
                 </p>
               </div>
 

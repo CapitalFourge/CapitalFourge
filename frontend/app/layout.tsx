@@ -8,6 +8,10 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Capital Fourge | Where Financial Knowledge Takes Shape",
   description: "Aprende conceptos financieros, prueba estrategias en un entorno sin riesgo y construye confianza antes de invertir dinero real.",
+  icons: {
+    icon: "/icon.png",
+    apple: "/icon.png",
+  },
 };
 
 export default function RootLayout({

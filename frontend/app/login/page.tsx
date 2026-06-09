@@ -63,7 +63,7 @@ export default function LoginPage() {
         <section className="flex flex-col justify-between border-b border-white/10 p-8 lg:border-b-0 lg:border-r lg:p-12">
           <div>
             <Link href="/" className="inline-flex items-center gap-3">
-              <img src="/icon.png" alt="Capital Fourge" className="h-10 w-auto max-w-[120px] object-contain block leading-none sm:h-16 sm:max-w-[180px]" />
+              <img src="/icon.png" alt="Capital Fourge" className="h-10 w-[120px] object-contain sm:h-16 sm:w-[180px]" />
             </Link>
 
             <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55 }} className="mt-14 max-w-xl">

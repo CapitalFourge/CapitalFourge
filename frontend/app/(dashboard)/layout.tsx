@@ -56,7 +56,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <aside className="hidden w-[290px] shrink-0 lg:block">
           <div className="sticky top-4 flex h-[calc(100vh-2rem)] flex-col rounded-[2rem] border border-white/10 bg-slate-950/55 p-5 backdrop-blur-2xl">
   <div className="flex items-center gap-3 border-b border-white/10 pb-5">
-    <img src="/icon.png" alt="Capital Fourge" className="h-16 w-auto max-w-[180px] object-contain block leading-none" />
+    <Link href="/dashboard">
+      <img src="/icon.png" alt="Capital Fourge" className="h-16 w-auto max-w-[180px] object-contain block leading-none" />
+    </Link>
   </div>
 
 <nav className="mt-6 flex-1 space-y-2">
@@ -108,8 +110,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         <div className="flex min-w-0 flex-1 flex-col">
           <div className="sticky top-4 z-20 mb-4 rounded-[1.5rem] border border-white/10 bg-slate-950/45 px-4 py-3 backdrop-blur-2xl lg:hidden">
-            <div className="mb-3 flex items-center justify-between">
-               <img src="/icon.png" alt="Capital Fourge" className="h-12 w-auto max-w-[120px] object-contain block leading-none" />
+            <Link href="/dashboard" className="mb-3 flex items-center gap-3">
+              <img src="/icon.png" alt="Capital Fourge" className="h-12 w-auto max-w-[140px] object-contain block leading-none" />
               <button
                 onClick={() => {
                   localStorage.removeItem("access_token");

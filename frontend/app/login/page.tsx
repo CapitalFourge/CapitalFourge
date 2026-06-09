@@ -63,9 +63,7 @@ export default function LoginPage() {
         <section className="flex flex-col justify-between border-b border-white/10 p-8 lg:border-b-0 lg:border-r lg:p-12">
           <div>
             <Link href="/" className="inline-flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-300 text-sm font-black text-slate-950">
-                 CF
-              </div>
+              <img src="/logo.svg" alt="Capital Fourge" className="h-11 w-auto" />
               <div>
               <p className="text-sm font-semibold tracking-[0.24em] text-white">CAPITAL FOURGE</p>
               <p className="text-xs text-slate-400">Where Financial Knowledge Takes Shape.</p>

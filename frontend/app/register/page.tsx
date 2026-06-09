@@ -67,9 +67,7 @@ export default function RegisterPage() {
         <section className="flex items-center border-b border-white/10 p-6 sm:p-8 lg:border-b-0 lg:border-r lg:p-12">
           <motion.div initial={{ opacity: 0, x: -18 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.55 }} className="w-full">
             <Link href="/" className="inline-flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-300 text-sm font-black text-slate-950">
-                 CF
-              </div>
+              <img src="/logo.svg" alt="Capital Fourge" className="h-11 w-auto" />
               <div>
                  <p className="text-sm font-semibold tracking-[0.24em] text-white">CAPITAL FOURGE</p>
               <p className="text-xs text-slate-400">Where Financial Knowledge Takes Shape.</p>

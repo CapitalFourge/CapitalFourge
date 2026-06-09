@@ -1,8 +1,15 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import SockJS from 'sockjs-client';
-import { Stomp } from 'stompjs/lib/stomp.js';
+
+function getWsUrl(): string {
+    const host = window.location.hostname;
+    if (host === 'localhost' || host === '127.0.0.1' || host === '') {
+        return 'ws://localhost:8000/ws-prices';
+    }
+    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+    return `${protocol}://${host}:8000/ws-prices`;
+}
 
 export function useRealTimePrice(symbols: string[]) {
     const [prices, setPrices] = useState<Record<string, number>>({});
@@ -10,31 +17,47 @@ export function useRealTimePrice(symbols: string[]) {
     useEffect(() => {
         if (symbols.length === 0) return;
 
-        const socket = new SockJS('http://localhost:8080/ws-prices');
-        const client = Stomp.over(socket);
+        const WS_URL = getWsUrl();
+        console.log('[WS] Connecting to', WS_URL, 'for symbols:', symbols);
 
-        // Desactivar logs de consola de Stomp para que no molesten
-        client.debug = () => { };
+        const ws = new WebSocket(WS_URL);
 
-        client.connect({}, () => {
-            // Subscribe to price updates for all symbols
-            symbols.forEach(symbol => {
-                client.subscribe(`/topic/prices/${symbol}`, (message) => {
-                    try {
-                        const data = JSON.parse(message.body);
-                        setPrices(prev => ({
-                            ...prev,
-                            [data.symbol]: data.price
-                        }));
-                    } catch (e) {
-                        console.error("Error parsing price update:", e);
-                    }
-                });
-            });
-        });
+        ws.onopen = () => {
+            console.log('[WS] Connected, subscribing to', symbols.length, 'symbols');
+            ws.send(JSON.stringify({ action: 'subscribe', symbols }));
+        };
+
+        ws.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                console.log('[WS] Message:', data);
+                if (data.type === 'price') {
+                    setPrices(prev => ({
+                        ...prev,
+                        [data.symbol]: data.price
+                    }));
+                }
+            } catch (e) {
+                console.error('[WS] Error parsing message:', e, 'raw:', event.data);
+            }
+        };
+
+        ws.onerror = (event) => {
+            console.error('[WS] Error event:', event);
+            console.error('[WS] Error type:', event.type);
+            console.error('[WS] Error message:', event.message);
+            console.error('[WS] Error target:', event.target);
+            console.error('[WS] ReadyState:', ws.readyState);
+        };
+
+        ws.onclose = (event) => {
+            console.log('[WS] Closed:', event.code, event.reason);
+        };
 
         return () => {
-            if (client.connected) client.disconnect(() => { });
+            if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
+                ws.close();
+            }
         };
     }, [symbols]);
 

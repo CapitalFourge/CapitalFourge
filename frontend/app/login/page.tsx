@@ -63,11 +63,7 @@ export default function LoginPage() {
         <section className="flex flex-col justify-between border-b border-white/10 p-8 lg:border-b-0 lg:border-r lg:p-12">
           <div>
             <Link href="/" className="inline-flex items-center gap-3">
-              <img src="/logo.svg" alt="Capital Fourge" className="h-11 w-auto" />
-              <div>
-              <p className="text-sm font-semibold tracking-[0.24em] text-white">CAPITAL FOURGE</p>
-              <p className="text-xs text-slate-400">Where Financial Knowledge Takes Shape.</p>
-              </div>
+              <img src="/logo.svg" alt="Capital Fourge" className="h-16 w-auto" />
             </Link>
 
             <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55 }} className="mt-14 max-w-xl">

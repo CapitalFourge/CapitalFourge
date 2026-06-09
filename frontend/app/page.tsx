@@ -37,7 +37,7 @@ export default function Home() {
       <div className="pointer-events-none absolute left-[-8rem] top-24 h-72 w-72 rounded-full bg-emerald-400/12 blur-[120px]" />
       <div className="pointer-events-none absolute right-[-6rem] top-10 h-80 w-80 rounded-full bg-blue-400/12 blur-[140px]" />
 
-      <div className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col px-6 py-8 lg:px-10">
+      <div className="relative mx-auto flex min-h-screen w-full max-w-8xl flex-col px-4 py-8 lg:px-8">
         <motion.header
           initial={{ opacity: 0, y: -18 }}
           animate={{ opacity: 1, y: 0 }}

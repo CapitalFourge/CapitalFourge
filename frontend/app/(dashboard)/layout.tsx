@@ -56,9 +56,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <aside className="hidden w-[290px] shrink-0 lg:block">
           <div className="sticky top-4 flex h-[calc(100vh-2rem)] flex-col rounded-[2rem] border border-white/10 bg-slate-950/55 p-5 backdrop-blur-2xl">
             <div className="flex items-center gap-3 border-b border-white/10 pb-5">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-300 text-sm font-black text-slate-950">
-                 CF
-              </div>
+              <img src="/logo.svg" alt="Capital Fourge" className="h-12 w-12" />
               <div>
               <p className="text-sm font-semibold tracking-[0.24em] text-white">CAPITAL FOURGE</p>
               <p className="text-xs text-slate-400">Where Financial Knowledge Takes Shape.</p>
@@ -115,6 +113,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="flex min-w-0 flex-1 flex-col">
           <div className="sticky top-4 z-20 mb-4 rounded-[1.5rem] border border-white/10 bg-slate-950/45 px-4 py-3 backdrop-blur-2xl lg:hidden">
             <div className="mb-3 flex items-center justify-between">
+              <img src="/logo.svg" alt="Capital Fourge" className="h-10 w-auto" />
               <div>
                  <p className="text-sm font-semibold tracking-[0.24em] text-white">CAPITAL FOURGE</p>
                  <p className="text-xs text-slate-400">Where Financial Knowledge Takes Shape.</p>

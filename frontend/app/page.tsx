@@ -45,7 +45,7 @@ export default function Home() {
           className="flex items-center justify-between rounded-full border border-white/10 bg-white/[0.04] px-5 py-4 backdrop-blur-xl"
         >
           <div className="flex items-center gap-3">
-            <img src="/icon.png" alt="Capital Fourge" className="h-12 w-auto max-w-[140px] object-contain block leading-none sm:h-16 sm:max-w-[180px]" />
+            <img src="/icon.png" alt="Capital Fourge" className="h-10 w-auto max-w-[120px] object-contain block leading-none sm:h-16 sm:max-w-[180px]" />
           </div>
 
           <div className="flex items-center gap-3">

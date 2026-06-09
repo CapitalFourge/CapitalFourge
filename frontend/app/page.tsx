@@ -44,8 +44,8 @@ export default function Home() {
           transition={{ duration: 0.6 }}
           className="flex items-center justify-between rounded-full border border-white/10 bg-white/[0.04] px-5 py-4 backdrop-blur-xl"
         >
-            <div className="flex items-center gap-3">
-              <img src="/icon.png" alt="Capital Fourge" className="h-20 w-auto" />
+          <div className="flex items-center gap-3">
+            <img src="/icon.png" alt="Capital Fourge" className="h-20 w-auto block leading-none" />
           </div>
 
           <div className="flex items-center gap-3">

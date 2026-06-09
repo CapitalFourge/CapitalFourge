@@ -42,17 +42,17 @@ export default function Home() {
           initial={{ opacity: 0, y: -18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="flex items-center justify-between rounded-full border border-white/10 bg-white/[0.04] px-5 py-4 backdrop-blur-xl"
+          className="flex items-center justify-between rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 backdrop-blur-xl sm:px-5 sm:py-4"
         >
           <div className="flex items-center gap-3">
             <img src="/icon.png" alt="Capital Fourge" className="h-10 w-auto max-w-[120px] object-contain block leading-none sm:h-16 sm:max-w-[180px]" />
           </div>
 
           <div className="flex items-center gap-3">
-            <Button asChild variant="ghost" className="rounded-full border border-white/10 bg-white/[0.03] px-5 text-slate-200 hover:bg-white/[0.08] hover:text-white">
+            <Button asChild variant="ghost" className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs text-slate-200 hover:bg-white/[0.08] hover:text-white sm:px-5 sm:text-sm">
               <Link href="/register">Crear cuenta</Link>
             </Button>
-            <Button asChild className="rounded-full bg-emerald-300 px-5 text-slate-950 hover:bg-emerald-200">
+            <Button asChild className="rounded-full bg-emerald-300 px-3 py-1.5 text-xs text-slate-950 hover:bg-emerald-200 sm:px-5 sm:text-sm">
               <Link href="/login">Ingresar</Link>
             </Button>
           </div>

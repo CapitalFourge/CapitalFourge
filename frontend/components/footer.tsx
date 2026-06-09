@@ -20,7 +20,7 @@ export function Footer() {
               <img
                 src="/logo.svg"
                 alt="Capital Fourge"
-                className="h-14 w-auto"
+                className="h-20 w-auto"
               />
             </Link>
             <p className="mt-4 max-w-sm text-sm leading-7 text-slate-400">

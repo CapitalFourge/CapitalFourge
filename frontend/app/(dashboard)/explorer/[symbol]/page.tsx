@@ -385,8 +385,8 @@ export default function AssetDetailPage() {
               <div className="flex flex-col items-center p-4 bg-white/[0.03] rounded-xl">
                 <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Market Cap</p>
                 <p className="mt-1 text-lg font-semibold text-white">
-                  {latestDailyPoint?.marketCap ? 
-                    `$${latestDailyPoint.marketCap.toLocaleString(undefined)}` : 
+                  {latestFundamental?.marketCap ? 
+                    `$${latestFundamental.marketCap.toLocaleString(undefined)}` : 
                     'N/A'}
                 </p>
               </div>

@@ -45,7 +45,6 @@ export function useRealTimePrice(symbols: string[]) {
         ws.onerror = (event) => {
             console.error('[WS] Error event:', event);
             console.error('[WS] Error type:', event.type);
-            console.error('[WS] Error message:', event.message);
             console.error('[WS] Error target:', event.target);
             console.error('[WS] ReadyState:', ws.readyState);
         };

@@ -371,17 +371,26 @@ export default function AssetDetailPage() {
                </p>
              </div>
              
-             <div className="flex flex-col items-center p-4 bg-white/[0.03] rounded-xl">
-               <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Volumen 24h</p>
-               <p className="mt-1 text-lg font-semibold text-white">
-                 {latestDailyPoint ? 
-                   latestDailyPoint.volume.toLocaleString(undefined) : 
-                   '0'}
-               </p>
-             </div>
-             
-             <div className="flex flex-col items-center p-4 bg-white/[0.03] rounded-xl">
-               <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Posición</p>
+              <div className="flex flex-col items-center p-4 bg-white/[0.03] rounded-xl">
+                <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Volumen 24h</p>
+                <p className="mt-1 text-lg font-semibold text-white">
+                  {latestDailyPoint ? 
+                    latestDailyPoint.volume.toLocaleString(undefined) : 
+                    '0'}
+                </p>
+              </div>
+              
+              <div className="flex flex-col items-center p-4 bg-white/[0.03] rounded-xl">
+                <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Market Cap</p>
+                <p className="mt-1 text-lg font-semibold text-white">
+                  {latestDailyPoint?.marketCap ? 
+                    `$${latestDailyPoint.marketCap.toLocaleString(undefined)}` : 
+                    'N/A'}
+                </p>
+              </div>
+              
+              <div className="flex flex-col items-center p-4 bg-white/[0.03] rounded-xl">
+                <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Posición</p>
                {userPosition ? (
                  <p className="mt-1 text-lg font-semibold text-white">
                    {userPosition.quantity}

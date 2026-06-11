@@ -105,17 +105,23 @@ class FinancialDataServicer(financial_data_pb2_grpc.FinancialDataServiceServicer
         self.oracle = PriceOracle()
 
     def _get_market_cap(self, ticker, info) -> float:
-        for key in ('market_cap', 'marketCap'):
-            value = None
-            if hasattr(ticker, 'fast_info'):
-                try:
-                    value = getattr(ticker.fast_info, key, None)
-                except Exception:
-                    pass
-            if value is None:
-                value = info.get(key)
+        for key in ('marketCap', 'enterpriseValue', 'market_cap', 'totalValue'):
+            value = info.get(key)
             if value is not None and float(value) > 0:
                 return float(value)
+        try:
+            fast = ticker.fast_info
+            for key in ('marketCap', 'enterpriseValue'):
+                try:
+                    value = getattr(fast, key, None)
+                except Exception:
+                    continue
+                if value is not None:
+                    return float(value)
+        except Exception:
+            pass
+        if info.get('shares') and info.get('shares') > 0 and info.get('lastPrice'):
+            return float(info['shares']) * float(info['lastPrice'])
         return 0.0
 
     def GetStockPrice(self, request, context):

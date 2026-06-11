@@ -122,6 +122,7 @@ class FinancialDataServicer(financial_data_pb2_grpc.FinancialDataServiceServicer
             pass
         if info.get('shares') and info.get('shares') > 0 and info.get('lastPrice'):
             return float(info['shares']) * float(info['lastPrice'])
+        print(f"⚠️ marketCap not found for {ticker}: info={info}")
         return 0.0
 
     def GetStockPrice(self, request, context):

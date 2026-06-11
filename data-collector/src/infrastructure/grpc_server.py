@@ -104,6 +104,20 @@ class FinancialDataServicer(financial_data_pb2_grpc.FinancialDataServiceServicer
     def __init__(self):
         self.oracle = PriceOracle()
 
+    def _get_market_cap(self, ticker, info) -> float:
+        for key in ('market_cap', 'marketCap'):
+            value = None
+            if hasattr(ticker, 'fast_info'):
+                try:
+                    value = getattr(ticker.fast_info, key, None)
+                except Exception:
+                    pass
+            if value is None:
+                value = info.get(key)
+            if value is not None and float(value) > 0:
+                return float(value)
+        return 0.0
+
     def GetStockPrice(self, request, context):
         symbol = request.symbol
         print(f"💰 gRPC Request received for: {symbol}")
@@ -145,7 +159,7 @@ class FinancialDataServicer(financial_data_pb2_grpc.FinancialDataServiceServicer
                 'low': float(row['Low']),
                 'close': float(row['Close']),
                 'volume': float(row['Volume']),
-                'market_cap': float(info.get('marketCap', 0)) if info.get('marketCap') else 0.0,
+                'market_cap': self._get_market_cap(ticker, info),
                 'trailing_pe': float(info.get('trailingPE', 0)) if info.get('trailingPE') else 0.0,
                 'forward_pe': float(info.get('forwardPE', 0)) if info.get('forwardPE') else 0.0,
                 'peg_ratio': float(info.get('pegRatio', 0)) if info.get('pegRatio') else 0.0,

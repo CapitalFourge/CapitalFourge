@@ -32,6 +32,9 @@ grpc:
       address: 'static://${GRPC_DATA_COLLECTOR_HOST:localhost}:50051'
       negotiation-type: plaintext
 
+  data-collector:
+    api-key: ${DATA_COLLECTOR_API_KEY:internal-service-key}
+
 jwt:
   secret: "f2c3b4a5d6e7f8g9h0i1j2k3l4m5n6o7p8q9r0s1t2u3v4w5x6y7z8a9b0c1d2e3"
   issuer: "capital-fourge"

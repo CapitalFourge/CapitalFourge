@@ -11,6 +11,13 @@ import org.springframework.stereotype.Service;
 import com.capitalfourge.proto.*;
 
 import net.devh.boot.grpc.client.inject.GrpcClient;
+import io.grpc.CallOptions;
+import io.grpc.Channel;
+import io.grpc.ClientCall;
+import io.grpc.Metadata;
+import io.grpc.MethodDescriptor;
+import io.grpc.ClientInterceptors;
+import io.grpc.ForwardingClientCall;
 
 @Service
 public class GrpcFinancialDataClient {
@@ -19,6 +26,30 @@ public class GrpcFinancialDataClient {
     private FinancialDataServiceGrpc.FinancialDataServiceBlockingStub financialDataClient;
     @Value("${grpc.fallback-assets-enabled:true}")
     private boolean fallbackAssetsEnabled;
+    @Value("${grpc.data-collector.api-key:internal-service-key}")
+    private String dataCollectorApiKey;
+
+    private FinancialDataServiceGrpc.FinancialDataServiceBlockingStub stubWithApiKey() {
+        Channel channel = financialDataClient.getChannel();
+        Metadata additionalHeaders = new Metadata();
+        Metadata.Key<String> key = Metadata.Key.of("x-api-key", Metadata.ASCII_STRING_MARSHALLER);
+        additionalHeaders.put(key, dataCollectorApiKey);
+        Channel interceptedChannel = ClientInterceptors.intercept(channel, new io.grpc.ClientInterceptor() {
+            @Override
+            public <ReqT, RespT> ClientCall<ReqT, RespT> interceptCall(
+                    MethodDescriptor<ReqT, RespT> method, CallOptions callOptions, Channel next) {
+                ClientCall<ReqT, RespT> call = next.newCall(method, callOptions);
+                return new ForwardingClientCall.SimpleForwardingClientCall<ReqT, RespT>(call) {
+                    @Override
+                    public void start(Listener<RespT> responseListener, Metadata headers) {
+                        headers.merge(additionalHeaders);
+                        super.start(responseListener, headers);
+                    }
+                };
+            }
+        });
+        return FinancialDataServiceGrpc.newBlockingStub(interceptedChannel);
+    }
 
     public Double getStockPrice(String symbol) {
         try {
@@ -26,7 +57,7 @@ public class GrpcFinancialDataClient {
                     .setSymbol(symbol)
                     .build();
 
-            StockPriceResponse response = financialDataClient.getStockPrice(request);
+            StockPriceResponse response = stubWithApiKey().getStockPrice(request);
 
             System.out.println("✅ gRPC Response: " + response.getSymbol() + " = " + response.getPrice());
             return response.getPrice();
@@ -42,7 +73,7 @@ public class GrpcFinancialDataClient {
                     .addAllSymbols(symbols)
                     .build();
 
-            BatchStockResponse response = financialDataClient.getBatchPrices(request);
+            BatchStockResponse response = stubWithApiKey().getBatchPrices(request);
 
             return response.getPricesMap();
         } catch (Exception e) {
@@ -58,7 +89,7 @@ public class GrpcFinancialDataClient {
                     .setDays(days)
                     .build();
 
-            HistoryResponse response = financialDataClient.getPriceHistory(request);
+            HistoryResponse response = stubWithApiKey().getPriceHistory(request);
 
             return response.getHistoryList();
         } catch (Exception e) {
@@ -70,7 +101,7 @@ public class GrpcFinancialDataClient {
     public List<Asset> getCategorizedAssets() {
         try {
             EmptyRequest request = EmptyRequest.newBuilder().build();
-            CategorizedAssetsResponse response = financialDataClient.getCategorizedAssets(request);
+            CategorizedAssetsResponse response = stubWithApiKey().getCategorizedAssets(request);
             return response.getAssetsList();
         } catch (Exception e) {
             System.err.println("gRPC Get Categorized Assets Error: " + e.getMessage());
@@ -112,7 +143,7 @@ public class GrpcFinancialDataClient {
     public List<String> getAllAvailableSymbols() {
         try {
             EmptyRequest request = EmptyRequest.newBuilder().build();
-            SymbolsResponse response = financialDataClient.getAvailableSymbols(request);
+            SymbolsResponse response = stubWithApiKey().getAvailableSymbols(request);
             return response.getSymbolsList();
         } catch (Exception e) {
             System.err.println("gRPC Get Symbols Error: " + e.getMessage());
@@ -140,7 +171,7 @@ public class GrpcFinancialDataClient {
                     .setQuery(query)
                     .setLimit(5)
                     .build();
-            CategorizedAssetsResponse response = financialDataClient.searchSymbols(request);
+            CategorizedAssetsResponse response = stubWithApiKey().searchSymbols(request);
             return response.getAssetsList();
         } catch (Exception e) {
             System.err.println("gRPC Search Symbols Error: " + e.getMessage());

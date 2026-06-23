@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { useMemo } from "react";
 import { gql, useQuery } from "@apollo/client";
 import { WelcomeDialog } from "@/components/ui/welcome-dialog";
+import { clearAuthCookie } from "@/lib/auth-cookie";
 
 const navigation = [
   { href: "/dashboard", label: "Resumen", icon: LayoutDashboard },
@@ -94,13 +95,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </div>
               </div>
 
-              <button
-                onClick={() => {
-                  localStorage.removeItem("access_token");
-                  window.location.href = "/";
-                }}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-medium text-slate-200 transition hover:bg-red-500/10 hover:text-red-200"
-              >
+               <button
+                 onClick={() => {
+                   localStorage.removeItem("access_token");
+                   clearAuthCookie();
+                   window.location.href = "/";
+                 }}
+                 className="flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-medium text-slate-200 transition hover:bg-red-500/10 hover:text-red-200"
+               >
                 <LogOut className="h-4 w-4" />
                 Cerrar sesión
               </button>
@@ -114,13 +116,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Link href="/dashboard" className="flex justify-center">
                 <img src="/icon.png" alt="Capital Fourge" className="h-12 w-auto max-w-[140px] object-contain block leading-none" />
               </Link>
-              <button
-                onClick={() => {
-                  localStorage.removeItem("access_token");
-                  window.location.href = "/";
-                }}
-                className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-xs text-slate-200"
-              >
+               <button
+                 onClick={() => {
+                   localStorage.removeItem("access_token");
+                   clearAuthCookie();
+                   window.location.href = "/";
+                 }}
+                 className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-xs text-slate-200"
+               >
                 Salir
               </button>
             </div>

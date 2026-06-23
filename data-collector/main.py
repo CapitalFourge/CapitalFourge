@@ -2,7 +2,8 @@ from typing import Any
 from typing import Dict
 from typing import List
 import os
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends, HTTPException, Security
+from fastapi.security import APIKeyHeader
 from dotenv import load_dotenv
 import threading
 from src.infrastructure.grpc_server import serve
@@ -13,6 +14,14 @@ from src.application.price_oracle import PriceOracle
 
 load_dotenv(dotenv_path="../.env")
 app = FastAPI(title="Capital Fourge Data Collector")
+
+API_KEY = os.getenv("SERVICE_API_KEY", "internal-service-key")
+api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
+
+async def require_api_key(api_key: str = Security(api_key_header)):
+    if api_key != API_KEY:
+        raise HTTPException(status_code=403, detail="Invalid API key")
+    return api_key
 
 # 2. Configurar la Infraestructura (Adaptadores)
 mongo_host = os.getenv("DB_MONGO_HOST", "localhost")
@@ -31,19 +40,19 @@ grpc_thread.start()
 def health_check():
     return {"status": "alive","service": "data_collector"}
 
-@app.post("/collect/batch")
+@app.post("/collect/batch", dependencies=[Depends(require_api_key)])
 def collect_batch(data: List[Dict[str, Any]]):
     count = service.process_and_store_batch(data)
     return {"message": f"Successfully processed and stored {count} records using Polars"}
 
-@app.post("/collect/{symbol}")
+@app.post("/collect/{symbol}", dependencies=[Depends(require_api_key)])
 def collect_data(symbol: str, price: float):
     success = service.collect_and_store(symbol,price)
     if success:
         return {"message": f"Data for {symbol} stored successfully"}
     return {"message": "Failed to store data", "status": 500}
 
-@app.get("/price/{symbol}")
+@app.get("/price/{symbol}", dependencies=[Depends(require_api_key)])
 def sync_price(symbol: str):
     price = oracle.fetch_and_cache(symbol)
     if price > 0:

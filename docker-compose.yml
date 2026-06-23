@@ -59,6 +59,7 @@ services:
             - DB_REDIS_HOST=redis
             - DB_REDIS_PASSWORD=${DB_REDIS_PASSWORD}
             - EIA_API_KEY=Ps3dC17c5iZXwERmnwb4HxIOMkFRaSIeLGk6BdtX
+            - SERVICE_API_KEY=${DATA_COLLECTOR_API_KEY:internal-service-key}
         depends_on:
             mongodb:
                 condition: service_healthy
@@ -94,6 +95,7 @@ services:
             - REDIS_PORT=6379
             - REDIS_PASSWORD=${DB_REDIS_PASSWORD}
             - GRPC_DATA_COLLECTOR_HOST=data-collector
+            - DATA_COLLECTOR_API_KEY=${DATA_COLLECTOR_API_KEY:internal-service-key}
         depends_on:
             postgres:
                 condition: service_healthy

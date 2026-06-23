@@ -11,6 +11,23 @@ from src.application.price_oracle import PriceOracle
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+SERVICE_API_KEY = os.getenv("SERVICE_API_KEY", "internal-service-key")
+
+class AuthInterceptor(grpc.ServerInterceptor):
+    def intercept_service(self, continuation, handler_call_details):
+        metadata = dict(handler_call_details.invocation_metadata)
+        api_key = metadata.get("x-api-key", "")
+        if api_key != SERVICE_API_KEY:
+            def deny(request, context):
+                context.set_code(grpc.StatusCode.PERMISSION_DENIED)
+                context.set_details("Invalid API key")
+                context.abort(grpc.StatusCode.PERMISSION_DENIED, "Invalid API key")
+            handler = continuation(handler_call_details)
+            if handler is not None and handler.unary_unary is not None:
+                return grpc.unary_unary(deny)
+            return handler
+        return continuation(handler_call_details)
+
 @lru_cache(maxsize=32)
 def get_eia_inventory(route: str, series: str = None) -> float:
     api_key = os.getenv("EIA_API_KEY")
@@ -316,7 +333,8 @@ class FinancialDataServicer(financial_data_pb2_grpc.FinancialDataServiceServicer
 
 def serve():
     try:
-        server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+        interceptors = [AuthInterceptor()]
+        server = grpc.server(futures.ThreadPoolExecutor(max_workers=10), interceptors=interceptors)
         financial_data_pb2_grpc.add_FinancialDataServiceServicer_to_server(
             FinancialDataServicer(), server
         )

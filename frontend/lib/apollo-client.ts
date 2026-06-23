@@ -1,5 +1,6 @@
 import { ApolloClient, InMemoryCache, createHttpLink } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
+import { setAuthCookie } from './auth-cookie';
 
 // Function to get the API URI - works on both client and server
 const getApiUri = () => {
@@ -19,6 +20,9 @@ console.log("[DEBUG] Apollo Client configured for:", getApiUri());
 
 const authLink = setContext((_, { headers }) => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+    if (token) {
+      setAuthCookie(token);
+    }
     console.log("[DEBUG] Auth token retrieved:", !!token);
     return {
         headers: {

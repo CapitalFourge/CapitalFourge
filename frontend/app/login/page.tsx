@@ -10,6 +10,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { setAuthCookie } from "@/lib/auth-cookie";
 
 const LOGIN_MUTATION = gql`
   mutation Login($email: String!, $password: String!) {
@@ -40,6 +41,7 @@ export default function LoginPage() {
   const [login, { loading }] = useMutation(LOGIN_MUTATION, {
     onCompleted: (data) => {
       localStorage.setItem("access_token", data.login.token);
+      setAuthCookie(data.login.token);
       toast.success("Bienvenido de nuevo.");
       router.push("/dashboard");
     },

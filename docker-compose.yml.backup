@@ -1,0 +1,107 @@
+services:
+    postgres:
+        image: postgres:15
+        container_name: capital-fourge-postgres
+        environment:
+            POSTGRES_USER: ${DB_POSTGRES_USER}
+            POSTGRES_PASSWORD: ${DB_POSTGRES_PASSWORD}
+            POSTGRES_DB: ${DB_POSTGRES_NAME}
+        ports:
+            - "5433:5432"
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+        healthcheck:
+            test: [ "CMD-SHELL", "pg_isready -U ${DB_POSTGRES_USER} -d ${DB_POSTGRES_NAME}" ]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+    mongodb:
+        image: mongo:latest
+        container_name: capital-fourge-mongodb
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: ${DB_MONGO_ROOT_USER}
+            MONGO_INITDB_ROOT_PASSWORD: ${DB_MONGO_ROOT_PASSWORD}
+        ports:
+            - "27017:27017"
+        volumes:
+            - mongo_data:/data/db
+        healthcheck:
+            test: [ "CMD-SHELL", "mongosh -u ${DB_MONGO_ROOT_USER} -p ${DB_MONGO_ROOT_PASSWORD} --authenticationDatabase admin --eval 'db.hello().isWritablePrimary' --quiet" ]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+    redis:
+        image: redis:latest
+        container_name: capital-fourge-redis
+        ports:
+            - "6379:6379"
+        command: redis-server --requirepass ${DB_REDIS_PASSWORD}
+        healthcheck:
+            test: [ "CMD-SHELL", "redis-cli -a ${DB_REDIS_PASSWORD} ping | grep PONG" ]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+    data-collector:
+        build: ./data-collector
+        container_name: capital-fourge-data-collector
+        ports:
+            - "8000:8000"
+            - "50051:50051"
+        volumes:
+            - ./data-collector:/app
+        command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+        environment:
+            - DB_MONGO_ROOT_PASSWORD=${DB_MONGO_ROOT_PASSWORD}
+            - DB_MONGO_HOST=mongodb
+            - DB_REDIS_HOST=redis
+            - DB_REDIS_PASSWORD=${DB_REDIS_PASSWORD}
+            - EIA_API_KEY=Ps3dC17c5iZXwERmnwb4HxIOMkFRaSIeLGk6BdtX
+        depends_on:
+            mongodb:
+                condition: service_healthy
+
+    frontend:
+        build:
+            context: ./frontend
+            dockerfile: Dockerfile
+        container_name: capital-fourge-frontend
+        ports:
+            - "3000:3000"
+        volumes:
+            - ./frontend:/app
+            - /app/node_modules
+            - /app/.next
+        environment:
+            - NODE_ENV=development
+
+    portfolio-manager:
+        build: 
+            context: .
+            dockerfile: portfolio-manager/Dockerfile
+        container_name: capital-fourge-portfolio-manager
+        ports:
+            - "8080:8080"
+        environment:
+            - DB_HOST=postgres
+            - DB_PORT=5432
+            - DB_NAME=${DB_POSTGRES_NAME}
+            - DB_USER=${DB_POSTGRES_USER}
+            - DB_PASSWORD=${DB_POSTGRES_PASSWORD}
+            - REDIS_HOST=redis
+            - REDIS_PORT=6379
+            - REDIS_PASSWORD=${DB_REDIS_PASSWORD}
+            - GRPC_DATA_COLLECTOR_HOST=data-collector
+        depends_on:
+            postgres:
+                condition: service_healthy
+            redis:
+                condition: service_healthy
+            data-collector:
+                condition: service_started
+
+volumes:
+    postgres_data:
+    mongo_data:

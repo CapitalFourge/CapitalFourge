@@ -1,0 +1,54 @@
+"use client";
+
+import { useEffect, useState } from 'react';
+
+export function useRealTimePrice(symbols: string[]) {
+    const [prices, setPrices] = useState<Record<string, number>>({});
+
+    useEffect(() => {
+        if (symbols.length === 0) return;
+
+        const WS_URL = 'ws://localhost:8000/ws-prices';
+        console.log('[WS] Connecting to', WS_URL, 'for symbols:', symbols);
+
+        const ws = new WebSocket(WS_URL);
+
+        ws.onopen = () => {
+            console.log('[WS] Connected, subscribing to', symbols.length, 'symbols');
+            ws.send(JSON.stringify({ action: 'subscribe', symbols }));
+        };
+
+        ws.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                if (data.type === 'price') {
+                    console.log('[WS] Price update:', data);
+                    setPrices(prev => ({
+                        ...prev,
+                        [data.symbol]: data.price
+                    }));
+                } else {
+                    console.log('[WS] Message:', data);
+                }
+            } catch (e) {
+                console.error('[WS] Error parsing message:', e, 'raw:', event.data);
+            }
+        };
+
+        ws.onerror = (err) => {
+            console.error('[WS] Error:', err);
+        };
+
+        ws.onclose = (event) => {
+            console.log('[WS] Closed:', event.code, event.reason);
+        };
+
+        return () => {
+            if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
+                ws.close();
+            }
+        };
+    }, [symbols]);
+
+    return prices;
+}

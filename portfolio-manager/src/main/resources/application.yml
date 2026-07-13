@@ -1,13 +1,13 @@
 spring:
   application:
     name: portfolio-manager
-  
-  datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:capital_fourge_db}
-    username: ${DB_USER:user}
-    password: ${DB_PASSWORD:mi_super_password_segura}
-    driver-class-name: org.postgresql.Driver
-  
+
+  # datasource:
+  #   url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:capital_fourge_db}
+  #   username: ${DB_USER:user}
+  #   password: ${DB_PASSWORD:mi_super_password_segura}
+  #   driver-class-name: org.postgresql.Driver
+
   jpa:
     hibernate:
       ddl-auto: update
@@ -15,7 +15,7 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-  
+
   data:
     redis:
       host: ${REDIS_HOST:localhost}
@@ -25,15 +25,15 @@ spring:
   graphql:
     graphiql:
       enabled: false
-  
-grpc:
-  client:
-    local-grpc-server:
-      address: 'static://${GRPC_DATA_COLLECTOR_HOST:localhost}:50051'
-      negotiation-type: plaintext
 
-  data-collector:
-    api-key: ${DATA_COLLECTOR_API_KEY:internal-service-key}
+  grpc:
+    client:
+      local-grpc-server:
+        address: 'static://${GRPC_DATA_COLLECTOR_HOST:localhost}:50051'
+        negotiation-type: plaintext
+
+    data-collector:
+      api-key: ${DATA_COLLECTOR_API_KEY:internal-service-key}
 
 jwt:
   secret: "f2c3b4a5d6e7f8g9h0i1j2k3l4m5n6o7p8q9r0s1t2u3v4w5x6y7z8a9b0c1d2e3"

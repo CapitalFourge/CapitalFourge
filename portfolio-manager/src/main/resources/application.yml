@@ -40,3 +40,5 @@ jwt:
   issuer: "capital-fourge"
   access-expiration-ms: 3600000
   refresh-expiration-ms: 604800000
+server:
+  port: ${PORT:8080}

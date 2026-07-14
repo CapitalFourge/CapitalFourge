@@ -16,29 +16,35 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:}
+
   data:
-#     redis:
-#       host: ${REDIS_HOST:localhost}
-#       port: ${REDIS_PORT:6379}
-#       password: ${REDIS_PASSWORD:mi_redis_pass_seguro}
+    # redis:
+    #   host: ${REDIS_HOST:localhost}
+    #   port: ${REDIS_PORT:6379}
+    #   password: ${REDIS_PASSWORD:mi_redis_pass_seguro}
 
-#   graphql:
-#     graphiql:
-#       enabled: false
+  graphql:
+    graphiql:
+      enabled: false
 
-#   grpc:
-#     client:
-#       local-grpc-server:
-#         address: 'static://${GRPC_DATA_COLLECTOR_HOST:localhost}:50051'
-#         negotiation-type: plaintext
+  grpc:
+    client:
+      local-grpc-server:
+        address: 'static://${GRPC_DATA_COLLECTOR_HOST:localhost}:50051'
+        negotiation-type: plaintext
 
-#     data-collector:
-#       api-key: ${DATA_COLLECTOR_API_KEY:internal-service-key}
+    data-collector:
+      api-key: ${DATA_COLLECTOR_API_KEY:internal-service-key}
 
-jwt:
-  secret: "f2c3b4a5d6e7f8g9h0i1j2k3l4m5n6o7p8q9r0s1t2u3v4w5x6y7z8a9b0c1d2e3"
-  issuer: "capital-fourge"
-  access-expiration-ms: 3600000
-  refresh-expiration-ms: 604800000
+  jwt:
+    secret: "f2c3b4a5d6e7f8g9h0i1j2k3l4m5n6o7p8q9r0s1t2u3v4w5x6y7z8a9b0c1d2e3"
+    issuer: "capital-fourge"
+    access-expiration-ms: 3600000
+    refresh-expiration-ms: 604800000
+
 server:
   port: ${PORT:8080}

@@ -104,3 +104,4 @@ services:
 volumes:
     postgres_data:
     mongo_data:
+# Trivial change to trigger rebuild

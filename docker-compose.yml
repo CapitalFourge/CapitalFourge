@@ -91,9 +91,6 @@ services:
             - DB_NAME=${DB_POSTGRES_NAME}
             - DB_USER=${DB_POSTGRES_USER}
             - DB_PASSWORD=${DB_POSTGRES_PASSWORD}
-            - REDIS_HOST=redis
-            - REDIS_PORT=6379
-            - REDIS_PASSWORD=${DB_REDIS_PASSWORD}
             - GRPC_DATA_COLLECTOR_HOST=data-collector
             - DATA_COLLECTOR_API_KEY=${DATA_COLLECTOR_API_KEY:-internal-service-key}
         depends_on:

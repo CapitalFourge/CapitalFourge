@@ -1,30 +1,27 @@
 package com.capitalfourge.portfoliomanager.infrastructure.config;
 
-import org.springframework.context.annotation.Bean;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.connection.MessageListener;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.listener.ChannelTopic;
-import org.springframework.data.redis.listener.RedisMessageListenerContainer;
-import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
-
-import com.capitalfourge.portfoliomanager.application.services.RedisPriceListener;
+import org.springframework.context.annotation.PostConstruct;
 
 @Configuration
 public class RedisConfig {
 
-    @Bean
-    RedisMessageListenerContainer container(RedisConnectionFactory connectionFactory,
-            MessageListenerAdapter listenerAdapter) {
-        RedisMessageListenerContainer container = new RedisMessageListenerContainer();
+    @Value("${spring.redis.url}")
+    private String redisUrl;
 
-        container.addMessageListener(listenerAdapter, new ChannelTopic("market.prices"));
-        container.setConnectionFactory(connectionFactory);
-        return container;
+    @PostConstruct
+    public void logRedisUrl() {
+        System.out.println("[DEBUG] Spring Redis URL configured: " + redisUrl);
     }
 
     @Bean
-    MessageListenerAdapter listenerAdapter(RedisPriceListener receiver) {
-        return new MessageListenerAdapter(receiver, "handlePriceUpdate");
+    org.springframework.data.redis.connection.RedisConnectionFactory redisConnectionFactory(org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory factory) {
+        return factory;
+    }
+
+    @Bean
+    org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory lettuceConnectionFactory(@Value("${spring.redis.url}") String url) {
+        return new org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory(url);
     }
 }

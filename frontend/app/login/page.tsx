@@ -38,41 +38,24 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const router = useRouter();
 
-  const [login, { loading, error }] = useMutation(LOGIN_MUTATION, {
+  const [login, { loading }] = useMutation(LOGIN_MUTATION, {
     onCompleted: (data) => {
-      console.log("[Login] ✅ onCompleted called", JSON.stringify(data, null, 2));
       localStorage.setItem("access_token", data.login.token);
       toast.success("Bienvenido de nuevo.");
       router.push("/dashboard");
     },
     onError: (error) => {
-      console.error("[Login] ❌ onError", error);
       toast.error(`Error al iniciar sesión: ${error.message}`);
     },
   });
 
-  console.log("[Login] 🔄 Component render", { loading, email: !!email, password: !!password });
-
-  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    console.log("[Login] 🖱️ handleClick fired", { email, password: !!password, loading });
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     e.stopPropagation();
-
-    if (!email || !password) {
-      console.warn("[Login] ⚠️ Missing credentials");
-      toast.error("Completa email y contraseña");
-      return;
-    }
-
-    console.log("[Login] 🚀 Calling login mutation", { email });
-    login({ variables: { email, password } });
   };
 
-  // También protegemos el submit nativo por si acaso
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    console.log("[Login] 🛑 Native form submit intercepted");
-    e.preventDefault();
-    e.stopPropagation();
+  const handleClick = () => {
+    login({ variables: { email, password } });
   };
 
   return (
@@ -124,18 +107,14 @@ export default function LoginPage() {
                 </p>
               </div>
 
-              {/* Formulario SIN onSubmit nativo */}
-              <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+              <form className="mt-8 space-y-5" onSubmit={(e) => e.preventDefault()}>
                 <div className="space-y-2">
                   <label className="text-xs font-medium uppercase tracking-[0.24em] text-slate-400">Correo</label>
                   <Input
                     type="email"
                     placeholder="analista@firma.com"
                     value={email}
-                    onChange={(event) => {
-                      console.log("[Login] 📧 Email changed", event.target.value);
-                      setEmail(event.target.value);
-                    }}
+                    onChange={(event) => setEmail(event.target.value)}
                     className="h-14 rounded-2xl border-white/10 bg-white/[0.04] px-4 text-white placeholder:text-slate-500"
                     required
                     autoComplete="email"
@@ -148,21 +127,17 @@ export default function LoginPage() {
                     type="password"
                     placeholder="••••••••"
                     value={password}
-                    onChange={(event) => {
-                      console.log("[Login] 🔑 Password changed (length:", event.target.value.length, ")");
-                      setPassword(event.target.value);
-                    }}
+                    onChange={(event) => setPassword(event.target.value)}
                     className="h-14 rounded-2xl border-white/10 bg-white/[0.04] px-4 text-white placeholder:text-slate-500"
                     required
                     autoComplete="current-password"
                   />
                 </div>
 
-                {/* Botón type="button" + onClick manual */}
                 <Button
                   type="button"
                   disabled={loading}
-                  onClick={handleClick}
+                  onClick={() => login({ variables: { email, password } })}
                   className="h-14 w-full rounded-2xl bg-emerald-300 text-sm font-semibold text-slate-950 hover:bg-emerald-200"
                 >
                   {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Ingresar"}

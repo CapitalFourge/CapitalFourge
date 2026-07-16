@@ -40,12 +40,14 @@ export default function LoginPage() {
 
   const [login, { loading }] = useMutation(LOGIN_MUTATION, {
     onCompleted: (data) => {
+      console.log("[Login] ✅ Mutación completada", data);
       localStorage.setItem("access_token", data.login.token);
-      // setAuthCookie(data.login.token); // descomenta si usas cookie
+      // setAuthCookie(data.login.token);
       toast.success("Bienvenido de nuevo.");
       router.push("/dashboard");
     },
     onError: (error) => {
+      console.error("[Login] ❌ Error en mutación", error);
       toast.error(`Error al iniciar sesión: ${error.message}`);
     },
   });
@@ -53,8 +55,11 @@ export default function LoginPage() {
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log("[Login] click handler fired");
-    // Dispara la mutación manualmente
+    console.log("[Login] 👉 Click handler ejecutado, email:", email);
+    if (!email || !password) {
+      toast.error("Completa email y contraseña");
+      return;
+    }
     login({ variables: { email, password } });
   };
 

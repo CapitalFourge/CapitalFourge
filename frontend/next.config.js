@@ -12,3 +12,4 @@ const nextConfig = {
 };
 
 module.exports = nextConfig;// force redeploy Thu Jul 16 15:55:38 UTC 2026
+// force clean build Thu Jul 16 16:03:57 UTC 2026

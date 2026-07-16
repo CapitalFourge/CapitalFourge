@@ -2,12 +2,6 @@ spring:
   application:
     name: portfolio-manager
 
-  # datasource:
-  #   url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:capital_fourge_db}
-  #   username: ${DB_USER:user}
-  #   password: ${DB_PASSWORD:mi_super_password_segura}
-  #   driver-class-name: org.postgresql.Driver
-
   jpa:
     hibernate:
       ddl-auto: update
@@ -19,21 +13,18 @@ spring:
   redis:
     url: ${SPRING_REDIS_URL}
 
-  data:
-    # redis:
-    #   host: ${REDIS_HOST:localhost}
-    #   port: ${REDIS_PORT:6379}
-    #   password: ${REDIS_PASSWORD:mi_redis_pass_seguro}
-
   graphql:
     graphiql:
       enabled: false
 
   grpc:
     client:
-      local-grpc-server:
-        address: 'static://${GRPC_DATA_COLLECTOR_HOST:localhost}:50051'
-        negotiation-type: plaintext
+      data-collector:
+        address: 'static://${GRPC_DATA_COLLECTOR_HOST:localhost}:${GRPC_DATA_COLLECTOR_PORT:50051}'
+        negotiation-type: ${GRPC_NEGOTIATION_TYPE:plaintext}
+        # enable TLS for Render external URLs
+        # negotiation-type: ${GRPC_NEGOTIATION_TYPE:plaintext}
+        # trust-cert-collection: classpath:certs/ca.pem (if needed)
 
     data-collector:
       api-key: ${DATA_COLLECTOR_API_KEY:internal-service-key}

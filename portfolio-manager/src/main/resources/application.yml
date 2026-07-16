@@ -19,12 +19,9 @@ spring:
 
   grpc:
     client:
-      data-collector:
+      local-grpc-server:
         address: 'static://${GRPC_DATA_COLLECTOR_HOST:localhost}:${GRPC_DATA_COLLECTOR_PORT:50051}'
         negotiation-type: ${GRPC_NEGOTIATION_TYPE:plaintext}
-        # enable TLS for Render external URLs
-        # negotiation-type: ${GRPC_NEGOTIATION_TYPE:plaintext}
-        # trust-cert-collection: classpath:certs/ca.pem (if needed)
 
     data-collector:
       api-key: ${DATA_COLLECTOR_API_KEY:internal-service-key}

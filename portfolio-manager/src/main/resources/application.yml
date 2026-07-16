@@ -19,9 +19,12 @@ spring:
 
   grpc:
     client:
-      local-grpc-server:
+      data-collector:
         address: 'static://${GRPC_DATA_COLLECTOR_HOST:localhost}:${GRPC_DATA_COLLECTOR_PORT:50051}'
         negotiation-type: ${GRPC_NEGOTIATION_TYPE:plaintext}
+    # Disable gRPC server - we only need gRPC client
+    server:
+      enabled: false
 
     data-collector:
       api-key: ${DATA_COLLECTOR_API_KEY:internal-service-key}

@@ -33,10 +33,24 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:3000", "http://132.145.205.0:3000"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        
+        // Allow specific origins - add your Vercel domains here
+        config.setAllowedOrigins(List.of(
+            "http://localhost:3000",
+            "http://132.145.205.0:3000",
+            "https://capital-fourge-indol.vercel.app",  // Production Vercel
+            "https://capital-fourge-git-qa-fourgecapital-7709s-projects.vercel.app",  // QA Preview
+            "https://capital-fourge-git-main-fourgecapital-7709s-projects.vercel.app"  // Main Preview
+        ));
+        
+        // For preview deployments, you can also use pattern matching
+        // config.setAllowedOriginPatterns(List.of("https://capital-fourge-*.vercel.app"));
+        
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
+        config.setMaxAge(3600L); // Cache preflight for 1 hour
+        
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;

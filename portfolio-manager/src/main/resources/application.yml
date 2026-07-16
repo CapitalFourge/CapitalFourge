@@ -37,10 +37,16 @@ server:
   address: 0.0.0.0
 
 management:
+  server:
+    port: ${PORT:10000}
+    address: 0.0.0.0
   endpoints:
     web:
       exposure:
         include: health
+      base-path: /
   endpoint:
     health:
       show-details: always
+      probes:
+        enabled: true

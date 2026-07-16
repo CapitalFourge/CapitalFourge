@@ -22,7 +22,7 @@ import io.grpc.ForwardingClientCall;
 @Service
 public class GrpcFinancialDataClient {
 
-    @GrpcClient("local-grpc-server")
+    @GrpcClient("data-collector")
     private FinancialDataServiceGrpc.FinancialDataServiceBlockingStub financialDataClient;
     @Value("${grpc.fallback-assets-enabled:true}")
     private boolean fallbackAssetsEnabled;

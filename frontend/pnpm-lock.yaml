@@ -68,6 +68,9 @@ importers:
       tailwind-merge:
         specifier: ^3.4.0
         version: 3.5.0
+      technicalindicators:
+        specifier: ^3.1.0
+        version: 3.1.0
       three:
         specifier: ^0.182.0
         version: 0.182.0
@@ -1412,6 +1415,9 @@ packages:
 
   '@types/node@20.19.39':
     resolution: {integrity: sha512-orrrD74MBUyK8jOAD/r0+lfa1I2MO6I+vAkmAWzMYbCcgrN4lCrmK52gRFQq/JRxfYPfonkr4b0jcY7Olqdqbw==}
+
+  '@types/node@6.14.13':
+    resolution: {integrity: sha512-J1F0XJ/9zxlZel5ZlbeSuHW2OpabrUAqpFuC2sm2I3by8sERQ8+KCjNKUcq8QHuzpGMWiJpo9ZxeHrqrP2KzQw==}
 
   '@types/offscreencanvas@2019.7.3':
     resolution: {integrity: sha512-ieXiYmgSRXUDeOntE1InxjWyvEelZGP63M+cGuquuRLuIKKT1osnkXjxev9B7d1nXSug5vpunx+gNlbVxMlC9A==}
@@ -2943,6 +2949,7 @@ packages:
   recharts@2.15.4:
     resolution: {integrity: sha512-UT/q6fwS3c1dHbXv2uFgYJ9BMFHu3fwnd7AYZaEQhXuYQ4hgsxLvsUXzGdKeZrW5xopzDCvuA2N41WJ88I7zIw==}
     engines: {node: '>=14'}
+    deprecated: 1.x and 2.x branches are no longer active. Bump to Recharts v3 to receive latest features and bugfixes. See https://github.com/recharts/recharts/wiki/3.0-migration-guide
     peerDependencies:
       react: ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
       react-dom: ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
@@ -3165,6 +3172,9 @@ packages:
   tapable@2.3.2:
     resolution: {integrity: sha512-1MOpMXuhGzGL5TTCZFItxCc0AARf1EZFQkGqMm7ERKj8+Hgr5oLvJOVFcC+lRmR8hCe2S3jC4T5D7Vg/d7/fhA==}
     engines: {node: '>=6'}
+
+  technicalindicators@3.1.0:
+    resolution: {integrity: sha512-f16mOc+Y05hNy/of+UbGxhxQQmxUztCiluhsqC5QLUYz4WowUgKde9m6nIjK1Kay0wGHigT0IkOabpp0+22UfA==}
 
   three-mesh-bvh@0.8.3:
     resolution: {integrity: sha512-4G5lBaF+g2auKX3P0yqx+MJC6oVt6sB5k+CchS6Ob0qvH0YIhuUk1eYr7ktsIpY+albCqE80/FVQGV190PmiAg==}
@@ -4739,6 +4749,8 @@ snapshots:
   '@types/node@20.19.39':
     dependencies:
       undici-types: 6.21.0
+
+  '@types/node@6.14.13': {}
 
   '@types/offscreencanvas@2019.7.3': {}
 
@@ -6732,6 +6744,10 @@ snapshots:
   tailwindcss@4.2.2: {}
 
   tapable@2.3.2: {}
+
+  technicalindicators@3.1.0:
+    dependencies:
+      '@types/node': 6.14.13
 
   three-mesh-bvh@0.8.3(three@0.182.0):
     dependencies:

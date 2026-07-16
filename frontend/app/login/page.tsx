@@ -41,7 +41,7 @@ export default function LoginPage() {
   const [login, { loading }] = useMutation(LOGIN_MUTATION, {
     onCompleted: (data) => {
       localStorage.setItem("access_token", data.login.token);
-      setAuthCookie(data.login.token);
+      // setAuthCookie(data.login.token); // descomenta si usas cookie
       toast.success("Bienvenido de nuevo.");
       router.push("/dashboard");
     },
@@ -50,8 +50,11 @@ export default function LoginPage() {
     },
   });
 
-  const handleSubmit = (event: React.FormEvent) => {
-    event.preventDefault();
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log("[Login] click handler fired");
+    // Dispara la mutación manualmente
     login({ variables: { email, password } });
   };
 
@@ -62,42 +65,39 @@ export default function LoginPage() {
       <div className="pointer-events-none absolute right-0 top-0 h-72 w-72 rounded-full bg-blue-400/14 blur-[140px]" />
 
       <div className="relative mx-auto grid min-h-[calc(100vh-3rem)] max-w-6xl overflow-hidden rounded-[2rem] border border-white/10 bg-slate-950/45 backdrop-blur-2xl lg:grid-cols-[1.05fr_0.95fr]">
+        {/* Panel izquierdo */}
         <section className="flex flex-col justify-between border-b border-white/10 p-8 lg:border-b-0 lg:border-r lg:p-12">
           <div>
             <Link href="/" className="inline-flex items-center gap-3">
               <img src="/icon.png" alt="Capital Fourge" className="h-10 w-[120px] object-contain sm:h-16 sm:w-[180px]" />
             </Link>
 
-            <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55 }} className="mt-14 max-w-xl">
-                 <p className="eyebrow">Acceso seguro</p>
-               <h1 className="mt-4 text-5xl font-semibold tracking-[-0.05em] text-white md:text-6xl">
-                 Aprende, practica y domina la inversión con un workspace <span className="text-gradient">sin riesgo</span>.
+            <motion.div initial={{ opacity: 0, x: -18 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.55 }} className="mt-14 max-w-xl">
+              <p className="eyebrow">Acceso seguro</p>
+              <h1 className="mt-4 text-5xl font-semibold tracking-[-0.05em] text-white md:text-6xl">
+                Aprende, practica y domina la inversión con un workspace <span className="text-gradient">sin riesgo</span>.
               </h1>
               <p className="mt-5 text-base leading-8 text-slate-300">
                 Inicia sesión para continuar en un entorno diseñado para seguimiento patrimonial, lectura táctica y ejecución con menos fricción visual.
               </p>
             </motion.div>
-          </div>
 
-          <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55, delay: 0.1 }} className="grid gap-4">
-            {trustSignals.map((signal) => (
-              <div key={signal} className="panel-muted flex items-center gap-4 px-5 py-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-300/10 text-emerald-200">
-                  <ShieldCheck className="h-5 w-5" />
+            <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55, delay: 0.1 }} className="grid gap-4">
+              {trustSignals.map((signal) => (
+                <div key={signal} className="panel-muted flex items-center gap-4 px-5 py-4">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-300/10 text-emerald-200">
+                    <ShieldCheck className="h-5 w-5" />
+                  </div>
+                  <p className="text-sm text-slate-300">{signal}</p>
                 </div>
-                <p className="text-sm text-slate-300">{signal}</p>
-              </div>
-            ))}
-          </motion.div>
+              ))}
+            </motion.div>
+          </div>
         </section>
 
+        {/* Panel derecho - Formulario */}
         <section className="flex items-center p-6 sm:p-8 lg:p-12">
-          <motion.div
-            initial={{ opacity: 0, x: 16 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.55, delay: 0.12 }}
-            className="w-full"
-          >
+          <motion.div initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.55, delay: 0.12 }} className="w-full">
             <div className="panel mx-auto max-w-md p-7 sm:p-8">
               <div>
                 <p className="eyebrow">Inicio de sesión</p>
@@ -107,7 +107,8 @@ export default function LoginPage() {
                 </p>
               </div>
 
-              <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+              {/* Formulario SIN onSubmit nativo */}
+              <form className="mt-8 space-y-5">
                 <div className="space-y-2">
                   <label className="text-xs font-medium uppercase tracking-[0.24em] text-slate-400">Correo</label>
                   <Input
@@ -117,6 +118,7 @@ export default function LoginPage() {
                     onChange={(event) => setEmail(event.target.value)}
                     className="h-14 rounded-2xl border-white/10 bg-white/[0.04] px-4 text-white placeholder:text-slate-500"
                     required
+                    autoComplete="email"
                   />
                 </div>
 
@@ -129,11 +131,15 @@ export default function LoginPage() {
                     onChange={(event) => setPassword(event.target.value)}
                     className="h-14 rounded-2xl border-white/10 bg-white/[0.04] px-4 text-white placeholder:text-slate-500"
                     required
+                    autoComplete="current-password"
                   />
                 </div>
 
+                {/* Botón type="button" + onClick manual */}
                 <Button
+                  type="button"
                   disabled={loading}
+                  onClick={handleClick}
                   className="h-14 w-full rounded-2xl bg-emerald-300 text-sm font-semibold text-slate-950 hover:bg-emerald-200"
                 >
                   {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Ingresar"}

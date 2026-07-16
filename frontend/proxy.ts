@@ -1,11 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const PUBLIC_PATHS = ["/", "/login", "/register"];
+const PUBLIC_PATHS = [
+  "/",
+  "/login",
+  "/register",
+];
+
+// Rutas que empiezan con estos prefijos son públicas
+const PUBLIC_PREFIXES = [
+  "/api/auth",
+  "/share/",
+  "/_next/",
+  "/static/",
+  "/favicon.ico",
+];
 
 function isPublicPath(pathname: string): boolean {
   if (PUBLIC_PATHS.includes(pathname)) return true;
-  if (pathname.startsWith("/share/")) return true;
-  return false;
+  return PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 }
 
 export function proxy(request: NextRequest) {

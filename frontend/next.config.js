@@ -11,4 +11,4 @@ const nextConfig = {
   experimental: {},
 };
 
-module.exports = nextConfig;
+module.exports = nextConfig;// force redeploy Thu Jul 16 15:55:38 UTC 2026

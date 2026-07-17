@@ -28,9 +28,24 @@ MOCK_PRICES = {
     'PF': 1250.00, 'CEMEX': 890.00,
 }
 
+# Symbols that should NOT have suffixes tried (already have standard format)
+NO_SUFFIX_PATTERNS = (
+    '-USD', '-EUR', '-GBP',  # Crypto
+    '=F', '=X',              # Commodities, Forex
+)
+
 def resolve_yfinance_symbol(symbol: str):
+    """Resolve symbol for yfinance - avoid adding suffixes to known formats"""
+    # 1. Colombian stocks
     if symbol in COLOMBIAN_MAP:
         return COLOMBIAN_MAP[symbol]
+    
+    # 2. Don't try suffixes for symbols that already have standard format
+    for pattern in NO_SUFFIX_PATTERNS:
+        if symbol.endswith(pattern):
+            return symbol
+    
+    # 3. For regular stocks, try LATAM suffixes
     for s in LATAM_SUFFIXES:
         try:
             t = yf.Ticker(symbol + s)
@@ -38,6 +53,8 @@ def resolve_yfinance_symbol(symbol: str):
                 return symbol + s
         except Exception:
             continue
+    
+    # 4. Return original symbol
     return symbol
 
 class PriceOracle:
@@ -47,11 +64,10 @@ class PriceOracle:
         self.r = redis.Redis(host=host, port=6379, password=password, db=0, decode_responses=True)
 
     def _get_mock_price(self, symbol: str) -> float:
-        """Get mock price for fallback"""
-        # Try exact match first
+        """Get mock price for fallback - try exact match first"""
         if symbol in MOCK_PRICES:
             return MOCK_PRICES[symbol]
-        # Try base symbol (without suffix)
+        # Try base symbol (for suffixed symbols like BTC-USD.BOG -> BTC-USD)
         base = symbol.split('.')[0].split('-')[0].split('=')[0]
         if base in MOCK_PRICES:
             return MOCK_PRICES[base]
@@ -60,12 +76,12 @@ class PriceOracle:
 
     def fetch_and_cache(self, symbol: str):
         try:
-            symbol = resolve_yfinance_symbol(symbol)
-            ticker = yf.Ticker(symbol)
+            resolved_symbol = resolve_yfinance_symbol(symbol)
+            ticker = yf.Ticker(resolved_symbol)
             fast_info = ticker.fast_info
             if fast_info is None:
-                print(f"Oracle Warning: fast_info is None for {symbol}")
-                return self._get_mock_price(symbol)
+                print(f"Oracle Warning: fast_info is None for {resolved_symbol}")
+                return self._get_mock_price(symbol)  # Use original symbol for mock lookup
             
             price = fast_info.get('last_price')
             if price is None:
@@ -77,15 +93,15 @@ class PriceOracle:
                     price = None
             
             if price is None:
-                print(f"Oracle Warning: Could not fetch price for {symbol}")
-                return self._get_mock_price(symbol)
+                print(f"Oracle Warning: Could not fetch price for {resolved_symbol}")
+                return self._get_mock_price(symbol)  # Use original symbol for mock lookup
             
             price = float(price)
-            # Cache in Redis
+            # Cache in Redis using resolved symbol
             try:
-                self.r.set(f"price:{symbol}", price, ex=300)
+                self.r.set(f"price:{resolved_symbol}", price, ex=300)
                 update_msg = {
-                    "symbol": symbol,
+                    "symbol": resolved_symbol,
                     "price": price,
                     "timestamp": datetime.now().isoformat()
                 }

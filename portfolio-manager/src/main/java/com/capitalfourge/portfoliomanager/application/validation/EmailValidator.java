@@ -34,12 +34,13 @@ public class EmailValidator {
         "mytemp.email", "mytempemail.com", "tempemail.com", "tempemail.net"
     );
 
-    // Suspicious patterns (bot-like usernames) - matches at START of email
+    // Suspicious patterns (bot-like usernames) - matches at START of email, 
+    // only if the suspicious word is the COMPLETE local part (optionally with numbers)
     private static final Pattern BOT_PATTERN = Pattern.compile(
-        "^(test|admin|root|info|support|sales|noreply|no-reply|bot|user|demo|sample|temp|fake|dummy|noreply)[0-9]*@"
+        "^(test|admin|root|info|support|sales|noreply|no-reply|bot|demo|sample|temp|fake|dummy|noreply)[0-9]*@"
     );
 
-    // Suspicious exact local parts
+    // Suspicious exact local parts (complete match)
     private static final Set<String> SUSPICIOUS_LOCAL_PARTS = Set.of(
         "test", "fake", "dummy", "temp", "trash", "spam", "bot", "admin", "root"
     );
@@ -93,7 +94,8 @@ public class EmailValidator {
             return ValidationResult.invalid("No se permiten correos temporales o desechables");
         }
 
-        // 6. Block suspicious bot-like patterns at START of email (use find, not matches!)
+        // 6. Block suspicious bot-like patterns at START of email
+        // (only matches if suspicious word is the complete local part optionally followed by numbers)
         if (BOT_PATTERN.matcher(normalized).find()) {
             return ValidationResult.invalid("El correo parece generado automáticamente");
         }
@@ -103,7 +105,7 @@ public class EmailValidator {
             return ValidationResult.invalid("El correo parece generado automáticamente");
         }
 
-        // 7b. Block suspicious local parts that START with these words
+        // 7b. Block suspicious local parts that START with these words + numbers only
         if (localPart.matches("^(test|fake|dummy|temp|trash|spam|bot|admin|root)[0-9]*$")) {
             return ValidationResult.invalid("El correo parece generado automáticamente");
         }

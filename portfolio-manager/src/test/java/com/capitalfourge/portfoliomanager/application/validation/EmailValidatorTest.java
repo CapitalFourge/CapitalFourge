@@ -30,7 +30,7 @@ class EmailValidatorTest {
         @DisplayName("Should accept emails with subdomains")
         void shouldAcceptSubdomains() {
             assertTrue(validator.validate("user@mail.empresa.com").valid());
-            assertTrue(validator.validate("test@sub.domain.org").valid());
+            assertTrue(validator.validate("usuario@sub.domain.org").valid());
         }
 
         @Test

@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -21,6 +22,7 @@ import com.capitalfourge.portfoliomanager.application.ports.in.UserUseCase;
 import com.capitalfourge.portfoliomanager.application.ports.out.TokenRepository;
 import com.capitalfourge.portfoliomanager.application.ports.out.TokenService;
 import com.capitalfourge.portfoliomanager.application.ports.out.UserRepository;
+import com.capitalfourge.portfoliomanager.application.validation.EmailValidator;
 import com.capitalfourge.portfoliomanager.domain.Role;
 import com.capitalfourge.portfoliomanager.domain.User;
 
@@ -34,11 +36,18 @@ public class UserService implements UserUseCase {
     private final TokenService tokenService;
     private final TokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailValidator emailValidator;
 
     private static final long REFRESH_TTL_SECONDS = 60L * 60L * 24L * 7L;
 
     @Override
     public AuthResult register(RegisterCommand command) {
+        // Validate email
+        EmailValidator.ValidationResult emailValidation = emailValidator.validate(command.getEmail());
+        if (!emailValidation.valid()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, emailValidation.reason());
+        }
+
         if (userRepository.existsByEmail(command.getEmail())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Este correo ya está registrado");
         }
@@ -70,6 +79,12 @@ public class UserService implements UserUseCase {
 
     @Override
     public AuthResult login(LoginCommand command) {
+        // Validate email format
+        EmailValidator.ValidationResult emailValidation = emailValidator.validate(command.getEmail());
+        if (!emailValidation.valid()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Credenciales inválidas");
+        }
+
         User user = userRepository.findByEmail(command.getEmail())
                 .orElseThrow(() -> new RuntimeException("Invalid credentials"));
 
@@ -149,13 +164,10 @@ public class UserService implements UserUseCase {
 
     @Override
     public void deactivate(UUID userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        user.setActive(false);
-        userRepository.save(user);
-
-        refreshTokenRepository.deleteByUserId(userId);
+        userRepository.findById(userId).ifPresent(user -> {
+            user.setActive(false);
+            userRepository.save(user);
+        });
     }
 
     @Override
@@ -164,26 +176,32 @@ public class UserService implements UserUseCase {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         if (!passwordEncoder.matches(command.getCurrentPassword(), user.getPassword())) {
-            throw new RuntimeException("Invalid current password");
+            throw new RuntimeException("Current password is incorrect");
         }
 
         user.setPassword(passwordEncoder.encode(command.getNewPassword()));
         userRepository.save(user);
-
         refreshTokenRepository.deleteByUserId(user.getId());
     }
 
     @Override
     public void changeEmail(ChangeEmailCommand command) {
-        if (userRepository.existsByEmail(command.getNewEmail())) {
-            throw new RuntimeException("Email already in use");
+        // Validate new email
+        EmailValidator.ValidationResult emailValidation = emailValidator.validate(command.getNewEmail());
+        if (!emailValidation.valid()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, emailValidation.reason());
         }
 
         User user = userRepository.findById(command.getUserId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        if (userRepository.existsByEmail(command.getNewEmail())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Este correo ya está registrado");
+        }
+
         user.setEmail(command.getNewEmail());
         userRepository.save(user);
+        refreshTokenRepository.deleteByUserId(user.getId());
     }
 
     @Override
@@ -194,44 +212,38 @@ public class UserService implements UserUseCase {
         if (username != null && !username.isBlank()) {
             user.setUsername(username);
         }
-
-        if (email != null && !email.isBlank() && !email.equalsIgnoreCase(user.getEmail())) {
+        if (email != null && !email.isBlank()) {
+            EmailValidator.ValidationResult emailValidation = emailValidator.validate(email);
+            if (!emailValidation.valid()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, emailValidation.reason());
+            }
             if (userRepository.existsByEmail(email)) {
-                throw new RuntimeException("Email already in use");
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Este correo ya está registrado");
             }
             user.setEmail(email);
         }
-
         if (language != null && !language.isBlank()) {
             user.setLanguage(language);
         }
-
         return userRepository.save(user);
     }
 
     @Override
-    public User deposit(UUID userId, java.math.BigDecimal amount) {
+    public User deposit(UUID userId, BigDecimal amount) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-
-        java.math.BigDecimal current = user.getCashBalance() != null ? user.getCashBalance()
-                : java.math.BigDecimal.ZERO;
-        user.setCashBalance(current.add(amount));
+        user.setCashBalance(user.getCashBalance().add(amount));
         return userRepository.save(user);
     }
 
     @Override
-    public User withdraw(UUID userId, java.math.BigDecimal amount) {
+    public User withdraw(UUID userId, BigDecimal amount) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-
-        java.math.BigDecimal current = user.getCashBalance() != null ? user.getCashBalance()
-                : java.math.BigDecimal.ZERO;
-        if (current.compareTo(amount) < 0) {
-            throw new RuntimeException("Insufficient global balance");
+        if (user.getCashBalance().compareTo(amount) < 0) {
+            throw new RuntimeException("Insufficient balance");
         }
-
-        user.setCashBalance(current.subtract(amount));
+        user.setCashBalance(user.getCashBalance().subtract(amount));
         return userRepository.save(user);
     }
 
@@ -254,7 +266,6 @@ public class UserService implements UserUseCase {
                 .orElseThrow(() -> new RuntimeException("User not found"));
         user.setActive(false);
         userRepository.save(user);
-        refreshTokenRepository.deleteByUserId(userId);
     }
 
     @Override
@@ -264,5 +275,4 @@ public class UserService implements UserUseCase {
         user.setShowWelcome(false);
         return userRepository.save(user);
     }
-
 }

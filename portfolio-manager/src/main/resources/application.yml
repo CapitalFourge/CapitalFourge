@@ -11,7 +11,7 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
   redis:
-    url: ${SPRING_REDIS_URL}  # Required - no default, fails if not set
+    url: ${SPRING_REDIS_URL}
 
   graphql:
     graphiql:
@@ -54,3 +54,5 @@ management:
       enabled: true
     readinessState:
       enabled: true
+    redis:
+      enabled: false  # Disable Redis health check - uses localhost despite config

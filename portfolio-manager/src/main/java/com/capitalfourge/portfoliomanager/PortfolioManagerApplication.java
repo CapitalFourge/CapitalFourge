@@ -2,7 +2,6 @@ package com.capitalfourge.portfoliomanager;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -30,15 +29,6 @@ public class PortfolioManagerApplication {
             prices.forEach((symbol, price) -> System.out.println("✅ " + symbol + ": " + price));
 
             System.out.println("------------------------------------------------");
-        };
-    }
-
-    @Bean
-    CommandLineRunner logRedisUrl(@Value("${spring.redis.url:NOT_SET}") String redisUrl) {
-        return args -> {
-            System.out.println("================================================");
-            System.out.println("🔴 SPRING_REDIS_URL leída por Spring: " + redisUrl);
-            System.out.println("================================================");
         };
     }
 }

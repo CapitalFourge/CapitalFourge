@@ -11,7 +11,7 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
   redis:
-    url: ${SPRING_REDIS_URL}
+    url: ${SPRING_REDIS_URL:}  # Empty default to fail-fail to fail fast if not set
 
   graphql:
     graphiql:

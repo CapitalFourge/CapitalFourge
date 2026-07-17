@@ -59,9 +59,6 @@ def sync_price(symbol: str):
         return {"symbol": symbol, "price": price, "status": "synchronized"}
     return {"error": "Symbol not found", "status": 404}
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
 # === NUEVOS ENDPOINTS REST PARA REEMPLAZAR gRPC ===
 from pydantic import BaseModel
 from typing import List, Optional
@@ -77,45 +74,23 @@ class SearchRequest(BaseModel):
     query: str
     limit: int = 5
 
-@app.get("/prices/batch", dependencies=[Depends(require_api_key)])
-def get_batch_prices(symbols: str):
-    """GET /prices/batch?symbols=AAPL,MSFT,BTC-USD"""
-    symbol_list = [s.strip() for s in symbols.split(",")]
-    return grpc_client.getBatchPrices(symbol_list)
-
-@app.get("/price/history/{symbol}", dependencies=[Depends(require_api_key)])
-def get_price_history(symbol: str, days: int = 30):
-    return grpc_client.getPriceHistory(symbol, days)
-
-@app.get("/assets/categorized", dependencies=[Depends(require_api_key)])
-def get_categorized_assets():
-    return grpc_client.getCategorizedAssets()
-
-@app.get("/assets/symbols", dependencies=[Depends(require_api_key)])
-def get_available_symbols():
-    return grpc_client.getAllAvailableSymbols()
-
-@app.post("/assets/search", dependencies=[Depends(require_api_key)])
-def search_symbols(request: SearchRequest):
-    return grpc_client.searchSymbols(request.query, request.limit)
-
-@app.get("/asset/name/{symbol}", dependencies=[Depends(require_api_key)])
-def get_asset_name(symbol: str):
-    name = grpc_client.getAssetName(symbol)
-    return {"symbol": symbol, "name": name}
-
-# Cliente gRPC interno para reutilizar la lógica existente
+# Cliente gRPC interno perezoso (lazy) para evitar problemas de importación al inicio
 class InternalGrpcClient:
     def __init__(self):
         import grpc
-        from src.infrastructure import financial_data_pb2, financial_data_pb2_grpc
-        # Conectar al gRPC local (mismo proceso)
+        import sys
+        # Agregar src al path para importar protobufs generados
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
+        import financial_data_pb2
+        import financial_data_pb2_grpc
+        self.financial_data_pb2 = financial_data_pb2
+        self.financial_data_pb2_grpc = financial_data_pb2_grpc
         self.channel = grpc.insecure_channel('localhost:50051')
         self.stub = financial_data_pb2_grpc.FinancialDataServiceStub(self.channel)
     
     def getBatchPrices(self, symbols: List[str]) -> dict:
         try:
-            request = financial_data_pb2.BatchStockRequest(symbols=symbols)
+            request = self.financial_data_pb2.BatchStockRequest(symbols=symbols)
             response = self.stub.GetBatchPrices(request)
             return {"prices": dict(response.prices)}
         except Exception as e:
@@ -123,7 +98,7 @@ class InternalGrpcClient:
     
     def getPriceHistory(self, symbol: str, days: int) -> list:
         try:
-            request = financial_data_pb2.HistoryRequest(symbol=symbol, days=days)
+            request = self.financial_data_pb2.HistoryRequest(symbol=symbol, days=days)
             response = self.stub.GetPriceHistory(request)
             return [{"timestamp": p.timestamp, "price": p.price, "volume": p.volume} for p in response.history]
         except Exception as e:
@@ -131,7 +106,7 @@ class InternalGrpcClient:
     
     def getCategorizedAssets(self) -> list:
         try:
-            request = financial_data_pb2.EmptyRequest()
+            request = self.financial_data_pb2.EmptyRequest()
             response = self.stub.GetCategorizedAssets(request)
             return [{"symbol": a.symbol, "name": a.name, "category": a.category} for a in response.assets]
         except Exception as e:
@@ -139,7 +114,7 @@ class InternalGrpcClient:
     
     def getAllAvailableSymbols(self) -> list:
         try:
-            request = financial_data_pb2.EmptyRequest()
+            request = self.financial_data_pb2.EmptyRequest()
             response = self.stub.GetAvailableSymbols(request)
             return list(response.symbols)
         except Exception as e:
@@ -147,7 +122,7 @@ class InternalGrpcClient:
     
     def searchSymbols(self, query: str, limit: int) -> list:
         try:
-            request = financial_data_pb2.SearchRequest(query=query, limit=limit)
+            request = self.financial_data_pb2.SearchRequest(query=query, limit=limit)
             response = self.stub.SearchSymbols(request)
             return [{"symbol": a.symbol, "name": a.name, "category": a.category} for a in response.assets]
         except Exception as e:
@@ -155,12 +130,48 @@ class InternalGrpcClient:
     
     def getAssetName(self, symbol: str) -> str:
         try:
-            request = financial_data_pb2.StockRequest(symbol=symbol)
+            request = self.financial_data_pb2.StockRequest(symbol=symbol)
             response = self.stub.GetStockPrice(request)
             return response.symbol  # fallback
         except Exception:
             return symbol
 
-# Instanciar cliente interno
-grpc_client = InternalGrpcClient()
+# Instancia global lazy
+_grpc_client = None
 
+def get_grpc_client():
+    global _grpc_client
+    if _grpc_client is None:
+        _grpc_client = InternalGrpcClient()
+    return _grpc_client
+
+@app.get("/prices/batch", dependencies=[Depends(require_api_key)])
+def get_batch_prices(symbols: str):
+    """GET /prices/batch?symbols=AAPL,MSFT,BTC-USD"""
+    symbol_list = [s.strip() for s in symbols.split(",")]
+    return get_grpc_client().getBatchPrices(symbol_list)
+
+@app.get("/price/history/{symbol}", dependencies=[Depends(require_api_key)])
+def get_price_history(symbol: str, days: int = 30):
+    return get_grpc_client().getPriceHistory(symbol, days)
+
+@app.get("/assets/categorized", dependencies=[Depends(require_api_key)])
+def get_categorized_assets():
+    return get_grpc_client().getCategorizedAssets()
+
+@app.get("/assets/symbols", dependencies=[Depends(require_api_key)])
+def get_available_symbols():
+    return get_grpc_client().getAllAvailableSymbols()
+
+@app.post("/assets/search", dependencies=[Depends(require_api_key)])
+def search_symbols(request: SearchRequest):
+    return get_grpc_client().searchSymbols(request.query, request.limit)
+
+@app.get("/asset/name/{symbol}", dependencies=[Depends(require_api_key)])
+def get_asset_name(symbol: str):
+    name = get_grpc_client().getAssetName(symbol)
+    return {"symbol": symbol, "name": name}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

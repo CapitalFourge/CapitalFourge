@@ -59,7 +59,7 @@ def sync_price(symbol: str):
         return {"symbol": symbol, "price": price, "status": "synchronized"}
     return {"error": "Symbol not found", "status": 404}
 
-# === NUEVOS ENDPOINTS REST PARA REEMPLAZAR gRPC ===
+# === NUEVOS ENDPOINTS REST - USAN PRICEORACLE DIRECTO (SIN gRPC INTERNO) ===
 from pydantic import BaseModel
 from typing import List, Optional
 
@@ -74,103 +74,229 @@ class SearchRequest(BaseModel):
     query: str
     limit: int = 5
 
-# Cliente gRPC interno perezoso (lazy) para evitar problemas de importación al inicio
-class InternalGrpcClient:
-    def __init__(self):
-        import grpc
-        import sys
-        # Agregar src al path para importar protobufs generados
-        sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
-        import financial_data_pb2
-        import financial_data_pb2_grpc
-        self.financial_data_pb2 = financial_data_pb2
-        self.financial_data_pb2_grpc = financial_data_pb2_grpc
-        self.channel = grpc.insecure_channel('localhost:50051')
-        self.stub = financial_data_pb2_grpc.FinancialDataServiceStub(self.channel)
-    
-    def getBatchPrices(self, symbols: List[str]) -> dict:
-        try:
-            request = self.financial_data_pb2.BatchStockRequest(symbols=symbols)
-            response = self.stub.GetBatchPrices(request)
-            return {"prices": dict(response.prices)}
-        except Exception as e:
-            return {"prices": {}, "error": str(e)}
-    
-    def getPriceHistory(self, symbol: str, days: int) -> list:
-        try:
-            request = self.financial_data_pb2.HistoryRequest(symbol=symbol, days=days)
-            response = self.stub.GetPriceHistory(request)
-            return [{"timestamp": p.timestamp, "price": p.price, "volume": p.volume} for p in response.history]
-        except Exception as e:
-            return [{"error": str(e)}]
-    
-    def getCategorizedAssets(self) -> list:
-        try:
-            request = self.financial_data_pb2.EmptyRequest()
-            response = self.stub.GetCategorizedAssets(request)
-            return [{"symbol": a.symbol, "name": a.name, "category": a.category} for a in response.assets]
-        except Exception as e:
-            return [{"error": str(e)}]
-    
-    def getAllAvailableSymbols(self) -> list:
-        try:
-            request = self.financial_data_pb2.EmptyRequest()
-            response = self.stub.GetAvailableSymbols(request)
-            return list(response.symbols)
-        except Exception as e:
-            return [str(e)]
-    
-    def searchSymbols(self, query: str, limit: int) -> list:
-        try:
-            request = self.financial_data_pb2.SearchRequest(query=query, limit=limit)
-            response = self.stub.SearchSymbols(request)
-            return [{"symbol": a.symbol, "name": a.name, "category": a.category} for a in response.assets]
-        except Exception as e:
-            return [{"error": str(e)}]
-    
-    def getAssetName(self, symbol: str) -> str:
-        try:
-            request = self.financial_data_pb2.StockRequest(symbol=symbol)
-            response = self.stub.GetStockPrice(request)
-            return response.symbol  # fallback
-        except Exception:
+# Resolución de símbolos (copiado de grpc_server.py)
+COLOMBIAN_MAP = {
+    'EC': 'ECOL.BOG', 'ECOPETROL': 'ECOL.BOG',
+    'AVAL': 'AVAL.BOG',
+    'BANCOLOMBIA': 'BANCOLOMBIA.BOG', 'BANCO': 'BANCOLOMBIA.BOG',
+    'PF': 'PFAVAL.BOG',
+    'CEMEX': 'CEMEX.BOG',
+    'CEMEXCOL': 'CEMEX.BOG',
+    'CIBEST': 'CIBEST.CL',
+}
+
+LATAM_SUFFIXES = ['.BOG', '.CL', '.MX', '.SA', '.AR', '.PE']
+
+def resolve_yfinance_symbol(symbol: str):
+    if symbol in COLOMBIAN_MAP:
+        return COLOMBIAN_MAP[symbol]
+    try:
+        import yfinance as yf
+        t = yf.Ticker(symbol)
+        info = t.info
+        if info and ('symbol' in info or 'shortName' in info or 'longName' in info):
             return symbol
+    except Exception:
+        pass
+    for suffix in LATAM_SUFFIXES:
+        try:
+            import yfinance as yf
+            t = yf.Ticker(symbol + suffix)
+            info = t.info
+            if info and ('symbol' in info or 'shortName' in info or 'longName' in info):
+                return symbol + suffix
+        except Exception:
+            continue
+    return symbol
 
-# Instancia global lazy
-_grpc_client = None
-
-def get_grpc_client():
-    global _grpc_client
-    if _grpc_client is None:
-        _grpc_client = InternalGrpcClient()
-    return _grpc_client
+def _get_market_cap(ticker, info) -> float:
+    for key in ('marketCap', 'enterpriseValue', 'market_cap', 'totalValue'):
+        value = info.get(key)
+        if value is not None and float(value) > 0:
+            return float(value)
+    try:
+        fast = ticker.fast_info
+        for key in ('marketCap', 'enterpriseValue'):
+            try:
+                value = getattr(fast, key, None)
+            except Exception:
+                continue
+            if value is not None:
+                return float(value)
+    except Exception:
+        pass
+    if info.get('shares') and info.get('shares') > 0 and info.get('lastPrice'):
+        return float(info['shares']) * float(info['lastPrice'])
+    return 0.0
 
 @app.get("/prices/batch", dependencies=[Depends(require_api_key)])
 def get_batch_prices(symbols: str):
     """GET /prices/batch?symbols=AAPL,MSFT,BTC-USD"""
     symbol_list = [s.strip() for s in symbols.split(",")]
-    return get_grpc_client().getBatchPrices(symbol_list)
+    result = {}
+    for symbol in symbol_list:
+        yf_symbol = resolve_yfinance_symbol(symbol)
+        price = oracle.fetch_and_cache(yf_symbol)
+        result[symbol] = price
+    return {"prices": result}
 
 @app.get("/price/history/{symbol}", dependencies=[Depends(require_api_key)])
 def get_price_history(symbol: str, days: int = 30):
-    return get_grpc_client().getPriceHistory(symbol, days)
+    yf_symbol = resolve_yfinance_symbol(symbol)
+    try:
+        import yfinance as yf
+        ticker = yf.Ticker(yf_symbol)
+        hist = ticker.history(period=f"{days}d")
+        info = ticker.info
+        
+        is_crypto = symbol.endswith('-USD')
+        is_commodity = symbol.endswith('=F') or symbol in ['GC', 'SI', 'CL', 'NG', 'HG', 'BZ', 'PL', 'PA']
+        
+        points = []
+        for date, row in hist.iterrows():
+            point_data = {
+                'timestamp': date.strftime('%Y-%m-%d'),
+                'price': float(row['Close']),
+                'volume': float(row['Volume']),
+                'market_cap': _get_market_cap(ticker, info),
+                'trailing_pe': float(info.get('trailingPE', 0)) if info.get('trailingPE') else 0.0,
+                'forward_pe': float(info.get('forwardPE', 0)) if info.get('forwardPE') else 0.0,
+                'peg_ratio': float(info.get('pegRatio', 0)) if info.get('pegRatio') else 0.0,
+                'price_to_book': float(info.get('priceToBook', 0)) if info.get('priceToBook') else 0.0,
+                'price_to_sales': float(info.get('priceToSalesTrailing12Months', 0)) if info.get('priceToSalesTrailing12Months') else 0.0,
+                'enterprise_to_ebitda': float(info.get('enterpriseToEbitda', 0)) if info.get('enterpriseToEbitda') else 0.0,
+                'profit_margins': float(info.get('profitMargins', 0)) if info.get('profitMargins') else 0.0,
+                'operating_margins': float(info.get('operatingMargins', 0)) if info.get('operatingMargins') else 0.0,
+                'return_on_equity': float(info.get('returnOnEquity', 0)) if info.get('returnOnEquity') else 0.0,
+                'return_on_assets': float(info.get('returnOnAssets', 0)) if info.get('returnOnAssets') else 0.0,
+                'debt_to_equity': float(info.get('debtToEquity', 0)) if info.get('debtToEquity') else 0.0,
+                'current_ratio': float(info.get('currentRatio', 0)) if info.get('currentRatio') else 0.0,
+                'quick_ratio': float(info.get('quickRatio', 0)) if info.get('quickRatio') else 0.0,
+                'dividend_yield': float(info.get('dividendYield', 0)) if info.get('dividendYield') else 0.0,
+                'free_cash_flow': float(info.get('freeCashflow', 0)) if info.get('freeCashflow') else 0.0,
+            }
+            points.append(point_data)
+        return points
+    except Exception as e:
+        return [{"error": str(e)}]
 
 @app.get("/assets/categorized", dependencies=[Depends(require_api_key)])
 def get_categorized_assets():
-    return get_grpc_client().getCategorizedAssets()
+    assets = [
+        {"symbol": "AAPL", "name": "Apple Inc.", "category": "STOCKS"},
+        {"symbol": "ADBE", "name": "Adobe Inc.", "category": "STOCKS"},
+        {"symbol": "GOOGL", "name": "Alphabet Inc.", "category": "STOCKS"},
+        {"symbol": "MSFT", "name": "Microsoft Corp.", "category": "STOCKS"},
+        {"symbol": "AMZN", "name": "Amazon.com Inc.", "category": "STOCKS"},
+        {"symbol": "TSLA", "name": "Tesla, Inc.", "category": "STOCKS"},
+        {"symbol": "NVDA", "name": "NVIDIA Corporation", "category": "STOCKS"},
+        {"symbol": "NFLX", "name": "Netflix, Inc.", "category": "STOCKS"},
+        {"symbol": "AMD", "name": "Advanced Micro Devices", "category": "STOCKS"},
+        {"symbol": "META", "name": "Meta Platforms, Inc.", "category": "STOCKS"},
+        {"symbol": "BRK-B", "name": "Berkshire Hathaway", "category": "STOCKS"},
+        {"symbol": "V", "name": "Visa Inc.", "category": "STOCKS"},
+        {"symbol": "JPM", "name": "JPMorgan Chase & Co.", "category": "STOCKS"},
+        {"symbol": "DIS", "name": "The Walt Disney Co.", "category": "STOCKS"},
+        {"symbol": "MA", "name": "Mastercard Inc.", "category": "STOCKS"},
+        {"symbol": "EC", "name": "Ecopetrol S.A.", "category": "STOCKS"},
+        {"symbol": "ECOPETROL", "name": "Ecopetrol S.A.", "category": "STOCKS"},
+        {"symbol": "AVAL", "name": "Grupo Aval Acciones y Valores", "category": "STOCKS"},
+        {"symbol": "BANCOLOMBIA", "name": "Bancolombia S.A.", "category": "STOCKS"},
+        {"symbol": "PF", "name": "Pfizer S.A.", "category": "STOCKS"},
+        {"symbol": "CEMEX", "name": "CEMEX S.A.", "category": "STOCKS"},
+        {"symbol": "ISA", "name": "ISA Interconexión Eléctrica", "category": "STOCKS"},
+        {"symbol": "BOGOTA", "name": "Banco de Bogotá", "category": "STOCKS"},
+        {"symbol": "CELSIA", "name": "CELSIA Energía", "category": "STOCKS"},
+        {"symbol": "BTC-USD", "name": "Bitcoin", "category": "CRYPTO"},
+        {"symbol": "ETH-USD", "name": "Ethereum", "category": "CRYPTO"},
+        {"symbol": "SOL-USD", "name": "Solana", "category": "CRYPTO"},
+        {"symbol": "ADA-USD", "name": "Cardano", "category": "CRYPTO"},
+        {"symbol": "DOT-USD", "name": "Polkadot", "category": "CRYPTO"},
+        {"symbol": "XRP-USD", "name": "XRP", "category": "CRYPTO"},
+        {"symbol": "DOGE-USD", "name": "Dogecoin", "category": "CRYPTO"},
+        {"symbol": "MATIC-USD", "name": "Polygon", "category": "CRYPTO"},
+        {"symbol": "LINK-USD", "name": "Chainlink", "category": "CRYPTO"},
+        {"symbol": "AVAX-USD", "name": "Avalanche", "category": "CRYPTO"},
+        {"symbol": "GC=F", "name": "Gold", "category": "COMMODITIES"},
+        {"symbol": "SI=F", "name": "Silver", "category": "COMMODITIES"},
+        {"symbol": "CL=F", "name": "Crude Oil", "category": "COMMODITIES"},
+        {"symbol": "NG=F", "name": "Natural Gas", "category": "COMMODITIES"},
+        {"symbol": "HG=F", "name": "Copper", "category": "COMMODITIES"},
+        {"symbol": "BZ=F", "name": "Brent Crude Oil", "category": "COMMODITIES"},
+        {"symbol": "PL=F", "name": "Platinum", "category": "COMMODITIES"},
+        {"symbol": "PA=F", "name": "Palladium", "category": "COMMODITIES"},
+        {"symbol": "EURUSD=X", "name": "EUR/USD", "category": "FOREX"},
+        {"symbol": "GBPUSD=X", "name": "GBP/USD", "category": "FOREX"},
+        {"symbol": "JPY=X", "name": "USD/JPY", "category": "FOREX"},
+        {"symbol": "MXN=X", "name": "USD/MXN", "category": "FOREX"},
+        {"symbol": "CAD=X", "name": "USD/CAD", "category": "FOREX"},
+        {"symbol": "AUDUSD=X", "name": "AUD/USD", "category": "FOREX"},
+        {"symbol": "CHF=X", "name": "USD/CHF", "category": "FOREX"},
+        {"symbol": "NZDUSD=X", "name": "NZD/USD", "category": "FOREX"},
+        {"symbol": "EURGBP=X", "name": "EUR/GBP", "category": "FOREX"},
+        {"symbol": "EURJPY=X", "name": "EUR/JPY", "category": "FOREX"}
+    ]
+    return assets
 
 @app.get("/assets/symbols", dependencies=[Depends(require_api_key)])
 def get_available_symbols():
-    return get_grpc_client().getAllAvailableSymbols()
+    popular_symbols = [
+        "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "NVDA", "META", "NFLX", "AMD", "DIS",
+        "EC", "AVAL", "BANCOLOMBIA", "PF", "CEMEX",
+        "CIBEST", "ISA", "ETB", "BOGOTA", "CELSIA",
+        "BTC-USD", "ETH-USD", "SOL-USD", "ADA-USD", "DOT-USD", "XRP-USD",
+        "GC=F", "SI=F", "CL=F", "NG=F", "HG=F",
+        "EURUSD=X", "GBPUSD=X", "USDJPY=X"
+    ]
+    return popular_symbols
 
 @app.post("/assets/search", dependencies=[Depends(require_api_key)])
 def search_symbols(request: SearchRequest):
-    return get_grpc_client().searchSymbols(request.query, request.limit)
+    query = request.query.upper().strip()
+    limit = request.limit
+    if not query:
+        return []
+    try:
+        categorized = get_categorized_assets()
+        query_lower = query.lower()
+        matches = [a for a in categorized 
+                   if query_lower in a["symbol"].lower() or query_lower in a["name"].lower()]
+        if matches:
+            return matches[:limit]
+    except Exception as e:
+        print(f"⚠️ Error searching categorized assets: {e}")
+    yf_query = resolve_yfinance_symbol(query)
+    if yf_query != query:
+        try:
+            import yfinance as yf
+            ticker = yf.Ticker(yf_query)
+            info = ticker.info
+            name = info.get('shortName') or info.get('longName') or info.get('displayName')
+            if name:
+                category = 'STOCKS'
+                if query.endswith('-USD'):
+                    category = 'CRYPTO'
+                elif query.endswith('=F'):
+                    category = 'COMMODITIES'
+                elif query.endswith('=X'):
+                    category = 'FOREX'
+                print(f"✅ Dynamic resolution: {query} -> {yf_query} ({name}) [{category}]")
+                return [{
+                    "symbol": query, "name": name, "category": category,
+                    "description": "", "website": ""
+                }]
+        except Exception as e:
+            print(f"⚠️ Error validating {query} via yfinance: {e}")
+    print(f"❌ No results for: {query}")
+    return []
 
 @app.get("/asset/name/{symbol}", dependencies=[Depends(require_api_key)])
 def get_asset_name(symbol: str):
-    name = get_grpc_client().getAssetName(symbol)
-    return {"symbol": symbol, "name": name}
+    assets = get_categorized_assets()
+    for a in assets:
+        if a["symbol"] == symbol:
+            return {"symbol": symbol, "name": a["name"]}
+    return {"symbol": symbol, "name": symbol}
 
 if __name__ == "__main__":
     import uvicorn

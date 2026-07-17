@@ -91,8 +91,9 @@ public class GrpcFinancialDataClient {
         if (response != null) {
             return response.stream().map(point -> {
                 PricePoint.Builder builder = PricePoint.newBuilder();
-                if (point.get("timestamp") != null) builder.setTimestamp(point.get("timestamp").toString());
-                if (point.get("price") != null) builder.setPrice(((Number) point.get("price")).doubleValue());
+                // REST returns: timestamp, price, volume
+                if (point.get("timestamp") != null) builder.setDate(point.get("timestamp").toString());
+                if (point.get("price") != null) builder.setClose(((Number) point.get("price")).doubleValue());
                 if (point.get("volume") != null) builder.setVolume(((Number) point.get("volume")).longValue());
                 return builder.build();
             }).collect(Collectors.toList());

@@ -12,6 +12,8 @@ spring:
 
   redis:
     url: ${SPRING_REDIS_URL}
+    ssl:
+      enabled: true
 
   graphql:
     graphiql:
@@ -54,5 +56,3 @@ management:
       enabled: true
     readinessState:
       enabled: true
-    redis:
-      enabled: false  # Disable Redis health check - uses localhost despite config

@@ -28,10 +28,10 @@ public class GrpcFinancialDataClient {
             @Value("${spring.data-collector.base-url:http://localhost:8000}") String baseUrl,
             @Value("${spring.data-collector.api-key:internal-service-key}") String apiKey) {
         
-        // Configure timeouts to prevent hanging
+        // Configure timeouts - data-collector can take 40-50s due to yfinance
         this.restTemplate = restTemplateBuilder
-                .setConnectTimeout(Duration.ofSeconds(5))
-                .setReadTimeout(Duration.ofSeconds(15))
+                .setConnectTimeout(Duration.ofSeconds(10))
+                .setReadTimeout(Duration.ofSeconds(60))
                 .build();
         this.baseUrl = baseUrl;
         this.apiKey = apiKey;

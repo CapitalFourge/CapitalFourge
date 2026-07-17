@@ -19,6 +19,7 @@ spring:
 
   data-collector:
     api-key: ${DATA_COLLECTOR_API_KEY:internal-service-key}
+    base-url: ${DATA_COLLECTOR_BASE_URL:http://localhost:8000}
 
   jwt:
     secret: "f2c3b4a5d6e7f8g9h0i1j2k3l4m5n6o7p8q9r0s1t2u3v4w5x6y7z8a9b0c1d2e3"
@@ -26,7 +27,7 @@ spring:
     access-expiration-ms: 3600000
     refresh-expiration-ms: 604800000
 
-# gRPC client config (correct prefix for grpc-spring-boot-starter 2.15.x)
+# gRPC client config (kept for backward compat, but we use REST now)
 grpc:
   client:
     data-collector:

@@ -62,3 +62,105 @@ def sync_price(symbol: str):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
+# === NUEVOS ENDPOINTS REST PARA REEMPLAZAR gRPC ===
+from pydantic import BaseModel
+from typing import List, Optional
+
+class BatchPriceRequest(BaseModel):
+    symbols: List[str]
+
+class PriceHistoryRequest(BaseModel):
+    symbol: str
+    days: int = 30
+
+class SearchRequest(BaseModel):
+    query: str
+    limit: int = 5
+
+@app.get("/prices/batch", dependencies=[Depends(require_api_key)])
+def get_batch_prices(symbols: str):
+    """GET /prices/batch?symbols=AAPL,MSFT,BTC-USD"""
+    symbol_list = [s.strip() for s in symbols.split(",")]
+    return grpc_client.getBatchPrices(symbol_list)
+
+@app.get("/price/history/{symbol}", dependencies=[Depends(require_api_key)])
+def get_price_history(symbol: str, days: int = 30):
+    return grpc_client.getPriceHistory(symbol, days)
+
+@app.get("/assets/categorized", dependencies=[Depends(require_api_key)])
+def get_categorized_assets():
+    return grpc_client.getCategorizedAssets()
+
+@app.get("/assets/symbols", dependencies=[Depends(require_api_key)])
+def get_available_symbols():
+    return grpc_client.getAllAvailableSymbols()
+
+@app.post("/assets/search", dependencies=[Depends(require_api_key)])
+def search_symbols(request: SearchRequest):
+    return grpc_client.searchSymbols(request.query, request.limit)
+
+@app.get("/asset/name/{symbol}", dependencies=[Depends(require_api_key)])
+def get_asset_name(symbol: str):
+    name = grpc_client.getAssetName(symbol)
+    return {"symbol": symbol, "name": name}
+
+# Cliente gRPC interno para reutilizar la lógica existente
+class InternalGrpcClient:
+    def __init__(self):
+        import grpc
+        from src.infrastructure import financial_data_pb2, financial_data_pb2_grpc
+        # Conectar al gRPC local (mismo proceso)
+        self.channel = grpc.insecure_channel('localhost:50051')
+        self.stub = financial_data_pb2_grpc.FinancialDataServiceStub(self.channel)
+    
+    def getBatchPrices(self, symbols: List[str]) -> dict:
+        try:
+            request = financial_data_pb2.BatchStockRequest(symbols=symbols)
+            response = self.stub.GetBatchPrices(request)
+            return {"prices": dict(response.prices)}
+        except Exception as e:
+            return {"prices": {}, "error": str(e)}
+    
+    def getPriceHistory(self, symbol: str, days: int) -> list:
+        try:
+            request = financial_data_pb2.HistoryRequest(symbol=symbol, days=days)
+            response = self.stub.GetPriceHistory(request)
+            return [{"timestamp": p.timestamp, "price": p.price, "volume": p.volume} for p in response.history]
+        except Exception as e:
+            return [{"error": str(e)}]
+    
+    def getCategorizedAssets(self) -> list:
+        try:
+            request = financial_data_pb2.EmptyRequest()
+            response = self.stub.GetCategorizedAssets(request)
+            return [{"symbol": a.symbol, "name": a.name, "category": a.category} for a in response.assets]
+        except Exception as e:
+            return [{"error": str(e)}]
+    
+    def getAllAvailableSymbols(self) -> list:
+        try:
+            request = financial_data_pb2.EmptyRequest()
+            response = self.stub.GetAvailableSymbols(request)
+            return list(response.symbols)
+        except Exception as e:
+            return [str(e)]
+    
+    def searchSymbols(self, query: str, limit: int) -> list:
+        try:
+            request = financial_data_pb2.SearchRequest(query=query, limit=limit)
+            response = self.stub.SearchSymbols(request)
+            return [{"symbol": a.symbol, "name": a.name, "category": a.category} for a in response.assets]
+        except Exception as e:
+            return [{"error": str(e)}]
+    
+    def getAssetName(self, symbol: str) -> str:
+        try:
+            request = financial_data_pb2.StockRequest(symbol=symbol)
+            response = self.stub.GetStockPrice(request)
+            return response.symbol  # fallback
+        except Exception:
+            return symbol
+
+# Instanciar cliente interno
+grpc_client = InternalGrpcClient()
+

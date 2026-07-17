@@ -1,181 +1,149 @@
 package com.capitalfourge.portfoliomanager.infrastructure.grpc;
 
-import java.util.Map;
-import java.util.List;
-import java.util.ArrayList;
 import org.springframework.beans.factory.annotation.Value;
-import com.google.protobuf.Empty;
-
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import com.capitalfourge.proto.*;
 
-import net.devh.boot.grpc.client.inject.GrpcClient;
-import io.grpc.CallOptions;
-import io.grpc.Channel;
-import io.grpc.ClientCall;
-import io.grpc.Metadata;
-import io.grpc.MethodDescriptor;
-import io.grpc.ClientInterceptors;
-import io.grpc.ForwardingClientCall;
+import java.util.*;
+import java.util.stream.Collectors;
 
+/**
+ * REST client for data-collector service (replaces gRPC client).
+ * Calls FastAPI REST endpoints on data-collector:8000
+ */
 @Service
 public class GrpcFinancialDataClient {
 
-    @GrpcClient("data-collector")
-    private FinancialDataServiceGrpc.FinancialDataServiceBlockingStub financialDataClient;
-    @Value("${grpc.fallback-assets-enabled:true}")
-    private boolean fallbackAssetsEnabled;
-    @Value("${grpc.data-collector.api-key:internal-service-key}")
-    private String dataCollectorApiKey;
+    private final RestTemplate restTemplate;
+    private final String baseUrl;
+    private final String apiKey;
 
-    private FinancialDataServiceGrpc.FinancialDataServiceBlockingStub stubWithApiKey() {
-        Channel channel = financialDataClient.getChannel();
-        Metadata additionalHeaders = new Metadata();
-        Metadata.Key<String> key = Metadata.Key.of("x-api-key", Metadata.ASCII_STRING_MARSHALLER);
-        additionalHeaders.put(key, dataCollectorApiKey);
-        Channel interceptedChannel = ClientInterceptors.intercept(channel, new io.grpc.ClientInterceptor() {
-            @Override
-            public <ReqT, RespT> ClientCall<ReqT, RespT> interceptCall(
-                    MethodDescriptor<ReqT, RespT> method, CallOptions callOptions, Channel next) {
-                ClientCall<ReqT, RespT> call = next.newCall(method, callOptions);
-                return new ForwardingClientCall.SimpleForwardingClientCall<ReqT, RespT>(call) {
-                    @Override
-                    public void start(Listener<RespT> responseListener, Metadata headers) {
-                        headers.merge(additionalHeaders);
-                        super.start(responseListener, headers);
-                    }
-                };
-            }
-        });
-        return FinancialDataServiceGrpc.newBlockingStub(interceptedChannel);
+    public GrpcFinancialDataClient(
+            RestTemplateBuilder restTemplateBuilder,
+            @Value("${spring.data-collector.base-url:http://localhost:8000}") String baseUrl,
+            @Value("${spring.data-collector.api-key:internal-service-key}") String apiKey) {
+        this.restTemplate = restTemplateBuilder.build();
+        this.baseUrl = baseUrl;
+        this.apiKey = apiKey;
     }
 
-    public Double getStockPrice(String symbol) {
+    private HttpHeaders createHeaders() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("X-API-Key", apiKey);
+        return headers;
+    }
+
+    private <T> T get(String path, Class<T> responseType) {
         try {
-            StockRequest request = StockRequest.newBuilder()
-                    .setSymbol(symbol)
-                    .build();
-
-            StockPriceResponse response = stubWithApiKey().getStockPrice(request);
-
-            System.out.println("✅ gRPC Response: " + response.getSymbol() + " = " + response.getPrice());
-            return response.getPrice();
+            HttpEntity<?> entity = new HttpEntity<>(createHeaders());
+            ResponseEntity<T> response = restTemplate.exchange(
+                    baseUrl + path, HttpMethod.GET, entity, responseType);
+            return response.getBody();
         } catch (Exception e) {
-            System.err.println("❌ gRPC Error: " + e.getMessage());
-            return 0.0;
+            System.err.println("REST GET error for " + path + ": " + e.getMessage());
+            return null;
         }
+    }
+
+    private <T, R> R post(String path, T request, Class<R> responseType) {
+        try {
+            HttpEntity<T> entity = new HttpEntity<>(request, createHeaders());
+            ResponseEntity<R> response = restTemplate.exchange(
+                    baseUrl + path, HttpMethod.POST, entity, responseType);
+            return response.getBody();
+        } catch (Exception e) {
+            System.err.println("REST POST error for " + path + ": " + e.getMessage());
+            return null;
+        }
+    }
+
+    // ==================== EXISTING METHODS (kept for compatibility) ====================
+
+    public Double getStockPrice(String symbol) {
+        Map<String, Double> prices = getBatchPrices(List.of(symbol));
+        return prices.getOrDefault(symbol, 0.0);
     }
 
     public Map<String, Double> getBatchPrices(List<String> symbols) {
-        try {
-            BatchStockRequest request = BatchStockRequest.newBuilder()
-                    .addAllSymbols(symbols)
-                    .build();
-
-            BatchStockResponse response = stubWithApiKey().getBatchPrices(request);
-
-            return response.getPricesMap();
-        } catch (Exception e) {
-            System.err.println("gRPC Batch Error: " + e.getMessage());
-            return Map.of();
+        String symbolsParam = String.join(",", symbols);
+        Map<String, Object> response = get("/prices/batch?symbols=" + symbolsParam, Map.class);
+        
+        if (response != null && response.containsKey("prices")) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> prices = (Map<String, Object>) response.get("prices");
+            return prices.entrySet().stream()
+                    .collect(Collectors.toMap(
+                            Map.Entry::getKey,
+                            e -> e.getValue() instanceof Number ? ((Number) e.getValue()).doubleValue() : 0.0
+                    ));
         }
+        return Map.of();
     }
 
     public List<PricePoint> getPriceHistory(String symbol, int days) {
-        try {
-            HistoryRequest request = HistoryRequest.newBuilder()
-                    .setSymbol(symbol)
-                    .setDays(days)
-                    .build();
-
-            HistoryResponse response = stubWithApiKey().getPriceHistory(request);
-
-            return response.getHistoryList();
-        } catch (Exception e) {
-            System.err.println("gRPC History Error: " + e.getMessage());
-            return List.of();
+        List<Map<String, Object>> response = get("/price/history/" + symbol + "?days=" + days, List.class);
+        
+        if (response != null) {
+            return response.stream().map(point -> {
+                PricePoint.Builder builder = PricePoint.newBuilder();
+                if (point.get("timestamp") != null) builder.setTimestamp(point.get("timestamp").toString());
+                if (point.get("price") != null) builder.setPrice(((Number) point.get("price")).doubleValue());
+                if (point.get("volume") != null) builder.setVolume(((Number) point.get("volume")).longValue());
+                return builder.build();
+            }).collect(Collectors.toList());
         }
+        return List.of();
     }
 
     public List<Asset> getCategorizedAssets() {
-        try {
-            EmptyRequest request = EmptyRequest.newBuilder().build();
-            CategorizedAssetsResponse response = stubWithApiKey().getCategorizedAssets(request);
-            return response.getAssetsList();
-        } catch (Exception e) {
-            System.err.println("gRPC Get Categorized Assets Error: " + e.getMessage());
-            if (fallbackAssetsEnabled) {
-                // Category names MUST match the gRPC server and frontend (uppercase)
-                List<Asset> fallback = new ArrayList<>();
-                fallback.add(Asset.newBuilder().setSymbol("BTC-USD").setName("Bitcoin").setCategory("CRYPTO").build());
-                fallback.add(Asset.newBuilder().setSymbol("ETH-USD").setName("Ethereum").setCategory("CRYPTO").build());
-                fallback.add(Asset.newBuilder().setSymbol("SOL-USD").setName("Solana").setCategory("CRYPTO").build());
-                fallback.add(Asset.newBuilder().setSymbol("AAPL").setName("Apple Inc.").setCategory("STOCKS").build());
-                fallback.add(
-                        Asset.newBuilder().setSymbol("MSFT").setName("Microsoft Corp.").setCategory("STOCKS").build());
-                fallback.add(
-                        Asset.newBuilder().setSymbol("NVDA").setName("NVIDIA Corp.").setCategory("STOCKS").build());
-                fallback.add(Asset.newBuilder().setSymbol("GC=F").setName("Gold").setCategory("COMMODITIES").build());
-                fallback.add(Asset.newBuilder().setSymbol("SI=F").setName("Silver").setCategory("COMMODITIES").build());
-                fallback.add(
-                        Asset.newBuilder().setSymbol("CL=F").setName("Crude Oil").setCategory("COMMODITIES").build());
-                fallback.add(
-                        Asset.newBuilder().setSymbol("NG=F").setName("Natural Gas").setCategory("COMMODITIES").build());
-                fallback.add(Asset.newBuilder().setSymbol("HG=F").setName("Copper").setCategory("COMMODITIES").build());
-                fallback.add(Asset.newBuilder().setSymbol("BZ=F").setName("Brent Crude Oil").setCategory("COMMODITIES")
-                        .build());
-                fallback.add(Asset.newBuilder().setSymbol("EURUSD=X").setName("EUR/USD").setCategory("FOREX").build());
-                fallback.add(Asset.newBuilder().setSymbol("GBPUSD=X").setName("GBP/USD").setCategory("FOREX").build());
-                fallback.add(Asset.newBuilder().setSymbol("USDJPY=X").setName("USD/JPY").setCategory("FOREX").build());
-                // Colombian stocks
-                fallback.add(Asset.newBuilder().setSymbol("EC").setName("Ecopetrol S.A.").setCategory("STOCKS").build());
-                fallback.add(Asset.newBuilder().setSymbol("AVAL").setName("Grupo Aval Acciones y Valores").setCategory("STOCKS").build());
-                fallback.add(Asset.newBuilder().setSymbol("BANCOLOMBIA").setName("Bancolombia S.A.").setCategory("STOCKS").build());
-                fallback.add(Asset.newBuilder().setSymbol("PF").setName("Pfizer S.A.").setCategory("STOCKS").build());
-                fallback.add(Asset.newBuilder().setSymbol("CEMEX").setName("CEMEX S.A.").setCategory("STOCKS").build());
-                return fallback;
-            }
-            return List.of();
+        List<Map<String, Object>> response = get("/assets/categorized", List.class);
+        
+        if (response != null) {
+            return response.stream().map(item -> {
+                Asset.Builder builder = Asset.newBuilder();
+                builder.setSymbol((String) item.getOrDefault("symbol", ""));
+                builder.setName((String) item.getOrDefault("name", ""));
+                builder.setCategory((String) item.getOrDefault("category", ""));
+                return builder.build();
+            }).collect(Collectors.toList());
         }
+        return List.of();
     }
 
     public List<String> getAllAvailableSymbols() {
-        try {
-            EmptyRequest request = EmptyRequest.newBuilder().build();
-            SymbolsResponse response = stubWithApiKey().getAvailableSymbols(request);
-            return response.getSymbolsList();
-        } catch (Exception e) {
-            System.err.println("gRPC Get Symbols Error: " + e.getMessage());
-// Fallback to static list if gRPC call fails
-             return List.of(
-                     "AAPL", "ADBE", "GOOGL", "MSFT", "AMZN", "TSLA", "META", "NVDA", "NFLX", "AMD",
-                     "EC", "AVAL", "BANCOLOMBIA", "PF", "CEMEX",
-                     "BTC-USD", "ETH-USD", "SOL-USD", "ADA-USD", "DOT-USD", "XRP-USD",
-                     "GC=F", "SI=F", "CL=F", "NG=F", "EURUSD=X", "GBPUSD=X");
+        List<?> response = get("/assets/symbols", List.class);
+        if (response != null) {
+            return response.stream().map(Object::toString).collect(Collectors.toList());
         }
+        return List.of();
+    }
+
+    public List<Asset> searchSymbols(String query, int limit) {
+        Map<String, Object> request = Map.of("query", query, "limit", limit);
+        List<Map<String, Object>> response = post("/assets/search", request, List.class);
+        
+        if (response != null) {
+            return response.stream().map(item -> {
+                Asset.Builder builder = Asset.newBuilder();
+                builder.setSymbol((String) item.getOrDefault("symbol", ""));
+                builder.setName((String) item.getOrDefault("name", ""));
+                builder.setCategory((String) item.getOrDefault("category", ""));
+                return builder.build();
+            }).collect(Collectors.toList());
+        }
+        return List.of();
     }
 
     public String getAssetName(String symbol) {
-        // Find in categorized assets if available
-        return getCategorizedAssets().stream()
-                .filter(a -> a.getSymbol().equals(symbol))
-                .map(Asset::getName)
-                .findFirst()
-                .orElse(symbol);
-    }
-
-    public List<Asset> searchSymbols(String query) {
-        try {
-            SearchRequest request = SearchRequest.newBuilder()
-                    .setQuery(query)
-                    .setLimit(5)
-                    .build();
-            CategorizedAssetsResponse response = stubWithApiKey().searchSymbols(request);
-            return response.getAssetsList();
-        } catch (Exception e) {
-            System.err.println("gRPC Search Symbols Error: " + e.getMessage());
-            return List.of();
+        Map<String, Object> response = get("/asset/name/" + symbol, Map.class);
+        if (response != null && response.containsKey("name")) {
+            return (String) response.get("name");
         }
+        return symbol;
     }
 }

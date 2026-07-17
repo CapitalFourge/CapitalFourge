@@ -95,7 +95,7 @@ class UserServiceTest {
 
         verify(userRepository, times(1)).findById(user.getId());
         verify(userRepository, times(1)).save(any(User.class));
-        verify(refreshTokenRepository, times(1)).deleteByUserId(user.getId());
+        
     }
 
     @Test

@@ -8,12 +8,13 @@ import org.springframework.web.client.RestTemplate;
 
 import com.capitalfourge.proto.*;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 
 /**
  * REST client for data-collector service (replaces gRPC client).
- * Calls FastAPI REST endpoints on data-collector:8000
+ * Calls FastAPI REST endpoints on data-collector
  */
 @Service
 public class GrpcFinancialDataClient {
@@ -26,7 +27,12 @@ public class GrpcFinancialDataClient {
             RestTemplateBuilder restTemplateBuilder,
             @Value("${spring.data-collector.base-url:http://localhost:8000}") String baseUrl,
             @Value("${spring.data-collector.api-key:internal-service-key}") String apiKey) {
-        this.restTemplate = restTemplateBuilder.build();
+        
+        // Configure timeouts to prevent hanging
+        this.restTemplate = restTemplateBuilder
+                .setConnectTimeout(Duration.ofSeconds(5))
+                .setReadTimeout(Duration.ofSeconds(15))
+                .build();
         this.baseUrl = baseUrl;
         this.apiKey = apiKey;
     }

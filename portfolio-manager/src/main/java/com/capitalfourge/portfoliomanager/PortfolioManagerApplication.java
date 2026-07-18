@@ -2,6 +2,7 @@ package com.capitalfourge.portfoliomanager;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -29,6 +30,18 @@ public class PortfolioManagerApplication {
             prices.forEach((symbol, price) -> System.out.println("✅ " + symbol + ": " + price));
 
             System.out.println("------------------------------------------------");
+        };
+    }
+
+    @Bean
+    CommandLineRunner logRedisConfig(@Value("${spring.redis.url:NOT_SET}") String redisUrl,
+                                      @Value("${spring.redis.ssl.enabled:false}") boolean sslEnabled) {
+        return args -> {
+            System.out.println("================================================");
+            System.out.println("🔴 REDIS CONFIG:");
+            System.out.println("   spring.redis.url = " + redisUrl);
+            System.out.println("   spring.redis.ssl.enabled = " + sslEnabled);
+            System.out.println("================================================");
         };
     }
 }

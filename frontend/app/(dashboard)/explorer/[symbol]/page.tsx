@@ -1,20 +1,21 @@
 'use client';
 
-import { useMemo, useState } from "react";
-import { useParams } from "next/navigation";
-import { gql, useQuery } from "@apollo/client";
-import { motion } from "framer-motion";
-import { ArrowLeft, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { IndicatorSelector } from "@/components/trading/indicator-selector";
-import { TradingViewChart } from "@/components/trading/tradingview-chart";
-import { FundamentalMetricSelector } from "@/components/trading/fundamental-metric-selector";
-import { DrawingToolSelector } from "@/components/trading/drawing-tool-selector";
-import { InfoTooltip } from "@/components/ui/info-tooltip";
-import { INDICATOR_CATALOG, IndicatorDefinition } from "@/lib/indicator-catalog";
-import { FUNDAMENTAL_METRIC_CATALOG, FundamentalMetricDefinition } from "@/lib/fundamental-metric-catalog";
-import { DRAWING_TOOL_CATALOG, DrawingTool } from "@/lib/chart-drawing-catalog";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useMemo, useState } from 'react';
+import { useParams } from 'next/navigation';
+import { gql, useQuery } from '@apollo/client';
+import { motion } from 'framer-motion';
+import { ArrowLeft, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { IndicatorSelector } from '@/components/trading/indicator-selector';
+import { TradingViewChart } from '@/components/trading/tradingview-chart';
+import { FundamentalMetricSelector } from '@/components/trading/fundamental-metric-selector';
+import { DrawingToolSelector } from '@/components/trading/drawing-tool-selector';
+import { InfoTooltip } from '@/components/ui/info-tooltip';
+import { INDICATOR_CATALOG, IndicatorDefinition } from '@/lib/indicator-catalog';
+import { FUNDAMENTAL_METRIC_CATALOG, FundamentalMetricDefinition } from '@/lib/fundamental-metric-catalog';
+import { DRAWING_TOOL_CATALOG, DrawingTool } from '@/lib/chart-drawing-catalog';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useIndicators } from '@/app/(dashboard)/explorer/[symbol]/components/useIndicators';
 
 const ASSET_DATA_QUERY = gql`
   query GetAssetData($symbol: String!) {
@@ -144,13 +145,6 @@ interface FundamentalPricePoint {
   weatherIndex?: number | null;
 }
 
-interface FundamentalMetricItem {
-  id: string;
-  label: string;
-  description: string;
-  value: string;
-}
-
 export default function AssetDetailPage() {
   const { symbol } = useParams<{ symbol: string }>();
   const [showIndicators, setShowIndicators] = useState<boolean>(false);
@@ -167,11 +161,11 @@ export default function AssetDetailPage() {
   const asset = data?.asset;
   const priceHistory = data?.priceHistory || [];
   const portfolios = data?.portfolios || [];
-  const latestFundamental = priceHistory[priceHistory.length - 1] as FundamentalPricePoint | undefined;
+  const latestFundamental = priceHistory[priceHistory.length - 1] as typeof priceHistory[0] | undefined;
 
   const fullChartData = useMemo(() => {
     return priceHistory
-      .map((point: FundamentalPricePoint) => ({
+      .map((point: any) => ({
         date: point.date,
         open: point.open || point.close,
         high: point.high || point.close,
@@ -185,10 +179,9 @@ export default function AssetDetailPage() {
   const latestDailyPoint = useMemo(() => fullChartData[fullChartData.length - 1], [fullChartData]);
   const previousDailyPoint = useMemo(() => fullChartData[fullChartData.length - 2], [fullChartData]);
 
-  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const userPosition = useMemo(() => {
     for (const portfolio of portfolios) {
-      const position = portfolio.positions.find((p: Position) => p.symbol === symbol);
+      const position = portfolio.positions.find((p: any) => p.symbol === symbol);
       if (position) {
         return {
           ...position,
@@ -200,102 +193,7 @@ export default function AssetDetailPage() {
     return null;
   }, [portfolios, symbol]);
 
-  const calculateSMA = (data: FundamentalPricePoint[], period: number = 9): number | null => {
-    if (data.length < period) return null;
-    const sum = data.slice(-period).reduce((acc, point) => acc + point.close, 0);
-    return sum / period;
-  };
-
-  const calculateEMA = (data: FundamentalPricePoint[], period: number = 9): number | null => {
-    if (data.length < period) return null;
-    
-    const multiplier = 2 / (period + 1);
-    let ema = data.slice(0, period).reduce((sum, point) => sum + point.close, 0) / period;
-    
-    for (let i = period; i < data.length; i++) {
-      ema = (data[i].close - ema) * multiplier + ema;
-    }
-    
-    return ema;
-  };
-
-  const calculateRSI = (data: FundamentalPricePoint[], period: number = 14): number | null => {
-    if (data.length < period + 1) return null;
-    
-    let gains = 0;
-    let losses = 0;
-    
-    for (let i = 1; i <= period; i++) {
-      const change = data[data.length - i].close - data[data.length - i - 1].close;
-      if (change >= 0) {
-        gains += change;
-      } else {
-        losses += Math.abs(change);
-      }
-    }
-    
-    let avgGain = gains / period;
-    let avgLoss = losses / period;
-    
-    for (let i = period + 1; i < data.length; i++) {
-      const change = data[data.length - i].close - data[data.length - i - 1].close;
-      const gain = Math.max(change, 0);
-      const loss = Math.max(-change, 0);
-      
-      avgGain = (avgGain * (period - 1) + gain) / period;
-      avgLoss = (avgLoss * (period - 1) + loss) / period;
-    }
-    
-    if (avgLoss === 0) return 100;
-    
-    const rs = avgGain / avgLoss;
-    return 100 - (100 / (1 + rs));
-  };
-
-  const indicatorValues = useMemo(() => {
-    const values: Record<string, number | null> = {};
-    const closeData = priceHistory.filter((p: FundamentalPricePoint) => typeof p.close === 'number');
-    
-    activeIndicators.forEach(indicatorId => {
-      switch (indicatorId) {
-        case 'sma':
-          values[indicatorId] = calculateSMA(closeData, 9);
-          break;
-        case 'ema':
-          values[indicatorId] = calculateEMA(closeData, 9);
-          break;
-        case 'rsi':
-          values[indicatorId] = calculateRSI(closeData, 14);
-          break;
-        case 'wma':
-          values[indicatorId] = calculateSMA(closeData, 9);
-          break;
-        case 'macd':
-          values[indicatorId] = null;
-          break;
-        case 'stochastic':
-          values[indicatorId] = null;
-          break;
-        case 'roc':
-          if (closeData.length >= 10) {
-            const current = closeData[closeData.length - 1].close;
-            const past = closeData[closeData.length - 10].close;
-            values[indicatorId] = ((current - past) / past) * 100;
-          }
-          break;
-        case 'bollinger':
-          values[indicatorId] = null;
-          break;
-        case 'obv':
-          values[indicatorId] = null;
-          break;
-        default:
-          values[indicatorId] = null;
-      }
-    });
-    
-    return values;
-  }, [priceHistory, activeIndicators]);
+  const indicatorValues = useIndicators({ priceHistory: priceHistory as any, activeIndicators });
 
   if (loading && !data) {
     return <div className="flex min-h-[60vh] items-center justify-center text-slate-400">Cargando activo...</div>;
@@ -318,256 +216,204 @@ export default function AssetDetailPage() {
   return (
     <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="min-h-screen bg-black/50">
       <div className="flex items-center justify-between p-6 border-b border-white/10">
-        <Button variant="outline" onClick={() => {
-          window.history.back();
-        }}>
+        <Button variant="outline" onClick={() => { window.history.back(); }}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Volver al explorador
         </Button>
         <div className="flex items-center gap-4">
-          <Button 
-            variant="default" 
-            className="text-sm px-4 py-2"
-          >
-            Comprar
-          </Button>
-          <Button 
-            variant="destructive" 
-            className="text-sm px-4 py-2"
-          >
-            Vender
-          </Button>
+          <Button variant="default" className="text-sm px-4 py-2">Comprar</Button>
+          <Button variant="destructive" className="text-sm px-4 py-2">Vender</Button>
         </div>
       </div>
 
       <div className="p-6 space-y-8">
-<div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-8">
-            <div className="flex flex-col gap-1">
-              <div className="flex items-baseline gap-4">
-                <h1 className="text-4xl font-bold text-white">{asset.symbol}</h1>
-                <span className="text-xl font-light text-slate-300">{asset.name}</span>
-              </div>
-              <span className="text-sm text-slate-400">{asset.category}</span>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-8">
+          <div className="flex flex-col gap-1">
+            <div className="flex items-baseline gap-4">
+              <h1 className="text-4xl font-bold text-white">{asset.symbol}</h1>
+              <span className="text-xl font-light text-slate-300">{asset.name}</span>
             </div>
-            
-            <div className="flex flex-wrap items-center gap-6">
-              <div className="flex flex-col items-center p-4 bg-white/[0.03] rounded-xl">
-                <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Precio actual</p>
-                <p className="mt-1 text-xl font-semibold text-white">
-                  {latestDailyPoint ? 
-                    `$${latestDailyPoint.close.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 
-                    '$0.00'}
-                </p>
-              </div>
-              
-              <div className="flex flex-col items-center p-4 bg-white/[0.03] rounded-xl">
-                <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Cambio 24h</p>
-                <p className="mt-1 text-lg font-semibold">
-                  {latestDailyPoint && previousDailyPoint ? 
-                    (
-                      <span className={latestDailyPoint.close > previousDailyPoint.close ? 'text-emerald-400' : 'text-rose-400'}>
-                        {(((latestDailyPoint.close - previousDailyPoint.close) / previousDailyPoint.close) * 100).toFixed(2)}%
-                      </span>
-                    ) : 
-                    '0.00%'}
-                </p>
-              </div>
-              
-              <div className="flex flex-col items-center p-4 bg-white/[0.03] rounded-xl">
-                <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Volumen 24h</p>
-                <p className="mt-1 text-lg font-semibold text-white">
-                  {latestDailyPoint ? 
-                    latestDailyPoint.volume.toLocaleString(undefined) : 
-                    '0'}
-                </p>
-              </div>
-              
-              <div className="flex flex-col items-center p-4 bg-white/[0.03] rounded-xl">
-                <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Market Cap</p>
-                <p className="mt-1 text-lg font-semibold text-white">
-                  {latestFundamental?.marketCap ? 
-                    `$${latestFundamental.marketCap.toLocaleString(undefined)}` : 
-                    'N/A'}
-                </p>
-              </div>
-              
-              <div className="flex flex-col items-center p-4 bg-white/[0.03] rounded-xl">
-                <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Posición</p>
-                {userPosition ? (
-                  <p className="mt-1 text-lg font-semibold text-white">
-                    {userPosition.quantity}
-                  </p>
-                ) : (
-                  <p className="mt-1 text-lg font-semibold text-white">0</p>
-                )}
-              </div>
-            </div>
-         </div>
+            <span className="text-sm text-slate-400">{asset.category}</span>
+          </div>
 
-        <div className="mb-8">
-          <TradingViewChart
-            key={symbol}
-            symbol={symbol}
-            interval="1D"
-            width="100%"
-            height={600}
-            indicators={activeIndicators}
-          />
+          <div className="flex flex-wrap items-center gap-6">
+            <div className="flex flex-col items-center p-4 bg-white/[0.03] rounded-xl">
+              <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Precio actual</p>
+              <p className="mt-1 text-xl font-semibold text-white">
+                {latestDailyPoint ?
+                  `$${latestDailyPoint.close.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` :
+                  '$0.00'}
+              </p>
+            </div>
+
+            <div className="flex flex-col items-center p-4 bg-white/[0.03] rounded-xl">
+              <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Cambio 24h</p>
+              <p className="mt-1 text-lg font-semibold">
+                {latestDailyPoint && previousDailyPoint ? (
+                  <span className={latestDailyPoint.close > previousDailyPoint.close ? 'text-emerald-400' : 'text-rose-400'}>
+                    {(((latestDailyPoint.close - previousDailyPoint.close) / previousDailyPoint.close) * 100).toFixed(2)}%
+                  </span>
+                ) :
+                '0.00%'}
+              </p>
+            </div>
+
+            <div className="flex flex-col items-center p-4 bg-white/[0.03] rounded-xl">
+              <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Volumen 24h</p>
+              <p className="mt-1 text-lg font-semibold text-white">
+                {latestDailyPoint ? latestDailyPoint.volume.toLocaleString(undefined) : '0'}
+              </p>
+            </div>
+
+            <div className="flex flex-col items-center p-4 bg-white/[0.03] rounded-xl">
+              <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Market Cap</p>
+              <p className="mt-1 text-lg font-semibold text-white">
+                {latestFundamental?.marketCap ?
+                  `$${latestFundamental.marketCap.toLocaleString(undefined)}` :
+                  'N/A'}
+              </p>
+            </div>
+          </div>
         </div>
 
-        <div className="flex items-center gap-4 border-b border-white/10 pb-4 mb-8">
-          <div className="flex items-center gap-2">
-            <Button 
-              variant={showIndicators ? "default" : "outline"}
+        <div className="space-y-6">
+          <div className="flex gap-4">
+            <Button
+              variant={showIndicators ? 'default' : 'outline'}
               onClick={() => setShowIndicators(!showIndicators)}
-              className="text-sm px-4 py-2"
+              className="flex items-center gap-2"
             >
-              Indicadores {activeIndicators.length > 0 && `(${activeIndicators.length})`}
+              <IndicatorIcon className="h-4 w-4" />
+              Indicadores técnicos ({activeIndicators.length})
             </Button>
-            <InfoTooltip
-              title="Indicadores"
-              description="Herramientas que procesan datos de precios para generar señales. Se calculan automáticamente y aparecen sobre el gráfico."
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <Button 
-              variant={showFundamental ? "default" : "outline"}
+            <Button
+              variant={showFundamental ? 'default' : 'outline'}
               onClick={() => setShowFundamental(!showFundamental)}
-              className="text-sm px-4 py-2"
+              className="flex items-center gap-2"
             >
-              Análisis Fundamental {activeFundamentals.length > 0 && `(${activeFundamentals.length})`}
+              <FundamentalIcon className="h-4 w-4" />
+              Fundamentales ({activeFundamentals.length})
             </Button>
-            <InfoTooltip
-              title="Análisis Fundamental"
-              description="Datos financieros que miden salud y valoración de una empresa o activo. Compara métricas con el sector para evaluar oportunidades."
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <Button 
-              variant={showDrawingTools ? "default" : "outline"}
+            <Button
+              variant={showDrawingTools ? 'default' : 'outline'}
               onClick={() => setShowDrawingTools(!showDrawingTools)}
-              className="text-sm px-4 py-2"
+              className="flex items-center gap-2"
             >
-              Figuras técnicas {activeDrawingTools.length > 0 && `(${activeDrawingTools.length})`}
+              <DrawingIcon className="h-4 w-4" />
+              Dibujar ({activeDrawingTools.length})
             </Button>
-            <InfoTooltip
-              title="Figuras técnicas"
-              description="Herramientas de dibujo para identificar patrones, niveles de soporte/resistencia y proyecciones de precio en gráficos."
+          </div>
+
+          <TradingViewChart
+            data={priceHistory as any}
+            indicators={activeIndicators}
+            indicatorValues={indicatorValues}
+            drawingTools={activeDrawingTools}
+            onDrawingToolsChange={setActiveDrawingTools}
+          />
+
+          {showIndicators && (
+            <IndicatorSelector
+              allIndicators={INDICATOR_CATALOG}
+              activeIndicators={activeIndicators}
+              onChange={setActiveIndicators}
             />
-          </div>
-        </div>
+          )}
 
-        {showIndicators && (
-          <div className="mb-8">
-            <h2 className="text-2xl font-semibold text-white mb-4">Indicadores técnicos</h2>
-            <IndicatorSelector 
-              selectedIndicators={activeIndicators} 
-              onChange={setActiveIndicators} 
-            />
-          </div>
-        )}
-
-        {activeIndicators.length > 0 && (
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold text-white mb-3">Indicadores calculados</h3>
-            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-              {INDICATOR_CATALOG.filter((i: IndicatorDefinition) => activeIndicators.includes(i.id)).map((indicator: IndicatorDefinition) => {
-                const value = indicatorValues[indicator.id];
-                const displayValue = value !== null && value !== undefined 
-                  ? (indicator.id === 'rsi' ? `${value.toFixed(2)}` : `$${value.toLocaleString(undefined, { maximumFractionDigits: 2 })}`)
-                  : "-";
-                
-                return (
-                  <Card key={indicator.id} className="border-white/10 bg-slate-950/45">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-base flex items-center justify-between">
-                        {indicator.label}: <span className="text-emerald-400">{displayValue}</span>
-                        <button
-                          type="button"
-                          onClick={() => setActiveIndicators(activeIndicators.filter(id => id !== indicator.id))}
-                          className="rounded-full text-slate-400 transition hover:text-white"
-                          aria-label={`Quitar ${indicator.label}`}
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <CardDescription className="text-slate-400 text-xs">{indicator.shortDescription}</CardDescription>
-                      <p className="mt-2 text-xs text-emerald-400/70">{indicator.usage}</p>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {showFundamental && (
-          <div className="mb-8">
-            <h2 className="text-2xl font-semibold text-white mb-4">Análisis fundamental</h2>
+          {showFundamental && (
             <FundamentalMetricSelector
-              selectedMetrics={activeFundamentals}
+              allMetrics={FUNDAMENTAL_METRIC_CATALOG}
+              activeMetrics={activeFundamentals}
               onChange={setActiveFundamentals}
-              assetCategory={asset?.category}
+              latestData={priceHistory[priceHistory.length - 1] as any}
             />
-          </div>
-        )}
+          )}
 
-        {activeFundamentals.length > 0 && (
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold text-white mb-3">Métricas fundamentales seleccionadas</h3>
-            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-              {FUNDAMENTAL_METRIC_CATALOG.filter((m: FundamentalMetricDefinition) => activeFundamentals.includes(m.id)).map((metric: FundamentalMetricDefinition) => {
-                const rawValue = latestFundamental?.[metric.id as keyof FundamentalPricePoint];
-                let displayValue = "-";
-                
-                if (typeof rawValue === "number" && rawValue !== 0) {
-                  if (metric.formatter === "percent") {
-                    displayValue = `${(rawValue * 100).toFixed(2)}%`;
-                  } else if (metric.formatter === "currency") {
-                    displayValue = `$${rawValue.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
-                  } else {
-                    displayValue = rawValue.toLocaleString(undefined, { maximumFractionDigits: 2 });
-                  }
-                }
-                
-                return (
-                  <Card key={metric.id} className="border-white/10 bg-slate-950/45">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-base flex items-center justify-between">
-                        {metric.label}
-                        <button
-                          type="button"
-                          onClick={() => setActiveFundamentals(activeFundamentals.filter(id => id !== metric.id))}
-                          className="rounded-full text-slate-400 transition hover:text-white"
-                          aria-label={`Quitar ${metric.label}`}
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-xl font-semibold text-emerald-400">{displayValue}</p>
-                      <CardDescription className="mt-1 text-slate-400">{metric.description}</CardDescription>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {showDrawingTools && (
-          <div className="mb-8">
-            <h2 className="text-2xl font-semibold text-white mb-4">Figuras técnicas</h2>
+          {showDrawingTools && (
             <DrawingToolSelector
-              selectedTools={activeDrawingTools}
+              allTools={DRAWING_TOOL_CATALOG}
+              activeTools={activeDrawingTools}
               onChange={setActiveDrawingTools}
             />
+          )}
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <MetricCard
+              label="Precio actual"
+              value={latestDailyPoint ? `$${latestDailyPoint.close.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'}
+            />
+            <MetricCard
+              label="Cambio 24h"
+              value={latestDailyPoint && previousDailyPoint ?
+                `${(((latestDailyPoint.close - previousDailyPoint.close) / previousDailyPoint.close) * 100).toFixed(2)}%` : '0.00%'}
+              className={latestDailyPoint && previousDailyPoint && latestDailyPoint.close > previousDailyPoint.close ? 'text-emerald-400' : 'text-rose-400'}
+            />
+            <MetricCard
+              label="Volumen 24h"
+              value={latestDailyPoint ? latestDailyPoint.volume.toLocaleString(undefined) : '0'}
+            />
+            <MetricCard
+              label="Market Cap"
+              value={latestFundamental?.marketCap ? `$${latestFundamental.marketCap.toLocaleString(undefined)}` : 'N/A'}
+            />
           </div>
-        )}
+
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-white">Información del activo</h3>
+            <div className="grid gap-4 md:grid-cols-2">
+              <InfoCard title="Símbolo" value={asset.symbol} />
+              <InfoCard title="Nombre" value={asset.name} />
+              <InfoCard title="Categoría" value={asset.category} />
+              <InfoCard title="Sitio web" value={asset.website ? <a href={asset.website} target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:underline">{asset.website}</a> : 'N/A'} />
+            </div>
+            {asset.description && (
+              <div className="prose prose-invert max-w-none">
+                <p>{asset.description}</p>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </motion.div>
+  );
+}
+
+function IndicatorIcon({ className }: { className: string }) {
+  return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+  </svg>;
+}
+
+function FundamentalIcon({ className }: { className: string }) {
+  return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+    <path d="M12 2a4 4 0 0 1 0 8 4 4 0 0 1 0-8Z" />
+  </svg>;
+}
+
+function DrawingIcon({ className }: { className: string }) {
+  return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M12 19l7-7 3 3-7 7-3-3Z" />
+    <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5Z" />
+    <path d="M2 2l7.586 7.586" />
+    <circle cx="11" cy="11" r="2" />
+  </svg>;
+}
+
+function MetricCard({ label, value, className }: { label: string; value: string; className?: string }) {
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+      <p className="text-xs uppercase tracking-[0.24em] text-slate-400">{label}</p>
+      <p className={`mt-1 text-lg font-semibold text-white ${className || ''}`}>{value}</p>
+    </div>
+  );
+}
+
+function InfoCard({ title, value }: { title: string; value: React.ReactNode }) {
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+      <p className="text-xs uppercase tracking-[0.24em] text-slate-400">{title}</p>
+      <p className="mt-1 text-lg font-medium text-white">{value}</p>
+    </div>
   );
 }

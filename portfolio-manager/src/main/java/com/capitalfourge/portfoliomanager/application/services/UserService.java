@@ -44,8 +44,8 @@ public class UserService implements UserUseCase {
     public AuthResult register(RegisterCommand command) {
         // Validate email
         EmailValidator.ValidationResult emailValidation = emailValidator.validate(command.getEmail());
-        if (!emailValidation.valid()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, emailValidation.reason());
+        if (!emailValidation.isValid()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, emailValidation.getMessage());
         }
 
         if (userRepository.existsByEmail(command.getEmail())) {
@@ -81,7 +81,7 @@ public class UserService implements UserUseCase {
     public AuthResult login(LoginCommand command) {
         // Validate email format
         EmailValidator.ValidationResult emailValidation = emailValidator.validate(command.getEmail());
-        if (!emailValidation.valid()) {
+        if (!emailValidation.isValid()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Credenciales inválidas");
         }
 
@@ -188,8 +188,8 @@ public class UserService implements UserUseCase {
     public void changeEmail(ChangeEmailCommand command) {
         // Validate new email
         EmailValidator.ValidationResult emailValidation = emailValidator.validate(command.getNewEmail());
-        if (!emailValidation.valid()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, emailValidation.reason());
+        if (!emailValidation.isValid()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, emailValidation.getMessage());
         }
 
         User user = userRepository.findById(command.getUserId())
@@ -214,8 +214,8 @@ public class UserService implements UserUseCase {
         }
         if (email != null && !email.isBlank()) {
             EmailValidator.ValidationResult emailValidation = emailValidator.validate(email);
-            if (!emailValidation.valid()) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, emailValidation.reason());
+            if (!emailValidation.isValid()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, emailValidation.getMessage());
             }
             if (userRepository.existsByEmail(email)) {
                 throw new ResponseStatusException(HttpStatus.CONFLICT, "Este correo ya está registrado");

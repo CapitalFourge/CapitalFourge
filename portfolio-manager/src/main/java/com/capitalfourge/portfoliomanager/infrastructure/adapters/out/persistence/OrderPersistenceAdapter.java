@@ -66,6 +66,16 @@ public class OrderPersistenceAdapter implements OrderRepository {
         jpaRepository.deleteById(id);
     }
 
+    @Override
+    public List<Order> saveAll(List<Order> orders) {
+        List<OrderEntity> entities = orders.stream()
+                .map(this::toEntity)
+                .collect(Collectors.toList());
+        return jpaRepository.saveAll(entities).stream()
+                .map(this::toDomain)
+                .collect(Collectors.toList());
+    }
+
     private OrderEntity toEntity(Order order) {
         return OrderEntity.builder()
                 .id(order.getId())

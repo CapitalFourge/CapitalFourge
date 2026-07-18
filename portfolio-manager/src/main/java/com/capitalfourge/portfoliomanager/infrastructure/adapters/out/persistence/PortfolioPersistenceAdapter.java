@@ -58,6 +58,14 @@ public class PortfolioPersistenceAdapter implements PortfolioRepository {
         jpaRepository.deleteById(id);
     }
 
+    @Override
+    public List<Portfolio> findByIds(List<UUID> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        return jpaRepository.findByIdIn(ids).stream().map(this::toDomain).toList();
+    }
+
     private PortfolioEntity toEntity(Portfolio domain) {
         PortfolioEntity entity = PortfolioEntity.builder()
                 .id(domain.getId())

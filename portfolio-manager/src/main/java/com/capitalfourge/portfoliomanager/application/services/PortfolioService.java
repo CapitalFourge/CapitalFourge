@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -322,25 +323,46 @@ public class PortfolioService implements PortfolioUseCase {
         if (user == null)
             return;
 
+        // 1. Get ALL pending orders for this user in ONE query
         List<Order> userOrders = orderRepository.findByUserId(userId);
 
-        // 1. Identify and cancel orders for deleted portfolios
+        // 2. Collect all portfolio IDs that we need to check
+        List<UUID> portfolioIds = userOrders.stream()
+                .filter(o -> o.getStatus() == OrderStatus.PENDING)
+                .map(Order::getPortfolioId)
+                .distinct()
+                .toList();
+
+        // 3. Batch check portfolio existence in ONE query
+        Map<UUID, Boolean> portfolioExists = portfolioRepository.findByIds(portfolioIds)
+                .stream()
+                .collect(Collectors.toMap(Portfolio::getId, p -> true));
+
+        // 4. Identify orphaned orders and calculate recovered balance in memory
         BigDecimal recoveredBalance = BigDecimal.ZERO;
+        List<Order> ordersToCancel = new ArrayList<>();
+
         for (Order order : userOrders) {
             if (order.getStatus() == OrderStatus.PENDING) {
-                boolean portfolioExists = portfolioRepository.findById(order.getPortfolioId()).isPresent();
-                if (!portfolioExists) {
+                boolean exists = portfolioExists.getOrDefault(order.getPortfolioId(), false);
+                if (!exists) {
                     // This is an orphan!
                     BigDecimal amount = order.getUsdAmount() != null ? order.getUsdAmount()
                             : order.getQuantity().multiply(order.getTargetPrice());
                     recoveredBalance = recoveredBalance.add(amount);
                     order.setStatus(OrderStatus.CANCELLED);
-                    orderRepository.save(order);
+                    ordersToCancel.add(order);
                     log.info("Recovered {} from orphaned order {} for user {}", amount, order.getId(), userId);
                 }
             }
         }
 
+        // 5. Batch save cancelled orders
+        if (!ordersToCancel.isEmpty()) {
+            orderRepository.saveAll(ordersToCancel);
+        }
+
+        // 6. Apply recovered balance
         if (recoveredBalance.compareTo(BigDecimal.ZERO) > 0) {
             user.setCashBalance((user.getCashBalance() != null ? user.getCashBalance() : BigDecimal.ZERO)
                     .add(recoveredBalance));
@@ -349,14 +371,12 @@ public class PortfolioService implements PortfolioUseCase {
             userRepository.save(user);
         }
 
-        // 2. Extra safety: Recalculate locked balance based on ALL remaining PENDING
-        // orders
-        List<Order> remainingPending = orderRepository.findByUserId(userId).stream()
+        // 7. Extra safety: Recalculate locked balance based on ALL remaining PENDING
+        // orders (single query already done above)
+        BigDecimal actualLocked = userOrders.stream()
                 .filter(o -> o.getStatus() == OrderStatus.PENDING && o.getType() == OrderType.BUY_LIMIT)
-                .toList();
-
-        BigDecimal actualLocked = remainingPending.stream()
-                .map(o -> o.getUsdAmount() != null ? o.getUsdAmount() : o.getQuantity().multiply(o.getTargetPrice()))
+                .map(o -> o.getUsdAmount() != null ? o.getUsdAmount()
+                        : o.getQuantity().multiply(o.getTargetPrice()))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         BigDecimal currentLocked = user.getLockedBalance() != null ? user.getLockedBalance() : BigDecimal.ZERO;

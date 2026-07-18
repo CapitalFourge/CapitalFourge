@@ -56,6 +56,16 @@ public class UserPersistenceAdapter implements UserRepository {
                 .toList();
     }
 
+    @Override
+    public void deleteById(UUID userId) {
+        jpaRepository.deleteById(userId);
+    }
+
+    @Override
+    public boolean existsById(UUID userId) {
+        return jpaRepository.existsById(userId);
+    }
+
     private UserEntity toEntity(User domain) {
         UserEntity entity = new UserEntity();
         entity.setId(domain.getId());

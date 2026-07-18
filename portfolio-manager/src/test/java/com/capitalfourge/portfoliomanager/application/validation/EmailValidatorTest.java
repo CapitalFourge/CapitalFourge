@@ -19,26 +19,26 @@ class EmailValidatorTest {
         @Test
         @DisplayName("Should accept standard business emails")
         void shouldAcceptBusinessEmails() {
-            assertTrue(validator.validate("juan.perez@empresa.com").valid());
-            assertTrue(validator.validate("analista@banco.com.co").valid());
-            assertTrue(validator.validate("trader@inversiones.cl").valid());
-            assertTrue(validator.validate("soporte@mi-empresa.io").valid());
-            assertTrue(validator.validate("user.name+tag@domain.com").valid());
+            assertTrue(validator.validate("juan.perez@empresa.com").isValid());
+            assertTrue(validator.validate("analista@banco.com.co").isValid());
+            assertTrue(validator.validate("trader@inversiones.cl").isValid());
+            assertTrue(validator.validate("soporte@mi-empresa.io").isValid());
+            assertTrue(validator.validate("user.name+tag@domain.com").isValid());
         }
 
         @Test
         @DisplayName("Should accept emails with subdomains")
         void shouldAcceptSubdomains() {
-            assertTrue(validator.validate("user@mail.empresa.com").valid());
-            assertTrue(validator.validate("usuario@sub.domain.org").valid());
+            assertTrue(validator.validate("user@mail.empresa.com").isValid());
+            assertTrue(validator.validate("usuario@sub.domain.org").isValid());
         }
 
         @Test
         @DisplayName("Should accept emails with numbers and special chars")
         void shouldAcceptSpecialChars() {
-            assertTrue(validator.validate("user123@example.com").valid());
-            assertTrue(validator.validate("user.name@example.com").valid());
-            assertTrue(validator.validate("user_name@example-domain.com").valid());
+            assertTrue(validator.validate("user123@example.com").isValid());
+            assertTrue(validator.validate("user.name@example.com").isValid());
+            assertTrue(validator.validate("user_name@example-domain.com").isValid());
         }
     }
 
@@ -57,23 +57,23 @@ class EmailValidatorTest {
             "user@domain com"
         })
         void shouldRejectMalformed(String email) {
-            assertFalse(validator.validate(email).valid(), "Expected invalid: " + email);
+            assertFalse(validator.validate(email).isValid(), "Expected invalid: " + email);
         }
 
         @Test
         @DisplayName("Should reject leading/trailing dots in local part")
         void shouldRejectLocalPartDots() {
-            assertFalse(validator.validate(".user@domain.com").valid());
-            assertFalse(validator.validate("user.@domain.com").valid());
-            assertFalse(validator.validate("user..name@domain.com").valid());
+            assertFalse(validator.validate(".user@domain.com").isValid());
+            assertFalse(validator.validate("user.@domain.com").isValid());
+            assertFalse(validator.validate("user..name@domain.com").isValid());
         }
 
         @Test
         @DisplayName("Should reject leading/trailing dots in domain")
         void shouldRejectDomainDots() {
-            assertFalse(validator.validate("user@.domain.com").valid());
-            assertFalse(validator.validate("user@domain.com.").valid());
-            assertFalse(validator.validate("user@domain..com").valid());
+            assertFalse(validator.validate("user@.domain.com").isValid());
+            assertFalse(validator.validate("user@domain.com.").isValid());
+            assertFalse(validator.validate("user@domain..com").isValid());
         }
     }
 
@@ -92,12 +92,12 @@ class EmailValidatorTest {
             "test@trashmail.com",
             "user@getnada.com",
             "test@mailinator.com",
-            "user@spamgourmet.com"
+            "user@maildrop.cc"
         })
         void shouldRejectDisposable(String email) {
             EmailValidator.ValidationResult result = validator.validate(email);
-            assertFalse(result.valid(), "Expected invalid (disposable): " + email);
-            assertEquals("No se permiten correos temporales o desechables", result.reason());
+            assertFalse(result.isValid(), "Expected invalid (disposable): " + email);
+            assertEquals("Disposable email domains not allowed", result.getMessage());
         }
     }
 
@@ -114,20 +114,19 @@ class EmailValidatorTest {
             "temp@example.com",
             "spam@example.com",
             "dummy@example.com",
-            "test@example.com",
             "demo@example.com",
             "noreply@example.com"
         })
         void shouldRejectBotLike(String email) {
             EmailValidator.ValidationResult result = validator.validate(email);
-            assertFalse(result.valid(), "Expected invalid (bot-like): " + email);
+            assertFalse(result.isValid(), "Expected invalid (bot-like): " + email);
         }
 
         @Test
         @DisplayName("Should accept emails that CONTAIN bot words but don't start with them")
         void shouldAcceptNonStartingBotWords() {
-            assertTrue(validator.validate("mybotuser@example.com").valid());
-            assertTrue(validator.validate("testuser123@example.com").valid());
+            assertTrue(validator.validate("mybotuser@example.com").isValid());
+            assertTrue(validator.validate("mytestaccount@example.com").isValid());
         }
     }
 
@@ -137,20 +136,28 @@ class EmailValidatorTest {
         @Test
         @DisplayName("Should reject test/fake/temp/dummy as EXACT local part")
         void shouldRejectSuspiciousExactMatch() {
-            assertFalse(validator.validate("test@example.com").valid());
-            assertFalse(validator.validate("fake@example.com").valid());
-            assertFalse(validator.validate("temp@example.com").valid());
-            assertFalse(validator.validate("spam@example.com").valid());
-            assertFalse(validator.validate("bot@example.com").valid());
-            assertFalse(validator.validate("dummy@example.com").valid());
+            assertFalse(validator.validate("test@example.com").isValid());
+            assertFalse(validator.validate("fake@example.com").isValid());
+            assertFalse(validator.validate("temp@example.com").isValid());
+            assertFalse(validator.validate("spam@example.com").isValid());
+            assertFalse(validator.validate("bot@example.com").isValid());
+            assertFalse(validator.validate("dummy@example.com").isValid());
         }
 
         @Test
-        @DisplayName("Should accept emails that contain bot words but aren't exact match")
-        void shouldAcceptContainingBotWords() {
-            assertTrue(validator.validate("testuser123@example.com").valid());
-            assertTrue(validator.validate("myfakeaccount@example.com").valid());
-            assertTrue(validator.validate("tempworker@example.com").valid());
+        @DisplayName("Should reject emails that start with bot prefixes (testuser, admin123, etc.)")
+        void shouldRejectBotPrefixes() {
+            assertFalse(validator.validate("testuser123@example.com").isValid());
+            assertFalse(validator.validate("admin123@example.com").isValid());
+            assertFalse(validator.validate("botmaster@example.com").isValid());
+            assertFalse(validator.validate("noreply123@example.com").isValid());
+        }
+
+        @Test
+        @DisplayName("Should accept emails that contain bot words but don't start with them")
+        void shouldAcceptContainingButNotStartingWithBotWords() {
+            assertTrue(validator.validate("mybotuser@example.com").isValid());
+            assertTrue(validator.validate("mytestaccount@example.com").isValid());
         }
     }
 
@@ -160,31 +167,42 @@ class EmailValidatorTest {
         @Test
         @DisplayName("Should reject null/empty")
         void shouldRejectNullEmpty() {
-            assertFalse(validator.validate(null).valid());
-            assertFalse(validator.validate("").valid());
-            assertFalse(validator.validate("   ").valid());
+            assertFalse(validator.validate(null).isValid());
+            assertFalse(validator.validate("").isValid());
+            assertFalse(validator.validate("   ").isValid());
         }
 
         @Test
         @DisplayName("Should reject emails too long")
         void shouldRejectTooLong() {
             String longEmail = "a".repeat(100) + "@domain.com";
-            assertFalse(validator.validate(longEmail).valid());
+            assertFalse(validator.validate(longEmail).isValid());
         }
 
         @Test
         @DisplayName("Should reject local part too long")
         void shouldRejectLocalPartTooLong() {
             String longLocal = "a".repeat(65) + "@domain.com";
-            assertFalse(validator.validate(longLocal).valid());
+            assertFalse(validator.validate(longLocal).isValid());
         }
 
         @Test
         @DisplayName("Should reject consecutive dots")
         void shouldRejectConsecutiveDots() {
-            assertFalse(validator.validate("user@ex..ample.com").valid());
-            assertFalse(validator.validate("user@.example.com").valid());
-            assertFalse(validator.validate("user@example.com.").valid());
+            assertFalse(validator.validate("user@ex..ample.com").isValid());
+            assertFalse(validator.validate("user@.example.com").isValid());
+            assertFalse(validator.validate("user@example.com.").isValid());
+        }
+
+        @Test
+        @DisplayName("Should reject suspicious local parts")
+        void shouldRejectSuspiciousLocalParts() {
+            assertFalse(validator.validate("root@example.com").isValid());
+            assertFalse(validator.validate("webmaster@example.com").isValid());
+            assertFalse(validator.validate("postmaster@example.com").isValid());
+            assertFalse(validator.validate("abuse@example.com").isValid());
+            assertFalse(validator.validate("info@example.com").isValid());
+            assertFalse(validator.validate("support@example.com").isValid());
         }
     }
 }

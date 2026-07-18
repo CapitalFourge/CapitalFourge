@@ -18,4 +18,6 @@ public interface PortfolioRepository {
     List<Portfolio> findPublicPortfolios();
 
     void deleteById(UUID id);
+
+    List<Portfolio> findByIds(List<UUID> ids);
 }

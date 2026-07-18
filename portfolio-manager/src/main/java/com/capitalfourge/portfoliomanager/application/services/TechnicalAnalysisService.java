@@ -1,7 +1,9 @@
 package com.capitalfourge.portfoliomanager.application.services;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
@@ -17,7 +19,11 @@ public class TechnicalAnalysisService {
     }
 
     public List<IndicatorSeries> getIndicators(String symbol, int days) {
-        List<HistoricalPoint> history = grpcClient.getPriceHistory(symbol, days).stream()
+        // Fetch price history ONCE and reuse for all indicators
+        List<com.capitalfourge.proto.PricePoint> pricePoints = grpcClient.getPriceHistory(symbol, days);
+        
+        // Convert to internal format once
+        List<HistoricalPoint> history = pricePoints.stream()
                 .filter(point -> point.getClose() > 0 && point.getDate() != null && !point.getDate().isBlank())
                 .map(point -> new HistoricalPoint(point.getDate(), point.getClose()))
                 .toList();
@@ -26,12 +32,16 @@ public class TechnicalAnalysisService {
             return List.of();
         }
 
+        // Pre-compute all EMAs for MACD to avoid recalculating
+        List<Double> ema12 = calculateEmaValues(history, 12);
+        List<Double> ema26 = calculateEmaValues(history, 26);
+
         return List.of(
                 new IndicatorSeries("sma", "line", calculateSma(history, 20)),
                 new IndicatorSeries("ema", "line", calculateEma(history, 20)),
                 new IndicatorSeries("wma", "line", calculateWma(history, 20)),
                 new IndicatorSeries("rsi", "line", calculateRsi(history, 14)),
-                new IndicatorSeries("macd", "line", calculateMacd(history, 12, 26, 9)),
+                new IndicatorSeries("macd", "line", calculateMacd(history, ema12, ema26, 9)),
                 new IndicatorSeries("bollinger", "line", calculateBollinger(history, 20, 2.0)),
                 new IndicatorSeries("stochastic", "line", calculateStochastic(history, 14, 3)),
                 new IndicatorSeries("roc", "line", calculateRoc(history, 12)),
@@ -126,20 +136,18 @@ public class TechnicalAnalysisService {
         return result;
     }
 
-    private List<IndicatorPoint> calculateMacd(List<HistoricalPoint> history, int fastPeriod, int slowPeriod, int signalPeriod) {
+    private List<IndicatorPoint> calculateMacd(List<HistoricalPoint> history, List<Double> ema12, List<Double> ema26, int signalPeriod) {
         List<IndicatorPoint> result = new ArrayList<>();
-        if (history.size() < slowPeriod + signalPeriod - 1) {
+        if (history.size() < signalPeriod) {
             return result;
         }
 
-        List<Double> fastEma = calculateEmaValues(history, fastPeriod);
-        List<Double> slowEma = calculateEmaValues(history, slowPeriod);
         List<Double> macdValues = new ArrayList<>();
         List<String> macdDates = new ArrayList<>();
 
         for (int index = 0; index < history.size(); index++) {
-            Double fast = fastEma.get(index);
-            Double slow = slowEma.get(index);
+            Double fast = ema12.get(index);
+            Double slow = ema26.get(index);
             if (fast != null && slow != null) {
                 macdValues.add(fast - slow);
                 macdDates.add(history.get(index).date());

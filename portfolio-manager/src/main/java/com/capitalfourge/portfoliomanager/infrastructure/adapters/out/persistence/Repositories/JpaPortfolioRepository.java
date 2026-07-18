@@ -18,4 +18,6 @@ public interface JpaPortfolioRepository extends JpaRepository<PortfolioEntity, U
 
     @EntityGraph(attributePaths = {"positions"})
     List<PortfolioEntity> findByIsPublicTrueOrderByPerformanceDesc();
+
+    List<PortfolioEntity> findByIdIn(List<UUID> ids);
 }

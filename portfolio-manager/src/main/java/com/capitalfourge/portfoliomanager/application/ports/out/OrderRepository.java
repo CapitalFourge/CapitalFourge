@@ -22,4 +22,6 @@ public interface OrderRepository {
     List<Order> findPendingOrdersBySymbol(String symbol);
 
     void deleteById(UUID id);
+
+    List<Order> saveAll(List<Order> orders);
 }

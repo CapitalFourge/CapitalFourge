@@ -57,8 +57,10 @@ def get_eia_inventory(route: str, series: str = None) -> float:
                     return float(latest['value'])
         else:
             logging.warning(f"EIA API request failed: {response.status_code} - {response.text[:100]}")
-    except Exception as e:
+    except requests.RequestException as e:
         logging.warning(f"Error fetching EIA data for {route}: {e}")
+    except Exception as e:
+        logging.warning(f"Unexpected error fetching EIA data for {route}: {e}")
     return 0.0
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -70,12 +72,12 @@ try:
     import financial_data_pb2
     import financial_data_pb2_grpc
 except ImportError as e:
-    logging.error(f"❌ Error importando protos: {e}")
+    logging.error(f"Error importando protos: {e}")
     try:
         from src.infrastructure import financial_data_pb2
         from src.infrastructure import financial_data_pb2_grpc
     except ImportError:
-        logging.error("❌ Fallo total de importación de protos.")
+        logging.error("Fallo total de importación de protos.")
 
 COLOMBIAN_MAP = {
     'EC': 'ECOL.BOG', 'ECOPETROL': 'ECOL.BOG',
@@ -139,12 +141,12 @@ class FinancialDataServicer(financial_data_pb2_grpc.FinancialDataServiceServicer
             pass
         if info.get('shares') and info.get('shares') > 0 and info.get('lastPrice'):
             return float(info['shares']) * float(info['lastPrice'])
-        print(f"⚠️ marketCap not found for {ticker}: info={info}")
+        print(f"marketCap not found for {ticker}: info={info}")
         return 0.0
 
     def GetStockPrice(self, request, context):
         symbol = request.symbol
-        print(f"💰 gRPC Request received for: {symbol}")
+        print(f"gRPC Request received for: {symbol}")
         yf_symbol = resolve_yfinance_symbol(symbol)
         price = self.oracle.fetch_and_cache(yf_symbol)
         return financial_data_pb2.StockPriceResponse(
@@ -263,7 +265,7 @@ class FinancialDataServicer(financial_data_pb2_grpc.FinancialDataServiceServicer
             {"symbol": "EURGBP=X", "name": "EUR/GBP", "category": "FOREX"},
             {"symbol": "EURJPY=X", "name": "EUR/JPY", "category": "FOREX"}
         ]
-        print("📋 gRPC Request: GetCategorizedAssets")
+        print("gRPC Request: GetCategorizedAssets")
         proto_assets = [
             financial_data_pb2.Asset(
                 symbol=a["symbol"],
@@ -276,7 +278,7 @@ class FinancialDataServicer(financial_data_pb2_grpc.FinancialDataServiceServicer
         return financial_data_pb2.CategorizedAssetsResponse(assets=proto_assets)
 
     def GetAvailableSymbols(self, request, context):
-        print("📋 gRPC Request received for available symbols")
+        print("gRPC Request received for available symbols")
         popular_symbols = [
             "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "NVDA", "META", "NFLX", "AMD", "DIS",
             "EC", "AVAL", "BANCOLOMBIA", "PF", "CEMEX",
@@ -292,17 +294,17 @@ class FinancialDataServicer(financial_data_pb2_grpc.FinancialDataServiceServicer
         limit = request.limit
         if not query:
             return financial_data_pb2.CategorizedAssetsResponse(assets=[])
-        print(f"🔍 Search request for: {query} (limit: {limit})")
+        print(f"Search request for: {query} (limit: {limit})")
         try:
             categorized = self.GetCategorizedAssets(request, context)
             query_lower = query.lower()
             matches = [a for a in categorized.assets
                        if query_lower in a.symbol.lower() or query_lower in a.name.lower()]
             if matches:
-                print(f"✅ Tier 1 match for {query}")
+                print(f"Tier 1 match for {query}")
                 return financial_data_pb2.CategorizedAssetsResponse(assets=matches[:limit])
         except Exception as e:
-            print(f"⚠️ Error searching categorized assets: {e}")
+            print(f"Error searching categorized assets: {e}")
 
         yf_query = resolve_yfinance_symbol(query)
         if yf_query != query:
@@ -318,16 +320,16 @@ class FinancialDataServicer(financial_data_pb2_grpc.FinancialDataServiceServicer
                         category = 'COMMODITIES'
                     elif query.endswith('=X'):
                         category = 'FOREX'
-                    print(f"✅ Dynamic resolution: {query} -> {yf_query} ({name}) [{category}]")
+                    print(f"Dynamic resolution: {query} -> {yf_query} ({name}) [{category}]")
                     return financial_data_pb2.CategorizedAssetsResponse(assets=[
                         financial_data_pb2.Asset(
                             symbol=query, name=name, category=category,
                             description='', website='')
                     ])
             except Exception as e:
-                print(f"⚠️ Error validating {query} via yfinance: {e}")
+                print(f"Error validating {query} via yfinance: {e}")
 
-        print(f"❌ No results for: {query}")
+        print(f"No results for: {query}")
         return financial_data_pb2.CategorizedAssetsResponse(assets=[])
 
 
@@ -339,11 +341,17 @@ def serve():
             FinancialDataServicer(), server
         )
         server.add_insecure_port('[::]:50051')
-        logging.info("🚀 gRPC Server starting on port 50051...")
+        logging.info("gRPC Server starting on port 50051...")
         server.start()
         server.wait_for_termination()
+    except grpc.RpcError as e:
+        logging.error(f"gRPC error in server: {e}")
+        raise e
+    except OSError as e:
+        logging.error(f"OS error in server (port binding): {e}")
+        raise e
     except Exception as e:
-        logging.error(f"❌ Error fatal en el servidor gRPC: {e}")
+        logging.error(f"Fatal error in gRPC server: {e}")
         raise e
 
 if __name__ == '__main__':

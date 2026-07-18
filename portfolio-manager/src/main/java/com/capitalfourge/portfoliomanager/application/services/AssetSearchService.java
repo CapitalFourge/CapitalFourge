@@ -46,34 +46,35 @@ public class AssetSearchService {
                     .collect(Collectors.toList());
         } catch (Exception e) {
             log.error("Error getting categorized assets: {}", e.getMessage());
-            // Fallback to a small static asset set if gRPC is unavailable.
-            // Category names MUST match those used by the gRPC server and the frontend
-            // (uppercase).
-            List<AssetInfo> fallback = new ArrayList<>();
-            fallback.add(AssetInfo.builder().symbol("BTC-USD").name("Bitcoin").category("CRYPTO").build());
-            fallback.add(AssetInfo.builder().symbol("ETH-USD").name("Ethereum").category("CRYPTO").build());
-            fallback.add(AssetInfo.builder().symbol("SOL-USD").name("Solana").category("CRYPTO").build());
-            fallback.add(AssetInfo.builder().symbol("AAPL").name("Apple Inc.").category("STOCKS").build());
-            fallback.add(AssetInfo.builder().symbol("ADBE").name("Adobe Inc.").category("STOCKS").build());
-            fallback.add(AssetInfo.builder().symbol("MSFT").name("Microsoft Corp.").category("STOCKS").build());
-            fallback.add(AssetInfo.builder().symbol("NVDA").name("NVIDIA Corp.").category("STOCKS").build());
-            fallback.add(AssetInfo.builder().symbol("GC=F").name("Gold").category("COMMODITIES").build());
-            fallback.add(AssetInfo.builder().symbol("SI=F").name("Silver").category("COMMODITIES").build());
-            fallback.add(AssetInfo.builder().symbol("CL=F").name("Crude Oil").category("COMMODITIES").build());
-            fallback.add(AssetInfo.builder().symbol("NG=F").name("Natural Gas").category("COMMODITIES").build());
-            fallback.add(AssetInfo.builder().symbol("HG=F").name("Copper").category("COMMODITIES").build());
-            fallback.add(AssetInfo.builder().symbol("BZ=F").name("Brent Crude Oil").category("COMMODITIES").build());
-            fallback.add(AssetInfo.builder().symbol("EURUSD=X").name("EUR/USD").category("FOREX").build());
-            fallback.add(AssetInfo.builder().symbol("GBPUSD=X").name("GBP/USD").category("FOREX").build());
-            fallback.add(AssetInfo.builder().symbol("USDJPY=X").name("USD/JPY").category("FOREX").build());
+            return getFallbackAssets(category);
+        }
+    }
 
-            if (category == null) {
-                return fallback;
-            } else {
-                return fallback.stream()
-                        .filter(a -> category.equalsIgnoreCase(a.getCategory()))
-                        .collect(Collectors.toList());
-            }
+    private List<AssetInfo> getFallbackAssets(String category) {
+        List<AssetInfo> fallback = new ArrayList<>();
+        fallback.add(AssetInfo.builder().symbol("BTC-USD").name("Bitcoin").category("CRYPTO").build());
+        fallback.add(AssetInfo.builder().symbol("ETH-USD").name("Ethereum").category("CRYPTO").build());
+        fallback.add(AssetInfo.builder().symbol("SOL-USD").name("Solana").category("CRYPTO").build());
+        fallback.add(AssetInfo.builder().symbol("AAPL").name("Apple Inc.").category("STOCKS").build());
+        fallback.add(AssetInfo.builder().symbol("ADBE").name("Adobe Inc.").category("STOCKS").build());
+        fallback.add(AssetInfo.builder().symbol("MSFT").name("Microsoft Corp.").category("STOCKS").build());
+        fallback.add(AssetInfo.builder().symbol("NVDA").name("NVIDIA Corp.").category("STOCKS").build());
+        fallback.add(AssetInfo.builder().symbol("GC=F").name("Gold").category("COMMODITIES").build());
+        fallback.add(AssetInfo.builder().symbol("SI=F").name("Silver").category("COMMODITIES").build());
+        fallback.add(AssetInfo.builder().symbol("CL=F").name("Crude Oil").category("COMMODITIES").build());
+        fallback.add(AssetInfo.builder().symbol("NG=F").name("Natural Gas").category("COMMODITIES").build());
+        fallback.add(AssetInfo.builder().symbol("HG=F").name("Copper").category("COMMODITIES").build());
+        fallback.add(AssetInfo.builder().symbol("BZ=F").name("Brent Crude Oil").category("COMMODITIES").build());
+        fallback.add(AssetInfo.builder().symbol("EURUSD=X").name("EUR/USD").category("FOREX").build());
+        fallback.add(AssetInfo.builder().symbol("GBPUSD=X").name("GBP/USD").category("FOREX").build());
+        fallback.add(AssetInfo.builder().symbol("USDJPY=X").name("USD/JPY").category("FOREX").build());
+
+        if (category == null) {
+            return fallback;
+        } else {
+            return fallback.stream()
+                    .filter(a -> category.equalsIgnoreCase(a.getCategory()))
+                    .collect(Collectors.toList());
         }
     }
 
@@ -84,89 +85,15 @@ public class AssetSearchService {
 
         try {
             String upperQuery = query.trim().toUpperCase();
-
-            // Get all categorized assets which have both symbol AND name
             List<com.capitalfourge.proto.Asset> allAssets = grpcClient.getCategorizedAssets();
 
             log.info("🔍 Search query: '{}', Total available assets: {}", query, allAssets.size());
 
-            String queryLower = query.toLowerCase();
-
-            // Search both symbol AND name fields
-            List<AssetSuggestion> results = allAssets.stream()
-                    .filter(asset -> {
-                        String symbolLower = asset.getSymbol().toLowerCase();
-                        String nameLower = asset.getName() != null ? asset.getName().toLowerCase() : "";
-                        return symbolLower.contains(queryLower) ||
-                               nameLower.contains(queryLower);
-                    })
-                    .sorted((a, b) -> {
-                        String aSymbol = a.getSymbol().toLowerCase();
-                        String bSymbol = b.getSymbol().toLowerCase();
-                        String aName = a.getName() != null ? a.getName().toLowerCase() : "";
-                        String bName = b.getName() != null ? b.getName().toLowerCase() : "";
-
-                        // Priority 1: Symbol exact match
-                        boolean aSymbolExact = aSymbol.equals(queryLower);
-                        boolean bSymbolExact = bSymbol.equals(queryLower);
-                        if (aSymbolExact && !bSymbolExact) return -1;
-                        if (!aSymbolExact && bSymbolExact) return 1;
-
-                        // Priority 2: Name exact match
-                        boolean aNameExact = aName.equals(queryLower);
-                        boolean bNameExact = bName.equals(queryLower);
-                        if (aNameExact && !bNameExact) return -1;
-                        if (!aNameExact && bNameExact) return 1;
-
-                        // Priority 3: Symbol starts with query
-                        boolean aStarts = aSymbol.startsWith(queryLower);
-                        boolean bStarts = bSymbol.startsWith(queryLower);
-                        if (aStarts && !bStarts) return -1;
-                        if (!aStarts && bStarts) return 1;
-
-                        // Priority 4: Name starts with query
-                        boolean aNameStarts = aName.startsWith(queryLower);
-                        boolean bNameStarts = bName.startsWith(queryLower);
-                        if (aNameStarts && !bNameStarts) return -1;
-                        if (!aNameStarts && bNameStarts) return 1;
-
-                        // Priority 5: Alphabetical order for same priority
-                        return a.getSymbol().compareTo(b.getSymbol());
-                    })
-.limit(limit)
-                     .map(asset -> AssetSuggestion.builder()
-                             .symbol(asset.getSymbol())
-                             .name(asset.getName())
-                             .category(asset.getCategory())
-                             .build())
-                     .collect(Collectors.toList());
+            List<AssetSuggestion> results = searchInAssets(query, allAssets, limit);
 
             // If no results found but symbol looks valid, check if it has price data
-            // Allow Colombian stock tickers (EC, AVAL, BANCOLOMBIA, etc.) and standard formats
             if (results.isEmpty() && upperQuery.matches("^[A-Z]{1,12}(\\-[A-Z]{3})?(\\=\\w{1,2})?$")) {
-                try {
-                    String assetName = grpcClient.getAssetName(upperQuery);
-                    // If we get a name or the symbol exists, create a suggestion
-if (assetName != null && !assetName.equals(upperQuery)) {
-                         results.add(AssetSuggestion.builder()
-                                 .symbol(upperQuery)
-                                 .name(assetName)
-                                 .category(inferCategory(upperQuery))
-                                 .build());
-                     } else {
-                         // Validate symbol exists by checking if we can get price history
-                         List<com.capitalfourge.proto.PricePoint> history = grpcClient.getPriceHistory(upperQuery, 1);
-                         if (history != null && !history.isEmpty()) {
-                             results.add(AssetSuggestion.builder()
-                                     .symbol(upperQuery)
-                                     .name(null) // Will show symbol as name
-                                     .category(inferCategory(upperQuery))
-                                     .build());
-                         }
-                     }
-                } catch (Exception e) {
-                    log.debug("Could not validate symbol {}: {}", upperQuery, e.getMessage());
-                }
+                addValidatedSymbolIfExists(query, upperQuery, results);
             }
 
             log.info("✅ Found {} results for query '{}': {}", results.size(), query,
@@ -178,13 +105,46 @@ if (assetName != null && !assetName.equals(upperQuery)) {
         }
     }
 
-    private String getAssetName(String symbol) {
+    private List<AssetSuggestion> searchInAssets(String query, List<com.capitalfourge.proto.Asset> allAssets, int limit) {
+        String queryLower = query.toLowerCase();
+        String upperQuery = query.trim().toUpperCase();
+
+        return allAssets.stream()
+                .filter(asset -> matchesQuery(asset, queryLower))
+                .sorted(AssetSearchComparator.INSTANCE.compare(upperQuery))
+                .limit(limit)
+                .map(this::toAssetSuggestion)
+                .collect(Collectors.toList());
+    }
+
+    private boolean matchesQuery(com.capitalfourge.proto.Asset asset, String queryLower) {
+        String symbolLower = asset.getSymbol().toLowerCase();
+        String nameLower = asset.getName() != null ? asset.getName().toLowerCase() : "";
+        return symbolLower.contains(queryLower) || nameLower.contains(queryLower);
+    }
+
+    private void addValidatedSymbolIfExists(String query, String upperQuery, List<AssetSuggestion> results) {
         try {
-            // Fetch asset name from data collector or cache
-            return grpcClient.getAssetName(symbol);
+            String assetName = grpcClient.getAssetName(upperQuery);
+            if (assetName != null && !assetName.equals(upperQuery)) {
+                results.add(AssetSuggestion.builder()
+                        .symbol(upperQuery)
+                        .name(assetName)
+                        .category(inferCategory(upperQuery))
+                        .build());
+            } else {
+                // Validate symbol exists by checking if we can get price history
+                List<com.capitalfourge.proto.PricePoint> history = grpcClient.getPriceHistory(upperQuery, 1);
+                if (history != null && !history.isEmpty()) {
+                    results.add(AssetSuggestion.builder()
+                            .symbol(upperQuery)
+                            .name(null)
+                            .category(inferCategory(upperQuery))
+                            .build());
+                }
+            }
         } catch (Exception e) {
-            log.debug("Could not fetch name for symbol {}: {}", symbol, e.getMessage());
-            return null;
+            log.debug("Could not validate symbol {}: {}", upperQuery, e.getMessage());
         }
     }
 
@@ -205,7 +165,7 @@ if (assetName != null && !assetName.equals(upperQuery)) {
                     .map(symbol -> buildAssetMover(symbol, getAssetName(symbol)))
                     .filter(mover -> mover != null)
                     .sorted(getMoverComparator(safeSort))
-                    .limit(safeLimit)
+                    .limit(limit)
                     .collect(Collectors.toList());
 
             moversCache.put(cacheKey, new CachedMovers(movers));
@@ -263,6 +223,15 @@ if (assetName != null && !assetName.equals(upperQuery)) {
                         .build());
     }
 
+    private String getAssetName(String symbol) {
+        try {
+            return grpcClient.getAssetName(symbol);
+        } catch (Exception e) {
+            log.debug("Could not fetch name for symbol {}: {}", symbol, e.getMessage());
+            return null;
+        }
+    }
+
     private Comparator<AssetMover> getMoverComparator(String sort) {
         return switch (sort) {
             case "gain" -> Comparator.comparingDouble(AssetMover::getChangePercent).reversed();
@@ -270,6 +239,89 @@ if (assetName != null && !assetName.equals(upperQuery)) {
             default -> Comparator.comparingDouble((AssetMover mover) -> Math.abs(mover.getChangePercent())).reversed();
         };
     }
+
+    private String inferCategory(String symbol) {
+        if (symbol.endsWith("-USD")) {
+            return "CRYPTO";
+        }
+        if (symbol.endsWith("=F")) {
+            return "COMMODITIES";
+        }
+        if (symbol.endsWith("=X")) {
+            return "FOREX";
+        }
+        // Colombian stock tickers
+        if (symbol.equals("EC") || symbol.equals("ECOL") ||
+            symbol.equals("AVAL") || symbol.equals("BANCOLOMBIA") ||
+            symbol.equals("PF") || symbol.equals("CEMEX") ||
+            symbol.equals("CEMEXCOL") || symbol.equals("CIBEST")) {
+            return "STOCKS";
+        }
+        return "STOCKS";
+    }
+
+    private AssetSuggestion toAssetSuggestion(com.capitalfourge.proto.Asset asset) {
+        return AssetSuggestion.builder()
+                .symbol(asset.getSymbol())
+                .name(asset.getName())
+                .category(asset.getCategory())
+                .build();
+    }
+
+    // --- Inner classes ---
+
+    private enum AssetSearchComparator {
+        INSTANCE;
+
+        Comparator<com.capitalfourge.proto.Asset> compare(String query) {
+            String queryLower = query.toLowerCase();
+            return (a, b) -> {
+                String aSymbol = a.getSymbol().toLowerCase();
+                String bSymbol = b.getSymbol().toLowerCase();
+                String aName = a.getName() != null ? a.getName().toLowerCase() : "";
+                String bName = b.getName() != null ? b.getName().toLowerCase() : "";
+
+                // Priority 1: Symbol exact match
+                boolean aSymbolExact = aSymbol.equals(queryLower);
+                boolean bSymbolExact = bSymbol.equals(queryLower);
+                if (aSymbolExact && !bSymbolExact) return -1;
+                if (!aSymbolExact && bSymbolExact) return 1;
+
+                // Priority 2: Name exact match
+                boolean aNameExact = aName.equals(queryLower);
+                boolean bNameExact = bName.equals(queryLower);
+                if (aNameExact && !bNameExact) return -1;
+                if (!aNameExact && bNameExact) return 1;
+
+                // Priority 3: Symbol starts with query
+                boolean aStarts = aSymbol.startsWith(queryLower);
+                boolean bStarts = bSymbol.startsWith(queryLower);
+                if (aStarts && !bStarts) return -1;
+                if (!aStarts && bStarts) return 1;
+
+                // Priority 4: Name starts with query
+                boolean aNameStarts = aName.startsWith(queryLower);
+                boolean bNameStarts = bName.startsWith(queryLower);
+                if (aNameStarts && !bNameStarts) return -1;
+                if (!aNameStarts && bNameStarts) return 1;
+
+                // Priority 5: Alphabetical order for same priority
+                return a.getSymbol().compareTo(b.getSymbol());
+            };
+        }
+    }
+
+    private record CachedMovers(List<AssetMover> movers, long createdAt) {
+        private CachedMovers(List<AssetMover> movers) {
+            this(List.copyOf(movers), System.currentTimeMillis());
+        }
+
+        private boolean isExpired() {
+            return System.currentTimeMillis() - createdAt > MOVERS_CACHE_TTL_MS;
+        }
+    }
+
+    // --- DTOs ---
 
     public static class AssetInfo {
         private String symbol;
@@ -327,25 +379,11 @@ if (assetName != null && !assetName.equals(upperQuery)) {
             }
         }
 
-        public String getSymbol() {
-            return symbol;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public String getCategory() {
-            return category;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-
-        public String getWebsite() {
-            return website;
-        }
+        public String getSymbol() { return symbol; }
+        public String getName() { return name; }
+        public String getCategory() { return category; }
+        public String getDescription() { return description; }
+        public String getWebsite() { return website; }
     }
 
     public static class AssetSuggestion {
@@ -362,20 +400,9 @@ if (assetName != null && !assetName.equals(upperQuery)) {
             private String name;
             private String category;
 
-            public Builder symbol(String s) {
-                this.symbol = s;
-                return this;
-            }
-
-            public Builder name(String n) {
-                this.name = n;
-                return this;
-            }
-
-            public Builder category(String c) {
-                this.category = c;
-                return this;
-            }
+            public Builder symbol(String s) { this.symbol = s; return this; }
+            public Builder name(String n) { this.name = n; return this; }
+            public Builder category(String c) { this.category = c; return this; }
 
             public AssetSuggestion build() {
                 return new AssetSuggestion(symbol, name, category);
@@ -388,17 +415,9 @@ if (assetName != null && !assetName.equals(upperQuery)) {
             this.category = category;
         }
 
-        public String getSymbol() {
-            return symbol;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public String getCategory() {
-            return category;
-        }
+        public String getSymbol() { return symbol; }
+        public String getName() { return name; }
+        public String getCategory() { return category; }
     }
 
     public static class AssetMover {
@@ -430,93 +449,23 @@ if (assetName != null && !assetName.equals(upperQuery)) {
             private double changeValue;
             private double volume;
 
-            public Builder symbol(String s) {
-                this.symbol = s;
-                return this;
-            }
-
-            public Builder name(String n) {
-                this.name = n;
-                return this;
-            }
-
-            public Builder price(double p) {
-                this.price = p;
-                return this;
-            }
-
-            public Builder changePercent(double c) {
-                this.changePercent = c;
-                return this;
-            }
-
-            public Builder changeValue(double c) {
-                this.changeValue = c;
-                return this;
-            }
-
-            public Builder volume(double v) {
-                this.volume = v;
-                return this;
-            }
+            public Builder symbol(String s) { this.symbol = s; return this; }
+            public Builder name(String n) { this.name = n; return this; }
+            public Builder price(double p) { this.price = p; return this; }
+            public Builder changePercent(double c) { this.changePercent = c; return this; }
+            public Builder changeValue(double c) { this.changeValue = c; return this; }
+            public Builder volume(double v) { this.volume = v; return this; }
 
             public AssetMover build() {
                 return new AssetMover(symbol, name, price, changePercent, changeValue, volume);
             }
         }
 
-        public String getSymbol() {
-            return symbol;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public double getPrice() {
-            return price;
-        }
-
-        public double getChangePercent() {
-            return changePercent;
-        }
-
-        public double getChangeValue() {
-            return changeValue;
-        }
-
-        public double getVolume() {
-            return volume;
-        }
-    }
-
-    private record CachedMovers(List<AssetMover> movers, long createdAt) {
-        private CachedMovers(List<AssetMover> movers) {
-            this(List.copyOf(movers), System.currentTimeMillis());
-        }
-
-        private boolean isExpired() {
-            return System.currentTimeMillis() - createdAt > MOVERS_CACHE_TTL_MS;
-        }
-    }
-
-    private String inferCategory(String symbol) {
-        if (symbol.endsWith("-USD")) {
-            return "CRYPTO";
-        }
-        if (symbol.endsWith("=F")) {
-            return "COMMODITIES";
-        }
-        if (symbol.endsWith("=X")) {
-            return "FOREX";
-        }
-        // Colombian stock tickers
-        if (symbol.equals("EC") || symbol.equals("ECOL") ||
-            symbol.equals("AVAL") || symbol.equals("BANCOLOMBIA") ||
-            symbol.equals("PF") || symbol.equals("CEMEX") ||
-            symbol.equals("CEMEXCOL") || symbol.equals("CIBEST")) {
-            return "STOCKS";
-        }
-        return "STOCKS";
+        public String getSymbol() { return symbol; }
+        public String getName() { return name; }
+        public double getPrice() { return price; }
+        public double getChangePercent() { return changePercent; }
+        public double getChangeValue() { return changeValue; }
+        public double getVolume() { return volume; }
     }
 }

@@ -64,6 +64,5 @@ management:
       enabled: true
     redis:
       enabled: true
-    redis:
       reactive:
-        enabled: false  # Correct property path: management.health.redis.reactive.enabled
+        enabled: false  # Disable reactive health check (bug: ignores spring.redis.url)

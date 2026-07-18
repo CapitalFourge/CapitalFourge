@@ -63,6 +63,4 @@ management:
     readinessState:
       enabled: true
     redis:
-      enabled: true
-      reactive:
-        enabled: false  # Disable reactive health check (bug: ignores spring.redis.url)
+      enabled: false  # Disable ALL Redis health checks (reactive bug + keep it simple)

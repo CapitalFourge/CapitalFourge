@@ -32,16 +32,4 @@ public class PortfolioManagerApplication {
             System.out.println("------------------------------------------------");
         };
     }
-
-    @Bean
-    CommandLineRunner logRedisConfig(@Value("${spring.redis.url:NOT_SET}") String redisUrl,
-                                      @Value("${spring.redis.ssl.enabled:false}") boolean sslEnabled) {
-        return args -> {
-            System.out.println("================================================");
-            System.out.println("🔴 REDIS CONFIG:");
-            System.out.println("   spring.redis.url = " + redisUrl);
-            System.out.println("   spring.redis.ssl.enabled = " + sslEnabled);
-            System.out.println("================================================");
-        };
-    }
 }

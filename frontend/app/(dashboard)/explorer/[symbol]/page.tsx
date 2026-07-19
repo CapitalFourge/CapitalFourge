@@ -153,6 +153,7 @@ export default function AssetDetailPage() {
   const [activeFundamentals, setActiveFundamentals] = useState<string[]>([]);
   const [showDrawingTools, setShowDrawingTools] = useState<boolean>(false);
   const [activeDrawingTools, setActiveDrawingTools] = useState<DrawingTool[]>([]);
+  const [selectedInterval, setSelectedInterval] = useState<string>('1D');
 
   const { data, loading, error } = useQuery(ASSET_DATA_QUERY, {
     variables: { symbol: symbol },
@@ -305,34 +306,28 @@ export default function AssetDetailPage() {
           </div>
 
           <TradingViewChart
-            data={priceHistory as any}
+            symbol={symbol}
+            interval={selectedInterval}
             indicators={activeIndicators}
-            indicatorValues={indicatorValues}
-            drawingTools={activeDrawingTools}
-            onDrawingToolsChange={setActiveDrawingTools}
           />
 
           {showIndicators && (
             <IndicatorSelector
-              allIndicators={INDICATOR_CATALOG}
-              activeIndicators={activeIndicators}
+              selectedIndicators={activeIndicators}
               onChange={setActiveIndicators}
             />
           )}
 
           {showFundamental && (
             <FundamentalMetricSelector
-              allMetrics={FUNDAMENTAL_METRIC_CATALOG}
-              activeMetrics={activeFundamentals}
+              selectedMetrics={activeFundamentals}
               onChange={setActiveFundamentals}
-              latestData={priceHistory[priceHistory.length - 1] as any}
             />
           )}
 
           {showDrawingTools && (
             <DrawingToolSelector
-              allTools={DRAWING_TOOL_CATALOG}
-              activeTools={activeDrawingTools}
+              selectedTools={activeDrawingTools}
               onChange={setActiveDrawingTools}
             />
           )}

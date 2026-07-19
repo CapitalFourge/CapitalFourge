@@ -63,8 +63,8 @@ export function useIndicators({ priceHistory, activeIndicators }: UseIndicatorsP
         const change = data[data.length - i].close - data[data.length - i - 1].close;
         const gain = Math.max(change, 0);
         const loss = Math.max(-change, 0);
-        avgGain = (avgGain * (period - 1) + Math.max(change, 0)) / period;
-        avgLoss = (avgLoss * (period - 1) + Math.max(-change, 0)) / period;
+        avgGain = (avgGain * (period - 1) + gain) / period;
+        avgLoss = (avgLoss * (period - 1) + loss) / period;
       }
 
       if (avgLoss === 0) return 100;
@@ -72,8 +72,6 @@ export function useIndicators({ priceHistory, activeIndicators }: UseIndicatorsP
       const rs = avgGain / avgLoss;
       return 100 - (100 / (1 + rs));
     };
-
-    const values: Record<string, number | null> = {};
 
     activeIndicators.forEach((indicatorId) => {
       switch (indicatorId) {

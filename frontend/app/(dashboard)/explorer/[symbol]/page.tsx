@@ -10,11 +10,8 @@ import { IndicatorSelector } from '@/components/trading/indicator-selector';
 import { TradingViewChart } from '@/components/trading/tradingview-chart';
 import { FundamentalMetricSelector } from '@/components/trading/fundamental-metric-selector';
 import { DrawingToolSelector } from '@/components/trading/drawing-tool-selector';
-import { InfoTooltip } from '@/components/ui/info-tooltip';
-import { INDICATOR_CATALOG, IndicatorDefinition } from '@/lib/indicator-catalog';
-import { FUNDAMENTAL_METRIC_CATALOG, FundamentalMetricDefinition } from '@/lib/fundamental-metric-catalog';
-import { DRAWING_TOOL_CATALOG, DrawingTool } from '@/lib/chart-drawing-catalog';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { FundamentalPricePoint } from '@/lib/types/fundamental-price-point';
+import { DrawingTool } from '@/lib/chart-drawing-catalog';
 import { useIndicators } from '@/app/(dashboard)/explorer/[symbol]/components/useIndicators';
 
 const ASSET_DATA_QUERY = gql`
@@ -83,68 +80,6 @@ const ASSET_DATA_QUERY = gql`
   }
 `;
 
-interface Position {
-  symbol: string;
-  quantity: number;
-  averagePurchasePrice: number;
-  currentPrice?: number;
-}
-
-interface FundamentalPricePoint {
-  date: string;
-  open: number;
-  high: number;
-  low: number;
-  close: number;
-  volume?: number | null;
-  marketCap?: number | null;
-  trailingPe?: number | null;
-  forwardPe?: number | null;
-  pegRatio?: number | null;
-  priceToBook?: number | null;
-  priceToSales?: number | null;
-  enterpriseToEbitda?: number | null;
-  profitMargins?: number | null;
-  operatingMargins?: number | null;
-  returnOnEquity?: number | null;
-  returnOnAssets?: number | null;
-  debtToEquity?: number | null;
-  currentRatio?: number | null;
-  quickRatio?: number | null;
-  dividendYield?: number | null;
-  freeCashFlow?: number | null;
-  circulatingSupply?: number | null;
-  totalSupply?: number | null;
-  maxSupply?: number | null;
-  inflationRate?: number | null;
-  fdv?: number | null;
-  activeAddresses?: number | null;
-  transactionVolume?: number | null;
-  transactionCount?: number | null;
-  feesGenerated?: number | null;
-  tvl?: number | null;
-  hashRate?: number | null;
-  stakingRatio?: number | null;
-  nakamotoCoefficient?: number | null;
-  orderBookDepth?: number | null;
-  developerActivity?: number | null;
-  userGrowth?: number | null;
-  revenue?: number | null;
-  priceToFeesRatio?: number | null;
-  bitcoinDominance?: number | null;
-  fearGreedIndex?: number | null;
-  inventoryLevels?: number | null;
-  costOfProduction?: number | null;
-  allInSustainingCost?: number | null;
-  reserveReplacementRatio?: number | null;
-  contangoBackwardation?: number | null;
-  dollarIndexExposure?: number | null;
-  inflationCorrelation?: number | null;
-  opecSpareCapacity?: number | null;
-  chineseDemandIndex?: number | null;
-  weatherIndex?: number | null;
-}
-
 export default function AssetDetailPage() {
   const { symbol } = useParams<{ symbol: string }>();
   const [showIndicators, setShowIndicators] = useState<boolean>(false);
@@ -166,7 +101,7 @@ export default function AssetDetailPage() {
 
   const fullChartData = useMemo(() => {
     return priceHistory
-      .map((point: any) => ({
+      .map((point: FundamentalPricePoint) => ({
         date: point.date,
         open: point.open || point.close,
         high: point.high || point.close,
@@ -180,21 +115,7 @@ export default function AssetDetailPage() {
   const latestDailyPoint = useMemo(() => fullChartData[fullChartData.length - 1], [fullChartData]);
   const previousDailyPoint = useMemo(() => fullChartData[fullChartData.length - 2], [fullChartData]);
 
-  const userPosition = useMemo(() => {
-    for (const portfolio of portfolios) {
-      const position = portfolio.positions.find((p: any) => p.symbol === symbol);
-      if (position) {
-        return {
-          ...position,
-          portfolioId: portfolio.id,
-          portfolioName: portfolio.name
-        };
-      }
-    }
-    return null;
-  }, [portfolios, symbol]);
-
-  const indicatorValues = useIndicators({ priceHistory: priceHistory as any, activeIndicators });
+  useIndicators({ priceHistory: priceHistory as FundamentalPricePoint[], activeIndicators });
 
   if (loading && !data) {
     return <div className="flex min-h-[60vh] items-center justify-center text-slate-400">Cargando activo...</div>;
@@ -213,6 +134,23 @@ export default function AssetDetailPage() {
   if (!asset) {
     return <div className="flex min-h-[60vh] items-center justify-center text-slate-400">Activo no encontrado.</div>;
   }
+
+  const latestPrice = latestDailyPoint
+    ? `$${latestDailyPoint.close.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+    : '$0.00';
+
+  const change24h = latestDailyPoint && previousDailyPoint
+    ? `${(((latestDailyPoint.close - previousDailyPoint.close) / previousDailyPoint.close) * 100).toFixed(2)}%`
+    : '0.00%';
+
+  const change24hClass = latestDailyPoint && previousDailyPoint && latestDailyPoint.close > previousDailyPoint.close
+    ? 'text-emerald-400'
+    : 'text-rose-400';
+
+  const volume24h = latestDailyPoint ? latestDailyPoint.volume.toLocaleString(undefined) : '0';
+  const marketCap = latestFundamental?.marketCap
+    ? `$${latestFundamental.marketCap.toLocaleString(undefined)}`
+    : 'N/A';
 
   return (
     <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="min-h-screen bg-black/50">
@@ -240,39 +178,22 @@ export default function AssetDetailPage() {
           <div className="flex flex-wrap items-center gap-6">
             <div className="flex flex-col items-center p-4 bg-white/[0.03] rounded-xl">
               <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Precio actual</p>
-              <p className="mt-1 text-xl font-semibold text-white">
-                {latestDailyPoint ?
-                  `$${latestDailyPoint.close.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` :
-                  '$0.00'}
-              </p>
+              <p className="mt-1 text-xl font-semibold text-white">{latestPrice}</p>
             </div>
 
             <div className="flex flex-col items-center p-4 bg-white/[0.03] rounded-xl">
               <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Cambio 24h</p>
-              <p className="mt-1 text-lg font-semibold">
-                {latestDailyPoint && previousDailyPoint ? (
-                  <span className={latestDailyPoint.close > previousDailyPoint.close ? 'text-emerald-400' : 'text-rose-400'}>
-                    {(((latestDailyPoint.close - previousDailyPoint.close) / previousDailyPoint.close) * 100).toFixed(2)}%
-                  </span>
-                ) :
-                '0.00%'}
-              </p>
+              <p className="mt-1 text-lg font-semibold {change24hClass}">{change24h}</p>
             </div>
 
             <div className="flex flex-col items-center p-4 bg-white/[0.03] rounded-xl">
               <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Volumen 24h</p>
-              <p className="mt-1 text-lg font-semibold text-white">
-                {latestDailyPoint ? latestDailyPoint.volume.toLocaleString(undefined) : '0'}
-              </p>
+              <p className="mt-1 text-lg font-semibold text-white">{volume24h}</p>
             </div>
 
             <div className="flex flex-col items-center p-4 bg-white/[0.03] rounded-xl">
               <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Market Cap</p>
-              <p className="mt-1 text-lg font-semibold text-white">
-                {latestFundamental?.marketCap ?
-                  `$${latestFundamental.marketCap.toLocaleString(undefined)}` :
-                  'N/A'}
-              </p>
+              <p className="mt-1 text-lg font-semibold text-white">{marketCap}</p>
             </div>
           </div>
         </div>
@@ -333,24 +254,10 @@ export default function AssetDetailPage() {
           )}
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <MetricCard
-              label="Precio actual"
-              value={latestDailyPoint ? `$${latestDailyPoint.close.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '$0.00'}
-            />
-            <MetricCard
-              label="Cambio 24h"
-              value={latestDailyPoint && previousDailyPoint ?
-                `${(((latestDailyPoint.close - previousDailyPoint.close) / previousDailyPoint.close) * 100).toFixed(2)}%` : '0.00%'}
-              className={latestDailyPoint && previousDailyPoint && latestDailyPoint.close > previousDailyPoint.close ? 'text-emerald-400' : 'text-rose-400'}
-            />
-            <MetricCard
-              label="Volumen 24h"
-              value={latestDailyPoint ? latestDailyPoint.volume.toLocaleString(undefined) : '0'}
-            />
-            <MetricCard
-              label="Market Cap"
-              value={latestFundamental?.marketCap ? `$${latestFundamental.marketCap.toLocaleString(undefined)}` : 'N/A'}
-            />
+            <MetricCard label="Precio actual" value={latestPrice} />
+            <MetricCard label="Cambio 24h" value={change24h} className={change24hClass} />
+            <MetricCard label="Volumen 24h" value={volume24h} />
+            <MetricCard label="Market Cap" value={marketCap} />
           </div>
 
           <div className="space-y-4">

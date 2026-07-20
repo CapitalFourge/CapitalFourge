@@ -15,7 +15,9 @@ from src.infrastructure.finnhub_client import get_news, get_sentiment, get_marke
 from src.infrastructure.openbb_client import (
     get_profile, get_fundamentals, get_ratios, get_earnings, get_dividends,
     get_fred_series, get_treasury_rates, get_etf_holdings, get_insider_transactions,
-    get_institutional_ownership, get_short_interest, get_analyst_ratings
+    get_institutional_ownership, get_short_interest, get_analyst_ratings,
+    get_options_chains, get_options_greeks, get_options_snapshots,
+    get_options_surface, get_unusual_options_activity, get_put_call_ratio, get_max_pain
 )
 
 load_dotenv(dotenv_path="../.env")
@@ -389,6 +391,58 @@ def get_treasury_yields(maturity: str = "10y"):
     """Get treasury yield curve data."""
     data = get_treasury_rates(maturity)
     return {"maturity": maturity, "data": data}
+
+
+# ============ ALTERNATIVE DATA - OPTIONS ENDPOINTS ============
+@app.get("/alternative/options/chains/{symbol}", dependencies=[Depends(require_api_key)])
+def get_options_chains_endpoint(symbol: str, provider: str = None, date: str = None, option_type: str = None):
+    """Get complete options chain for a ticker."""
+    data = get_options_chains(symbol, provider, date, option_type)
+    return {"symbol": symbol, "chains": data, "count": len(data)}
+
+
+@app.get("/alternative/options/greeks/{symbol}", dependencies=[Depends(require_api_key)])
+def get_options_greeks_endpoint(symbol: str, expiration: str = None, strike: float = None, option_type: str = None):
+    """Get options Greeks (delta, gamma, theta, vega, rho)."""
+    data = get_options_greeks(symbol, expiration, strike, option_type)
+    return {"symbol": symbol, "greeks": data, "count": len(data)}
+
+
+@app.get("/alternative/options/snapshots", dependencies=[Depends(require_api_key)])
+def get_options_snapshots_endpoint(date: str = None, only_traded: bool = True):
+    """Get options market snapshot (all symbols)."""
+    data = get_options_snapshots(date, only_traded)
+    return {"snapshots": data, "count": len(data)}
+
+
+@app.post("/alternative/options/surface", dependencies=[Depends(require_api_key)])
+def get_options_surface_endpoint(chains_data: List[Dict], target: str = "implied_volatility", 
+                                 underlying_price: float = None, option_type: str = "otm",
+                                 dte_min: int = None, dte_max: int = None):
+    """Generate volatility surface from options chains."""
+    data = get_options_surface(chains_data, target, underlying_price, option_type, dte_min, dte_max)
+    return {"surface": data}
+
+
+@app.get("/alternative/options/unusual", dependencies=[Depends(require_api_key)])
+def get_unusual_options_activity_endpoint(symbol: str = None, provider: str = None):
+    """Get unusual options activity (large/block/sweep orders)."""
+    data = get_unusual_options_activity(symbol, provider)
+    return {"activity": data, "count": len(data)}
+
+
+@app.get("/alternative/options/put-call-ratio", dependencies=[Depends(require_api_key)])
+def get_put_call_ratio_endpoint(symbol: str = None, date: str = None):
+    """Calculate put/call ratio from options chains or snapshots."""
+    data = get_put_call_ratio(symbol, date)
+    return data
+
+
+@app.get("/alternative/options/max-pain/{symbol}", dependencies=[Depends(require_api_key)])
+def get_max_pain_endpoint(symbol: str, date: str = None):
+    """Calculate max pain strike from options chains."""
+    data = get_max_pain(symbol, date)
+    return data
 
 
 if __name__ == "__main__":

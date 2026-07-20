@@ -11,6 +11,7 @@ from src.infrastructure.mongo_repository import MongoFinancialDataRepository
 from src.infrastructure.polars_processor import PolarsDataProcessor
 from src.application.services import FinancialDataService
 from src.application.price_oracle import PriceOracle
+from src.infrastructure.finnhub_client import get_news, get_sentiment, get_market_news, get_finnhub_client
 
 load_dotenv(dotenv_path="../.env")
 app = FastAPI(title="Capital Fourge Data Collector")
@@ -38,7 +39,31 @@ grpc_thread.start()
 
 @app.get("/health")
 def health_check():
-    return {"status": "alive","service": "data_collector"}
+    return {"status": "alive", "service": "data_collector"}
+
+# ============ FINNHUB NEWS & SENTIMENT ENDPOINTS ============
+@app.get("/news/{symbol}", dependencies=[Depends(require_api_key)])
+def get_company_news(symbol: str, limit: int = 10):
+    """Get company news with sentiment analysis."""
+    news = get_news(symbol, limit=limit)
+    return {"symbol": symbol, "news": news, "count": len(news)}
+
+
+@app.get("/sentiment/{symbol}", dependencies=[Depends(require_api_key)])
+def get_company_sentiment(symbol: str):
+    """Get news sentiment analysis for a symbol."""
+    sentiment = get_sentiment(symbol)
+    return sentiment
+
+
+@app.get("/market-news", dependencies=[Depends(require_api_key)])
+def get_general_market_news(category: str = "general", limit: int = 20):
+    """Get general market news (general, forex, crypto, merger)."""
+    news = get_market_news(category=category, limit=limit)
+    return {"category": category, "news": news, "count": len(news)}
+
+
+# ============ EXISTING ENDPOINTS ============
 
 @app.post("/collect/batch", dependencies=[Depends(require_api_key)])
 def collect_batch(data: List[Dict[str, Any]]):

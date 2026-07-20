@@ -12,6 +12,10 @@ spring:
       minimum-idle: 2
       idle-timeout: 300000
       connection-timeout: 20000
+      data-source-properties:
+        cachePrepStmts: false
+        prepStmtCacheSize: 0
+        prepStmtCacheSqlLimit: 0
 
   jpa:
     hibernate:

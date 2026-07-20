@@ -11,6 +11,12 @@ from src.infrastructure.mongo_repository import MongoFinancialDataRepository
 from src.infrastructure.polars_processor import PolarsDataProcessor
 from src.application.services import FinancialDataService
 from src.application.price_oracle import PriceOracle
+from src.infrastructure.finnhub_client import get_news, get_sentiment, get_market_news
+from src.infrastructure.openbb_client import (
+    get_profile, get_fundamentals, get_ratios, get_earnings, get_dividends,
+    get_fred_series, get_treasury_rates, get_etf_holdings, get_insider_transactions,
+    get_institutional_ownership, get_short_interest, get_analyst_ratings
+)
 
 load_dotenv(dotenv_path="../.env")
 app = FastAPI(title="Capital Fourge Data Collector")
@@ -297,6 +303,93 @@ def get_asset_name(symbol: str):
         if a["symbol"] == symbol:
             return {"symbol": symbol, "name": a["name"]}
     return {"symbol": symbol, "name": symbol}
+
+
+# ============ OPENBB FUNDAMENTAL & MACRO ENDPOINTS ============
+@app.get("/fundamentals/profile/{symbol}", dependencies=[Depends(require_api_key)])
+def get_company_profile(symbol: str):
+    """Get company profile (name, exchange, sector, description, etc.)."""
+    profile = get_profile(symbol)
+    return {"symbol": symbol, "profile": profile}
+
+
+@app.get("/fundamentals/{symbol}", dependencies=[Depends(require_api_key)])
+def get_company_fundamentals(symbol: str, period: str = "annual"):
+    """Get fundamental financial statements (income, balance, cash flow)."""
+    fundamentals = get_fundamentals(symbol, period)
+    return {"symbol": symbol, "period": period, "fundamentals": fundamentals}
+
+
+@app.get("/fundamentals/{symbol}/ratios", dependencies=[Depends(require_api_key)])
+def get_company_ratios(symbol: str, period: str = "annual"):
+    """Get key financial ratios (PE, PB, ROE, ROA, margins, etc.)."""
+    ratios = get_ratios(symbol, period)
+    return {"symbol": symbol, "period": period, "ratios": ratios}
+
+
+@app.get("/fundamentals/{symbol}/earnings", dependencies=[Depends(require_api_key)])
+def get_company_earnings(symbol: str, limit: int = 8):
+    """Get earnings history and estimates."""
+    earnings = get_earnings(symbol, limit)
+    return {"symbol": symbol, "earnings": earnings}
+
+
+@app.get("/fundamentals/{symbol}/dividends", dependencies=[Depends(require_api_key)])
+def get_company_dividends(symbol: str, limit: int = 20):
+    """Get dividend history."""
+    dividends = get_dividends(symbol, limit)
+    return {"symbol": symbol, "dividends": dividends}
+
+
+@app.get("/fundamentals/{symbol}/insider", dependencies=[Depends(require_api_key)])
+def get_company_insider(symbol: str, limit: int = 20):
+    """Get insider transactions."""
+    insider = get_insider_transactions(symbol, limit)
+    return {"symbol": symbol, "insider_transactions": insider}
+
+
+@app.get("/fundamentals/{symbol}/institutional", dependencies=[Depends(require_api_key)])
+def get_company_institutional(symbol: str, limit: int = 20):
+    """Get institutional ownership."""
+    institutional = get_institutional_ownership(symbol, limit)
+    return {"symbol": symbol, "institutional_ownership": institutional}
+
+
+@app.get("/fundamentals/{symbol}/short-interest", dependencies=[Depends(require_api_key)])
+def get_company_short_interest(symbol: str):
+    """Get short interest data."""
+    short_interest = get_short_interest(symbol)
+    return {"symbol": symbol, "short_interest": short_interest}
+
+
+@app.get("/fundamentals/{symbol}/ratings", dependencies=[Depends(require_api_key)])
+def get_company_ratings(symbol: str):
+    """Get analyst ratings/estimates."""
+    ratings = get_analyst_ratings(symbol)
+    return {"symbol": symbol, "ratings": ratings}
+
+
+@app.get("/fundamentals/{symbol}/etf-holdings", dependencies=[Depends(require_api_key)])
+def get_company_etf_holdings(symbol: str):
+    """Get ETF holdings (for ETFs)."""
+    holdings = get_etf_holdings(symbol)
+    return {"symbol": symbol, "holdings": holdings}
+
+
+# ============ MACRO / ECONOMY ENDPOINTS ============
+@app.get("/macro/fred/{series_id}", dependencies=[Depends(require_api_key)])
+def get_fred_economic_series(series_id: str, start_date: str = None, end_date: str = None):
+    """Get FRED economic series (GDP, CPI, UNRATE, T10Y2Y, etc.)."""
+    data = get_fred_series(series_id, start_date, end_date)
+    return {"series_id": series_id, "data": data}
+
+
+@app.get("/macro/treasury", dependencies=[Depends(require_api_key)])
+def get_treasury_yields(maturity: str = "10y"):
+    """Get treasury yield curve data."""
+    data = get_treasury_rates(maturity)
+    return {"maturity": maturity, "data": data}
+
 
 if __name__ == "__main__":
     import uvicorn

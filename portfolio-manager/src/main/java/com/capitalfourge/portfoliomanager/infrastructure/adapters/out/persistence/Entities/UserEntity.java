@@ -7,6 +7,7 @@ import java.util.UUID;
 import com.capitalfourge.portfoliomanager.domain.Role;
 
 import jakarta.persistence.*;
+import jakarta.persistence.GenerationType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -22,6 +23,7 @@ import lombok.Setter;
 @Builder
 public class UserEntity {
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(nullable = false, unique = true)

@@ -22,30 +22,36 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 
 @Component
-@RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final SecretKey key;
+    @Value("${jwt.secret}")
+    String jwtSecret;
 
-    public JwtAuthenticationFilter(@Value("${jwt.secret}") String secret) {
-        this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    private SecretKey key;
+
+    // ✅ Constructor por defecto REQUERIDO por Spring
+    public JwtAuthenticationFilter() {
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
             HttpServletResponse response,
-            FilterChain filterChain) throws ServletException, IOException {
+            FilterChain filterChain) throws IOException, ServletException {
 
-        // Saltar OPTIONS (preflight CORS) - DEBE SER LO PRIMERO
+        // ✅ Saltar OPTIONS (preflight CORS) - PRIMERA LÍNEA
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        String header = request.getHeader(HttpHeaders.AUTHORIZATION);
+        // ✅ Lazy initialization de la key
+        if (this.key == null) {
+            this.key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+        }
+
+        String header = request.getHeader("Authorization");
 
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7);
@@ -67,7 +73,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 String role = (String) claims.get("role");
 
                 var auth = new UsernamePasswordAuthenticationToken(
-                        userId,
+                        UUID.fromString(claims.getSubject()),
                         null,
                         role == null
                                 ? List.of()

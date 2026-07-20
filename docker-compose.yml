@@ -93,6 +93,10 @@ services:
             - DB_PASSWORD=${DB_POSTGRES_PASSWORD}
             - GRPC_DATA_COLLECTOR_HOST=data-collector
             - DATA_COLLECTOR_API_KEY=${DATA_COLLECTOR_API_KEY:-internal-service-key}
+            - JWT_SECRET=${JWT_SECRET:-f2c3b4a5d6e7f8g9h0i1j2k3l4m5n6o7p8q9r0s1t2u3v4w5x6y7z8a9b0c1d2e3}
+            - JWT_ISSUER=${JWT_ISSUER:-capital-fourge}
+            - JWT_ACCESS_EXPIRATION_MS=${JWT_ACCESS_EXPIRATION_MS:-3600000}
+            - JWT_REFRESH_EXPIRATION_MS=${JWT_REFRESH_EXPIRATION_MS:-604800000}
         depends_on:
             postgres:
                 condition: service_healthy

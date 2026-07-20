@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -12,8 +13,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
 import com.capitalfourge.portfoliomanager.infrastructure.adapters.in.security.JwtAuthenticationFilter;
 
@@ -31,31 +32,26 @@ public class SecurityConfig {
     }
 
     @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
-
-        // Allow specific origins - add your Vercel + custom domains here
+    @Order(Ordered.HIGHEST_PRECEDENCE)
+    public org.springframework.web.filter.CorsFilter corsFilter() {
+        org.springframework.web.cors.UrlBasedCorsConfigurationSource source = new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
+        org.springframework.web.cors.CorsConfiguration config = new org.springframework.web.cors.CorsConfiguration();
         config.setAllowedOrigins(List.of(
             "http://localhost:3000",
             "http://132.145.205.0:3000",
-            "https://capital-fourge-indol.vercel.app",  // Production Vercel
-            "https://capital-fourge-git-qa-fourgecapital-7709s-projects.vercel.app",  // QA Preview
-            "https://capital-fourge-git-main-fourgecapital-7709s-projects.vercel.app",  // Main Preview
-            "https://capitalfourge.com",  // Custom domain
-            "https://www.capitalfourge.com"  // WWW redirect
+            "https://capital-fourge-indol.vercel.app",
+            "https://capital-fourge-git-qa-fourgecapital-7709s-projects.vercel.app",
+            "https://capital-fourge-git-main-fourgecapital-7709s-projects.vercel.app",
+            "https://capitalfourge.com",
+            "https://www.capitalfourge.com"
         ));
-
-        // For preview deployments, you can also use pattern matching
-        // config.setAllowedOriginPatterns(List.of("https://capital-fourge-*.vercel.app"));
-
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"));
         config.setAllowedHeaders(List.of("*"));
+        config.setExposedHeaders(List.of("Authorization", "Content-Type"));
         config.setAllowCredentials(true);
-        config.setMaxAge(3600L); // Cache preflight for 1 hour
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        config.setMaxAge(3600L);
         source.registerCorsConfiguration("/**", config);
-        return source;
+        return new org.springframework.web.filter.CorsFilter(source);
     }
 
     @Bean
@@ -63,11 +59,29 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
                 .securityMatcher("/**")
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .cors(cors -> cors.configurationSource(request -> {
+                    org.springframework.web.cors.CorsConfiguration config = new org.springframework.web.cors.CorsConfiguration();
+                    config.setAllowedOrigins(List.of(
+                        "http://localhost:3000",
+                        "http://132.145.205.0:3000",
+                        "https://capital-fourge-indol.vercel.app",
+                        "https://capital-fourge-git-qa-fourgecapital-7709s-projects.vercel.app",
+                        "https://capital-fourge-git-main-fourgecapital-7709s-projects.vercel.app",
+                        "https://capitalfourge.com",
+                        "https://www.capitalfourge.com"
+                    ));
+                    config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"));
+                    config.setAllowedHeaders(List.of("*"));
+                    config.setExposedHeaders(List.of("Authorization", "Content-Type"));
+                    config.setAllowCredentials(true);
+                    config.setMaxAge(3600L);
+                    return config;
+                }))
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/actuator/**").permitAll()  // Health checks
+                        .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/metrics/**").permitAll()
                         .requestMatchers("/graphql/**").permitAll()

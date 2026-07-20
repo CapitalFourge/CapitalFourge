@@ -31,6 +31,8 @@ spring:
         max-idle: 8
         min-idle: 0
       shutdown-timeout: 100ms
+    # Upstash-specific: trust all certificates (Upstash uses self-signed in some regions)
+    client-type: lettuce
 
   graphql:
     graphiql:

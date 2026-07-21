@@ -111,5 +111,9 @@ class PriceOracle:
             
             return price
         except Exception as e:
-            print(f"Oracle Error for {symbol}: {e}")
+            # Check if it's a yfinance auth error
+            if "401" in str(e) or "Unauthorized" in str(e) or "Invalid Crumb" in str(e):
+                print(f"Oracle: yfinance auth error for {symbol}, using mock price")
+            else:
+                print(f"Oracle Error for {symbol}: {e}")
             return self._get_mock_price(symbol)

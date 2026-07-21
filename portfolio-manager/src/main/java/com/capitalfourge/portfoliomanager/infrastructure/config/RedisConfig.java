@@ -35,15 +35,15 @@ public class RedisConfig {
     public RedisConnectionFactory redisConnectionFactory() {
         // Parse Redis URI using Spring's RedisStandaloneConfiguration
         RedisStandaloneConfiguration redisConfig = parseRedisUrl(redisUrl);
-        
+
         // Configure pooling
         GenericObjectPoolConfig<Object> poolConfig = new GenericObjectPoolConfig<>();
         poolConfig.setMaxTotal(maxActive);
         poolConfig.setMaxIdle(maxIdle);
         poolConfig.setMinIdle(minIdle);
-        
+
         LettuceClientConfiguration clientConfig;
-        
+
         if (sslEnabled && redisUrl.startsWith("rediss://")) {
             // Configure SSL for Upstash (disable peer verification for self-signed certificates)
             clientConfig = LettucePoolingClientConfiguration.builder()
@@ -51,37 +51,44 @@ public class RedisConfig {
                 .useSsl()
                 .disablePeerVerification()
                 .and()
+                .commandTimeout(Duration.ofSeconds(10))
                 .build();
         } else {
             clientConfig = LettucePoolingClientConfiguration.builder()
                 .poolConfig(poolConfig)
+                .commandTimeout(Duration.ofSeconds(10))
                 .build();
         }
-        
+
         return new LettuceConnectionFactory(redisConfig, clientConfig);
     }
-    
+
     private RedisStandaloneConfiguration parseRedisUrl(String url) {
         // Format: redis://[:password@]host[:port] or rediss://[:password@]host[:port]
+        // Upstash format: redis://default:password@host.upstash.io:6379
         String[] parts = url.split("://", 2);
         if (parts.length != 2) {
             throw new IllegalArgumentException("Invalid Redis URL format: " + url);
         }
-        
+
         String rest = parts[1];
         String password = null;
         String host = null;
         int port = 6379;
-        
-        // Check for password
+
+        // Check for password (handles both :password@host and username:password@host)
         if (rest.contains("@")) {
             String[] authAndHost = rest.split("@", 2);
-            if (authAndHost[0].startsWith(":")) {
-                password = authAndHost[0].substring(1);
+            String authPart = authAndHost[0];
+            // Extract password: if it contains ":", take everything after the last ":"
+            if (authPart.contains(":")) {
+                password = authPart.substring(authPart.lastIndexOf(":") + 1);
+            } else if (authPart.startsWith(":")) {
+                password = authPart.substring(1);
             }
             rest = authAndHost[1];
         }
-        
+
         // Extract host and port
         if (rest.contains(":")) {
             String[] hostPort = rest.split(":", 2);
@@ -94,12 +101,12 @@ public class RedisConfig {
         } else {
             host = rest;
         }
-        
+
         RedisStandaloneConfiguration config = new RedisStandaloneConfiguration(host, port);
         if (password != null) {
             config.setPassword(password);
         }
-        
+
         return config;
     }
 

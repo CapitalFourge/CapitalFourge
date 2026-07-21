@@ -62,6 +62,7 @@ public class RedisConfig {
 
     private RedisStandaloneConfiguration parseRedisUrl(String url) {
         // Format: redis://[:password@]host[:port] or rediss://[:password@]host[:port]
+        // Upstash format: redis://default:password@host.upstash.io:6379
         String[] parts = url.split("://", 2);
         if (parts.length != 2) {
             throw new IllegalArgumentException("Invalid Redis URL format: " + url);
@@ -72,11 +73,15 @@ public class RedisConfig {
         String host = null;
         int port = 6379;
 
-        // Check for password
+        // Check for password (handles both :password@host and username:password@host)
         if (rest.contains("@")) {
             String[] authAndHost = rest.split("@", 2);
-            if (authAndHost[0].startsWith(":")) {
-                password = authAndHost[0].substring(1);
+            String authPart = authAndHost[0];
+            // Extract password: if it contains ":", take everything after the last ":"
+            if (authPart.contains(":")) {
+                password = authPart.substring(authPart.lastIndexOf(":") + 1);
+            } else if (authPart.startsWith(":")) {
+                password = authPart.substring(1);
             }
             rest = authAndHost[1];
         }

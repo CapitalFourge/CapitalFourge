@@ -8,3 +8,4 @@ yfinance
 redis
 grpcio
 grpcio-tools
+finnhub-python

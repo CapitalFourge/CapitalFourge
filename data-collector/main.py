@@ -32,7 +32,14 @@ uri = f"mongodb://admin:{mongo_pass}@{mongo_host}:27017/?authSource=admin"
 repo = MongoFinancialDataRepository(connection_string=uri, database_name="capital_fourge_data")
 processor = PolarsDataProcessor()
 service = FinancialDataService(repository=repo, processor=processor)
-oracle = PriceOracle()
+
+# PriceOracle: conecta a AMBOS Redis (Upstash para Capital Fourge + Local para Trading Bot)
+upstash_url = os.getenv("SPRING_REDIS_URL")  # Upstash URL from Render
+oracle = PriceOracle(
+    redis_upstash_url=upstash_url,
+    redis_local_host=os.getenv("DB_REDIS_HOST", "localhost"),
+    redis_local_password=os.getenv("DB_REDIS_PASSWORD", "mi_redis_pass_seguro")
+)
 print("🛰️ Iniciando servidor gRPC en hilo secundario...")
 grpc_thread = threading.Thread(target=serve, daemon=True)
 grpc_thread.start()
@@ -303,3 +310,44 @@ def get_asset_name(symbol: str):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
+
+# Background price publisher for Trading Bot
+async def publish_price_ticks():
+    """Background task: fetch prices and publish to both Redis streams every 5s"""
+    import asyncio
+    import yfinance as yf
+    
+    symbols = [
+        "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "NVDA", "META", "NFLX", "AMD", "DIS",
+        "BTC-USD", "ETH-USD", "SOL-USD", "ADA-USD", "DOT-USD", "XRP-USD",
+        "GC=F", "SI=F", "CL=F", "NG=F", "HG=F",
+        "EURUSD=X", "GBPUSD=X", "USDJPY=X"
+    ]
+    
+    while True:
+        try:
+            for symbol in symbols:
+                try:
+                    ticker = yf.Ticker(symbol)
+                    hist = ticker.history(period="1d")
+                    if len(hist) > 0:
+                        row = hist.iloc[-1]
+                        price = float(row['Close'])
+                        volume = float(row['Volume'])
+                        oracle.publish_tick(symbol, price, volume)
+                except Exception as e:
+                    print(f"Error publishing tick for {symbol}: {e}")
+            
+            await asyncio.sleep(5)  # Publish every 5 seconds
+        except Exception as e:
+            print(f"Background publisher error: {e}")
+            await asyncio.sleep(10)
+
+
+# Start background publisher on startup
+@app.on_event("startup")
+async def startup_event():
+    import asyncio
+    asyncio.create_task(publish_price_ticks())
+    print("🚀 Background price publisher started")

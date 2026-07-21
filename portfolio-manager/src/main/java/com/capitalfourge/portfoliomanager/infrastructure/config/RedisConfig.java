@@ -34,6 +34,10 @@ public class RedisConfig {
     @Bean
     public RedisConnectionFactory redisConnectionFactory() {
         // Parse Redis URI using Spring's RedisStandaloneConfiguration
+        // Handle empty URL (for tests where Redis is disabled)
+        if (redisUrl == null || redisUrl.isEmpty()) {
+            return new LettuceConnectionFactory();
+        }
         RedisStandaloneConfiguration redisConfig = parseRedisUrl(redisUrl);
 
         // Configure pooling

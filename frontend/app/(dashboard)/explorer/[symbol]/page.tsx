@@ -96,7 +96,6 @@ export default function AssetDetailPage() {
   });
   const asset = data?.asset;
   const priceHistory = data?.priceHistory || [];
-  const portfolios = data?.portfolios || [];
   const latestFundamental = priceHistory[priceHistory.length - 1] as typeof priceHistory[0] | undefined;
 
   const fullChartData = useMemo(() => {
@@ -149,10 +148,10 @@ export default function AssetDetailPage() {
 
   const volume24h = latestDailyPoint ? latestDailyPoint.volume.toLocaleString(undefined) : '0';
   const marketCap = latestFundamental?.marketCap
-    ? `$${latestFundamental.marketCap.toLocaleString(undefined)}`
-    : 'N/A';
+      ? `$${latestFundamental.marketCap.toLocaleString(undefined)}`
+      : 'N/A';
 
-  return (
+    return (
     <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="min-h-screen bg-black/50">
       <div className="flex items-center justify-between p-6 border-b border-white/10">
         <Button variant="outline" onClick={() => { window.history.back(); }}>
@@ -253,13 +252,6 @@ export default function AssetDetailPage() {
             />
           )}
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <MetricCard label="Precio actual" value={latestPrice} />
-            <MetricCard label="Cambio 24h" value={change24h} className={change24hClass} />
-            <MetricCard label="Volumen 24h" value={volume24h} />
-            <MetricCard label="Market Cap" value={marketCap} />
-          </div>
-
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-white">Información del activo</h3>
             {asset.description && (
@@ -294,22 +286,4 @@ function DrawingIcon({ className }: { className: string }) {
     <path d="M2 2l7.586 7.586" />
     <circle cx="11" cy="11" r="2" />
   </svg>;
-}
-
-function MetricCard({ label, value, className }: { label: string; value: string; className?: string }) {
-  return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-      <p className="text-xs uppercase tracking-[0.24em] text-slate-400">{label}</p>
-      <p className={`mt-1 text-lg font-semibold text-white ${className || ''}`}>{value}</p>
-    </div>
-  );
-}
-
-function InfoCard({ title, value }: { title: string; value: React.ReactNode }) {
-  return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-      <p className="text-xs uppercase tracking-[0.24em] text-slate-400">{title}</p>
-      <p className="mt-1 text-lg font-medium text-white">{value}</p>
-    </div>
-  );
 }

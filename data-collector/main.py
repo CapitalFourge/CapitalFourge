@@ -34,11 +34,17 @@ processor = PolarsDataProcessor()
 service = FinancialDataService(repository=repo, processor=processor)
 
 # PriceOracle: conecta a AMBOS Redis (Upstash para Capital Fourge + Local para Trading Bot)
+# En Render: connect_local=False (no hay Redis local)
+# En VPS local: connect_local=True
+import socket
+is_render = os.getenv("RENDER") == "true" or "render.com" in socket.gethostname()
+
 upstash_url = os.getenv("SPRING_REDIS_URL")  # Upstash URL from Render
 oracle = PriceOracle(
     redis_upstash_url=upstash_url,
     redis_local_host=os.getenv("DB_REDIS_HOST", "localhost"),
-    redis_local_password=os.getenv("DB_REDIS_PASSWORD", "mi_redis_pass_seguro")
+    redis_local_password=os.getenv("DB_REDIS_PASSWORD", "mi_redis_pass_seguro"),
+    connect_local=not is_render  # Disable local Redis on Render
 )
 print("🛰️ Iniciando servidor gRPC en hilo secundario...")
 grpc_thread = threading.Thread(target=serve, daemon=True)

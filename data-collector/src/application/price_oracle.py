@@ -49,14 +49,15 @@ def resolve_yfinance_symbol(symbol: str):
 class PriceOracle:
     """Price oracle that publishes to BOTH Redis instances:
     - Upstash (Capital Fourge production)
-    - Local Redis (Trading Bot on VPS)
+    - Local Redis (Trading Bot on VPS) - OPTIONAL, only if available
     """
     
     def __init__(
         self, 
         redis_upstash_url: Optional[str] = None,  # SPRING_REDIS_URL from Render
         redis_local_host: str = "localhost",
-        redis_local_password: str = "mi_redis_pass_seguro"
+        redis_local_password: str = "mi_redis_pass_seguro",
+        connect_local: bool = True  # Set False on Render
     ):
         # Upstash Redis (Capital Fourge) - optional
         self.r_upstash = None
@@ -69,26 +70,38 @@ class PriceOracle:
                 print(f"⚠️ Upstash Redis connection failed: {e}")
                 self.r_upstash = None
         
-        # Local Redis (Trading Bot) - always
-        self.r_local = redis.Redis(
-            host=redis_local_host, 
-            port=6379, 
-            password=redis_local_password, 
-            db=0, 
-            decode_responses=True
-        )
-        self.r_local.ping()
-        print("✅ Connected to Local Redis (Trading Bot)")
+        # Local Redis (Trading Bot) - optional, only if connect_local=True
+        self.r_local = None
+        if connect_local:
+            try:
+                self.r_local = redis.Redis(
+                    host=redis_local_host, 
+                    port=6379, 
+                    password=redis_local_password, 
+                    db=0, 
+                    decode_responses=True,
+                    socket_connect_timeout=2,
+                    socket_timeout=2
+                )
+                self.r_local.ping()
+                print("✅ Connected to Local Redis (Trading Bot)")
+            except Exception as e:
+                print(f"⚠️ Local Redis connection failed (expected on Render): {e}")
+                self.r_local = None
+        
+        if not self.r_upstash and not self.r_local:
+            raise RuntimeError("No Redis connections available - need at least one")
 
     def _publish_to_both(self, channel: str, message: dict):
         """Publish to both Redis instances"""
         payload = json.dumps(message)
         
         # Local (Trading Bot)
-        try:
-            self.r_local.publish(channel, payload)
-        except Exception as e:
-            print(f"Local Redis publish error: {e}")
+        if self.r_local:
+            try:
+                self.r_local.publish(channel, payload)
+            except Exception as e:
+                print(f"Local Redis publish error: {e}")
         
         # Upstash (Capital Fourge)
         if self.r_upstash:
@@ -100,10 +113,11 @@ class PriceOracle:
     def _set_in_both(self, key: str, value: str, ex: int = 300):
         """Set key in both Redis instances"""
         # Local
-        try:
-            self.r_local.set(key, value, ex=ex)
-        except Exception as e:
-            print(f"Local Redis set error: {e}")
+        if self.r_local:
+            try:
+                self.r_local.set(key, value, ex=ex)
+            except Exception as e:
+                print(f"Local Redis set error: {e}")
         
         # Upstash
         if self.r_upstash:
@@ -162,10 +176,11 @@ class PriceOracle:
         }
         
         # Publish to local Redis STREAM (Trading Bot uses XREAD)
-        try:
-            self.r_local.xadd("market.ticks.equity.*", tick, maxlen=10000)
-        except Exception as e:
-            print(f"Local stream publish error: {e}")
+        if self.r_local:
+            try:
+                self.r_local.xadd("market.ticks.equity.*", tick, maxlen=10000)
+            except Exception as e:
+                print(f"Local stream publish error: {e}")
         
         # Publish to Upstash STREAM (Capital Fourge)
         if self.r_upstash:

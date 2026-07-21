@@ -80,8 +80,7 @@ class PriceOracle:
             ticker = yf.Ticker(resolved_symbol)
             fast_info = ticker.fast_info
             if fast_info is None:
-                print(f"Oracle Warning: fast_info is None for {resolved_symbol}")
-                return self._get_mock_price(symbol)  # Use original symbol for mock lookup
+                raise RuntimeError(f"fast_info is None for {resolved_symbol}")
             
             price = fast_info.get('last_price')
             if price is None:
@@ -93,8 +92,7 @@ class PriceOracle:
                     price = None
             
             if price is None:
-                print(f"Oracle Warning: Could not fetch price for {resolved_symbol}")
-                return self._get_mock_price(symbol)  # Use original symbol for mock lookup
+                raise RuntimeError(f"Could not fetch price for {resolved_symbol}")
             
             price = float(price)
             # Cache in Redis using resolved symbol
@@ -111,9 +109,6 @@ class PriceOracle:
             
             return price
         except Exception as e:
-            # Check if it's a yfinance auth error
-            if "401" in str(e) or "Unauthorized" in str(e) or "Invalid Crumb" in str(e):
-                print(f"Oracle: yfinance auth error for {symbol}, using mock price")
-            else:
-                print(f"Oracle Error for {symbol}: {e}")
-            return self._get_mock_price(symbol)
+            # NO FALLBACK - propagate error so we know when data source fails
+            print(f"Oracle Error for {symbol}: {e}")
+            raise

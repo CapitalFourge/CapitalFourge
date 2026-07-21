@@ -262,12 +262,6 @@ export default function AssetDetailPage() {
 
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-white">Información del activo</h3>
-            <div className="grid gap-4 md:grid-cols-2">
-              <InfoCard title="Símbolo" value={asset.symbol} />
-              <InfoCard title="Nombre" value={asset.name} />
-              <InfoCard title="Categoría" value={asset.category} />
-              <InfoCard title="Sitio web" value={asset.website ? <a href={asset.website} target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:underline">{asset.website}</a> : 'N/A'} />
-            </div>
             {asset.description && (
               <div className="prose prose-invert max-w-none">
                 <p>{asset.description}</p>

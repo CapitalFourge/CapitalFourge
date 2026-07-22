@@ -70,7 +70,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,metrics,caches
       base-path: /actuator
   endpoint:
     health:
@@ -84,3 +84,5 @@ management:
       enabled: true
     redis:
       enabled: false  # Disable ALL Redis health checks (reactive bug + keep it simple)
+    caches:
+      enabled: true

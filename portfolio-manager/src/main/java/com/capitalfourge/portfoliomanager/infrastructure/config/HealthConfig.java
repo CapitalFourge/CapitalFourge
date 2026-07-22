@@ -1,5 +1,6 @@
 package com.capitalfourge.portfoliomanager.infrastructure.config;
 
+import com.capitalfourge.portfoliomanager.infrastructure.grpc.GrpcFinancialDataClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.health.Health;
@@ -98,6 +99,26 @@ public class HealthConfig {
             return Health.down()
                     .withDetail("redis", "Upstash/Redis")
                     .withDetail("error", "Connection failed")
+                    .build();
+        };
+    }
+
+    @Bean
+    public HealthIndicator cacheMetricsHealthIndicator(GrpcFinancialDataClient client) {
+        return () -> {
+            var metrics = client.getCacheMetrics();
+            return Health.up()
+                    .withDetail("cache", "Caffeine (price cache)")
+                    .withDetail("size", metrics.estimatedSize())
+                    .withDetail("hitRate", String.format("%.2f%%", metrics.hitRate() * 100))
+                    .withDetail("hits", metrics.hitCount())
+                    .withDetail("misses", metrics.missCount())
+                    .withDetail("evictions", metrics.evictionCount())
+                    .withDetail("loadSuccess", metrics.loadSuccessCount())
+                    .withDetail("loadErrors", metrics.loadFailureCount())
+                    .withDetail("avgLoadTimeMs", metrics.totalLoadTimeNanos() > 0 
+                        ? metrics.totalLoadTimeNanos() / Math.max(1, metrics.loadSuccessCount() + metrics.loadFailureCount()) / 1_000_000 
+                        : 0)
                     .build();
         };
     }

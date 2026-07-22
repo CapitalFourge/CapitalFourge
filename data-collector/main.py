@@ -328,8 +328,9 @@ if __name__ == "__main__":
 
 # Background price publisher for Trading Bot - HOURLY + ON-DEMAND
 async def publish_price_ticks():
-    """Background task: fetch prices and publish to Redis streams every HOUR (not 5s).
-    On-demand fetching available via /price/{symbol} endpoint."""
+    """Background task: fetch prices and publish to LOCAL Redis streams every HOUR (not 5s).
+    On-demand fetching available via /price/{symbol} endpoint.
+    Only publishes to LOCAL Redis (Trading Bot) - NOT Upstash."""
     import asyncio
     import yfinance as yf
     

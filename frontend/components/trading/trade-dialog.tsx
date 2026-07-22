@@ -70,6 +70,7 @@ const STOCK_PRICE_QUERY = gql`
     stockPrice(symbol: $symbol) {
       symbol
       price
+      cachedAt
     }
   }
 `;
@@ -496,7 +497,7 @@ export function TradeDialog({
             />
             {orderType === "market" && (
               <p className="text-[11px] text-slate-500">
-                {priceLoading && symbol ? "Consultando ultimo precio..." : priceData?.stockPrice?.price ? `Ultimo precio: $${priceData.stockPrice.price.toLocaleString()}` : "Selecciona un simbolo para cargar el precio."}
+                {priceLoading && symbol ? "Consultando ultimo precio..." : priceData?.stockPrice?.price ? `Ultimo precio: $${priceData.stockPrice.price.toLocaleString()}${priceData.stockPrice?.cachedAt ? ` (cached: ${new Date(priceData.stockPrice.cachedAt).toLocaleTimeString()})` : ''}` : "Selecciona un simbolo para cargar el precio."}
               </p>
             )}
           </div>

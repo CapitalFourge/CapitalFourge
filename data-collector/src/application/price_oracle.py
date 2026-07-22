@@ -119,22 +119,17 @@ class PriceOracle:
                 raise RuntimeError("No Redis connections available - need at least one")
 
     def _publish_to_both(self, channel: str, message: dict):
-        """Publish to both Redis instances"""
+        """Publish to local Redis only (Upstash doesn't consume this channel)"""
         payload = json.dumps(message)
         
-        # Local (Trading Bot)
+        # Local (Trading Bot) - only one that consumes market.prices
         if self.r_local:
             try:
                 self.r_local.publish(channel, payload)
             except Exception as e:
                 print(f"Local Redis publish error: {e}")
         
-        # Upstash (Capital Fourge)
-        if self.r_upstash:
-            try:
-                self.r_upstash.publish(channel, payload)
-            except Exception as e:
-                print(f"Upstash Redis publish error: {e}")
+        # Upstash (Capital Fourge) - NO LONGER PUBLISH (nobody consumes)
 
     def _set_in_both(self, key: str, value: str, ex: int = 300):
         """Set key in both Redis instances"""
@@ -173,15 +168,10 @@ class PriceOracle:
                 raise RuntimeError(f"Could not fetch price for {resolved_symbol}")
             
             price = float(price)
-            # Cache in BOTH Redis instances
-            self._set_in_both(f"price:{resolved_symbol}", str(price), ex=300)
+            # Cache in BOTH Redis instances with 1-hour TTL (matches portfolio-manager cache)
+            self._set_in_both(f"price:{resolved_symbol}", str(price), ex=3600)
             
-            update_msg = {
-                "symbol": resolved_symbol,
-                "price": price,
-                "timestamp": datetime.now().isoformat()
-            }
-            self._publish_to_both("market.prices", update_msg)
+            # NO PUBLISH to market.prices - nobody consumes this channel
             
             return price
         except Exception as e:
@@ -195,7 +185,8 @@ class PriceOracle:
             raise
 
     def publish_tick(self, symbol: str, price: float, volume: float = 0, bid: float = 0, ask: float = 0):
-        """Publish market tick to BOTH Redis streams (for Trading Bot consumption)"""
+        """Publish market tick to LOCAL Redis stream only (for Trading Bot consumption)
+        Upstash does NOT consume streams - Capital Fourge uses REST API cache."""
         from datetime import datetime
         tick = {
             "symbol": str(symbol),
@@ -206,16 +197,12 @@ class PriceOracle:
             "timestamp": datetime.now().isoformat()
         }
         
-        # Publish to local Redis STREAM (Trading Bot uses XREAD)
+        # Publish to LOCAL Redis STREAM only (Trading Bot uses XREAD)
         if self.r_local:
             try:
                 self.r_local.xadd("market.ticks.equity.*", tick, maxlen=10000)
             except Exception as e:
                 print(f"Local stream publish error: {e}")
         
-        # Publish to Upstash STREAM (Capital Fourge)
-        if self.r_upstash:
-            try:
-                self.r_upstash.xadd("market.ticks.equity.*", tick, maxlen=10000)
-            except Exception as e:
-                print(f"Upstash stream publish error: {e}")
+        # Upstash (Capital Fourge) - NO STREAM PUBLISH
+        # Capital Fourge reads via REST /prices/batch, not streams

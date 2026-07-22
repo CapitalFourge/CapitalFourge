@@ -8,13 +8,20 @@ import org.springframework.web.client.RestTemplate;
 
 import com.capitalfourge.proto.*;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+
 import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
  * REST client for data-collector service (replaces gRPC client).
- * Calls FastAPI REST endpoints on data-collector
+ * Calls FastAPI REST endpoints on data-collector.
+ * 
+ * Uses Caffeine cache (TTL 1 hour, max 500 entries) to reduce Upstash reads/writes.
  */
 @Service
 public class GrpcFinancialDataClient {
@@ -23,11 +30,40 @@ public class GrpcFinancialDataClient {
     private final String baseUrl;
     private final String apiKey;
 
+    // Caffeine cache: symbol -> CachedPrice
+    // Max 500 entries, expire after 1 hour write, record stats for monitoring
+    private static final Cache<String, CachedPrice> priceCache = Caffeine.newBuilder()
+            .maximumSize(500)
+            .expireAfterWrite(Duration.ofHours(1))
+            .recordStats()
+            .build();
+
+    private static class CachedPrice {
+        final double price;
+        final Instant timestamp;
+
+        CachedPrice(double price, Instant timestamp) {
+            this.price = price;
+            this.timestamp = timestamp;
+        }
+
+        boolean isExpired() {
+            return Duration.between(timestamp, Instant.now()).compareTo(Duration.ofHours(1)) > 0;
+        }
+    }
+
+    // Track cache timestamps for UI display
+    private static final Map<String, String> cacheTimestamps = new ConcurrentHashMap<>();
+
+    public String getCachedAt(String symbol) {
+        return cacheTimestamps.get(symbol);
+    }
+
     public GrpcFinancialDataClient(
             RestTemplateBuilder restTemplateBuilder,
             @Value("${spring.data-collector.base-url:http://localhost:8000}") String baseUrl,
             @Value("${spring.data-collector.api-key:internal-service-key}") String apiKey) {
-        
+
         // Configure timeouts - data-collector can take 40-50s due to yfinance
         this.restTemplate = restTemplateBuilder
                 .setConnectTimeout(Duration.ofSeconds(10))
@@ -76,28 +112,47 @@ public class GrpcFinancialDataClient {
     }
 
     public Map<String, Double> getBatchPrices(List<String> symbols) {
-        String symbolsParam = String.join(",", symbols);
-        Map<String, Object> response = get("/prices/batch?symbols=" + symbolsParam, Map.class);
-        
-        if (response != null && response.containsKey("prices")) {
-            @SuppressWarnings("unchecked")
-            Map<String, Object> prices = (Map<String, Object>) response.get("prices");
-            return prices.entrySet().stream()
-                    .collect(Collectors.toMap(
-                            Map.Entry::getKey,
-                            e -> e.getValue() instanceof Number ? ((Number) e.getValue()).doubleValue() : 0.0
-                    ));
+        Map<String, Double> result = new HashMap<>();
+        List<String> symbolsToFetch = new ArrayList<>();
+
+        // Check cache first
+        for (String symbol : symbols) {
+            CachedPrice cached = priceCache.getIfPresent(symbol);
+            if (cached != null && !cached.isExpired()) {
+                result.put(symbol, cached.price);
+            } else {
+                symbolsToFetch.add(symbol);
+            }
         }
-        return Map.of();
+
+        // Fetch only missing/expired symbols
+        if (!symbolsToFetch.isEmpty()) {
+            String symbolsParam = String.join(",", symbolsToFetch);
+            Map<String, Object> response = get("/prices/batch?symbols=" + symbolsParam, Map.class);
+
+            if (response != null && response.containsKey("prices")) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> prices = (Map<String, Object>) response.get("prices");
+                String now = Instant.now().toString();
+                for (Map.Entry<String, Object> entry : prices.entrySet()) {
+                    double price = entry.getValue() instanceof Number ? ((Number) entry.getValue()).doubleValue() : 0.0;
+                    result.put(entry.getKey(), price);
+                    // Update cache
+                    priceCache.put(entry.getKey(), new CachedPrice(price, Instant.now()));
+                    cacheTimestamps.put(entry.getKey(), now);
+                }
+            }
+        }
+
+        return result;
     }
 
     public List<PricePoint> getPriceHistory(String symbol, int days) {
         List<Map<String, Object>> response = get("/price/history/" + symbol + "?days=" + days, List.class);
-        
+
         if (response != null) {
             return response.stream().map(point -> {
                 PricePoint.Builder builder = PricePoint.newBuilder();
-                // REST returns: timestamp, price, volume
                 if (point.get("timestamp") != null) builder.setDate(point.get("timestamp").toString());
                 if (point.get("price") != null) builder.setClose(((Number) point.get("price")).doubleValue());
                 if (point.get("volume") != null) builder.setVolume(((Number) point.get("volume")).longValue());
@@ -109,7 +164,7 @@ public class GrpcFinancialDataClient {
 
     public List<Asset> getCategorizedAssets() {
         List<Map<String, Object>> response = get("/assets/categorized", List.class);
-        
+
         if (response != null) {
             return response.stream().map(item -> {
                 Asset.Builder builder = Asset.newBuilder();
@@ -133,7 +188,7 @@ public class GrpcFinancialDataClient {
     public List<Asset> searchSymbols(String query, int limit) {
         Map<String, Object> request = Map.of("query", query, "limit", limit);
         List<Map<String, Object>> response = post("/assets/search", request, List.class);
-        
+
         if (response != null) {
             return response.stream().map(item -> {
                 Asset.Builder builder = Asset.newBuilder();
@@ -152,5 +207,36 @@ public class GrpcFinancialDataClient {
             return (String) response.get("name");
         }
         return symbol;
+    }
+
+    // Expose cache stats for monitoring
+    public Object getCacheStats() {
+        return priceCache.stats();
+    }
+
+    // Public record for actuator endpoint
+    public record CacheMetrics(
+        long estimatedSize,
+        long hitCount,
+        long missCount,
+        double hitRate,
+        long loadSuccessCount,
+        long loadFailureCount,
+        long totalLoadTimeNanos,
+        long evictionCount
+    ) {}
+
+    public CacheMetrics getCacheMetrics() {
+        var stats = priceCache.stats();
+        return new CacheMetrics(
+            priceCache.estimatedSize(),
+            stats.hitCount(),
+            stats.missCount(),
+            stats.hitRate(),
+            stats.loadSuccessCount(),
+            stats.loadFailureCount(),
+            stats.totalLoadTime(),
+            stats.evictionCount()
+        );
     }
 }

@@ -14,6 +14,7 @@ type User {
 type StockPrice {
   symbol: String!
   price: Float!
+  cachedAt: String
 }
 
 type Portfolio {

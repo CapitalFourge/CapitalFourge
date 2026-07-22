@@ -85,9 +85,11 @@ public class PortfolioGraphQLController {
     @QueryMapping
     public StockPriceResponse stockPrice(@Argument("symbol") String symbol) {
         double price = grpcClient.getStockPrice(symbol);
+        String cachedAt = grpcClient.getCachedAt(symbol);
         return StockPriceResponse.newBuilder()
                 .setSymbol(symbol)
                 .setPrice(price)
+                .setCachedAt(cachedAt != null ? cachedAt : "")
                 .build();
     }
 

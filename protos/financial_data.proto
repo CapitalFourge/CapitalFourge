@@ -40,6 +40,7 @@ message StockPriceResponse {
   string symbol = 1;
   double price = 2;
   string timestamp = 3; // ISO 8601 string time
+  string cached_at = 4; // When price was cached in portfolio-manager memory
 }
 
 message BatchStockRequest {

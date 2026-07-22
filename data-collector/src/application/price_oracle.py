@@ -22,6 +22,28 @@ NO_SUFFIX_PATTERNS = (
     '=F', '=X',              # Commodities, Forex
 )
 
+# Global singleton instance
+_price_oracle_instance = None
+
+def get_price_oracle(
+    redis_upstash_url: Optional[str] = None,
+    redis_local_host: str = "localhost",
+    redis_local_password: str = "mi_redis_pass_seguro",
+    connect_local: bool = True,
+    allow_no_redis: bool = False
+) -> 'PriceOracle':
+    """Get or create the global PriceOracle singleton."""
+    global _price_oracle_instance
+    if _price_oracle_instance is None:
+        _price_oracle_instance = PriceOracle(
+            redis_upstash_url=redis_upstash_url,
+            redis_local_host=redis_local_host,
+            redis_local_password=redis_local_password,
+            connect_local=connect_local,
+            allow_no_redis=allow_no_redis
+        )
+    return _price_oracle_instance
+
 def resolve_yfinance_symbol(symbol: str):
     """Resolve symbol for yfinance - avoid adding suffixes to known formats"""
     # 1. Colombian stocks
@@ -44,7 +66,6 @@ def resolve_yfinance_symbol(symbol: str):
     
     # 4. Return original symbol
     return symbol
-
 
 class PriceOracle:
     """Price oracle that publishes to BOTH Redis instances:

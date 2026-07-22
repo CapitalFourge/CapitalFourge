@@ -7,7 +7,7 @@ import yfinance as yf
 import logging
 from functools import lru_cache
 
-from src.application.price_oracle import PriceOracle
+from src.application.price_oracle import PriceOracle, get_price_oracle
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -121,7 +121,18 @@ def resolve_yfinance_symbol(symbol: str):
 class FinancialDataServicer(financial_data_pb2_grpc.FinancialDataServiceServicer):
 
     def __init__(self):
-        self.oracle = PriceOracle()
+        # Get singleton PriceOracle with same config as main.py
+        import socket
+        is_render = os.getenv("RENDER") == "true" or "render.com" in socket.gethostname()
+        upstash_url = os.getenv("SPRING_REDIS_URL")
+        allow_no_redis = not upstash_url and is_render
+        self.oracle = get_price_oracle(
+            redis_upstash_url=upstash_url,
+            redis_local_host=os.getenv("DB_REDIS_HOST", "localhost"),
+            redis_local_password=os.getenv("DB_REDIS_PASSWORD", "mi_redis_pass_seguro"),
+            connect_local=not is_render,
+            allow_no_redis=allow_no_redis
+        )
 
     def _get_market_cap(self, ticker, info) -> float:
         for key in ('marketCap', 'enterpriseValue', 'market_cap', 'totalValue'):

@@ -38,18 +38,20 @@ service = FinancialDataService(repository=repo, processor=processor)
 # En VPS local: connect_local=True
 import socket
 is_render = os.getenv("RENDER") == "true" or "render.com" in socket.gethostname()
+# PriceOracle: conecta a AMBOS Redis (Upstash para Capital Fourge + Local para Trading Bot)
+# En Render: connect_local=False (no hay Redis local), allow_no_redis=True si no hay SPRING_REDIS_URL
+import socket
+is_render = os.getenv("RENDER") == "true" or "render.com" in socket.gethostname()
 
-# Get Upstash URL - try SPRING_REDIS_URL first, then REDIS_URL for Render compatibility
-upstash_url = os.getenv("SPRING_REDIS_URL") or os.getenv("REDIS_URL")  # Upstash URL from Render
-if upstash_url and not upstash_url.startswith("redis"):
-    # Ensure URL has proper scheme
-    if not upstash_url.startswith("rediss://") and not upstash_url.startswith("redis://"):
-        upstash_url = "rediss://" + upstash_url
+upstash_url = os.getenv("SPRING_REDIS_URL")  # Upstash URL from Render
+allow_no_redis = not upstash_url and is_render  # Allow no Redis if on Render without SPRING_REDIS_URL
+
 oracle = PriceOracle(
     redis_upstash_url=upstash_url,
     redis_local_host=os.getenv("DB_REDIS_HOST", "localhost"),
     redis_local_password=os.getenv("DB_REDIS_PASSWORD", "mi_redis_pass_seguro"),
-    connect_local=not is_render  # Disable local Redis on Render
+    connect_local=not is_render,  # Disable local Redis on Render
+    allow_no_redis=allow_no_redis  # Allow running without Redis on Render
 )
 print("🛰️ Iniciando servidor gRPC en hilo secundario...")
 grpc_thread = threading.Thread(target=serve, daemon=True)

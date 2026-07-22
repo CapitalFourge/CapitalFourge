@@ -57,7 +57,8 @@ class PriceOracle:
         redis_upstash_url: Optional[str] = None,  # SPRING_REDIS_URL from Render
         redis_local_host: str = "localhost",
         redis_local_password: str = "mi_redis_pass_seguro",
-        connect_local: bool = True  # Set False on Render
+        connect_local: bool = True,  # Set False on Render
+        allow_no_redis: bool = False  # Allow running without any Redis (for Render deploy)
     ):
         # Upstash Redis (Capital Fourge) - optional
         self.r_upstash = None
@@ -89,8 +90,12 @@ class PriceOracle:
                 print(f"⚠️ Local Redis connection failed (expected on Render): {e}")
                 self.r_local = None
         
+        # Allow running without Redis (for Render deploy where SPRING_REDIS_URL not set)
         if not self.r_upstash and not self.r_local:
-            raise RuntimeError("No Redis connections available - need at least one")
+            if allow_no_redis:
+                print("⚠️ Running WITHOUT Redis - prices will be fetched but not cached/published")
+            else:
+                raise RuntimeError("No Redis connections available - need at least one")
 
     def _publish_to_both(self, channel: str, message: dict):
         """Publish to both Redis instances"""

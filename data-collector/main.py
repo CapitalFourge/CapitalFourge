@@ -39,6 +39,11 @@ import socket
 is_render = os.getenv("RENDER") == "true" or "render.com" in socket.gethostname()
 
 upstash_url = os.getenv("SPRING_REDIS_URL")  # Upstash URL from Render
+print(f"🔍 DEBUG: RENDER={os.getenv('RENDER')}, hostname={socket.gethostname()}, is_render={is_render}")
+print(f"🔍 DEBUG: SPRING_REDIS_URL={'SET' if upstash_url else 'NOT SET'}")
+if upstash_url:
+    print(f"🔍 DEBUG: SPRING_REDIS_URL starts with: {upstash_url[:50]}...")
+
 allow_no_redis = not upstash_url and is_render  # Allow no Redis if on Render without SPRING_REDIS_URL
 
 oracle = PriceOracle(

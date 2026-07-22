@@ -34,11 +34,6 @@ processor = PolarsDataProcessor()
 service = FinancialDataService(repository=repo, processor=processor)
 
 # PriceOracle: conecta a AMBOS Redis (Upstash para Capital Fourge + Local para Trading Bot)
-# En Render: connect_local=False (no hay Redis local)
-# En VPS local: connect_local=True
-import socket
-is_render = os.getenv("RENDER") == "true" or "render.com" in socket.gethostname()
-# PriceOracle: conecta a AMBOS Redis (Upstash para Capital Fourge + Local para Trading Bot)
 # En Render: connect_local=False (no hay Redis local), allow_no_redis=True si no hay SPRING_REDIS_URL
 import socket
 is_render = os.getenv("RENDER") == "true" or "render.com" in socket.gethostname()

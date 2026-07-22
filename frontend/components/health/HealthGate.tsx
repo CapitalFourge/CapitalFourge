@@ -3,7 +3,6 @@
 import { useEffect, useState, useCallback, ReactNode } from "react";
 import { motion } from "framer-motion";
 import { Loader2, CheckCircle, AlertCircle, Clock, ChevronDown, ChevronUp } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 interface HealthCheck {
   status: "UP" | "DOWN";

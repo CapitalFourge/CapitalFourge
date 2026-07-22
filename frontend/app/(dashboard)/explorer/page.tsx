@@ -62,19 +62,6 @@ interface Asset {
   category: string;
 }
 
-interface PortfolioPosition {
-  symbol: string;
-  quantity: number;
-  averagePurchasePrice: number;
-  currentPrice: number;
-}
-
-interface Portfolio {
-  id: string;
-  name: string;
-  positions: PortfolioPosition[];
-}
-
 export default function ExplorerPage() {
   const [selectedCategory, setSelectedCategory] = useState("ALL");
   const [searchTerm, setSearchTerm] = useState("");

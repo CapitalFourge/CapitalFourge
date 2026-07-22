@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useRef } from 'react';
+import { useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { gql, useQuery } from '@apollo/client';
 import { motion } from 'framer-motion';
@@ -95,15 +95,11 @@ export default function AssetDetailPage() {
     pollInterval: 30000,
   });
   const asset = data?.asset;
-  const priceHistory = data?.priceHistory || [];
+  const priceHistory = useMemo(() => data?.priceHistory || [], [data?.priceHistory]);
   const latestFundamental = priceHistory[priceHistory.length - 1] as typeof priceHistory[0] | undefined;
 
-  // Use useRef to preserve priceHistory reference for useMemo
-  const priceHistoryRef = useRef(priceHistory);
-  priceHistoryRef.current = priceHistory;
-
   const fullChartData = useMemo(() => {
-    return priceHistoryRef.current
+    return priceHistory
       .map((point: FundamentalPricePoint) => ({
         date: point.date,
         open: point.open || point.close,
@@ -113,7 +109,7 @@ export default function AssetDetailPage() {
         volume: point.volume || 0,
       }))
       .filter((point: { date: string; close: number }) => !Number.isNaN(Date.parse(point.date)) && point.close > 0);
-  }, []);
+  }, [priceHistory]);
 
   const latestDailyPoint = useMemo(() => fullChartData[fullChartData.length - 1], [fullChartData]);
   const previousDailyPoint = useMemo(() => fullChartData[fullChartData.length - 2], [fullChartData]);
@@ -145,8 +141,6 @@ export default function AssetDetailPage() {
   const change24h = latestDailyPoint && previousDailyPoint
     ? `${(((latestDailyPoint.close - previousDailyPoint.close) / previousDailyPoint.close) * 100).toFixed(2)}%`
     : '0.00%';
-
-  const isPositiveChange = latestDailyPoint && previousDailyPoint && latestDailyPoint.close > previousDailyPoint.close;
 
   const volume24h = latestDailyPoint ? latestDailyPoint.volume.toLocaleString(undefined) : '0';
   const marketCap = latestFundamental?.marketCap
@@ -184,7 +178,7 @@ export default function AssetDetailPage() {
 
             <div className="flex flex-col items-center p-4 bg-white/[0.03] rounded-xl">
               <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Cambio 24h</p>
-              <p className="mt-1 text-lg font-semibold {isPositiveChange ? 'text-emerald-400' : 'text-rose-400'}">{change24h}</p>
+              <p className="mt-1 text-lg font-semibold {latestDailyPoint && previousDailyPoint && latestDailyPoint.close > previousDailyPoint.close ? 'text-emerald-400' : 'text-rose-400'}">{change24h}</p>
             </div>
 
             <div className="flex flex-col items-center p-4 bg-white/[0.03] rounded-xl">

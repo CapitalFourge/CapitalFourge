@@ -59,6 +59,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loadTokens();
   }, [loadTokens]);
 
+  const logout = useCallback(async () => {
+    if (user?.id) {
+      try {
+        await fetch(`${TOKEN_URL}/api/auth/logout/${user.id}`, { method: "POST" });
+      } catch {}
+    }
+    setUser(null);
+    setAccessToken(null);
+    setRefreshToken(null);
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    localStorage.removeItem("user");
+  }, [user?.id]);
+
   const refreshAccessToken = useCallback(async () => {
     if (!refreshToken || refreshing) return;
     setRefreshing(true);
@@ -76,7 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setRefreshing(false);
     }
-  }, [refreshToken, refreshing]);
+  }, [refreshToken, refreshing, logout]);
 
   const login = async (email: string, password: string) => {
     const res = await fetch(`${TOKEN_URL}/api/auth/login`, {
@@ -95,11 +109,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("access_token", data.token);
     localStorage.setItem("refresh_token", data.refreshToken);
     localStorage.setItem("user", JSON.stringify(data.user));
-    
+
     // Fetch fresh user data including cash balance after login
     try {
       const userRes = await fetch(`${TOKEN_URL}/api/users/me`, {
-        headers: { "Authorization": `Bearer ${data.token}` },
+        headers: { Authorization: `Bearer ${data.token}` },
       });
       if (userRes.ok) {
         const freshUser = await userRes.json();
@@ -110,20 +124,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.warn("Could not fetch fresh user data after login:", e);
     }
   };
-
-  const logout = useCallback(async () => {
-    if (user?.id) {
-      try {
-        await fetch(`${TOKEN_URL}/api/auth/logout/${user.id}`, { method: "POST" });
-      } catch {}
-    }
-    setUser(null);
-    setAccessToken(null);
-    setRefreshToken(null);
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    localStorage.removeItem("user");
-  }, [user?.id]);
 
   // Auto-refresh token 5 min before expiry
   useEffect(() => {

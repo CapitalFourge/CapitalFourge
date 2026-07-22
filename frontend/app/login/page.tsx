@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { ArrowRight, Loader2, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -50,13 +51,19 @@ export default function LoginPage() {
         <section className="flex flex-col justify-between border-b border-white/10 p-8 lg:border-b-0 lg:border-r lg:p-12">
           <div>
             <Link href="/" className="inline-flex items-center gap-3">
-              <img src="/icon.png" alt="Capital Fourge" className="h-10 w-[120px] object-contain sm:h-16 sm:w-[180px]" />
+              <Image
+                src="/icon.png"
+                alt="Capital Fourge"
+                width={120}
+                height={30}
+                className="h-10 w-[120px] object-contain sm:h-16 sm:w-[180px]"
+              />
             </Link>
 
             <motion.div initial={{ opacity: 0, x: -18 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.55 }} className="mt-14 max-w-xl">
               <p className="eyebrow">Acceso seguro</p>
               <h1 className="mt-4 text-5xl font-semibold tracking-[-0.05em] text-white md:text-6xl">
-                Aprende, practica y domina la inversión con un workspace <span className="text-gradient">sin riesgo</span>.
+                Aprende, practica y domina la inversión con un <span className="text-gradient">workspace sin riesgo</span>.
               </h1>
               <p className="mt-5 text-base leading-8 text-slate-300">
                 Inicia sesión para continuar en un entorno diseñado para seguimiento patrimonial, lectura táctica y ejecución con menos fricción visual.
@@ -88,7 +95,7 @@ export default function LoginPage() {
                 </p>
               </div>
 
-              <form className="mt-8 space-y-5" onSubmit={(e) => e.preventDefault()}>
+              <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
                 <div className="space-y-2">
                   <label className="text-xs font-medium uppercase tracking-[0.24em] text-slate-400">Correo</label>
                   <Input

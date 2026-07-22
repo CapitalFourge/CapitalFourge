@@ -3,9 +3,9 @@
 import { useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
-import { BarChart3, TrendingUp, Target, Shield, Zap, Activity, PieChart, DollarSign, Calendar } from 'lucide-react';
+import { PieChart } from 'lucide-react';
 
 interface Strategy {
   id: string;
@@ -174,16 +174,6 @@ const STRATEGIES: Strategy[] = [
     timeframe: "Diario",
     riskLevel: "Bajo-Moderado"
   }
-];
-
-const CATEGORIES = [
-  { id: "all", name: "Todas", icon: BarChart3 },
-  { id: "Tendencia", name: "Tendencia", icon: TrendingUp },
-  { id: "Ruptura", name: "Ruptura", icon: Target },
-  { id: "Media-Reversion", name: "Media-Reversion", icon: Zap },
-  { id: "Indicadores", name: "Indicadores", icon: Activity },
-  { id: "Valor", name: "Valor", icon: DollarSign },
-  { id: "Estacional", name: "Estacional", icon: Calendar }
 ];
 
 const getRiskColorClass = (riskLevel: string): string => {

@@ -3,10 +3,6 @@
 import { useMemo } from 'react';
 import { FundamentalPricePoint } from '@/lib/types/fundamental-price-point';
 
-interface IndicatorValues {
-  [key: string]: number | null;
-}
-
 interface UseIndicatorsProps {
   priceHistory: FundamentalPricePoint[];
   activeIndicators: string[];

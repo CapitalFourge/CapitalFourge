@@ -39,7 +39,12 @@ service = FinancialDataService(repository=repo, processor=processor)
 import socket
 is_render = os.getenv("RENDER") == "true" or "render.com" in socket.gethostname()
 
-upstash_url = os.getenv("SPRING_REDIS_URL")  # Upstash URL from Render
+# Get Upstash URL - try SPRING_REDIS_URL first, then REDIS_URL for Render compatibility
+upstash_url = os.getenv("SPRING_REDIS_URL") or os.getenv("REDIS_URL")  # Upstash URL from Render
+if upstash_url and not upstash_url.startswith("redis"):
+    # Ensure URL has proper scheme
+    if not upstash_url.startswith("rediss://") and not upstash_url.startswith("redis://"):
+        upstash_url = "rediss://" + upstash_url
 oracle = PriceOracle(
     redis_upstash_url=upstash_url,
     redis_local_host=os.getenv("DB_REDIS_HOST", "localhost"),
@@ -315,7 +320,8 @@ def get_asset_name(symbol: str):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    port = int(os.getenv("PORT", "8000"))
+    uvicorn.run(app, host="0.0.0.0", port=port)
 
 
 # Background price publisher for Trading Bot

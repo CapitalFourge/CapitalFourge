@@ -20,6 +20,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 
 @RestController
 @RequestMapping("/api/health")
@@ -41,10 +42,13 @@ public class HealthCheckController {
 
     @PostConstruct
     public void init() {
+        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+        requestFactory.setConnectTimeout(Duration.ofSeconds(3));
+        requestFactory.setReadTimeout(Duration.ofSeconds(5));
+
         this.restClient = RestClient.builder()
                 .defaultHeader("X-API-Key", dataCollectorApiKey)
-                .requestFactory(requestFactory -> requestFactory.setConnectTimeout(Duration.ofSeconds(3)))
-                .requestFactory(requestFactory -> requestFactory.setReadTimeout(Duration.ofSeconds(5)))
+                .requestFactory(requestFactory)
                 .build();
     }
 

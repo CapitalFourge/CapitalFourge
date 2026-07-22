@@ -326,22 +326,22 @@ if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=port)
 
 
-# Background price publisher for Trading Bot
+# Background price publisher for Trading Bot - HOURLY + ON-DEMAND
 async def publish_price_ticks():
-    """Background task: fetch prices and publish to both Redis streams every 5s"""
+    """Background task: fetch prices and publish to Redis streams every HOUR (not 5s).
+    On-demand fetching available via /price/{symbol} endpoint."""
     import asyncio
     import yfinance as yf
     
-    symbols = [
-        "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "NVDA", "META", "NFLX", "AMD", "DIS",
-        "BTC-USD", "ETH-USD", "SOL-USD", "ADA-USD", "DOT-USD", "XRP-USD",
-        "GC=F", "SI=F", "CL=F", "NG=F", "HG=F",
-        "EURUSD=X", "GBPUSD=X", "USDJPY=X"
+    # Only core symbols the bot actually trades (reduce from 24 to ~10)
+    core_symbols = [
+        "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "NVDA", "META",
+        "BTC-USD", "ETH-USD", "SPY", "QQQ"
     ]
     
     while True:
         try:
-            for symbol in symbols:
+            for symbol in core_symbols:
                 try:
                     ticker = yf.Ticker(symbol)
                     hist = ticker.history(period="1d")
@@ -353,15 +353,19 @@ async def publish_price_ticks():
                 except Exception as e:
                     print(f"Error publishing tick for {symbol}: {e}")
             
-            await asyncio.sleep(5)  # Publish every 5 seconds
+            await asyncio.sleep(3600)  # Publish every HOUR (was 5 seconds)
         except Exception as e:
             print(f"Background publisher error: {e}")
-            await asyncio.sleep(10)
+            await asyncio.sleep(300)  # Retry in 5 min on error
 
 
-# Start background publisher on startup
-@app.on_event("startup")
-async def startup_event():
-    import asyncio
-    asyncio.create_task(publish_price_ticks())
-    print("🚀 Background price publisher started")
+# On-demand price fetch endpoint (user-requested symbols)
+@app.get("/price/ondemand/{symbol}", dependencies=[Depends(require_api_key)])
+def get_price_on_demand(symbol: str):
+    """Fetch and cache a specific symbol on user request - not in background loop."""
+    try:
+        yf_symbol = resolve_yfinance_symbol(symbol)
+        price = oracle.fetch_and_cache(yf_symbol)
+        return {"symbol": symbol, "price": price, "status": "fetched_on_demand"}
+    except Exception as e:
+        return {"symbol": symbol, "error": str(e), "status": "failed"}

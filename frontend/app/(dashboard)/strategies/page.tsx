@@ -1,24 +1,12 @@
 'use client';
 
 import { useState } from "react";
-import { gql, useQuery } from "@apollo/client";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { BarChart3, TrendingUp, Target, Shield, Zap, Activity, PieChart, Monitor, DollarSign, Calendar, Moon, Sun } from "lucide-react";
+import { BarChart3, TrendingUp, Target, Zap, Activity, PieChart, DollarSign } from 'lucide-react';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
-
-const STRATEGIES_QUERY = gql`
-  query GetStrategies {
-    portfolios {
-      id
-      name
-      performance
-      isPublic
-    }
-  }
-`;
 
 interface Strategy {
   id: string;
@@ -196,7 +184,7 @@ const CATEGORIES = [
   { id: "Media-Reversion", name: "Media-Reversion", icon: Zap },
   { id: "Indicadores", name: "Indicadores", icon: Activity },
   { id: "Valor", name: "Valor", icon: DollarSign },
-  { id: "Estacional", name: "Estacional", icon: Moon },
+  { id: "Estacional", name: "Estacional", icon: DollarSign },
 ];
 
 const getRiskColorClass = (riskLevel: string): string => {

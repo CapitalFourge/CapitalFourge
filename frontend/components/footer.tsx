@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import {
   Twitter,
@@ -17,9 +18,11 @@ export function Footer() {
         <div className="grid gap-8 md:grid-cols-4">
           <div className="md:col-span-2">
             <Link href="/" className="inline-flex items-center">
-              <img
+              <Image
                 src="/icon.png"
                 alt="Capital Fourge"
+                width={180}
+                height={50}
                 className="h-16 w-auto max-w-[180px] object-contain block leading-none"
               />
             </Link>

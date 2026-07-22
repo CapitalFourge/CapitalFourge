@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowRight, BarChart3, ShieldCheck, Sparkles, Wallet } from "lucide-react";
@@ -45,7 +46,13 @@ export default function Home() {
           className="flex items-center justify-between rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 backdrop-blur-xl sm:px-5 sm:py-4"
         >
           <div className="flex items-center gap-3">
-            <img src="/icon.png" alt="Capital Fourge" className="h-10 w-[120px] object-contain sm:h-16 sm:w-[180px]" />
+            <Image
+              src="/icon.png"
+              alt="Capital Fourge"
+              width={120}
+              height={40}
+              className="h-10 w-[120px] object-contain sm:h-16 sm:w-[180px]"
+            />
           </div>
 
           <div className="flex items-center gap-3">

@@ -1,15 +1,16 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowRight, CheckCircle2, Loader2 } from "lucide-react";
+import { ArrowRight, CheckCircle2, Loader2, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
+import { useAuth } from "@/lib/auth/AuthContext";
 const requirements = [
   "Contraseña mínima de 8 caracteres",
   "Al menos una mayúscula",
@@ -70,7 +71,13 @@ export default function RegisterPage() {
         <section className="flex items-center border-b border-white/10 p-6 sm:p-8 lg:border-b-0 lg:border-r lg:p-12">
           <motion.div initial={{ opacity: 0, x: -18 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.55 }} className="w-full">
             <Link href="/" className="inline-flex items-center gap-3">
-              <img src="/icon.png" alt="Capital Fourge" className="h-10 w-[120px] object-contain sm:h-16 sm:w-[180px]" />
+              <Image
+                src="/icon.png"
+                alt="Capital Fourge"
+                width={180}
+                height={50}
+                className="h-10 w-[120px] object-contain sm:h-16 sm:w-[180px]"
+              />
             </Link>
 
             <p className="eyebrow mt-12">Onboarding</p>

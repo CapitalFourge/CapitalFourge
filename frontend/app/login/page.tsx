@@ -24,12 +24,9 @@ export default function LoginPage() {
   const router = useRouter();
   const { login: authLogin } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     e.stopPropagation();
-  };
-
-  const handleClick = async () => {
     setLoading(true);
     try {
       await authLogin(email, password);
@@ -119,9 +116,8 @@ export default function LoginPage() {
                 </div>
 
                 <Button
-                  type="button"
+                  type="submit"
                   disabled={loading}
-                  onClick={handleClick}
                   className="h-14 w-full rounded-2xl bg-emerald-300 text-sm font-semibold text-slate-950 hover:bg-emerald-200"
                 >
                   {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Ingresar"}

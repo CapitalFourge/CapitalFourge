@@ -111,7 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     if (user?.id) {
       try {
         await fetch(`${TOKEN_URL}/api/auth/logout/${user.id}`, { method: "POST" });
@@ -123,7 +123,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
     localStorage.removeItem("user");
-  };
+  }, [user?.id]);
 
   // Auto-refresh token 5 min before expiry
   useEffect(() => {

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Image from "next/image";
 import {
   BarChart3,
   Compass,
@@ -66,7 +67,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="sticky top-4 flex h-[calc(100vh-2rem)] flex-col rounded-[2rem] border border-white/10 bg-slate-950/55 p-5 backdrop-blur-2xl">
               <div className="flex items-center justify-center border-b border-white/10 pb-5">
                 <Link href="/dashboard">
-                  <img src="/icon.png" alt="Capital Fourge" className="h-16 w-auto max-w-[180px] object-contain block leading-none" />
+                  <Image
+                    src="/icon.png"
+                    alt="Capital Fourge"
+                    width={180}
+                    height={50}
+                    className="h-16 w-auto max-w-[180px] object-contain block leading-none"
+                  />
                 </Link>
               </div>
 
@@ -118,7 +125,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="sticky top-4 z-20 mb-4 rounded-[1.5rem] border border-white/10 bg-slate-950/45 px-4 py-3 backdrop-blur-2xl lg:hidden">
               <div className="flex items-center justify-between">
                 <Link href="/dashboard" className="flex justify-center">
-                  <img src="/icon.png" alt="Capital Fourge" className="h-12 w-auto max-w-[140px] object-contain block leading-none" />
+                  <Image
+                    src="/icon.png"
+                    alt="Capital Fourge"
+                    width={140}
+                    height={40}
+                    className="h-12 w-auto max-w-[140px] object-contain block leading-none"
+                  />
                 </Link>
                  <button
                    onClick={handleLogout}

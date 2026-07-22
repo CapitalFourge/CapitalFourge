@@ -90,14 +90,6 @@ export default function ExplorerPage() {
   });
 
   const assets = useMemo(() => ((data?.assetsByCategory as Asset[] | undefined) ?? []), [data?.assetsByCategory]);
-  const portfolios = useMemo(
-    () =>
-      (((data?.portfolios as Portfolio[] | undefined) ?? []).map((portfolio) => ({
-        ...portfolio,
-        positions: portfolio.positions || [],
-      }))),
-    [data?.portfolios]
-  );
 
   // Use search results if searching, otherwise use category-filtered assets
   const displayAssets = useMemo(() => {

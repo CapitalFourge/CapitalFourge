@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
-import { BarChart3, TrendingUp, Target, Shield, Zap, Activity, PieChart, Monitor, DollarSign, Calendar, Moon, Sun } from 'lucide-react';
+import { BarChart3, TrendingUp, Target, Shield, Zap, Activity, PieChart, DollarSign, Calendar } from 'lucide-react';
 
 interface Strategy {
   id: string;
@@ -183,7 +183,7 @@ const CATEGORIES = [
   { id: "Media-Reversion", name: "Media-Reversion", icon: Zap },
   { id: "Indicadores", name: "Indicadores", icon: Activity },
   { id: "Valor", name: "Valor", icon: DollarSign },
-  { id: "Estacional", name: "Estacional", icon: Moon }
+  { id: "Estacional", name: "Estacional", icon: Calendar }
 ];
 
 const getRiskColorClass = (riskLevel: string): string => {

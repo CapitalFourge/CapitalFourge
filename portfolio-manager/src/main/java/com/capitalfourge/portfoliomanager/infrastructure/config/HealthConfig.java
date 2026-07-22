@@ -82,8 +82,8 @@ public class HealthConfig {
             try {
                 var connection = redisConnectionFactory.getConnection();
                 try {
-                    boolean alive = connection.ping();
-                    if (alive) {
+                    String pong = connection.ping();
+                    if ("PONG".equalsIgnoreCase(pong)) {
                         return Health.up()
                                 .withDetail("redis", "Upstash/Redis")
                                 .withDetail("status", "UP")

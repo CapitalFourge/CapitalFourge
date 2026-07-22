@@ -40,6 +40,9 @@ class GrpcFinancialDataClientTest {
                 "https://test-data-collector.example.com",
                 "test-api-key"
         );
+        
+        // Clear cache before each test
+        client.invalidateAll();
     }
 
     @Test

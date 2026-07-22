@@ -214,6 +214,12 @@ public class GrpcFinancialDataClient {
         return priceCache.stats();
     }
 
+    // Clear entire cache (for testing)
+    public void invalidateAll() {
+        priceCache.invalidateAll();
+        cacheTimestamps.clear();
+    }
+
     // Public record for actuator endpoint
     public record CacheMetrics(
         long estimatedSize,

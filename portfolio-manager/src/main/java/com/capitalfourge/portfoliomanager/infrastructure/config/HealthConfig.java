@@ -22,14 +22,15 @@ public class HealthConfig {
     public HealthIndicator dataCollectorHealthIndicator(
             @Value("${spring.data-collector.base-url}") String baseUrl,
             @Value("${spring.data-collector.api-key}") String apiKey) {
-        RestTemplate restTemplate = new RestTemplate();
+        var requestFactory = new org.springframework.http.client.SimpleClientHttpRequestFactory();
+        requestFactory.setConnectTimeout(2000);
+        requestFactory.setReadTimeout(3000);
+        
+        RestTemplate restTemplate = new RestTemplate(requestFactory);
         restTemplate.getInterceptors().add((request, body, execution) -> {
             request.getHeaders().add("X-API-Key", apiKey);
             return execution.execute(request, body);
         });
-        restTemplate.setRequestFactory(new org.springframework.http.client.SimpleClientHttpRequestFactory());
-        ((org.springframework.http.client.SimpleClientHttpRequestFactory) restTemplate.getRequestFactory()).setConnectTimeout(2000);
-        ((org.springframework.http.client.SimpleClientHttpRequestFactory) restTemplate.getRequestFactory()).setReadTimeout(3000);
 
         return () -> {
             try {

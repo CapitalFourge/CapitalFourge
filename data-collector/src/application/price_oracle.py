@@ -79,7 +79,7 @@ class PriceOracle:
         redis_local_host: str = "localhost",
         redis_local_password: str = "mi_redis_pass_seguro",
         connect_local: bool = True,  # Set False on Render
-        allow_no_redis: bool = False  # Allow running without any Redis (for Render deploy)
+        allow_no_redis: bool = False  # Allow running without Redis (for Render deploy)
     ):
         # Upstash Redis (Capital Fourge) - optional
         self.r_upstash = None
@@ -186,7 +186,12 @@ class PriceOracle:
             return price
         except Exception as e:
             # NO FALLBACK - propagate error so we know when data source fails
-            print(f"Oracle Error for {symbol}: {e}")
+            # Yahoo Finance 401 errors will bubble up to caller
+            error_str = str(e)
+            if "401" in error_str or "Unauthorized" in error_str or "Invalid Crumb" in error_str:
+                print(f"⚠️ Yahoo Finance 401/Unauthorized for {symbol}: {e}")
+            else:
+                print(f"Oracle Error for {symbol}: {e}")
             raise
 
     def publish_tick(self, symbol: str, price: float, volume: float = 0, bid: float = 0, ask: float = 0):

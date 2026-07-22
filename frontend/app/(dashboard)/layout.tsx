@@ -17,7 +17,8 @@ import { cn } from "@/lib/utils";
 import { useMemo } from "react";
 import { gql, useQuery } from "@apollo/client";
 import { WelcomeDialog } from "@/components/ui/welcome-dialog";
-import { clearAuthCookie } from "@/lib/auth-cookie";
+import { useAuth } from "@/lib/auth/AuthContext";
+import { HealthGate } from "@/components/health/HealthGate";
 
 const navigation = [
   { href: "/dashboard", label: "Resumen", icon: LayoutDashboard },
@@ -41,6 +42,7 @@ const ME_QUERY = gql`
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { data } = useQuery(ME_QUERY, { fetchPolicy: "cache-and-network" });
+  const { logout: authLogout } = useAuth();
 
   const isAdmin = useMemo(() => {
     return data?.me?.role === "ADMIN";
@@ -50,109 +52,108 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     ? [...navigation, { href: "/admin", label: "Admin", icon: ShieldCheck }]
     : navigation;
 
+  const handleLogout = () => {
+    authLogout();
+    window.location.href = "/";
+  };
+
   return (
-    <div className="min-h-screen bg-dashboard">
-      <div className="pointer-events-none fixed inset-0 bg-grid opacity-20" />
-      <div className="relative mx-auto flex min-h-screen max-w-[1700px] gap-6 px-4 py-4 sm:px-6 lg:px-8">
-        <aside className="hidden w-[290px] shrink-0 lg:block">
-          <div className="sticky top-4 flex h-[calc(100vh-2rem)] flex-col rounded-[2rem] border border-white/10 bg-slate-950/55 p-5 backdrop-blur-2xl">
-  <div className="flex items-center justify-center border-b border-white/10 pb-5">
-    <Link href="/dashboard">
-      <img src="/icon.png" alt="Capital Fourge" className="h-16 w-auto max-w-[180px] object-contain block leading-none" />
-    </Link>
-  </div>
-
-<nav className="mt-6 flex-1 space-y-2">
-               {allNavigation.map((item) => {
-                const Icon = item.icon;
-                const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
-
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={cn(
-                      "flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm transition duration-200",
-                      isActive
-                        ? "bg-emerald-300 text-slate-950 shadow-[0_14px_40px_rgba(110,231,183,0.2)]"
-                        : "text-slate-300 hover:bg-white/[0.06] hover:text-white"
-                    )}
-                  >
-                    <Icon className="h-4 w-4" />
-                    <span className="font-medium">{item.label}</span>
-                  </Link>
-                );
-              })}
-            </nav>
-
-            <div className="space-y-4 border-t border-white/10 pt-5">
-              <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-4">
-                <p className="text-xs uppercase tracking-[0.28em] text-slate-400">Tu cuenta</p>
-                <p className="mt-2 text-lg font-semibold text-white">Lista para operar</p>
-                <div className="mt-3 flex items-center gap-2 text-sm text-slate-300">
-                  <span className="status-dot" />
-                  Datos en tiempo real
-                </div>
+    <HealthGate>
+      <div className="min-h-screen bg-dashboard">
+        <div className="pointer-events-none fixed inset-0 bg-grid opacity-20" />
+        <div className="relative mx-auto flex min-h-screen max-w-[1700px] gap-6 px-4 py-4 sm:px-6 lg:px-8">
+          <aside className="hidden w-[290px] shrink-0 lg:block">
+            <div className="sticky top-4 flex h-[calc(100vh-2rem)] flex-col rounded-[2rem] border border-white/10 bg-slate-950/55 p-5 backdrop-blur-2xl">
+              <div className="flex items-center justify-center border-b border-white/10 pb-5">
+                <Link href="/dashboard">
+                  <img src="/icon.png" alt="Capital Fourge" className="h-16 w-auto max-w-[180px] object-contain block leading-none" />
+                </Link>
               </div>
 
-               <button
-                 onClick={() => {
-                   localStorage.removeItem("access_token");
-                   clearAuthCookie();
-                   window.location.href = "/";
-                 }}
-                 className="flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-medium text-slate-200 transition hover:bg-red-500/10 hover:text-red-200"
-               >
-                <LogOut className="h-4 w-4" />
-                Cerrar sesión
-              </button>
+              <nav className="mt-6 flex-1 space-y-2">
+                {allNavigation.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={cn(
+                        "flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm transition duration-200",
+                        isActive
+                          ? "bg-emerald-300 text-slate-950 shadow-[0_14px_40px_rgba(110,231,183,0.2)]"
+                          : "text-slate-300 hover:bg-white/[0.06] hover:text-white"
+                      )}
+                    >
+                      <Icon className="h-4 w-4" />
+                      <span className="font-medium">{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </nav>
+
+              <div className="space-y-4 border-t border-white/10 pt-5">
+                <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-4">
+                  <p className="text-xs uppercase tracking-[0.28em] text-slate-400">Tu cuenta</p>
+                  <p className="mt-2 text-lg font-semibold text-white">Lista para operar</p>
+                  <div className="mt-3 flex items-center gap-2 text-sm text-slate-300">
+                    <span className="status-dot" />
+                    Datos en tiempo real
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleLogout}
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-medium text-slate-200 transition hover:bg-red-500/10 hover:text-red-200"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Cerrar sesión
+                </button>
+              </div>
             </div>
+          </aside>
+
+          <div className="flex min-w-0 flex-1 flex-col">
+            <div className="sticky top-4 z-20 mb-4 rounded-[1.5rem] border border-white/10 bg-slate-950/45 px-4 py-3 backdrop-blur-2xl lg:hidden">
+              <div className="flex items-center justify-between">
+                <Link href="/dashboard" className="flex justify-center">
+                  <img src="/icon.png" alt="Capital Fourge" className="h-12 w-auto max-w-[140px] object-contain block leading-none" />
+                </Link>
+                 <button
+                   onClick={handleLogout}
+                   className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-xs text-slate-200"
+                 >
+                  Salir
+                </button>
+              </div>
+              <div className="flex gap-2 overflow-x-auto scrollbar-subtle">
+                {allNavigation.map((item) => {
+                  const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={cn(
+                        "whitespace-nowrap rounded-full px-4 py-2 text-xs font-medium transition",
+                        isActive ? "bg-emerald-300 text-slate-950" : "bg-white/[0.05] text-slate-300"
+                      )}
+                    >
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+
+            <main className="min-w-0 flex-1 rounded-[2rem] border border-white/8 bg-slate-950/28 p-4 backdrop-blur-xl sm:p-6 lg:p-7">
+              {children}
+            </main>
+            <WelcomeDialog />
           </div>
-        </aside>
-
-        <div className="flex min-w-0 flex-1 flex-col">
-          <div className="sticky top-4 z-20 mb-4 rounded-[1.5rem] border border-white/10 bg-slate-950/45 px-4 py-3 backdrop-blur-2xl lg:hidden">
-            <div className="flex items-center justify-between">
-              <Link href="/dashboard" className="flex justify-center">
-                <img src="/icon.png" alt="Capital Fourge" className="h-12 w-auto max-w-[140px] object-contain block leading-none" />
-              </Link>
-               <button
-                 onClick={() => {
-                   localStorage.removeItem("access_token");
-                   clearAuthCookie();
-                   window.location.href = "/";
-                 }}
-                 className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-xs text-slate-200"
-               >
-                Salir
-              </button>
-            </div>
-<div className="flex gap-2 overflow-x-auto scrollbar-subtle">
-               {allNavigation.map((item) => {
-                 const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
-
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={cn(
-                      "whitespace-nowrap rounded-full px-4 py-2 text-xs font-medium transition",
-                      isActive ? "bg-emerald-300 text-slate-950" : "bg-white/[0.05] text-slate-300"
-                    )}
-                  >
-                    {item.label}
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-
-          <main className="min-w-0 flex-1 rounded-[2rem] border border-white/8 bg-slate-950/28 p-4 backdrop-blur-xl sm:p-6 lg:p-7">
-            {children}
-          </main>
-          <WelcomeDialog />
         </div>
       </div>
-    </div>
+    </HealthGate>
   );
 }

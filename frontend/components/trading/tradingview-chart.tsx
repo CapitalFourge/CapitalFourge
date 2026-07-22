@@ -21,6 +21,11 @@ function mapSymbolForTradingView(symbol: string): string {
   if (upperSymbol === "BANCOLOMBIA" || upperSymbol === "BANCO") return "BVC:BANCOLOMBIA";
   if (upperSymbol === "PF") return "BVC:PF";
   if (upperSymbol === "CEMEX") return "BVC:CEMEXCOL";
+  if (upperSymbol === "CIBEST") return "BVC:CIBEST";
+  if (upperSymbol === "ISA") return "BVC:ISA";
+  if (upperSymbol === "ETB") return "BVC:ETB";
+  if (upperSymbol === "BOGOTA") return "BVC:BOGOTA";
+  if (upperSymbol === "CELSIA") return "BVC:CELSIA";
   
   // Crypto pairs - TradingView format for price charts
   if (upperSymbol.endsWith("-USD") && !upperSymbol.includes("=")) {
@@ -35,8 +40,8 @@ function mapSymbolForTradingView(symbol: string): string {
       'DOT': 'BINANCE:DOTUSDT',
       'XRP': 'BINANCE:XRPUSDT',
       'MATIC': 'BINANCE:MATICUSDT',
-      'AVAX': 'BINANCE:AVAXUSDT',
       'LINK': 'BINANCE:LINKUSDT',
+      'AVAX': 'BINANCE:AVAXUSDT',
     };
     if (cryptoMap[base]) {
       return cryptoMap[base];
@@ -55,6 +60,20 @@ function mapSymbolForTradingView(symbol: string): string {
     return `TVC:${upperSymbol.replace("=F", "")}`;
   }
   
+  // Standard US stocks - add exchange prefix for TradingView
+  // Common NASDAQ stocks
+  const nasdaqStocks = ['AAPL', 'MSFT', 'GOOGL', 'GOOG', 'AMZN', 'TSLA', 'NVDA', 'META', 'NFLX', 'ADBE', 'INTC', 'AMD', 'CSCO', 'PYPL', 'AVGO', 'COST', 'PEP', 'TMUS', 'QCOM', 'TXN', 'INTU', 'AMAT', 'SBUX', 'AMGN', 'GILD', 'MDLZ', 'ADP', 'BKNG', 'REGN', 'ISRG', 'VRTX', 'CSX', 'ATVI', 'MU', 'LRCX', 'KLAC', 'SNPS', 'CDNS', 'MCHP', 'ADI', 'KDP', 'EXC', 'MELI', 'WDAY', 'MRVL', 'FTNT', 'PANW', 'CDW', 'CRWD', 'ZS', 'OKTA', 'TEAM', 'DDOG', 'NET', 'SNOW', 'PLTR', 'COIN', 'HOOD', 'RBLX', 'U', 'PATH', 'ASAN', 'ZM', 'DOCU', 'TWLO', 'ROKU', 'PINS', 'SNAP', 'SPOT', 'SHOP', 'SQ', 'PYPL', 'UBER', 'LYFT', 'DASH', 'ABNB', 'COIN', 'RIVN', 'LCID', 'NIO', 'XPEV', 'LI', 'FUTU', 'TIGR', 'BILI', 'JD', 'PDD', 'BABA', 'NTES', 'BIDU', 'TME', 'VIPS', 'MOMO', 'WB', 'SINA', 'RENN', 'CYOU', 'GAME', 'SOHU', 'YY', 'HUYA', 'DOYU', 'IQ', 'BZ', 'EDU', 'TAL', 'QD', 'FINV', 'YRD', 'LX', 'AIH', 'JFU', 'JMIA', 'AFRM', 'UPST', 'SOFI', 'ROOT', 'LMND', 'HIMS', 'HIMX', 'BEKE', 'KE', 'ZH', 'TAL', 'EDU', 'TAL', 'TAL'];
+  if (nasdaqStocks.includes(upperSymbol)) {
+    return `NASDAQ:${upperSymbol}`;
+  }
+  
+  // Common NYSE stocks
+  const nyseStocks = ['JPM', 'BAC', 'WFC', 'C', 'GS', 'MS', 'V', 'MA', 'BRK-B', 'BRK.A', 'UNH', 'JNJ', 'PFE', 'MRK', 'ABBV', 'TMO', 'DHR', 'BMY', 'AMGN', 'GILD', 'CVX', 'XOM', 'COP', 'EOG', 'SLB', 'PSX', 'VLO', 'MPC', 'OXY', 'DVN', 'FANG', 'MRO', 'APA', 'HES', 'OKE', 'WMB', 'ET', 'EPD', 'MMP', 'PAA', 'BIP', 'BEP', 'NEE', 'DUK', 'SO', 'D', 'AEP', 'EXC', 'PEG', 'ED', 'FE', 'EIX', 'CMS', 'WEC', 'ES', 'AWK', 'ATO', 'CNP', 'NI', 'PNW', 'PPL', 'AGR', 'LNT', 'CMS', 'CNP', 'NI', 'PNW', 'PPL', 'AGR', 'LNT'];
+  if (nyseStocks.includes(upperSymbol)) {
+    return `NYSE:${upperSymbol}`;
+  }
+  
+  // Default: return as-is (TradingView will try to resolve)
   return upperSymbol;
 }
 

@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { gql, useMutation } from "@apollo/client";
 import { motion } from "framer-motion";
 import { ArrowRight, Loader2, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -10,22 +9,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { setAuthCookie } from "@/lib/auth-cookie";
-
-const LOGIN_MUTATION = gql`
-  mutation Login($email: String!, $password: String!) {
-    login(email: $email, password: $password) {
-      token
-      refreshToken
-      user {
-        id
-        email
-        username
-        role
-      }
-    }
-  }
-`;
+import { useAuth } from "@/lib/auth/AuthContext";
 
 const trustSignals = [
   "Seguimiento consolidado de caja y posiciones",
@@ -36,26 +20,26 @@ const trustSignals = [
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
-
-  const [login, { loading }] = useMutation(LOGIN_MUTATION, {
-    onCompleted: (data) => {
-      localStorage.setItem("access_token", data.login.token);
-      toast.success("Bienvenido de nuevo.");
-      router.push("/dashboard");
-    },
-    onError: (error) => {
-      toast.error(`Error al iniciar sesión: ${error.message}`);
-    },
-  });
+  const { login: authLogin } = useAuth();
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     e.stopPropagation();
   };
 
-  const handleClick = () => {
-    login({ variables: { email, password } });
+  const handleClick = async () => {
+    setLoading(true);
+    try {
+      await authLogin(email, password);
+      toast.success("Bienvenido de nuevo.");
+      router.push("/dashboard");
+    } catch (err) {
+      toast.error(`Error al iniciar sesión: ${err instanceof Error ? err.message : "Error desconocido"}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -137,7 +121,7 @@ export default function LoginPage() {
                 <Button
                   type="button"
                   disabled={loading}
-                  onClick={() => login({ variables: { email, password } })}
+                  onClick={handleClick}
                   className="h-14 w-full rounded-2xl bg-emerald-300 text-sm font-semibold text-slate-950 hover:bg-emerald-200"
                 >
                   {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Ingresar"}

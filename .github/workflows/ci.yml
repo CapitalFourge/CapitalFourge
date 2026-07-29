@@ -1,68 +1,359 @@
-name: CI Capital Fourge
+name: Capital Fourge CI/CD
 
 on:
   push:
-    branches: [ "**" ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main, master ]
+    branches: [main, develop]
+
+env:
+  # Database
+  DB_HOST: localhost
+  DB_PORT: 5433
+  DB_NAME: finsight_db
+  DB_USER: user
+  DB_PASSWORD: mi_super_password_segura
+  # Redis
+  SPRING_REDIS_URL: redis://:mi_redis_pass_seguro@localhost:6379
+  # JWT
+  JWT_SECRET: f2c3b4a5d6e7f8g9h0i1j2k3l4m5n6o7p8q9r0s1t2u3v4w5x6y7z8a9b0c1d2e3
+  JWT_ISSUER: capital-fourge
+  JWT_ACCESS_EXPIRATION_MS: 86400000
+  JWT_REFRESH_EXPIRATION_MS: 604800000
+  # Data Collector
+  DATA_COLLECTOR_BASE_URL: http://localhost:8000
+  # Frontend
+  NEXT_PUBLIC_API_BASE_URL: http://localhost:10000
 
 jobs:
-  test-data-collector:
-    name: "Python: Data Collector"
+  # ──────────────────────────────────────────────────────────────────
+  # BACKEND - Spring Boot (Maven)
+  # ──────────────────────────────────────────────────────────────────
+  backend-test:
+    name: Backend Tests (Maven)
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-          cache: 'pip'
-      - name: Install dependencies
-        run: |
-          cd data-collector
-          pip install -r requirements.txt
-          pip install flake8 pytest
-      - name: Run Tests
-        run: |
-          cd data-collector
-          python -m pytest
+    timeout-minutes: 30
 
-  test-portfolio-manager:
-    name: "Java: Portfolio Manager"
-    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        ports:
+          - 5433:5432
+        env:
+          POSTGRES_DB: finsight_db
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: mi_super_password_segura
+        options: >-
+          --health-cmd "pg_isready -U user -d finsight_db"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.adminCommand(\"ping\")'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        env:
+          REDIS_PASSWORD: mi_redis_pass_seguro
+        options: >-
+          --entrypoint "redis-server --requirepass mi_redis_pass_seguro --appendonly yes"
+          --health-cmd "redis-cli -a mi_redis_pass_seguro ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up JDK 17
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
           distribution: 'temurin'
+          java-version: '21'
           cache: 'maven'
-      - name: Build and Run Tests
-        run: |
-          cd portfolio-manager
-          mvn test -Dspring.profiles.active=test
 
-  lint-frontend:
-    name: "React: Frontend"
+      - name: Build and test with Maven
+        working-directory: ./portfolio-manager
+        run: |
+          mvn -B clean test \
+            -Dspring.profiles.active=test \
+            -DDB_HOST=${{ env.DB_HOST }} \
+            -DDB_PORT=${{ env.DB_PORT }} \
+            -DDB_NAME=${{ env.DB_NAME }} \
+            -DDB_USER=${{ env.DB_USER }} \
+            -DDB_PASSWORD=${{ env.DB_PASSWORD }} \
+            -DSPRING_REDIS_URL=${{ env.SPRING_REDIS_URL }} \
+            -DJWT_SECRET=${{ env.JWT_SECRET }} \
+            -DJWT_ISSUER=${{ env.JWT_ISSUER }} \
+            -DJWT_ACCESS_EXPIRATION_MS=${{ env.JWT_ACCESS_EXPIRATION_MS }} \
+            -DJWT_REFRESH_EXPIRATION_MS=${{ env.JWT_REFRESH_EXPIRATION_MS }} \
+            -DDATA_COLLECTOR_BASE_URL=${{ env.DATA_COLLECTOR_BASE_URL }}
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-reports
+          path: portfolio-manager/target/surefire-reports/
+
+  # ──────────────────────────────────────────────────────────────────
+  # FRONTEND UNIT TESTS - Vitest
+  # ──────────────────────────────────────────────────────────────────
+  frontend-unit-test:
+    name: Frontend Unit Tests (Vitest)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+
     steps:
-      - uses: actions/checkout@v4
-      - name: Debug - List files
-        run: ls -R
-      - name: Set up Node
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
       - name: Install dependencies
+        working-directory: ./frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Run unit tests
+        working-directory: ./frontend
+        run: pnpm vitest run --reporter=verbose
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage
+          path: frontend/coverage/
+
+  # ──────────────────────────────────────────────────────────────────
+  # FRONTEND E2E TESTS - Playwright
+  # ──────────────────────────────────────────────────────────────────
+  frontend-e2e-test:
+    name: Frontend E2E Tests (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        ports:
+          - 5433:5432
+        env:
+          POSTGRES_DB: finsight_db
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: mi_super_password_segura
+        options: >-
+          --health-cmd "pg_isready -U user -d finsight_db"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.adminCommand(\"ping\")'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        env:
+          REDIS_PASSWORD: mi_redis_pass_seguro
+        options: >-
+          --entrypoint "redis-server --requirepass mi_redis_pass_seguro --appendonly yes"
+          --health-cmd "redis-cli -a mi_redis_pass_seguro ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Build frontend
+        working-directory: ./frontend
+        env:
+          NEXT_PUBLIC_API_BASE_URL: http://localhost:10000
+        run: pnpm build
+
+      - name: Start backend (Spring Boot)
+        working-directory: ./portfolio-manager
         run: |
-          cd frontend
-          npm ci
-      - name: Run Lint
+          mvn spring-boot:run \
+            -Dspring-boot.run.profiles=test \
+            -Dspring-boot.run.jvmArguments="-Xmx512m" \
+            -DDB_HOST=localhost \
+            -DDB_PORT=5433 \
+            -DDB_NAME=finsight_db \
+            -DDB_USER=user \
+            -DDB_PASSWORD=mi_super_password_segura \
+            -DSPRING_REDIS_URL=redis://:mi_redis_pass_seguro@localhost:6379 \
+            -DJWT_SECRET=${{ env.JWT_SECRET }} \
+            -DJWT_ISSUER=${{ env.JWT_ISSUER }} \
+            -DJWT_ACCESS_EXPIRATION_MS=${{ env.JWT_ACCESS_EXPIRATION_MS }} \
+            -DJWT_REFRESH_EXPIRATION_MS=${{ env.JWT_REFRESH_EXPIRATION_MS }} \
+            -DDATA_COLLECTOR_BASE_URL=http://localhost:8000 \
+            -Dserver.port=10000 \
+            > backend.log 2>&1 &
+          echo $! > backend.pid
+          # Wait for backend to be ready
+          for i in {1..60}; do
+            if curl -s http://localhost:10000/actuator/health | grep -q '"status":"UP"'; then
+              echo "Backend is UP"
+              break
+            fi
+            sleep 5
+          done
+
+      - name: Start data-collector mock
         run: |
-          cd frontend
-          npm run lint
-      - name: Run Build
+          python3 -m http.server 8000 --directory /tmp &
+          echo "Data collector mock running on 8000"
+
+      - name: Start frontend dev server
+        working-directory: ./frontend
+        env:
+          NEXT_PUBLIC_API_BASE_URL: http://localhost:10000
         run: |
-          cd frontend
-          npm run build
+          pnpm dev:3001 > frontend.log 2>&1 &
+          echo $! > frontend.pid
+          # Wait for frontend to be ready
+          for i in {1..60}; do
+            if curl -s http://localhost:3001/login | grep -q "Ingresar"; then
+              echo "Frontend is ready"
+              break
+            fi
+            sleep 3
+          done
+
+      - name: Install Playwright browsers
+        working-directory: ./frontend
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        working-directory: ./frontend
+        run: pnpm playwright test --reporter=line
+
+      - name: Upload Playwright artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results
+          path: |
+            frontend/test-results/
+            frontend/playwright-report/
+
+      - name: Kill backend
+        if: always()
+        run: |
+          if [ -f portfolio-manager/backend.pid ]; then kill $(cat portfolio-manager/backend.pid) 2>/dev/null || true; fi
+
+      - name: Kill frontend
+        if: always()
+        run: |
+          if [ -f frontend/frontend.pid ]; then kill $(cat frontend/frontend.pid) 2>/dev/null || true; fi
+
+  # ──────────────────────────────────────────────────────────────────
+  # FRONTEND BUILD CHECK
+  # ──────────────────────────────────────────────────────────────────
+  frontend-build:
+    name: Frontend Build Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Build frontend
+        working-directory: ./frontend
+        env:
+          NEXT_PUBLIC_API_BASE_URL: http://localhost:10000
+        run: pnpm build
+
+  # ──────────────────────────────────────────────────────────────────
+  # SUMMARY / GATE
+  # ──────────────────────────────────────────────────────────────────
+  ci-summary:
+    name: CI Summary
+    needs:
+      - backend-test
+      - frontend-unit-test
+      - frontend-e2e-test
+      - frontend-build
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Check all jobs passed
+        run: |
+          echo "Backend Tests: ${{ needs.backend-test.result }}"
+          echo "Frontend Unit Tests: ${{ needs.frontend-unit-test.result }}"
+          echo "Frontend E2E Tests: ${{ needs.frontend-e2e-test.result }}"
+          echo "Frontend Build: ${{ needs.frontend-build.result }}"
+          
+          if [[ "${{ needs.backend-test.result }}" != "success" ]] ||
+             [[ "${{ needs.frontend-unit-test.result }}" != "success" ]] ||
+             [[ "${{ needs.frontend-e2e-test.result }}" != "success" ]] ||
+             [[ "${{ needs.frontend-build.result }}" != "success" ]]; then
+            echo "❌ Some CI jobs failed"
+            exit 1
+          fi
+          
+          echo "✅ All CI checks passed!"

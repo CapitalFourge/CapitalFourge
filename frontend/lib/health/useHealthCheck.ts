@@ -17,7 +17,7 @@ export function useHealthCheck() {
 
   const checkHealth = useCallback(async () => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://capital-fourge-production.up.railway.app';
+      const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL!;
       const response = await fetch(`${apiUrl}/api/health/readiness`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },

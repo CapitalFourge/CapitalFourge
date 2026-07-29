@@ -20,7 +20,7 @@ export function HealthGate({ children }: { children: ReactNode }) {
     setLoading(true);
     setError(null);
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "https://capital-fourge-production.up.railway.app";
+      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL!;
       const response = await fetch(`${baseUrl}/api/health/readiness`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },

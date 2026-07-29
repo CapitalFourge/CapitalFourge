@@ -24,7 +24,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const TOKEN_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://capital-fourge-production.up.railway.app";
+const TOKEN_URL = process.env.NEXT_PUBLIC_API_BASE_URL!;
 
 async function refreshTokenCall(refreshToken: string): Promise<{ token: string; refreshToken: string; user: User }> {
   const res = await fetch(`${TOKEN_URL}/api/auth/refresh`, {

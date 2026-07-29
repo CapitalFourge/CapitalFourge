@@ -33,6 +33,62 @@ const CANCEL_ORDER_MUTATION = gql`
     }
 `;
 
+const ME_QUERY = gql`
+  query GetMe {
+    me {
+      id
+      cashBalance
+      lockedBalance
+    }
+  }
+`;
+
+const PORTFOLIOS_QUERY = gql`
+  query GetPortfolios {
+    portfolios {
+      id
+      name
+      performance
+      positions {
+        symbol
+        quantity
+        averagePurchasePrice
+        currentPrice
+      }
+    }
+  }
+`;
+
+const DASHBOARD_QUERY = gql`
+  query GetDashboardData($sort: String!, $limit: Int!) {
+    me {
+      id
+      username
+      cashBalance
+      lockedBalance
+    }
+    portfolios {
+      id
+      name
+      performance
+      positions {
+        symbol
+        quantity
+        averagePurchasePrice
+        currentPrice
+      }
+    }
+    assetMovers(sort: $sort, limit: $limit) {
+      symbol
+      name
+      price
+      changePercent
+      changeValue
+      volume
+    }
+  }
+`;
+
 interface Order {
     id: string;
     type: string;
@@ -58,6 +114,12 @@ export function OrdersDialog({ portfolioId, open, onOpenChange }: OrdersDialogPr
     });
 
     const [cancelOrder] = useMutation(CANCEL_ORDER_MUTATION, {
+        refetchQueries: [
+          { query: ME_QUERY },
+          { query: PORTFOLIOS_QUERY },
+          { query: DASHBOARD_QUERY, variables: { sort: "volatile", limit: 8 } },
+        ],
+        awaitRefetchQueries: true,
         onCompleted: () => {
             toast.success("Orden cancelada");
             refetch();

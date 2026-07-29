@@ -15,6 +15,52 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
+const PORTFOLIOS_QUERY = gql`
+  query GetPortfolios {
+    portfolios {
+      id
+      name
+      performance
+      positions {
+        symbol
+        quantity
+        averagePurchasePrice
+        currentPrice
+      }
+    }
+  }
+`;
+
+const DASHBOARD_QUERY = gql`
+  query GetDashboardData($sort: String!, $limit: Int!) {
+    me {
+      id
+      username
+      cashBalance
+      lockedBalance
+    }
+    portfolios {
+      id
+      name
+      performance
+      positions {
+        symbol
+        quantity
+        averagePurchasePrice
+        currentPrice
+      }
+    }
+    assetMovers(sort: $sort, limit: $limit) {
+      symbol
+      name
+      price
+      changePercent
+      changeValue
+      volume
+    }
+  }
+`;
+
 const PORTFOLIO_DETAIL_QUERY = gql`
   query GetPortfolioDetail($id: ID!) {
     me {
@@ -96,7 +142,12 @@ export default function PortfolioDetailPage() {
   });
 
   const [toggleVisibility] = useMutation(TOGGLE_VISIBILITY, {
-    refetchQueries: [{ query: PORTFOLIO_DETAIL_QUERY, variables: { id: portfolioId } }]
+    refetchQueries: [
+      { query: PORTFOLIO_DETAIL_QUERY, variables: { id: portfolioId } },
+      { query: PORTFOLIOS_QUERY },
+      { query: DASHBOARD_QUERY, variables: { sort: "volatile", limit: 8 } },
+    ],
+    awaitRefetchQueries: true
   });
 
   if (loading) {

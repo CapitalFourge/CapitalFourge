@@ -74,6 +74,52 @@ const SUBMIT_FEEDBACK = gql`
   }
 `;
 
+const PORTFOLIOS_QUERY = gql`
+  query GetPortfolios {
+    portfolios {
+      id
+      name
+      performance
+      positions {
+        symbol
+        quantity
+        averagePurchasePrice
+        currentPrice
+      }
+    }
+  }
+`;
+
+const DASHBOARD_QUERY = gql`
+  query GetDashboardData($sort: String!, $limit: Int!) {
+    me {
+      id
+      username
+      cashBalance
+      lockedBalance
+    }
+    portfolios {
+      id
+      name
+      performance
+      positions {
+        symbol
+        quantity
+        averagePurchasePrice
+        currentPrice
+      }
+    }
+    assetMovers(sort: $sort, limit: $limit) {
+      symbol
+      name
+      price
+      changePercent
+      changeValue
+      volume
+    }
+  }
+`;
+
 type FeedbackCategoryInput = "QUEJA" | "RECLAMO" | "SUGERENCIA" | "OTRO";
 
 const feedbackCategories: Record<FeedbackCategoryInput, string> = {
@@ -97,9 +143,33 @@ export default function SettingsPage() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const [updateProfileMutation, { loading: updatingProfile }] = useMutation(UPDATE_PROFILE);
+  const [updateProfileMutation, { loading: updatingProfile }] = useMutation(UPDATE_PROFILE, {
+    refetchQueries: [
+      { query: ME_QUERY },
+      { query: PORTFOLIOS_QUERY },
+      { query: DASHBOARD_QUERY, variables: { sort: "volatile", limit: 8 } },
+    ],
+    awaitRefetchQueries: true,
+    onCompleted: () => {
+      setMessage({ type: "success", text: "Perfil actualizado correctamente." });
+      refetch();
+    },
+    onError: (err) => setMessage({ type: "error", text: (err as Error).message }),
+  });
   const [changePasswordMutation, { loading: changingPassword }] = useMutation(CHANGE_PASSWORD);
-  const [repairBalanceMutation, { loading: repairingBalance }] = useMutation(REPAIR_BALANCE);
+  const [repairBalanceMutation, { loading: repairingBalance }] = useMutation(REPAIR_BALANCE, {
+    refetchQueries: [
+      { query: ME_QUERY },
+      { query: PORTFOLIOS_QUERY },
+      { query: DASHBOARD_QUERY, variables: { sort: "volatile", limit: 8 } },
+    ],
+    awaitRefetchQueries: true,
+    onCompleted: () => {
+      setMessage({ type: "success", text: "Balance sincronizado y auditado." });
+      refetch();
+    },
+    onError: (err) => setMessage({ type: "error", text: (err as Error).message }),
+  });
   const [submitFeedbackMutation, { loading: submittingFeedback }] = useMutation(SUBMIT_FEEDBACK);
 
   const [feedbackCategory, setFeedbackCategory] = useState<FeedbackCategoryInput>("SUGERENCIA");
@@ -123,8 +193,6 @@ export default function SettingsPage() {
 
     try {
       await updateProfileMutation({ variables: { username, email, language } });
-      setMessage({ type: "success", text: "Perfil actualizado correctamente." });
-      refetch();
     } catch (err: unknown) {
       setMessage({ type: "error", text: (err as Error).message });
     }
@@ -155,8 +223,6 @@ export default function SettingsPage() {
 
     try {
       await repairBalanceMutation();
-      setMessage({ type: "success", text: "Balance sincronizado y auditado." });
-      refetch();
     } catch (err: unknown) {
       setMessage({ type: "error", text: (err as Error).message });
     }

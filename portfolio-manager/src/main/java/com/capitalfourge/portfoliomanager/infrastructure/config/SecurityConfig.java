@@ -38,6 +38,7 @@ public class SecurityConfig {
         org.springframework.web.cors.CorsConfiguration config = new org.springframework.web.cors.CorsConfiguration();
         config.setAllowedOrigins(List.of(
             "http://localhost:3000",
+            "http://localhost:3001",
             "http://132.145.205.0:3000",
             "https://capital-fourge-indol.vercel.app",
             "https://capital-fourge-git-qa-fourgecapital-7709s-projects.vercel.app",
@@ -62,14 +63,15 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(request -> {
                     org.springframework.web.cors.CorsConfiguration config = new org.springframework.web.cors.CorsConfiguration();
                     config.setAllowedOrigins(List.of(
-                        "http://localhost:3000",
-                        "http://132.145.205.0:3000",
-                        "https://capital-fourge-indol.vercel.app",
-                        "https://capital-fourge-git-qa-fourgecapital-7709s-projects.vercel.app",
-                        "https://capital-fourge-git-main-fourgecapital-7709s-projects.vercel.app",
-                        "https://capitalfourge.com",
-                        "https://www.capitalfourge.com"
-                    ));
+                                            "http://localhost:3000",
+                                            "http://localhost:3001",
+                                            "http://132.145.205.0:3000",
+                                            "https://capital-fourge-indol.vercel.app",
+                                            "https://capital-fourge-git-qa-fourgecapital-7709s-projects.vercel.app",
+                                            "https://capital-fourge-git-main-fourgecapital-7709s-projects.vercel.app",
+                                            "https://capitalfourge.com",
+                                            "https://www.capitalfourge.com"
+                                    ));
                     config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"));
                     config.setAllowedHeaders(List.of("*"));
                     config.setExposedHeaders(List.of("Authorization", "Content-Type"));

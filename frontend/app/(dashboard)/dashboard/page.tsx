@@ -99,6 +99,7 @@ export default function DashboardPage() {
   const { data, error } = useQuery(DASHBOARD_QUERY, {
     variables: { sort: volatilitySort, limit: 8 },
     pollInterval: 60000,
+    fetchPolicy: "cache-and-network",
   });
 
   const portfolios = useMemo(() => ((data?.portfolios as Portfolio[] | undefined) ?? []), [data?.portfolios]);

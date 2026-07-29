@@ -75,6 +75,65 @@ const STOCK_PRICE_QUERY = gql`
   }
 `;
 
+// Queries for cache invalidation after mutations
+const ME_QUERY = gql`
+  query GetMeForWelcome {
+    me {
+      id
+      role
+      showWelcome
+      cashBalance
+      lockedBalance
+    }
+  }
+`;
+
+const PORTFOLIOS_QUERY = gql`
+  query GetPortfolios {
+    portfolios {
+      id
+      name
+      performance
+      positions {
+        symbol
+        quantity
+        averagePurchasePrice
+        currentPrice
+      }
+    }
+  }
+`;
+
+const DASHBOARD_QUERY = gql`
+  query GetDashboardData($sort: String!, $limit: Int!) {
+    me {
+      id
+      username
+      cashBalance
+      lockedBalance
+    }
+    portfolios {
+      id
+      name
+      performance
+      positions {
+        symbol
+        quantity
+        averagePurchasePrice
+        currentPrice
+      }
+    }
+    assetMovers(sort: $sort, limit: $limit) {
+      symbol
+      name
+      price
+      changePercent
+      changeValue
+      volume
+    }
+  }
+`;
+
 interface Position {
   symbol: string;
   quantity: number;
@@ -204,7 +263,6 @@ export function TradeDialog({
     toast.success(message);
     setDialogState(false);
     resetForm();
-    window.location.reload();
   };
 
   const handleError = (message: string) => (err: Error) => {
@@ -212,26 +270,56 @@ export function TradeDialog({
   };
 
   const [buyAsset, { loading: buyLoading }] = useMutation(BUY_ASSET_MUTATION, {
+    refetchQueries: [
+      { query: ME_QUERY },
+      { query: PORTFOLIOS_QUERY },
+      { query: DASHBOARD_QUERY, variables: { sort: "volatile", limit: 8 } },
+    ],
+    awaitRefetchQueries: true,
     onCompleted: () => handleCompleted("Compra ejecutada con exito"),
     onError: handleError("Error en compra"),
   });
 
   const [sellAsset, { loading: sellLoading }] = useMutation(SELL_ASSET_MUTATION, {
+    refetchQueries: [
+      { query: ME_QUERY },
+      { query: PORTFOLIOS_QUERY },
+      { query: DASHBOARD_QUERY, variables: { sort: "volatile", limit: 8 } },
+    ],
+    awaitRefetchQueries: true,
     onCompleted: () => handleCompleted("Venta ejecutada con exito"),
     onError: handleError("Error en venta"),
   });
 
   const [buyAssetByUSD, { loading: buyUSDLoading }] = useMutation(BUY_ASSET_BY_USD_MUTATION, {
+    refetchQueries: [
+      { query: ME_QUERY },
+      { query: PORTFOLIOS_QUERY },
+      { query: DASHBOARD_QUERY, variables: { sort: "volatile", limit: 8 } },
+    ],
+    awaitRefetchQueries: true,
     onCompleted: () => handleCompleted("Compra ejecutada con exito"),
     onError: handleError("Error en compra"),
   });
 
   const [sellAssetByUSD, { loading: sellUSDLoading }] = useMutation(SELL_ASSET_BY_USD_MUTATION, {
+    refetchQueries: [
+      { query: ME_QUERY },
+      { query: PORTFOLIOS_QUERY },
+      { query: DASHBOARD_QUERY, variables: { sort: "volatile", limit: 8 } },
+    ],
+    awaitRefetchQueries: true,
     onCompleted: () => handleCompleted("Venta ejecutada con exito"),
     onError: handleError("Error en venta"),
   });
 
   const [createLimitOrder, { loading: limitOrderLoading }] = useMutation(CREATE_LIMIT_ORDER_MUTATION, {
+    refetchQueries: [
+      { query: ME_QUERY },
+      { query: PORTFOLIOS_QUERY },
+      { query: DASHBOARD_QUERY, variables: { sort: "volatile", limit: 8 } },
+    ],
+    awaitRefetchQueries: true,
     onCompleted: () => handleCompleted("Orden limite creada con exito"),
     onError: handleError("Error creando orden"),
   });

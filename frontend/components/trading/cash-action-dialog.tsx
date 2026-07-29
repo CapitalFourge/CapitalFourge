@@ -26,6 +26,62 @@ const WITHDRAW_MUTATION = gql`
   }
 `;
 
+const ME_QUERY = gql`
+  query GetMe {
+    me {
+      id
+      cashBalance
+      lockedBalance
+    }
+  }
+`;
+
+const PORTFOLIOS_QUERY = gql`
+  query GetPortfolios {
+    portfolios {
+      id
+      name
+      performance
+      positions {
+        symbol
+        quantity
+        averagePurchasePrice
+        currentPrice
+      }
+    }
+  }
+`;
+
+const DASHBOARD_QUERY = gql`
+  query GetDashboardData($sort: String!, $limit: Int!) {
+    me {
+      id
+      username
+      cashBalance
+      lockedBalance
+    }
+    portfolios {
+      id
+      name
+      performance
+      positions {
+        symbol
+        quantity
+        averagePurchasePrice
+        currentPrice
+      }
+    }
+    assetMovers(sort: $sort, limit: $limit) {
+      symbol
+      name
+      price
+      changePercent
+      changeValue
+      volume
+    }
+  }
+`;
+
 export function CashActionDialog({
     initialType = "deposit",
     children,
@@ -38,21 +94,31 @@ export function CashActionDialog({
     const [amount, setAmount] = useState("");
 
     const [deposit, { loading: depositLoading }] = useMutation(DEPOSIT_MUTATION, {
+        refetchQueries: [
+          { query: ME_QUERY },
+          { query: PORTFOLIOS_QUERY },
+          { query: DASHBOARD_QUERY, variables: { sort: "volatile", limit: 8 } },
+        ],
+        awaitRefetchQueries: true,
         onCompleted: () => {
             toast.success("¡Depósito global realizado con éxito!");
             setOpen(false);
             setAmount("");
-            window.location.reload();
         },
         onError: (err) => toast.error(`Error en depósito: ${err.message}`)
     });
 
     const [withdraw, { loading: withdrawLoading }] = useMutation(WITHDRAW_MUTATION, {
+        refetchQueries: [
+          { query: ME_QUERY },
+          { query: PORTFOLIOS_QUERY },
+          { query: DASHBOARD_QUERY, variables: { sort: "volatile", limit: 8 } },
+        ],
+        awaitRefetchQueries: true,
         onCompleted: () => {
             toast.success("¡Retiro global realizado con éxito!");
             setOpen(false);
             setAmount("");
-            window.location.reload();
         },
         onError: (err) => toast.error(`Error en retiro: ${err.message}`)
     });

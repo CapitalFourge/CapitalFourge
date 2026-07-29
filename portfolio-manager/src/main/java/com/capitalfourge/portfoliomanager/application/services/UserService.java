@@ -1,5 +1,7 @@
 package com.capitalfourge.portfoliomanager.application.services;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
@@ -32,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UserService implements UserUseCase {
 
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
     private final UserRepository userRepository;
     private final TokenService tokenService;
     private final TokenRepository refreshTokenRepository;
@@ -42,13 +45,16 @@ public class UserService implements UserUseCase {
 
     @Override
     public AuthResult register(RegisterCommand command) {
+        log.info("Register attempt for email: {}", command.getEmail());
         // Validate email
         EmailValidator.ValidationResult emailValidation = emailValidator.validate(command.getEmail());
         if (!emailValidation.isValid()) {
+            log.warn("Invalid email format on register: {}", command.getEmail());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, emailValidation.getMessage());
         }
 
         if (userRepository.existsByEmail(command.getEmail())) {
+            log.warn("Email already registered: {}", command.getEmail());
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Este correo ya está registrado");
         }
 
@@ -70,6 +76,7 @@ public class UserService implements UserUseCase {
 
         refreshTokenRepository.save(saved.getId(), refresh, REFRESH_TTL_SECONDS);
 
+        log.info("Register successful for email: {}", command.getEmail());
         return AuthResult.builder()
                 .token(access)
                 .refreshToken(refresh)
@@ -79,20 +86,27 @@ public class UserService implements UserUseCase {
 
     @Override
     public AuthResult login(LoginCommand command) {
+        log.info("Login attempt for email: {}", command.getEmail());
         // Validate email format
         EmailValidator.ValidationResult emailValidation = emailValidator.validate(command.getEmail());
         if (!emailValidation.isValid()) {
+            log.warn("Invalid email format: {}", command.getEmail());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Credenciales inválidas");
         }
 
         User user = userRepository.findByEmail(command.getEmail())
-                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+                .orElseThrow(() -> {
+                    log.warn("User not found for email: {}", command.getEmail());
+                    return new RuntimeException("Invalid credentials");
+                });
 
         if (!user.isActive()) {
+            log.warn("Account disabled for email: {}", command.getEmail());
             throw new RuntimeException("Account is disabled");
         }
 
         if (!passwordEncoder.matches(command.getPassword(), user.getPassword())) {
+            log.warn("Invalid password for email: {}", command.getEmail());
             throw new RuntimeException("Invalid credentials");
         }
 
@@ -104,6 +118,7 @@ public class UserService implements UserUseCase {
 
         refreshTokenRepository.save(saved.getId(), refresh, REFRESH_TTL_SECONDS);
 
+        log.info("Login successful for email: {}", command.getEmail());
         return AuthResult.builder()
                 .token(access)
                 .refreshToken(refresh)

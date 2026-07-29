@@ -83,6 +83,7 @@ public class SecurityConfig {
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/health/**").permitAll()
                         .requestMatchers("/api/metrics/**").permitAll()
                         .requestMatchers("/graphql/**").permitAll()
                         .requestMatchers("/graphiql.html").permitAll()

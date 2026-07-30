@@ -20,7 +20,8 @@ public class User {
     private String password; // BCrypt hash, never plain text
     private String username;
     private Role role;
-    private boolean active;
+    @Builder.Default
+    private boolean active = true;
     private LocalDateTime createdAt;
     private LocalDateTime lastLoginAt;
     @Builder.Default

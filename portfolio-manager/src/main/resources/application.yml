@@ -73,19 +73,25 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,caches
+        include: health,info,metrics,caches,prometheus
       base-path: /actuator
   endpoint:
     health:
       show-details: always
       probes:
         enabled: true
+    prometheus:
+      enabled: true
   health:
     livenessState:
       enabled: true
     readinessState:
       enabled: true
     redis:
-      enabled: false  # Disable ALL Redis health checks (reactive bug + keep it simple)
+      enabled: false
     caches:
       enabled: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true

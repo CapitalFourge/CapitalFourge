@@ -20,6 +20,10 @@ services:
         sync: false
       - key: SPRING_REDIS_URL
         value: redis://localhost:6379
+      - key: SPRING_DATA_REDIS_ENABLED
+        value: "false"
+      - key: SPRING_REDIS_ENABLED
+        value: "false"
       - key: JWT_SECRET
         sync: false
       - key: JWT_ISSUER

@@ -129,7 +129,7 @@ class FinancialDataServicer(financial_data_pb2_grpc.FinancialDataServiceServicer
         self.oracle = get_price_oracle(
             redis_upstash_url=upstash_url,
             redis_local_host=os.getenv("DB_REDIS_HOST", "localhost"),
-            redis_local_password=os.getenv("DB_REDIS_PASSWORD", "mi_redis_pass_seguro"),
+            redis_local_password=os.getenv("DB_REDIS_PASSWORD", ""),
             connect_local=not is_render,
             allow_no_redis=allow_no_redis
         )

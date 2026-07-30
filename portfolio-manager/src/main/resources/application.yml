@@ -29,7 +29,7 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
   redis:
-    url: ${SPRING_REDIS_URL:redis://:mi_redis_pass_seguro@localhost:6379}
+    url: ${SPRING_REDIS_URL:redis://localhost:6379}
     ssl:
       enabled: false
     lettuce:
@@ -48,8 +48,12 @@ spring:
     api-key: ${DATA_COLLECTOR_API_KEY:internal-service-key}
     base-url: ${DATA_COLLECTOR_BASE_URL:http://localhost:8000}
 
+  report:
+    generator:
+      script-path: ${REPORT_GENERATOR_SCRIPT_PATH:report-service/generator.py}
+
   jwt:
-    secret: ${JWT_SECRET:f2c3b4a5d6e7f8g9h0i1j2k3l4m5n6o7p8q9r0s1t2u3v4w5x6y7z8a9b0c1d2e3}
+    secret: ${JWT_SECRET}
     issuer: ${JWT_ISSUER:capital-fourge}
     access-expiration-ms: ${JWT_ACCESS_EXPIRATION_MS:86400000}
     refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:604800000}

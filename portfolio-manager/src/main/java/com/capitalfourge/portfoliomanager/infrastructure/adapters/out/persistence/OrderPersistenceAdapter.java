@@ -5,7 +5,10 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.capitalfourge.portfoliomanager.application.ports.out.OrderRepository;
 import com.capitalfourge.portfoliomanager.domain.Order;
@@ -22,6 +25,7 @@ public class OrderPersistenceAdapter implements OrderRepository {
     private final JpaOrderRepository jpaRepository;
 
     @Override
+    @Transactional
     public Order save(Order order) {
         OrderEntity entity = toEntity(order);
         OrderEntity savedEntity = jpaRepository.save(entity);
@@ -34,22 +38,37 @@ public class OrderPersistenceAdapter implements OrderRepository {
     }
 
     @Override
+    public Page<Order> findByPortfolioId(UUID portfolioId, Pageable pageable) {
+        return jpaRepository.findByPortfolioId(portfolioId, pageable).map(this::toDomain);
+    }
+
+    @Override
+    public Page<Order> findByUserId(UUID userId, Pageable pageable) {
+        return jpaRepository.findByUserId(userId, pageable).map(this::toDomain);
+    }
+
+    @Override
+    public Page<Order> findByStatus(OrderStatus status, Pageable pageable) {
+        return jpaRepository.findByStatus(status.name(), pageable).map(this::toDomain);
+    }
+
+    @Override
     public List<Order> findByPortfolioId(UUID portfolioId) {
-        return jpaRepository.findByPortfolioId(portfolioId).stream()
+        return jpaRepository.findByPortfolioId(portfolioId, org.springframework.data.domain.Pageable.unpaged()).stream()
                 .map(this::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<Order> findByUserId(UUID userId) {
-        return jpaRepository.findByUserId(userId).stream()
+        return jpaRepository.findByUserId(userId, org.springframework.data.domain.Pageable.unpaged()).stream()
                 .map(this::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<Order> findByStatus(OrderStatus status) {
-        return jpaRepository.findByStatus(status.name()).stream()
+        return jpaRepository.findByStatus(status.name(), org.springframework.data.domain.Pageable.unpaged()).stream()
                 .map(this::toDomain)
                 .collect(Collectors.toList());
     }
@@ -62,11 +81,13 @@ public class OrderPersistenceAdapter implements OrderRepository {
     }
 
     @Override
+    @Transactional
     public void deleteById(UUID id) {
         jpaRepository.deleteById(id);
     }
 
     @Override
+    @Transactional
     public List<Order> saveAll(List<Order> orders) {
         List<OrderEntity> entities = orders.stream()
                 .map(this::toEntity)
@@ -97,6 +118,9 @@ public class OrderPersistenceAdapter implements OrderRepository {
     }
 
     private Order toDomain(OrderEntity entity) {
+        if (entity == null) {
+            return null;
+        }
         return Order.builder()
                 .id(entity.getId())
                 .portfolioId(entity.getPortfolioId())

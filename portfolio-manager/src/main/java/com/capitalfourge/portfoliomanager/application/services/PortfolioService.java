@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.capitalfourge.portfoliomanager.application.ports.in.PortfolioUseCase;
 import com.capitalfourge.portfoliomanager.application.ports.out.MetricRepository;
@@ -44,6 +45,18 @@ public class PortfolioService implements PortfolioUseCase {
     private final GrpcFinancialDataClient grpcFinancialDataClient;
 
     @Override
+    @Transactional(readOnly = true)
+    public List<Portfolio> getPortfoliosByUser(UUID userId) {
+        List<Portfolio> portfolios = portfolioRepository.findByUserId(userId, org.springframework.data.domain.Pageable.unpaged()).getContent();
+        portfolios.forEach(portfolio -> {
+            refreshPortfolioPrices(portfolio);
+            updatePerformance(portfolio);
+        });
+        return portfolios;
+    }
+
+    @Override
+    @Transactional
     public Portfolio createPortfolio(Portfolio portfolio) {
         if (portfolio.getId() == null) {
             portfolio.setId(UUID.randomUUID());
@@ -70,6 +83,7 @@ public class PortfolioService implements PortfolioUseCase {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Portfolio getPortfolio(UUID id) {
         Portfolio portfolio = portfolioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Portfolio not found"));
@@ -103,6 +117,7 @@ public class PortfolioService implements PortfolioUseCase {
     }
 
     @Override
+    @Transactional
     public Portfolio buyAsset(UUID portfolioId, String symbol, BigDecimal quantity, BigDecimal price) {
         Portfolio portfolio = getPortfolio(portfolioId);
         BigDecimal totalCost = price.multiply(quantity);
@@ -160,6 +175,7 @@ public class PortfolioService implements PortfolioUseCase {
     }
 
     @Override
+    @Transactional
     public Portfolio sellAsset(UUID portfolioId, String symbol, BigDecimal quantity, BigDecimal price) {
         Portfolio portfolio = getPortfolio(portfolioId);
         Position pos = portfolio.getPositions().stream()
@@ -203,6 +219,7 @@ public class PortfolioService implements PortfolioUseCase {
     }
 
     @Override
+    @Transactional
     public Portfolio addCash(UUID portfolioId, BigDecimal amount) {
         Portfolio portfolio = getPortfolio(portfolioId);
 
@@ -235,6 +252,7 @@ public class PortfolioService implements PortfolioUseCase {
     }
 
     @Override
+    @Transactional
     public Portfolio withdrawCash(UUID portfolioId, BigDecimal amount) {
         Portfolio portfolio = getPortfolio(portfolioId);
 
@@ -266,16 +284,7 @@ public class PortfolioService implements PortfolioUseCase {
     }
 
     @Override
-    public List<Portfolio> getPortfoliosByUser(UUID userId) {
-        List<Portfolio> portfolios = portfolioRepository.findByUserId(userId);
-        portfolios.forEach(portfolio -> {
-            refreshPortfolioPrices(portfolio);
-            updatePerformance(portfolio);
-        });
-        return portfolios;
-    }
-
-    @Override
+    @Transactional
     public void deletePortfolio(UUID id) {
         Portfolio portfolio = portfolioRepository.findById(id).orElse(null);
         if (portfolio == null)
@@ -324,7 +333,7 @@ public class PortfolioService implements PortfolioUseCase {
             return;
 
         // 1. Get ALL pending orders for this user in ONE query
-        List<Order> userOrders = orderRepository.findByUserId(userId);
+        List<Order> userOrders = orderRepository.findByUserId(userId, org.springframework.data.domain.Pageable.unpaged()).getContent();
 
         // 2. Collect all portfolio IDs that we need to check
         List<UUID> portfolioIds = userOrders.stream()
@@ -421,7 +430,7 @@ public class PortfolioService implements PortfolioUseCase {
 
     @Override
     public List<Portfolio> getPublicLeaderboard() {
-        List<Portfolio> topPortfolios = portfolioRepository.findPublicPortfolios();
+        List<Portfolio> topPortfolios = portfolioRepository.findPublicPortfolios(org.springframework.data.domain.Pageable.unpaged()).getContent();
         // Ensure prices are fresh for the leaderboard
         topPortfolios.forEach(p -> {
             refreshPortfolioPrices(p);

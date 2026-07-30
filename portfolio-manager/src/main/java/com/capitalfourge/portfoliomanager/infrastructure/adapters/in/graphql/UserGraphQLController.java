@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 
@@ -22,6 +23,7 @@ public class UserGraphQLController {
     private final PortfolioUseCase portfolioUseCase;
 
     @MutationMapping
+    @PreAuthorize("hasRole('USER')")
     public User updateProfile(
             @Argument("username") String username,
             @Argument("email") String email,
@@ -36,6 +38,7 @@ public class UserGraphQLController {
     }
 
     @MutationMapping
+    @PreAuthorize("hasRole('USER')")
     public Boolean changePassword(
             @Argument("oldPassword") String oldPassword,
             @Argument("newPassword") String newPassword,
@@ -51,6 +54,7 @@ public class UserGraphQLController {
     }
 
     @MutationMapping
+    @PreAuthorize("hasRole('USER')")
     public Boolean repairMyBalance(@AuthenticationPrincipal UUID userId) {
         if (userId == null) {
             throw new RuntimeException("User not authenticated");
@@ -60,6 +64,7 @@ public class UserGraphQLController {
     }
 
     @MutationMapping
+    @PreAuthorize("hasRole('USER')")
     public User dismissWelcome(@AuthenticationPrincipal UUID userId) {
         if (userId == null) {
             throw new RuntimeException("User not authenticated");

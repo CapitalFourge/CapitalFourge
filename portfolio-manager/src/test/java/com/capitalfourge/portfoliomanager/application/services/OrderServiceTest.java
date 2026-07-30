@@ -40,6 +40,8 @@ class OrderServiceTest {
         private MetricRepository metricRepository;
         @Mock
         private com.capitalfourge.portfoliomanager.application.ports.out.TransactionRepository transactionRepository;
+        @Mock
+        private org.springframework.data.redis.core.RedisTemplate<String, String> redisTemplate;
 
         @InjectMocks
         private OrderService orderService;
@@ -112,8 +114,11 @@ class OrderServiceTest {
 
         @Test
         void executeOrder_BuyLimit_ShouldRefundReservedAndCallBuyAsset() {
-                // Given
+                // Given - simulate state AFTER createLimitOrder was called
                 BigDecimal currentPrice = new BigDecimal("145");
+                user.setCashBalance(new BigDecimal("850")); // 1000 - 150 (deducted at creation)
+                user.setLockedBalance(new BigDecimal("150")); // 150 locked at creation
+                
                 when(portfolioRepository.findById(order.getPortfolioId())).thenReturn(Optional.of(portfolio));
                 when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
                 when(orderRepository.findById(any())).thenReturn(Optional.of(order));
@@ -122,8 +127,10 @@ class OrderServiceTest {
                 // When
                 orderService.executeOrder(order.getId(), currentPrice);
 
-                // Then
-                assertEquals(new BigDecimal("1150"), user.getCashBalance());
+                // Then - cashBalance should remain at 850 (already deducted at creation)
+                // lockedBalance should go from 150 -> 0
+                assertEquals(new BigDecimal("850"), user.getCashBalance());
+                assertEquals(BigDecimal.ZERO, user.getLockedBalance());
                 verify(portfolioUseCase, times(1)).buyAsset(any(), any(), any(), any());
         }
 }

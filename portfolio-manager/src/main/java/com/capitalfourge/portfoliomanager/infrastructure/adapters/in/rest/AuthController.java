@@ -1,5 +1,6 @@
 package com.capitalfourge.portfoliomanager.infrastructure.adapters.in.rest;
 
+import jakarta.validation.Valid;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -27,13 +28,13 @@ public class AuthController {
     private final UserUseCase userUseCase;
 
     @PostMapping("/register")
-    public AuthResult register(@RequestBody RegisterCommand command) {
+    public AuthResult register(@Valid @RequestBody RegisterCommand command) {
         log.info("POST /api/auth/register - email: {}", command.getEmail());
         return userUseCase.register(command);
     }
 
     @PostMapping("/login")
-    public AuthResult login(@RequestBody LoginCommand command) {
+    public AuthResult login(@Valid @RequestBody LoginCommand command) {
         log.info("POST /api/auth/login - email: {}", command.getEmail());
         AuthResult result = userUseCase.login(command);
         log.info("POST /api/auth/login - success: {}", result != null);
@@ -41,7 +42,7 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public AuthResult refresh(@RequestBody RefreshCommand command) {
+    public AuthResult refresh(@Valid @RequestBody RefreshCommand command) {
         log.info("POST /api/auth/refresh");
         return userUseCase.refresh(command);
     }

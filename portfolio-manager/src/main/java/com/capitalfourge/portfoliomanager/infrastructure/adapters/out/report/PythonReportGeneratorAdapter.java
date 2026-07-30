@@ -6,53 +6,29 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.capitalfourge.portfoliomanager.application.ports.in.PortfolioUseCase;
 import com.capitalfourge.portfoliomanager.application.ports.out.ProcessExecutor;
 import com.capitalfourge.portfoliomanager.application.ports.out.ReportGeneratorPort;
 import com.capitalfourge.portfoliomanager.domain.Portfolio;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class PythonReportGeneratorAdapter implements ReportGeneratorPort {
     private final ObjectMapper objectMapper;
     private final ProcessExecutor processExecutor;
 
-    public PythonReportGeneratorAdapter(ObjectMapper objectMapper, ProcessExecutor processExecutor) {
-        this.objectMapper = objectMapper;
-        this.processExecutor = processExecutor;
-    }
+    // P2-12: Thread safety - lock for process execution
+    private final ReentrantLock executionLock = new ReentrantLock();
 
-    private Path findScriptPath() throws IOException {
-        // Try relative to current working directory
-        Path path = Paths.get("report-service", "generator.py");
-        if (Files.exists(path)) {
-            return path.toAbsolutePath();
-        }
-
-        // Try in the parent directory (case where we might be running from within a
-        // submodule directory)
-        Path parentPath = Paths.get("..", "report-service", "generator.py");
-        if (Files.exists(parentPath)) {
-            return parentPath.toAbsolutePath();
-        }
-
-        // Try absolute path if we can determine repo root (hacky but useful for
-        // debugging)
-        String repoRoot = System.getProperty("user.dir");
-        if (repoRoot != null) {
-            Path rootPath = Paths.get(repoRoot, "report-service", "generator.py");
-            if (Files.exists(rootPath)) {
-                return rootPath.toAbsolutePath();
-            }
-        }
-
-        throw new IOException("Report generator script not found. Looked in: " +
-                path.toAbsolutePath() + ", " + parentPath.toAbsolutePath());
-    }
+    @Value("${report.generator.script-path:report-service/generator.py}")
+    private String scriptPath;
 
     @Override
     public Path generateReport(Portfolio portfolio, Path pdfPath) throws IOException {
@@ -69,14 +45,25 @@ public class PythonReportGeneratorAdapter implements ReportGeneratorPort {
                     pdfPath.toAbsolutePath().toString());
 
             try {
-                ProcessExecutor.ExecutionResult result = processExecutor.executeWithOutput(command);
-                if (result.exitCode != 0) {
-                    throw new IOException(
-                            "Report generator failed (code " + result.exitCode + "). Output: " + result.output);
+                // P2-12: Acquire lock with timeout to prevent indefinite blocking
+                if (!executionLock.tryLock(30, TimeUnit.SECONDS)) {
+                    throw new IOException("Could not acquire lock for report generation within timeout");
+                }
+                try {
+                    ProcessExecutor.ExecutionResult result = processExecutor.executeWithOutput(command);
+                    if (result.exitCode != 0) {
+                        throw new IOException(
+                                "Report generator failed (code " + result.exitCode + "). Output: " + result.output);
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new IOException("Report generator interrupted", e);
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                throw new IOException("Report generator interrupted", e);
+                throw new IOException("Lock acquisition interrupted", e);
+            } finally {
+                executionLock.unlock();
             }
 
             if (!Files.exists(pdfPath)) {
@@ -86,5 +73,25 @@ public class PythonReportGeneratorAdapter implements ReportGeneratorPort {
         } finally {
             Files.deleteIfExists(tempJson);
         }
+    }
+
+    // P2-13: Resolve script path from configured property (not relative to CWD)
+    private Path findScriptPath() throws IOException {
+        Path path = Paths.get(scriptPath);
+        if (Files.exists(path)) {
+            return path.toAbsolutePath();
+        }
+
+        // Fallback: try relative to user.dir
+        String repoRoot = System.getProperty("user.dir");
+        if (repoRoot != null) {
+            Path rootPath = Paths.get(repoRoot, scriptPath);
+            if (Files.exists(rootPath)) {
+                return rootPath.toAbsolutePath();
+            }
+        }
+
+        throw new IOException("Report generator script not found at: " + scriptPath
+                + " (also tried relative to " + System.getProperty("user.dir") + ")");
     }
 }

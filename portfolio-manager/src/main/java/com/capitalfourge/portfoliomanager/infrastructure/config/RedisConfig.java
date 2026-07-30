@@ -84,9 +84,10 @@ public class RedisConfig {
         if (rest.contains("@")) {
             String[] authAndHost = rest.split("@", 2);
             String authPart = authAndHost[0];
-            // Extract password: if it contains ":", take everything after the last ":"
+            // P1-9: Extract password correctly even when password contains ':'
+            // Split by ':' and take everything after the FIRST colon as password
             if (authPart.contains(":")) {
-                password = authPart.substring(authPart.lastIndexOf(":") + 1);
+                password = authPart.substring(authPart.indexOf(":") + 1);
             } else if (authPart.startsWith(":")) {
                 password = authPart.substring(1);
             }

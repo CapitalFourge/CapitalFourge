@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -21,6 +22,7 @@ import com.capitalfourge.portfoliomanager.infrastructure.adapters.in.security.Jw
 import lombok.RequiredArgsConstructor;
 
 @Configuration
+@EnableMethodSecurity(prePostEnabled = true, securedEnabled = true)
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -33,9 +35,11 @@ public class SecurityConfig {
 
     @Bean
     @Order(Ordered.HIGHEST_PRECEDENCE)
-    public org.springframework.web.filter.CorsFilter corsFilter() {
-        org.springframework.web.cors.UrlBasedCorsConfigurationSource source = new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
-        org.springframework.web.cors.CorsConfiguration config = new org.springframework.web.cors.CorsConfiguration();
+    public UrlBasedCorsConfigurationSource corsConfigurationSource() {
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        CorsConfiguration config = new CorsConfiguration();
+        
+        // Explicitly allow only specific origins (no wildcards with credentials)
         config.setAllowedOrigins(List.of(
             "http://localhost:3000",
             "http://localhost:3001",
@@ -46,13 +50,28 @@ public class SecurityConfig {
             "https://capitalfourge.com",
             "https://www.capitalfourge.com"
         ));
+        
+        // Only allow specific methods (not wildcard)
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"));
-        config.setAllowedHeaders(List.of("*"));
-        config.setExposedHeaders(List.of("Authorization", "Content-Type"));
+        
+        // Only allow specific headers (not wildcard when credentials allowed)
+        config.setAllowedHeaders(List.of(
+            "Authorization", "Content-Type", "Accept", "X-Requested-With", 
+            "Origin", "Cache-Control", "X-CSRF-Token"
+        ));
+        
+        // Expose specific headers to client
+        config.setExposedHeaders(List.of("Authorization", "Content-Type", "X-Total-Count"));
         config.setAllowCredentials(true);
         config.setMaxAge(3600L);
         source.registerCorsConfiguration("/**", config);
-        return new org.springframework.web.filter.CorsFilter(source);
+        return source;
+    }
+
+    @Bean
+    @Order(Ordered.HIGHEST_PRECEDENCE)
+    public CorsFilter corsFilter() {
+        return new CorsFilter(corsConfigurationSource());
     }
 
     @Bean
@@ -60,25 +79,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
                 .securityMatcher("/**")
-                .cors(cors -> cors.configurationSource(request -> {
-                    org.springframework.web.cors.CorsConfiguration config = new org.springframework.web.cors.CorsConfiguration();
-                    config.setAllowedOrigins(List.of(
-                                            "http://localhost:3000",
-                                            "http://localhost:3001",
-                                            "http://132.145.205.0:3000",
-                                            "https://capital-fourge-indol.vercel.app",
-                                            "https://capital-fourge-git-qa-fourgecapital-7709s-projects.vercel.app",
-                                            "https://capital-fourge-git-main-fourgecapital-7709s-projects.vercel.app",
-                                            "https://capitalfourge.com",
-                                            "https://www.capitalfourge.com"
-                                    ));
-                    config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"));
-                    config.setAllowedHeaders(List.of("*"));
-                    config.setExposedHeaders(List.of("Authorization", "Content-Type"));
-                    config.setAllowCredentials(true);
-                    config.setMaxAge(3600L);
-                    return config;
-                }))
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth

@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 
@@ -23,6 +24,7 @@ public class FeedbackGraphQLController {
     private final FeedbackUseCase feedbackUseCase;
 
     @MutationMapping
+    @PreAuthorize("hasRole('USER')")
     public Feedback submitFeedback(
             @Argument("category") String category,
             @Argument("message") String message,
@@ -36,6 +38,7 @@ public class FeedbackGraphQLController {
     }
 
     @QueryMapping
+    @PreAuthorize("hasRole('USER')")
     public List<Feedback> myFeedbacks(@AuthenticationPrincipal UUID userId) {
         if (userId == null) {
             throw new RuntimeException("Authentication required");
@@ -44,6 +47,7 @@ public class FeedbackGraphQLController {
     }
 
     @QueryMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public List<Feedback> allFeedbacks(@AuthenticationPrincipal UUID userId) {
         if (userId == null) {
             throw new RuntimeException("Authentication required");
@@ -52,11 +56,13 @@ public class FeedbackGraphQLController {
     }
 
     @QueryMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public List<Feedback> feedbacksByCategory(@Argument("category") String category) {
         return feedbackUseCase.feedbacksByCategory(Feedback.Category.valueOf(category.toUpperCase()));
     }
 
     @QueryMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public List<Feedback> unreadFeedbacks() {
         return feedbackUseCase.unreadFeedbacks();
     }

@@ -5,6 +5,7 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.capitalfourge.proto.*;
 
@@ -17,6 +18,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * REST client for data-collector service (replaces gRPC client).
  * Calls FastAPI REST endpoints on data-collector.
@@ -24,6 +27,7 @@ import java.util.stream.Collectors;
  * Uses Caffeine cache (TTL 1 hour, max 500 entries) to reduce Upstash reads/writes.
  */
 @Service
+@Slf4j
 public class GrpcFinancialDataClient {
 
     private final RestTemplate restTemplate;
@@ -47,8 +51,9 @@ public class GrpcFinancialDataClient {
             this.timestamp = timestamp;
         }
 
+        // P2-2: Use >= for correct 1-hour TTL (not > which adds 1ns)
         boolean isExpired() {
-            return Duration.between(timestamp, Instant.now()).compareTo(Duration.ofHours(1)) > 0;
+            return Duration.between(timestamp, Instant.now()).compareTo(Duration.ofHours(1)) >= 0;
         }
     }
 
@@ -87,7 +92,7 @@ public class GrpcFinancialDataClient {
                     baseUrl + path, HttpMethod.GET, entity, responseType);
             return response.getBody();
         } catch (Exception e) {
-            System.err.println("REST GET error for " + path + ": " + e.getMessage());
+            log.error("REST GET error for {}", path, e);
             return null;
         }
     }
@@ -99,7 +104,7 @@ public class GrpcFinancialDataClient {
                     baseUrl + path, HttpMethod.POST, entity, responseType);
             return response.getBody();
         } catch (Exception e) {
-            System.err.println("REST POST error for " + path + ": " + e.getMessage());
+            log.error("REST POST error for {}", path, e);
             return null;
         }
     }
@@ -127,19 +132,26 @@ public class GrpcFinancialDataClient {
 
         // Fetch only missing/expired symbols
         if (!symbolsToFetch.isEmpty()) {
-            String symbolsParam = String.join(",", symbolsToFetch);
-            Map<String, Object> response = get("/prices/batch?symbols=" + symbolsParam, Map.class);
+            // P2-3: Use UriComponentsBuilder for safe URL encoding
+            String path = UriComponentsBuilder.fromPath("/prices/batch")
+                    .queryParam("symbols", String.join(",", symbolsToFetch))
+                    .toUriString();
+            Map<String, Object> response = get(path, Map.class);
 
+            // P2-4: Validate response structure before casting
             if (response != null && response.containsKey("prices")) {
-                @SuppressWarnings("unchecked")
-                Map<String, Object> prices = (Map<String, Object>) response.get("prices");
-                String now = Instant.now().toString();
-                for (Map.Entry<String, Object> entry : prices.entrySet()) {
-                    double price = entry.getValue() instanceof Number ? ((Number) entry.getValue()).doubleValue() : 0.0;
-                    result.put(entry.getKey(), price);
-                    // Update cache
-                    priceCache.put(entry.getKey(), new CachedPrice(price, Instant.now()));
-                    cacheTimestamps.put(entry.getKey(), now);
+                Object pricesObj = response.get("prices");
+                if (pricesObj instanceof Map) {
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> prices = (Map<String, Object>) pricesObj;
+                    String now = Instant.now().toString();
+                    for (Map.Entry<String, Object> entry : prices.entrySet()) {
+                        double price = entry.getValue() instanceof Number ? ((Number) entry.getValue()).doubleValue() : 0.0;
+                        result.put(entry.getKey(), price);
+                        // Update cache
+                        priceCache.put(entry.getKey(), new CachedPrice(price, Instant.now()));
+                        cacheTimestamps.put(entry.getKey(), now);
+                    }
                 }
             }
         }
@@ -148,7 +160,11 @@ public class GrpcFinancialDataClient {
     }
 
     public List<PricePoint> getPriceHistory(String symbol, int days) {
-        List<Map<String, Object>> response = get("/price/history/" + symbol + "?days=" + days, List.class);
+        // P2-3: Safe URL encoding
+        String path = UriComponentsBuilder.fromPath("/price/history/" + symbol)
+                .queryParam("days", days)
+                .toUriString();
+        List<Map<String, Object>> response = get(path, List.class);
 
         if (response != null) {
             return response.stream().map(point -> {
@@ -163,7 +179,9 @@ public class GrpcFinancialDataClient {
     }
 
     public List<Asset> getCategorizedAssets() {
-        List<Map<String, Object>> response = get("/assets/categorized", List.class);
+        // P2-3: Safe URL encoding
+        String path = UriComponentsBuilder.fromPath("/assets/categorized").toUriString();
+        List<Map<String, Object>> response = get(path, List.class);
 
         if (response != null) {
             return response.stream().map(item -> {
@@ -178,7 +196,9 @@ public class GrpcFinancialDataClient {
     }
 
     public List<String> getAllAvailableSymbols() {
-        List<?> response = get("/assets/symbols", List.class);
+        // P2-3: Safe URL encoding
+        String path = UriComponentsBuilder.fromPath("/assets/symbols").toUriString();
+        List<?> response = get(path, List.class);
         if (response != null) {
             return response.stream().map(Object::toString).collect(Collectors.toList());
         }

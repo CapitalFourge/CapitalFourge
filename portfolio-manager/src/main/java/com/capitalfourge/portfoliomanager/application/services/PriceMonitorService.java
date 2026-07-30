@@ -38,7 +38,7 @@ public class PriceMonitorService implements MessageListener {
 
             checkAndExecuteOrders(priceUpdate.getSymbol(), priceUpdate.getPrice());
         } catch (Exception e) {
-            log.error("Error processing price update: {}", e.getMessage());
+            log.error("Error processing price update", e);
         }
     }
 
@@ -60,7 +60,7 @@ public class PriceMonitorService implements MessageListener {
                 }
             }
         } catch (Exception e) {
-            log.error("Error checking orders for symbol {}: {}", symbol, e.getMessage());
+            log.error("Error checking orders for symbol {}", symbol, e);
         }
     }
 

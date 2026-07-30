@@ -3,6 +3,9 @@ package com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persisten
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -12,11 +15,13 @@ import com.capitalfourge.portfoliomanager.domain.OrderStatus;
 @Repository
 public interface JpaOrderRepository extends JpaRepository<OrderEntity, UUID> {
 
-    List<OrderEntity> findByPortfolioId(UUID portfolioId);
+    @EntityGraph(attributePaths = {"portfolio"}, type = EntityGraph.EntityGraphType.FETCH)
+    Page<OrderEntity> findByPortfolioId(UUID portfolioId, Pageable pageable);
 
-    List<OrderEntity> findByUserId(UUID userId);
+    @EntityGraph(attributePaths = {"portfolio"}, type = EntityGraph.EntityGraphType.FETCH)
+    Page<OrderEntity> findByUserId(UUID userId, Pageable pageable);
 
-    List<OrderEntity> findByStatus(String status);
+    Page<OrderEntity> findByStatus(String status, Pageable pageable);
 
     List<OrderEntity> findBySymbol(String symbol);
 

@@ -271,10 +271,8 @@ public class OrderService {
                 BigDecimal userLockedBalance = user_ref.getLockedBalance() != null ? user_ref.getLockedBalance()
                         : BigDecimal.ZERO;
                 user_ref.setLockedBalance(userLockedBalance.subtract(reserved));
-
-                user_ref.setCashBalance(
-                        (user_ref.getCashBalance() != null ? user_ref.getCashBalance() : BigDecimal.ZERO)
-                                .add(reserved));
+                // Do NOT add back to cashBalance - it was already deducted at order creation time
+                // buyAsset() will handle the actual asset purchase
                 userRepository.save(user_ref);
                 if (order.getQuantity() != null) {
                     portfolioUseCase.buyAsset(order.getPortfolioId(), order.getSymbol(),
@@ -313,7 +311,7 @@ public class OrderService {
             log.info("Executed order {} at price {}", orderId, currentPrice);
 
         } catch (Exception e) {
-            log.error("Failed to execute order {}: {}", orderId, e.getMessage());
+            log.error("Failed to execute order: {}", orderId, e);
             order.setStatus(OrderStatus.REJECTED);
             order.setRejectionReason(e.getMessage());
             orderRepository.save(order);
@@ -398,7 +396,7 @@ public class OrderService {
                     order.getId(), order.getSymbol(), order.getType(), order.getStatus());
             redisTemplate.convertAndSend("order_events", message);
         } catch (Exception e) {
-            log.error("Failed to publish order created event: {}", e.getMessage());
+            log.error("Failed to publish order created event", e);
         }
     }
 
@@ -408,7 +406,7 @@ public class OrderService {
                     order.getId(), order.getSymbol(), order.getType(), order.getStatus());
             redisTemplate.convertAndSend("order_events", message);
         } catch (Exception e) {
-            log.error("Failed to publish order cancelled event: {}", e.getMessage());
+            log.error("Failed to publish order cancelled event", e);
         }
     }
 
@@ -419,7 +417,7 @@ public class OrderService {
                     order.getId(), order.getSymbol(), order.getType(), order.getStatus(), order.getFilledPrice());
             redisTemplate.convertAndSend("order_events", message);
         } catch (Exception e) {
-            log.error("Failed to publish order filled event: {}", e.getMessage());
+            log.error("Failed to publish order filled event", e);
         }
     }
 }

@@ -24,6 +24,10 @@ import com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistenc
 import com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistence.Entities.TransactionEntity;
 import com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistence.Repositories.JpaPortfolioRepository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageImpl;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -199,7 +203,8 @@ class PortfolioPersistenceAdapterTest {
                 .isPublic(false)
                 .build();
 
-        when(jpaRepository.findByUserId(userId)).thenReturn(List.of(entity));
+        Page<PortfolioEntity> page = new PageImpl<>(List.of(entity));
+        when(jpaRepository.findByUserId(eq(userId), any(Pageable.class))).thenReturn(page);
 
         // When
         List<Portfolio> result = adapter.findByUserId(userId);
@@ -250,8 +255,8 @@ class PortfolioPersistenceAdapterTest {
                 .isPublic(true)
                 .build();
 
-        when(jpaRepository.findByIsPublicTrueOrderByPerformanceDesc())
-                .thenReturn(List.of(p1, p2));
+        Page<PortfolioEntity> page = new PageImpl<>(List.of(p1, p2));
+        when(jpaRepository.findByIsPublicTrueOrderByPerformanceDesc(any(Pageable.class))).thenReturn(page);
 
         // When
         List<Portfolio> result = adapter.findPublicPortfolios();

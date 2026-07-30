@@ -45,7 +45,7 @@ public class AssetSearchService {
                             .build())
                     .collect(Collectors.toList());
         } catch (Exception e) {
-            log.error("Error getting categorized assets: {}", e.getMessage());
+            log.error("Error getting categorized assets", e);
             return getFallbackAssets(category);
         }
     }
@@ -100,7 +100,7 @@ public class AssetSearchService {
                     results.stream().map(AssetSuggestion::getSymbol).collect(Collectors.toList()));
             return results;
         } catch (Exception e) {
-            log.error("Error searching symbols: {}", e.getMessage());
+            log.error("Error searching symbols", e);
             return List.of();
         }
     }
@@ -171,7 +171,7 @@ public class AssetSearchService {
             moversCache.put(cacheKey, new CachedMovers(movers));
             return movers;
         } catch (Exception e) {
-            log.error("Error getting asset movers: {}", e.getMessage());
+            log.error("Error getting asset movers", e);
             return List.of();
         }
     }

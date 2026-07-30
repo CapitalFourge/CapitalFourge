@@ -3,10 +3,12 @@ package com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persisten
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.capitalfourge.portfoliomanager.application.ports.out.PortfolioRepository;
 import com.capitalfourge.portfoliomanager.domain.Portfolio;
@@ -26,6 +28,7 @@ public class PortfolioPersistenceAdapter implements PortfolioRepository {
     private final JpaPortfolioRepository jpaRepository;
 
     @Override
+    @Transactional
     public Portfolio save(Portfolio portfolio) {
         PortfolioEntity entity = toEntity(portfolio);
         PortfolioEntity savedEntity = jpaRepository.save(entity);
@@ -39,8 +42,16 @@ public class PortfolioPersistenceAdapter implements PortfolioRepository {
     }
 
     @Override
+    public Page<Portfolio> findByUserId(UUID userId, Pageable pageable) {
+        return jpaRepository.findByUserId(userId, pageable).map(this::toDomain);
+    }
+
+    @Override
     public List<Portfolio> findByUserId(UUID userId) {
-        return jpaRepository.findByUserId(userId).stream().map(this::toDomain).toList();
+        return jpaRepository.findByUserId(userId, org.springframework.data.domain.Pageable.unpaged())
+                .stream()
+                .map(this::toDomain)
+                .toList();
     }
 
     @Override
@@ -49,11 +60,20 @@ public class PortfolioPersistenceAdapter implements PortfolioRepository {
     }
 
     @Override
-    public List<Portfolio> findPublicPortfolios() {
-        return jpaRepository.findByIsPublicTrueOrderByPerformanceDesc().stream().map(this::toDomain).toList();
+    public Page<Portfolio> findPublicPortfolios(Pageable pageable) {
+        return jpaRepository.findByIsPublicTrueOrderByPerformanceDesc(pageable).map(this::toDomain);
     }
 
     @Override
+    public List<Portfolio> findPublicPortfolios() {
+        return jpaRepository.findByIsPublicTrueOrderByPerformanceDesc(org.springframework.data.domain.Pageable.unpaged())
+                .stream()
+                .map(this::toDomain)
+                .toList();
+    }
+
+    @Override
+    @Transactional
     public void deleteById(UUID id) {
         jpaRepository.deleteById(id);
     }
@@ -104,6 +124,9 @@ public class PortfolioPersistenceAdapter implements PortfolioRepository {
     }
 
     private Portfolio toDomain(PortfolioEntity entity) {
+        if (entity == null) {
+            return null;
+        }
         List<Position> domainPositions = entity.getPositions() == null ? null
                 : entity.getPositions().stream().map(p -> Position.builder()
                         .id(p.getId())
@@ -123,8 +146,7 @@ public class PortfolioPersistenceAdapter implements PortfolioRepository {
                         .quantity(t.getQuantity())
                         .price(t.getPrice())
                         .timestamp(t.getTimestamp())
-                        .balanceTransaction(t.getBalanceTransaction())
-                        .build()).collect(Collectors.toList());
+                        .balanceTransaction(t.getBalanceTransaction()).build()).collect(Collectors.toList());
 
         return Portfolio.builder()
                 .id(entity.getId())

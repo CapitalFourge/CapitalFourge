@@ -1,5 +1,8 @@
 package com.capitalfourge.portfoliomanager.application.services;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -35,21 +38,21 @@ public class FeedbackService implements FeedbackUseCase {
 
     @Override
     public List<Feedback> myFeedbacks(UUID userId) {
-        return feedbackRepository.findByUserId(userId);
+        return feedbackRepository.findByUserId(userId, Pageable.unpaged()).getContent();
     }
 
     @Override
     public List<Feedback> allFeedbacks() {
-        return feedbackRepository.findAll();
+        return feedbackRepository.findAll(Pageable.unpaged()).getContent();
     }
 
     @Override
     public List<Feedback> feedbacksByCategory(Feedback.Category category) {
-        return feedbackRepository.findByCategory(category);
+        return feedbackRepository.findByCategory(category, Pageable.unpaged()).getContent();
     }
 
     @Override
     public List<Feedback> unreadFeedbacks() {
-        return feedbackRepository.findByRead(false);
+        return feedbackRepository.findByRead(false, Pageable.unpaged()).getContent();
     }
 }

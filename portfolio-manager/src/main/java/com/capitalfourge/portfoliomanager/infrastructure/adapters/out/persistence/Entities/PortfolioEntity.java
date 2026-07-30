@@ -14,6 +14,15 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@NamedEntityGraphs({
+    @NamedEntityGraph(
+        name = "Portfolio.withPositionsAndTransactions",
+        attributeNodes = {
+            @NamedAttributeNode("positions"),
+            @NamedAttributeNode("transactions")
+        }
+    )
+})
 public class PortfolioEntity {
     @Id
     private UUID id;
@@ -22,7 +31,8 @@ public class PortfolioEntity {
     private UUID userId;
     private BigDecimal cumulativeDeposits;
     private BigDecimal cumulativeWithdrawals;
-    private Double performance;
+    // P2-11: Default performance to 0.0 to avoid null
+    private Double performance = 0.0;
     private boolean isPublic;
     @Column(unique = true)
     private String shareSlug;

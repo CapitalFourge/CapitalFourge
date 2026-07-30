@@ -17,7 +17,7 @@ public class User {
 
     private UUID id;
     private String email;
-    private String password;
+    private String password; // BCrypt hash, never plain text
     private String username;
     private Role role;
     private boolean active;
@@ -38,5 +38,10 @@ public class User {
 
     public boolean isAdmin() {
         return this.role == Role.ADMIN;
+    }
+
+    // Password verification delegate - implemented by adapter with PasswordEncoder
+    public boolean verifyPassword(String rawPassword, java.util.function.Function<String, Boolean> verifier) {
+        return verifier.apply(this.password);
     }
 }

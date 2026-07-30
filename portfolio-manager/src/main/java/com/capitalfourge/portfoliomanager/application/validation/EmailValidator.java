@@ -104,11 +104,6 @@ public class EmailValidator {
             return ValidationResult.invalid("Invalid domain format");
         }
 
-        // 8. Local part validation - no leading/trailing dots, no consecutive dots
-        if (localPart.startsWith(".") || localPart.endsWith(".") || localPart.contains("..")) {
-            return ValidationResult.invalid("Invalid email format");
-        }
-
         return ValidationResult.valid();
     }
 

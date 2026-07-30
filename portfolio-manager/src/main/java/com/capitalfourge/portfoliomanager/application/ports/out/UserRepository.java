@@ -4,6 +4,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import com.capitalfourge.portfoliomanager.domain.User;
 
 public interface UserRepository {
@@ -16,9 +19,12 @@ public interface UserRepository {
 
     boolean existsById(UUID userId);
 
-    List<User> findAll();
+    Page<User> findAll(Pageable pageable);
 
     User save(User user);
 
     void deleteById(UUID userId);
+
+    // Legacy method (for backward compatibility)
+    List<User> findAll();
 }

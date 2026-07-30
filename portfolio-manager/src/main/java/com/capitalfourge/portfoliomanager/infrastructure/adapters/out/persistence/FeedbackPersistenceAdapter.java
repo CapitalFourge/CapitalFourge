@@ -1,12 +1,13 @@
 package com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistence;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.capitalfourge.portfoliomanager.application.ports.out.FeedbackRepository;
 import com.capitalfourge.portfoliomanager.domain.Feedback;
@@ -16,15 +17,13 @@ import com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistenc
 import lombok.RequiredArgsConstructor;
 
 @Component
+@RequiredArgsConstructor
 public class FeedbackPersistenceAdapter implements FeedbackRepository {
 
     private final JpaFeedbackRepository jpaRepository;
 
-    public FeedbackPersistenceAdapter(JpaFeedbackRepository jpaRepository) {
-        this.jpaRepository = jpaRepository;
-    }
-
     @Override
+    @Transactional
     public Feedback save(Feedback feedback) {
         FeedbackEntity entity = toEntity(feedback);
         FeedbackEntity saved = jpaRepository.save(entity);
@@ -32,29 +31,55 @@ public class FeedbackPersistenceAdapter implements FeedbackRepository {
     }
 
     @Override
+    public Page<Feedback> findByUserId(UUID userId, Pageable pageable) {
+        return jpaRepository.findByUserId(userId, pageable).map(this::toDomain);
+    }
+
+    @Override
+    public Page<Feedback> findAll(Pageable pageable) {
+        return jpaRepository.findAll(pageable).map(this::toDomain);
+    }
+
+    @Override
+    public Page<Feedback> findByRead(boolean read, Pageable pageable) {
+        return jpaRepository.findByRead(read, pageable).map(this::toDomain);
+    }
+
+    @Override
+    public Page<Feedback> findByCategory(Feedback.Category category, Pageable pageable) {
+        return jpaRepository.findByCategory(FeedbackEntity.Category.valueOf(category.name()), pageable)
+                .map(this::toDomain);
+    }
+
+    // Legacy methods (for backward compatibility)
+    @Override
     public List<Feedback> findByUserId(UUID userId) {
-        return jpaRepository.findByUserId(userId).stream()
+        return jpaRepository.findByUserId(userId, org.springframework.data.domain.Pageable.unpaged())
+                .stream()
                 .map(this::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<Feedback> findAll() {
-        return jpaRepository.findAll().stream()
+        return jpaRepository.findAll(org.springframework.data.domain.Pageable.unpaged())
+                .stream()
                 .map(this::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<Feedback> findByRead(boolean read) {
-        return jpaRepository.findByRead(read).stream()
+        return jpaRepository.findByRead(read, org.springframework.data.domain.Pageable.unpaged())
+                .stream()
                 .map(this::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<Feedback> findByCategory(Feedback.Category category) {
-        return jpaRepository.findByCategory(FeedbackEntity.Category.valueOf(category.name())).stream()
+        return jpaRepository.findByCategory(FeedbackEntity.Category.valueOf(category.name()), org.springframework.data.domain.Pageable.unpaged())
+                .stream()
                 .map(this::toDomain)
                 .collect(Collectors.toList());
     }
@@ -72,6 +97,9 @@ public class FeedbackPersistenceAdapter implements FeedbackRepository {
     }
 
     private Feedback toDomain(FeedbackEntity entity) {
+        if (entity == null) {
+            return null;
+        }
         return Feedback.builder()
                 .id(entity.getId())
                 .userId(entity.getUserId())

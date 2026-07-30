@@ -20,7 +20,6 @@ import io.jsonwebtoken.security.Keys;
 public class JwtTokenServiceAdapter implements TokenService {
 
     private final SecretKey key;
-
     private final String issuer;
     private final long accessExpirationMs;
     private final long refreshExpirationMs;
@@ -31,6 +30,11 @@ public class JwtTokenServiceAdapter implements TokenService {
             @Value("${jwt.access-expiration-ms}") long accessExpirationMs,
             @Value("${jwt.refresh-expiration-ms}") long refreshExpirationMs) {
 
+        // P1-11: Fail fast if JWT secret < 256 bits (32 bytes)
+        if (secret == null || secret.getBytes(StandardCharsets.UTF_8).length < 32) {
+            throw new IllegalStateException("JWT secret must be at least 256 bits (32 bytes)");
+        }
+        
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.issuer = issuer;
         this.accessExpirationMs = accessExpirationMs;
@@ -83,7 +87,41 @@ public class JwtTokenServiceAdapter implements TokenService {
     @Override
     public UUID extractUserId(String token) {
         Claims claims = parseClaims(token);
-        return UUID.fromString(claims.getSubject());
+        String subject = claims.getSubject();
+        if (subject == null) {
+            throw new IllegalArgumentException("Token missing 'sub' claim");
+        }
+        return UUID.fromString(subject);
+    }
+
+    @Override
+    public String extractEmail(String token) {
+        Claims claims = parseClaims(token);
+        String email = claims.get("email", String.class);
+        if (email == null) {
+            throw new IllegalArgumentException("Token missing 'email' claim");
+        }
+        return email;
+    }
+
+    @Override
+    public String extractUsername(String token) {
+        Claims claims = parseClaims(token);
+        String username = claims.get("username", String.class);
+        if (username == null) {
+            throw new IllegalArgumentException("Token missing 'username' claim");
+        }
+        return username;
+    }
+
+    @Override
+    public String extractRole(String token) {
+        Claims claims = parseClaims(token);
+        String role = claims.get("role", String.class);
+        if (role == null) {
+            throw new IllegalArgumentException("Token missing 'role' claim");
+        }
+        return role;
     }
 
     private Claims parseClaims(String token) {

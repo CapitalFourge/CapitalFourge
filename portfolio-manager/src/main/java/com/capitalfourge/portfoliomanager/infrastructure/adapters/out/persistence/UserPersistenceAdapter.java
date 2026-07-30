@@ -3,7 +3,11 @@ package com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persisten
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import com.capitalfourge.portfoliomanager.application.ports.out.UserRepository;
@@ -14,15 +18,13 @@ import com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistenc
 import lombok.RequiredArgsConstructor;
 
 @Component
+@RequiredArgsConstructor
 public class UserPersistenceAdapter implements UserRepository {
 
     private final JpaUserRepository jpaRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserPersistenceAdapter(JpaUserRepository jpaRepository) {
-        this.jpaRepository = jpaRepository;
-    }
-
-    // Map a potentially-null language to a safe default
+    // P2-10: Keep static mapLanguage method for backward compatibility (used in tests)
     public static String mapLanguage(String language) {
         return language != null ? language : "ES";
     }
@@ -50,10 +52,17 @@ public class UserPersistenceAdapter implements UserRepository {
     }
 
     @Override
+    public Page<User> findAll(Pageable pageable) {
+        return jpaRepository.findAll(pageable).map(this::toDomain);
+    }
+
+    // P2-11: Legacy method for backward compatibility
+    @Override
     public List<User> findAll() {
-        return jpaRepository.findAll().stream()
+        return jpaRepository.findAll(org.springframework.data.domain.Pageable.unpaged())
+                .stream()
                 .map(this::toDomain)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -70,7 +79,12 @@ public class UserPersistenceAdapter implements UserRepository {
         UserEntity entity = new UserEntity();
         entity.setId(domain.getId());
         entity.setEmail(domain.getEmail());
-        entity.setPassword(domain.getPassword());
+        // Hash password if it's not already a BCrypt hash
+        String password = domain.getPassword();
+        if (password != null && !password.startsWith("$2a$") && !password.startsWith("$2b$") && !password.startsWith("$2y$")) {
+            password = passwordEncoder.encode(password);
+        }
+        entity.setPassword(password);
         entity.setUsername(domain.getUsername());
         entity.setRole(domain.getRole());
         entity.setActive(domain.isActive());
@@ -95,7 +109,7 @@ public class UserPersistenceAdapter implements UserRepository {
         user.setLastLoginAt(entity.getLastLoginAt());
         user.setCashBalance(entity.getCashBalance());
         user.setLockedBalance(entity.getLockedBalance());
-        user.setLanguage(entity.getLanguage() != null ? entity.getLanguage() : mapLanguage(null));
+        user.setLanguage(entity.getLanguage() != null ? entity.getLanguage() : "ES");
         user.setShowWelcome(entity.isShowWelcome());
         return user;
     }

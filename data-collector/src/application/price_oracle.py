@@ -28,7 +28,7 @@ _price_oracle_instance = None
 def get_price_oracle(
     redis_upstash_url: Optional[str] = None,
     redis_local_host: str = "localhost",
-    redis_local_password: str = "mi_redis_pass_seguro",
+    redis_local_password: str = "",
     connect_local: bool = True,
     allow_no_redis: bool = False
 ) -> 'PriceOracle':

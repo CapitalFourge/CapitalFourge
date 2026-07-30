@@ -7,6 +7,7 @@ import java.util.UUID;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 
@@ -23,6 +24,7 @@ public class OrderGraphQLController {
     private final OrderService orderService;
 
     @QueryMapping
+    @PreAuthorize("hasRole('USER')")
     public List<Order> orders(@AuthenticationPrincipal UUID userId) {
         if (userId == null) {
             throw new RuntimeException("User not authenticated");
@@ -31,11 +33,13 @@ public class OrderGraphQLController {
     }
 
     @QueryMapping
+    @PreAuthorize("hasRole('USER')")
     public List<Order> ordersByPortfolio(@Argument("portfolioId") UUID portfolioId) {
         return orderService.getPortfolioOrders(portfolioId);
     }
 
     @QueryMapping
+    @PreAuthorize("hasRole('USER')")
     public Order order(@Argument("id") UUID id) {
         return orderService.getUserOrders(null).stream()
                 .filter(order -> order.getId().equals(id))
@@ -44,6 +48,7 @@ public class OrderGraphQLController {
     }
 
     @MutationMapping
+    @PreAuthorize("hasRole('USER')")
     public Order createLimitOrder(
             @Argument("portfolioId") UUID portfolioId,
             @Argument("type") OrderType type,
@@ -73,6 +78,7 @@ public class OrderGraphQLController {
     }
 
     @MutationMapping
+    @PreAuthorize("hasRole('USER')")
     public Order cancelOrder(@Argument("orderId") UUID orderId) {
         return orderService.cancelOrder(orderId);
     }

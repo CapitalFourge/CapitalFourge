@@ -146,10 +146,11 @@ class PortfolioGraphQLControllerTest {
     void addCash_ShouldUpdateUserCashAndPortfolio() {
         // Given
         BigDecimal amount = new BigDecimal("5000");
+        when(portfolioUseCase.getPortfolio(portfolioId)).thenReturn(portfolio);
         when(portfolioUseCase.addCash(portfolioId, amount)).thenReturn(portfolio);
 
         // When
-        Portfolio result = controller.addCash(portfolioId, amount);
+        Portfolio result = controller.addCash(portfolioId, amount, userId);
 
         // Then
         assertEquals(portfolio, result);
@@ -160,10 +161,11 @@ class PortfolioGraphQLControllerTest {
     void withdrawCash_ShouldUpdateUserCashAndPortfolio() {
         // Given
         BigDecimal amount = new BigDecimal("3000");
+        when(portfolioUseCase.getPortfolio(portfolioId)).thenReturn(portfolio);
         when(portfolioUseCase.withdrawCash(portfolioId, amount)).thenReturn(portfolio);
 
         // When
-        Portfolio result = controller.withdrawCash(portfolioId, amount);
+        Portfolio result = controller.withdrawCash(portfolioId, amount, userId);
 
         // Then
         assertEquals(portfolio, result);
@@ -175,10 +177,11 @@ class PortfolioGraphQLControllerTest {
         // Given
         BigDecimal quantity = new BigDecimal("10");
         BigDecimal price = new BigDecimal("150");
+        when(portfolioUseCase.getPortfolio(portfolioId)).thenReturn(portfolio);
         when(portfolioUseCase.buyAsset(portfolioId, "AAPL", quantity, price)).thenReturn(portfolio);
 
         // When
-        Portfolio result = controller.buyAsset(portfolioId, "AAPL", quantity, price);
+        Portfolio result = controller.buyAsset(portfolioId, "AAPL", quantity, price, userId);
 
         // Then
         assertEquals(portfolio, result);
@@ -190,10 +193,11 @@ class PortfolioGraphQLControllerTest {
         // Given
         BigDecimal quantity = new BigDecimal("10");
         BigDecimal price = new BigDecimal("165");
+        when(portfolioUseCase.getPortfolio(portfolioId)).thenReturn(portfolio);
         when(portfolioUseCase.sellAsset(portfolioId, "AAPL", quantity, price)).thenReturn(portfolio);
 
         // When
-        Portfolio result = controller.sellAsset(portfolioId, "AAPL", quantity, price);
+        Portfolio result = controller.sellAsset(portfolioId, "AAPL", quantity, price, userId);
 
         // Then
         assertEquals(portfolio, result);
@@ -205,10 +209,11 @@ class PortfolioGraphQLControllerTest {
         // Given
         BigDecimal usdAmount = new BigDecimal("1500");
         BigDecimal price = new BigDecimal("150");
+        when(portfolioUseCase.getPortfolio(portfolioId)).thenReturn(portfolio);
         when(portfolioUseCase.buyAssetByUSD(portfolioId, "AAPL", usdAmount, price)).thenReturn(portfolio);
 
         // When
-        Portfolio result = controller.buyAssetByUSD(portfolioId, "AAPL", usdAmount, price);
+        Portfolio result = controller.buyAssetByUSD(portfolioId, "AAPL", usdAmount, price, userId);
 
         // Then
         assertEquals(portfolio, result);
@@ -220,10 +225,11 @@ class PortfolioGraphQLControllerTest {
         // Given
         BigDecimal usdAmount = new BigDecimal("1650");
         BigDecimal price = new BigDecimal("165");
+        when(portfolioUseCase.getPortfolio(portfolioId)).thenReturn(portfolio);
         when(portfolioUseCase.sellAssetByUSD(portfolioId, "AAPL", usdAmount, price)).thenReturn(portfolio);
 
         // When
-        Portfolio result = controller.sellAssetByUSD(portfolioId, "AAPL", usdAmount, price);
+        Portfolio result = controller.sellAssetByUSD(portfolioId, "AAPL", usdAmount, price, userId);
 
         // Then
         assertEquals(portfolio, result);
@@ -259,8 +265,11 @@ class PortfolioGraphQLControllerTest {
 
     @Test
     void deletePortfolio_ShouldCallUseCase() {
+        // Given
+        when(portfolioUseCase.getPortfolio(portfolioId)).thenReturn(portfolio);
+
         // When
-        Boolean result = controller.deletePortfolio(portfolioId);
+        Boolean result = controller.deletePortfolio(portfolioId, userId);
 
         // Then
         assertTrue(result);
@@ -270,10 +279,11 @@ class PortfolioGraphQLControllerTest {
     @Test
     void toggleVisibility_ShouldUpdatePortfolio() {
         // Given
+        when(portfolioUseCase.getPortfolio(portfolioId)).thenReturn(portfolio);
         when(portfolioUseCase.toggleVisibility(portfolioId, true)).thenReturn(portfolio);
 
         // When
-        Portfolio result = controller.toggleVisibility(portfolioId, true);
+        Portfolio result = controller.toggleVisibility(portfolioId, true, userId);
 
         // Then
         assertEquals(portfolio, result);

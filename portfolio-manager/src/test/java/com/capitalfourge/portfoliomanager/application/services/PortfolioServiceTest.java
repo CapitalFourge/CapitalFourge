@@ -28,6 +28,10 @@ import com.capitalfourge.portfoliomanager.domain.OrderStatus;
 import com.capitalfourge.portfoliomanager.domain.OrderType;
 import com.capitalfourge.portfoliomanager.domain.Portfolio;
 import com.capitalfourge.portfoliomanager.domain.Position;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageImpl;
 import com.capitalfourge.portfoliomanager.domain.Transaction;
 import com.capitalfourge.portfoliomanager.domain.TransactionType;
 import com.capitalfourge.portfoliomanager.domain.User;
@@ -177,7 +181,8 @@ class PortfolioServiceTest {
         portfolio.setPositions(List.of(position));
         portfolio.setCumulativeDeposits(new BigDecimal("1500"));
 
-        when(portfolioRepository.findByUserId(userId)).thenReturn(List.of(portfolio));
+        Page<Portfolio> portfolioPage = new PageImpl<>(List.of(portfolio));
+        when(portfolioRepository.findByUserId(eq(userId), any(Pageable.class))).thenReturn(portfolioPage);
         when(grpcFinancialDataClient.getBatchPrices(List.of("AAPL"))).thenReturn(Map.of("AAPL", 165.0));
 
         // When
@@ -502,7 +507,8 @@ class PortfolioServiceTest {
                 .build();
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(orderRepository.findByUserId(userId)).thenReturn(List.of(orphanOrder, anotherOrphanOrder, validOrder));
+        when(orderRepository.findByUserId(eq(userId), any(org.springframework.data.domain.Pageable.class)))
+                .thenReturn(new org.springframework.data.domain.PageImpl<>(List.of(orphanOrder, anotherOrphanOrder, validOrder)));
         when(portfolioRepository.findByIds(List.of(orphanPortfolioId, anotherOrphanPortfolioId, portfolioId)))
                 .thenReturn(List.of(portfolio)); // only portfolioId exists
         when(orderRepository.saveAll(anyList())).thenAnswer(inv -> inv.getArgument(0));
@@ -550,7 +556,8 @@ class PortfolioServiceTest {
                 .build();
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(orderRepository.findByUserId(userId)).thenReturn(List.of(validOrder1, validOrder2));
+        when(orderRepository.findByUserId(eq(userId), any(org.springframework.data.domain.Pageable.class)))
+                .thenReturn(new org.springframework.data.domain.PageImpl<>(List.of(validOrder1, validOrder2)));
         when(portfolioRepository.findByIds(List.of(portfolioId))).thenReturn(List.of(portfolio));
         when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 

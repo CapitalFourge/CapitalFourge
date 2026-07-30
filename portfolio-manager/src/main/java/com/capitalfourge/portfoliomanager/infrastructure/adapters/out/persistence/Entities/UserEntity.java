@@ -8,6 +8,7 @@ import com.capitalfourge.portfoliomanager.domain.Role;
 
 import jakarta.persistence.*;
 import jakarta.persistence.GenerationType;
+import jakarta.persistence.Version;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -29,7 +30,7 @@ public class UserEntity {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 255) // BCrypt hash length
     private String password;
 
     @Column(nullable = false)
@@ -60,4 +61,7 @@ public class UserEntity {
     @Column(name = "show_welcome", nullable = false)
     @Builder.Default
     private boolean showWelcome = true;
+
+    @Version
+    private Long version;
 }

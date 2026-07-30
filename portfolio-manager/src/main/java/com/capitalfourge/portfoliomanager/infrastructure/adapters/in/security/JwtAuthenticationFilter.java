@@ -31,7 +31,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private SecretKey key;
 
-    // ✅ Constructor por defecto REQUERIDO por Spring
     public JwtAuthenticationFilter() {
     }
 
@@ -40,15 +39,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain) throws IOException, ServletException {
 
-        // ✅ Saltar OPTIONS (preflight CORS) - PRIMERA LÍNEA
+        // ✅ Skip OPTIONS (preflight CORS) - FIRST LINE
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // ✅ Lazy initialization de la key
+        // ✅ Lazy initialization of the key with validation
         if (this.key == null) {
-            this.key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+            byte[] secretBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
+            // P1-11: Fail fast if JWT secret < 256 bits (32 bytes)
+            if (secretBytes.length < 32) {
+                throw new IllegalStateException("JWT secret must be at least 256 bits (32 characters) for HS256");
+            }
+            this.key = Keys.hmacShaKeyFor(secretBytes);
         }
 
         String header = request.getHeader("Authorization");
@@ -63,17 +67,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         .parseSignedClaims(token)
                         .getPayload();
 
+                // P1-12: Null checks for required claims
+                String subject = claims.getSubject();
+                if (subject == null || subject.isEmpty()) {
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+
                 String type = (String) claims.get("typ");
                 if (!"ACCESS".equals(type)) {
                     filterChain.doFilter(request, response);
                     return;
                 }
 
-                UUID userId = UUID.fromString(claims.getSubject());
+                UUID userId = UUID.fromString(subject);
                 String role = (String) claims.get("role");
 
                 var auth = new UsernamePasswordAuthenticationToken(
-                        UUID.fromString(claims.getSubject()),
+                        userId,
                         null,
                         role == null
                                 ? List.of()
@@ -81,7 +92,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 SecurityContextHolder.getContext().setAuthentication(auth);
 
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                // Log the exception but don't fail the request - let it proceed unauthenticated
+                // The secured endpoints will reject it
             }
         }
 

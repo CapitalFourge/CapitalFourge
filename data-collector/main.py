@@ -49,7 +49,7 @@ allow_no_redis = not upstash_url and is_render  # Allow no Redis if on Render wi
 oracle = PriceOracle(
     redis_upstash_url=upstash_url,
     redis_local_host=os.getenv("DB_REDIS_HOST", "localhost"),
-    redis_local_password=os.getenv("DB_REDIS_PASSWORD", "mi_redis_pass_seguro"),
+    redis_local_password=os.getenv("DB_REDIS_PASSWORD", ""),
     connect_local=not is_render,  # Disable local Redis on Render
     allow_no_redis=allow_no_redis  # Allow running without Redis on Render
 )

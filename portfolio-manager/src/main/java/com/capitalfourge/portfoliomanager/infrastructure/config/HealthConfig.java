@@ -5,10 +5,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
-import org.springframework.boot.actuate.health.Status;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.client.RestTemplate;
 
@@ -19,14 +19,18 @@ import java.time.Duration;
 public class HealthConfig {
 
     @Bean
+    public RestTemplate restTemplate() {
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(2000);
+        factory.setReadTimeout(3000);
+        return new RestTemplate(factory);
+    }
+
+    @Bean
     public HealthIndicator dataCollectorHealthIndicator(
             @Value("${spring.data-collector.base-url}") String baseUrl,
-            @Value("${spring.data-collector.api-key}") String apiKey) {
-        var requestFactory = new org.springframework.http.client.SimpleClientHttpRequestFactory();
-        requestFactory.setConnectTimeout(2000);
-        requestFactory.setReadTimeout(3000);
-        
-        RestTemplate restTemplate = new RestTemplate(requestFactory);
+            @Value("${spring.data-collector.api-key}") String apiKey,
+            RestTemplate restTemplate) {
         restTemplate.getInterceptors().add((request, body, execution) -> {
             request.getHeaders().add("X-API-Key", apiKey);
             return execution.execute(request, body);
@@ -57,7 +61,8 @@ public class HealthConfig {
     @Bean
     public HealthIndicator databaseHealthIndicator(DataSource dataSource) {
         JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-        jdbcTemplate.setQueryTimeout(3);
+        // P2-17: Increase timeout from 3s to 15s for transient DB slowness
+        jdbcTemplate.setQueryTimeout(15);
 
         return () -> {
             try {
@@ -107,7 +112,14 @@ public class HealthConfig {
     @Bean
     public HealthIndicator cacheMetricsHealthIndicator(GrpcFinancialDataClient client) {
         return () -> {
+            // P2-16: Null check for metrics
             var metrics = client.getCacheMetrics();
+            if (metrics == null) {
+                return Health.down()
+                        .withDetail("cache", "Caffeine (price cache)")
+                        .withDetail("error", "Cache metrics unavailable")
+                        .build();
+            }
             return Health.up()
                     .withDetail("cache", "Caffeine (price cache)")
                     .withDetail("size", metrics.estimatedSize())
@@ -117,8 +129,8 @@ public class HealthConfig {
                     .withDetail("evictions", metrics.evictionCount())
                     .withDetail("loadSuccess", metrics.loadSuccessCount())
                     .withDetail("loadErrors", metrics.loadFailureCount())
-                    .withDetail("avgLoadTimeMs", metrics.totalLoadTimeNanos() > 0 
-                        ? metrics.totalLoadTimeNanos() / Math.max(1, metrics.loadSuccessCount() + metrics.loadFailureCount()) / 1_000_000 
+                    .withDetail("avgLoadTimeMs", metrics.totalLoadTimeNanos() > 0
+                        ? metrics.totalLoadTimeNanos() / Math.max(1, metrics.loadSuccessCount() + metrics.loadFailureCount()) / 1_000_000
                         : 0)
                     .build();
         };

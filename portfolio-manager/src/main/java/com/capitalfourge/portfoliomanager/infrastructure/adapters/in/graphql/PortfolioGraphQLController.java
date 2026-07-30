@@ -8,7 +8,7 @@ import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.GraphQlExceptionHandler;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
-import org.springframework.graphql.execution.ErrorType;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 
@@ -70,6 +70,7 @@ public class PortfolioGraphQLController {
     }
 
     @QueryMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public List<User> adminUsers(@AuthenticationPrincipal UUID userId) {
         if (userId == null) {
             throw new RuntimeException("Authentication required");
@@ -109,6 +110,7 @@ public class PortfolioGraphQLController {
     }
 
     @QueryMapping
+    @PreAuthorize("hasRole('USER')")
     public List<Portfolio> portfolios(@AuthenticationPrincipal UUID userId) {
         return portfolioUseCase.getPortfoliosByUser(userId);
     }
@@ -163,6 +165,7 @@ public class PortfolioGraphQLController {
     }
 
     @MutationMapping
+    @PreAuthorize("hasRole('USER')")
     public Portfolio createPortfolio(@Argument("name") String name, @Argument("description") String description,
             @AuthenticationPrincipal UUID userId) {
         if (userId == null) {
@@ -177,44 +180,81 @@ public class PortfolioGraphQLController {
     }
 
     @MutationMapping
+    @PreAuthorize("hasRole('USER')")
     public Portfolio buyAsset(@Argument("portfolioId") UUID portfolioId, @Argument("symbol") String symbol,
             @Argument("quantity") BigDecimal quantity,
-            @Argument("price") BigDecimal price) {
+            @Argument("price") BigDecimal price,
+            @AuthenticationPrincipal UUID userId) {
+        Portfolio portfolio = portfolioUseCase.getPortfolio(portfolioId);
+        if (!portfolio.getUserId().equals(userId)) {
+            throw new RuntimeException("Portfolio not found or access denied");
+        }
         return portfolioUseCase.buyAsset(portfolioId, symbol, quantity, price);
     }
 
     @MutationMapping
+    @PreAuthorize("hasRole('USER')")
     public Portfolio sellAsset(@Argument("portfolioId") UUID portfolioId, @Argument("symbol") String symbol,
             @Argument("quantity") BigDecimal quantity,
-            @Argument("price") BigDecimal price) {
+            @Argument("price") BigDecimal price,
+            @AuthenticationPrincipal UUID userId) {
+        Portfolio portfolio = portfolioUseCase.getPortfolio(portfolioId);
+        if (!portfolio.getUserId().equals(userId)) {
+            throw new RuntimeException("Portfolio not found or access denied");
+        }
         return portfolioUseCase.sellAsset(portfolioId, symbol, quantity, price);
     }
 
     @MutationMapping
+    @PreAuthorize("hasRole('USER')")
     public Portfolio buyAssetByUSD(@Argument("portfolioId") UUID portfolioId, @Argument("symbol") String symbol,
             @Argument("usdAmount") BigDecimal usdAmount,
-            @Argument("price") BigDecimal price) {
+            @Argument("price") BigDecimal price,
+            @AuthenticationPrincipal UUID userId) {
+        Portfolio portfolio = portfolioUseCase.getPortfolio(portfolioId);
+        if (!portfolio.getUserId().equals(userId)) {
+            throw new RuntimeException("Portfolio not found or access denied");
+        }
         return portfolioUseCase.buyAssetByUSD(portfolioId, symbol, usdAmount, price);
     }
 
     @MutationMapping
+    @PreAuthorize("hasRole('USER')")
     public Portfolio sellAssetByUSD(@Argument("portfolioId") UUID portfolioId, @Argument("symbol") String symbol,
             @Argument("usdAmount") BigDecimal usdAmount,
-            @Argument("price") BigDecimal price) {
+            @Argument("price") BigDecimal price,
+            @AuthenticationPrincipal UUID userId) {
+        Portfolio portfolio = portfolioUseCase.getPortfolio(portfolioId);
+        if (!portfolio.getUserId().equals(userId)) {
+            throw new RuntimeException("Portfolio not found or access denied");
+        }
         return portfolioUseCase.sellAssetByUSD(portfolioId, symbol, usdAmount, price);
     }
 
     @MutationMapping
-    public Portfolio addCash(@Argument("portfolioId") UUID portfolioId, @Argument("amount") BigDecimal amount) {
+    @PreAuthorize("hasRole('USER')")
+    public Portfolio addCash(@Argument("portfolioId") UUID portfolioId, @Argument("amount") BigDecimal amount,
+            @AuthenticationPrincipal UUID userId) {
+        Portfolio portfolio = portfolioUseCase.getPortfolio(portfolioId);
+        if (!portfolio.getUserId().equals(userId)) {
+            throw new RuntimeException("Portfolio not found or access denied");
+        }
         return portfolioUseCase.addCash(portfolioId, amount);
     }
 
     @MutationMapping
-    public Portfolio withdrawCash(@Argument("portfolioId") UUID portfolioId, @Argument("amount") BigDecimal amount) {
+    @PreAuthorize("hasRole('USER')")
+    public Portfolio withdrawCash(@Argument("portfolioId") UUID portfolioId, @Argument("amount") BigDecimal amount,
+            @AuthenticationPrincipal UUID userId) {
+        Portfolio portfolio = portfolioUseCase.getPortfolio(portfolioId);
+        if (!portfolio.getUserId().equals(userId)) {
+            throw new RuntimeException("Portfolio not found or access denied");
+        }
         return portfolioUseCase.withdrawCash(portfolioId, amount);
     }
 
     @MutationMapping
+    @PreAuthorize("hasRole('USER')")
     public User deposit(@Argument("amount") BigDecimal amount, @AuthenticationPrincipal UUID userId) {
         if (userId == null)
             throw new RuntimeException("Unauthorized");
@@ -222,6 +262,7 @@ public class PortfolioGraphQLController {
     }
 
     @MutationMapping
+    @PreAuthorize("hasRole('USER')")
     public User withdraw(@Argument("amount") BigDecimal amount, @AuthenticationPrincipal UUID userId) {
         if (userId == null)
             throw new RuntimeException("Unauthorized");
@@ -229,17 +270,29 @@ public class PortfolioGraphQLController {
     }
 
     @MutationMapping
-    public Boolean deletePortfolio(@Argument("id") UUID id) {
+    @PreAuthorize("hasRole('USER')")
+    public Boolean deletePortfolio(@Argument("id") UUID id, @AuthenticationPrincipal UUID userId) {
+        Portfolio portfolio = portfolioUseCase.getPortfolio(id);
+        if (!portfolio.getUserId().equals(userId)) {
+            throw new RuntimeException("Portfolio not found or access denied");
+        }
         portfolioUseCase.deletePortfolio(id);
         return true;
     }
 
     @MutationMapping
-    public Portfolio toggleVisibility(@Argument UUID portfolioId, @Argument boolean isPublic) {
+    @PreAuthorize("hasRole('USER')")
+    public Portfolio toggleVisibility(@Argument UUID portfolioId, @Argument boolean isPublic,
+            @AuthenticationPrincipal UUID userId) {
+        Portfolio portfolio = portfolioUseCase.getPortfolio(portfolioId);
+        if (!portfolio.getUserId().equals(userId)) {
+            throw new RuntimeException("Portfolio not found or access denied");
+        }
         return portfolioUseCase.toggleVisibility(portfolioId, isPublic);
     }
 
     @MutationMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public User adminSetRole(@Argument UUID userId, @Argument String role, @AuthenticationPrincipal UUID currentUserId) {
         if (currentUserId == null) {
             throw new RuntimeException("Authentication required");
@@ -255,6 +308,7 @@ public class PortfolioGraphQLController {
     }
 
     @MutationMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public Boolean adminDeactivateUser(@Argument UUID userId, @AuthenticationPrincipal UUID currentUserId) {
         if (currentUserId == null) {
             throw new RuntimeException("Authentication required");
@@ -271,7 +325,7 @@ public class PortfolioGraphQLController {
     @GraphQlExceptionHandler
     public GraphQLError handle(RuntimeException ex, DataFetchingEnvironment env) {
         return GraphQLError.newError()
-                .errorType(ErrorType.BAD_REQUEST)
+                .errorType(graphql.ErrorType.ValidationError)
                 .message(ex.getMessage())
                 .path(env.getExecutionStepInfo().getPath())
                 .location(env.getField().getSourceLocation())

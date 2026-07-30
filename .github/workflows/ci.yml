@@ -12,11 +12,9 @@ env:
   DB_PORT: 5433
   DB_NAME: finsight_db
   DB_USER: user
-  DB_PASSWORD: mi_super_password_segura
   # Redis
-  SPRING_REDIS_URL: redis://:mi_redis_pass_seguro@localhost:6379
+  SPRING_REDIS_URL: redis://localhost:6379
   # JWT
-  JWT_SECRET: f2c3b4a5d6e7f8g9h0i1j2k3l4m5n6o7p8q9r0s1t2u3v4w5x6y7z8a9b0c1d2e3
   JWT_ISSUER: capital-fourge
   JWT_ACCESS_EXPIRATION_MS: 86400000
   JWT_REFRESH_EXPIRATION_MS: 604800000
@@ -42,7 +40,7 @@ jobs:
         env:
           POSTGRES_DB: finsight_db
           POSTGRES_USER: user
-          POSTGRES_PASSWORD: mi_super_password_segura
+          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
         options: >-
           --health-cmd "pg_isready -U user -d finsight_db"
           --health-interval 10s
@@ -62,10 +60,10 @@ jobs:
         ports:
           - 6379:6379
         env:
-          REDIS_PASSWORD: mi_redis_pass_seguro
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
         options: >-
-          --entrypoint "redis-server --requirepass mi_redis_pass_seguro --appendonly yes"
-          --health-cmd "redis-cli -a mi_redis_pass_seguro ping"
+          --entrypoint "redis-server --requirepass ${{ secrets.REDIS_PASSWORD }} --appendonly yes"
+          --health-cmd "redis-cli -a ${{ secrets.REDIS_PASSWORD }} ping"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -83,6 +81,10 @@ jobs:
 
       - name: Build and test with Maven
         working-directory: ./portfolio-manager
+        env:
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
         run: |
           mvn -B clean test \
             -Dspring.profiles.active=test \
@@ -161,7 +163,7 @@ jobs:
         env:
           POSTGRES_DB: finsight_db
           POSTGRES_USER: user
-          POSTGRES_PASSWORD: mi_super_password_segura
+          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
         options: >-
           --health-cmd "pg_isready -U user -d finsight_db"
           --health-interval 10s
@@ -181,10 +183,10 @@ jobs:
         ports:
           - 6379:6379
         env:
-          REDIS_PASSWORD: mi_redis_pass_seguro
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
         options: >-
-          --entrypoint "redis-server --requirepass mi_redis_pass_seguro --appendonly yes"
-          --health-cmd "redis-cli -a mi_redis_pass_seguro ping"
+          --entrypoint "redis-server --requirepass ${{ secrets.REDIS_PASSWORD }} --appendonly yes"
+          --health-cmd "redis-cli -a ${{ secrets.REDIS_PASSWORD }} ping"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -206,7 +208,7 @@ jobs:
           cache: 'pnpm'
           cache-dependency-path: frontend/pnpm-lock.yaml
 
-      - name: Install frontend dependencies
+      - name: Install dependencies
         working-directory: ./frontend
         run: pnpm install --frozen-lockfile
 
@@ -218,6 +220,10 @@ jobs:
 
       - name: Start backend (Spring Boot)
         working-directory: ./portfolio-manager
+        env:
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
         run: |
           mvn spring-boot:run \
             -Dspring-boot.run.profiles=test \
@@ -226,9 +232,9 @@ jobs:
             -DDB_PORT=5433 \
             -DDB_NAME=finsight_db \
             -DDB_USER=user \
-            -DDB_PASSWORD=mi_super_password_segura \
-            -DSPRING_REDIS_URL=redis://:mi_redis_pass_seguro@localhost:6379 \
-            -DJWT_SECRET=${{ env.JWT_SECRET }} \
+            -DDB_PASSWORD=${{ secrets.DB_PASSWORD }} \
+            -DSPRING_REDIS_URL=redis://:${{ secrets.REDIS_PASSWORD }}@localhost:6379 \
+            -DJWT_SECRET=${{ secrets.JWT_SECRET }} \
             -DJWT_ISSUER=${{ env.JWT_ISSUER }} \
             -DJWT_ACCESS_EXPIRATION_MS=${{ env.JWT_ACCESS_EXPIRATION_MS }} \
             -DJWT_REFRESH_EXPIRATION_MS=${{ env.JWT_REFRESH_EXPIRATION_MS }} \
@@ -347,7 +353,7 @@ jobs:
           echo "Frontend Unit Tests: ${{ needs.frontend-unit-test.result }}"
           echo "Frontend E2E Tests: ${{ needs.frontend-e2e-test.result }}"
           echo "Frontend Build: ${{ needs.frontend-build.result }}"
-          
+
           if [[ "${{ needs.backend-test.result }}" != "success" ]] ||
              [[ "${{ needs.frontend-unit-test.result }}" != "success" ]] ||
              [[ "${{ needs.frontend-e2e-test.result }}" != "success" ]] ||
@@ -355,5 +361,5 @@ jobs:
             echo "❌ Some CI jobs failed"
             exit 1
           fi
-          
+
           echo "✅ All CI checks passed!"

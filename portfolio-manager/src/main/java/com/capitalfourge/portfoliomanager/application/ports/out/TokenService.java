@@ -13,4 +13,11 @@ public interface TokenService {
     boolean validateRefreshToken(String token);
 
     UUID extractUserId(String token);
+
+    // P1-12: JWT claims extraction with null checks
+    String extractEmail(String token);
+
+    String extractUsername(String token);
+
+    String extractRole(String token);
 }

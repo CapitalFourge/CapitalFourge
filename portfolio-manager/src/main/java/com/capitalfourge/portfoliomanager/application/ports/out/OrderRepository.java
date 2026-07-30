@@ -4,6 +4,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import com.capitalfourge.portfoliomanager.domain.Order;
 import com.capitalfourge.portfoliomanager.domain.OrderStatus;
 
@@ -13,6 +16,13 @@ public interface OrderRepository {
 
     Optional<Order> findById(UUID id);
 
+    Page<Order> findByPortfolioId(UUID portfolioId, Pageable pageable);
+
+    Page<Order> findByUserId(UUID userId, Pageable pageable);
+
+    Page<Order> findByStatus(OrderStatus status, Pageable pageable);
+
+    // Legacy methods (for backward compatibility)
     List<Order> findByPortfolioId(UUID portfolioId);
 
     List<Order> findByUserId(UUID userId);

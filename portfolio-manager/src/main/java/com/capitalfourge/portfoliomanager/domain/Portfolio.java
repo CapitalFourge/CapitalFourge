@@ -22,7 +22,7 @@ public class Portfolio {
     private List<Transaction> transactions;
     private BigDecimal cumulativeDeposits;
     private BigDecimal cumulativeWithdrawals;
-    private Double performance;
+    private Double performance = 0.0;
     private boolean isPublic;
     private String shareSlug;
 

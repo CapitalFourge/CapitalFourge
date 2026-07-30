@@ -229,7 +229,7 @@ jobs:
             -DDB_NAME=finsight_db \
             -DDB_USER=user \
             -DDB_PASSWORD=${{ secrets.DB_PASSWORD }} \
-            -DSPRING_REDIS_URL=redis://:${{ secrets.REDIS_PASSWORD }}@localhost:6379 \
+            -DSPRING_REDIS_URL=redis://localhost:6379 \
             -DJWT_SECRET=${{ secrets.JWT_SECRET }} \
             -DJWT_ISSUER=${{ env.JWT_ISSUER }} \
             -DJWT_ACCESS_EXPIRATION_MS=${{ env.JWT_ACCESS_EXPIRATION_MS }} \

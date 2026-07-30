@@ -275,7 +275,7 @@ jobs:
             gen_random_uuid(),
             'analyst',
             'analyst@firma.com',
-            '\$2a\$10\$N.zmdr9k7uOCQb376NoUnuTJ8iYqiSfFkZqGp9ZqZqZqZqZqZqZqZq',
+            '\$2a\$10\$2Kxm1pZXOFC2/mIFilrc5OzJZ8q9DFh06FqSVGq36I35dYcQxrGlO',
             'USER',
             true,
             100000.00,

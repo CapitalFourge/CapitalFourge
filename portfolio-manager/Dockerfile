@@ -11,5 +11,5 @@ WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 EXPOSE 10000
 ENV PORT=10000
-ENV JAVA_OPTS="-Xms256m -Xmx300m -XX:+UseContainerSupport -XX:MaxRAMPercentage=60.0 -XX:+UseZGC -Dserver.address=0.0.0.0 -Dserver.port=\${PORT}"
+ENV JAVA_OPTS="-Xms64m -Xmx256m -XX:+UseContainerSupport -XX:MaxRAMPercentage=50.0 -XX:+UseZGC -XX:+ZGenerational -Dserver.address=0.0.0.0 -Dserver.port=\${PORT} -Dspring.jpa.properties.hibernate.jdbc.batch_size=20 -Dspring.jpa.properties.hibernate.order_inserts=true -Dspring.jpa.properties.hibernate.order_updates=true"
 ENTRYPOINT ["sh","-c","java $JAVA_OPTS -jar app.jar"]

@@ -55,16 +55,17 @@ def resolve_yfinance_symbol(symbol: str):
         if symbol.endswith(pattern):
             return symbol
     
-    # 3. For regular stocks, try LATAM suffixes
-    for s in LATAM_SUFFIXES:
-        try:
-            t = yf.Ticker(symbol + s)
-            if t.info:
-                return symbol + s
-        except Exception:
-            continue
+    # 3. For known Colombian/LATAM stocks, try LATAM suffixes
+    if symbol in COLOMBIAN_MAP:
+        for s in LATAM_SUFFIXES:
+            try:
+                t = yf.Ticker(symbol + s)
+                if t.info:
+                    return symbol + s
+            except Exception:
+                continue
     
-    # 4. Return original symbol
+    # 4. Return original symbol for everything else (US stocks, etc.)
     return symbol
 
 class PriceOracle:
@@ -117,6 +118,10 @@ class PriceOracle:
                 print("⚠️ Running WITHOUT Redis - prices will be fetched but not cached/published")
             else:
                 raise RuntimeError("No Redis connections available - need at least one")
+    
+    def _should_try_latam_suffixes(self, symbol: str) -> bool:
+        """Check if symbol is a known Colombian/LATAM stock that needs suffix."""
+        return symbol in COLOMBIAN_MAP
 
     def _publish_to_both(self, channel: str, message: dict):
         """Publish to local Redis only (Upstash doesn't consume this channel)"""

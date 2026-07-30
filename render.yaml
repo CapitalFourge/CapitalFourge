@@ -1,0 +1,48 @@
+services:
+  - type: web
+    name: portfolio-manager
+    env: docker
+    dockerfilePath: ./portfolio-manager/Dockerfile
+    dockerContext: ./portfolio-manager
+    plan: free
+    region: oregon
+    healthCheckPath: /actuator/health/liveness
+    envVars:
+      - key: DB_HOST
+        value: dpg-xxxxx
+      - key: DB_PORT
+        value: "5432"
+      - key: DB_NAME
+        value: finsight_db
+      - key: DB_USER
+        value: user
+      - key: DB_PASSWORD
+        sync: false
+      - key: SPRING_REDIS_URL
+        value: redis://localhost:6379
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_ISSUER
+        value: capital-fourge
+      - key: JWT_ACCESS_EXPIRATION_MS
+        value: "86400000"
+      - key: JWT_REFRESH_EXPIRATION_MS
+        value: "604800000"
+      - key: DATA_COLLECTOR_BASE_URL
+        value: https://data-collector.onrender.com
+      - key: PORT
+        value: "10000"
+
+  - type: web
+    name: data-collector
+    env: docker
+    dockerfilePath: ./data-collector/Dockerfile
+    dockerContext: ./data-collector
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    envVars:
+      - key: RENDER
+        value: "true"
+      - key: PORT
+        value: "8000"

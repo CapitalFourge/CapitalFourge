@@ -32,6 +32,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
+    # Docker socket for Testcontainers - use container-based approach
+    container:
+      image: maven:3.9.6-eclipse-temurin-17
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
+      options: --user root
+
     services:
       postgres:
         image: postgres:16-alpine
@@ -69,13 +76,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '21'
-          cache: 'maven'
 
       - name: Build and test with Maven
         working-directory: ./portfolio-manager
@@ -238,11 +238,16 @@ jobs:
             -Dserver.port=10000 \
             > backend.log 2>&1 &
           echo $! > backend.pid
-          # Wait for backend to be ready
-          for i in {1..60}; do
+          # Wait for backend to be ready - increased timeout to 300 seconds (5 minutes)
+          for i in {1..120}; do
             if curl -s http://localhost:10000/actuator/health | grep -q '"status":"UP"'; then
               echo "Backend is UP"
               break
+            fi
+            if [ $i -eq 120 ]; then
+              echo "Backend failed to start within 10 minutes"
+              cat backend.log
+              exit 1
             fi
             sleep 5
           done

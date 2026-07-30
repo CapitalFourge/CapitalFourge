@@ -45,9 +45,10 @@ async function login(page: import('@playwright/test').Page) {
   await page.goto('/login');
   await page.waitForLoadState('networkidle');
   
-  // First, try to register the test user (idempotent - will fail silently if exists)
+  // First, try to register the test user via backend directly
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:10000';
   try {
-    const response = await page.request.post('/api/auth/register', {
+    const response = await page.request.post(`${apiBaseUrl}/api/auth/register`, {
       data: {
         username: 'analyst',
         email: 'analyst@firma.com',

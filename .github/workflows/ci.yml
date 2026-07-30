@@ -63,7 +63,6 @@ jobs:
           REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
         options: >-
           --entrypoint redis-server
-          --cmd "--requirepass $REDIS_PASSWORD --appendonly yes"
           --health-cmd "redis-cli -a $REDIS_PASSWORD ping"
           --health-interval 10s
           --health-timeout 5s
@@ -187,7 +186,6 @@ jobs:
           REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
         options: >-
           --entrypoint redis-server
-          --cmd "--requirepass $REDIS_PASSWORD --appendonly yes"
           --health-cmd "redis-cli -a $REDIS_PASSWORD ping"
           --health-interval 10s
           --health-timeout 5s

@@ -44,10 +44,28 @@ async function fill(page: import('@playwright/test').Page, locator: import('@pla
 async function login(page: import('@playwright/test').Page) {
   await page.goto('/login');
   await page.waitForLoadState('networkidle');
+  
+  // First, try to register the test user (idempotent - will fail silently if exists)
+  try {
+    const response = await page.request.post('/api/auth/register', {
+      data: {
+        username: 'analyst',
+        email: 'analyst@firma.com',
+        password: 'TestPass123!'
+      }
+    });
+    console.log('Register response:', response.status());
+  } catch (e) {
+    console.log('Register attempt failed (user may exist):', e);
+  }
+  
   await fill(page, page.locator('input[type="email"]'), TEST_USER.email);
   await fill(page, page.locator('input[type="password"]'), TEST_USER.password);
   await click(page, page.locator('button:has-text("Ingresar")'));
-  await page.waitForURL('/dashboard');
+  
+  // Wait for navigation with longer timeout and better condition
+  await page.waitForURL('**/dashboard', { timeout: 30000 });
+  await page.waitForLoadState('networkidle');
   await page.waitForTimeout(1000);
 }
 

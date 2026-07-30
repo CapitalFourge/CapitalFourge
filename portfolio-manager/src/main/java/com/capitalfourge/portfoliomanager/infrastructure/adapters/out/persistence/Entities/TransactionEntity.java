@@ -13,6 +13,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -54,4 +55,14 @@ public class TransactionEntity {
 
     @Column(nullable = false, precision = 20, scale = 8)
     private BigDecimal balanceTransaction;
+
+    @PrePersist
+    protected void onCreate() {
+        if (timestamp == null) {
+            timestamp = LocalDateTime.now();
+        }
+        if (balanceTransaction == null) {
+            balanceTransaction = price.multiply(quantity);
+        }
+    }
 }

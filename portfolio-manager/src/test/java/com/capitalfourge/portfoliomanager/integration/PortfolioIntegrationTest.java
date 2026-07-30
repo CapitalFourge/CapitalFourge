@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -30,6 +31,15 @@ import com.capitalfourge.portfoliomanager.domain.User;
 
 @Testcontainers
 @SpringBootTest
+@TestPropertySource(properties = {
+    "jwt.secret=test-secret-key-for-testing-only-minimum-256-bits-length-required",
+    "jwt.issuer=capital-fourge-test",
+    "jwt.access-expiration-ms=86400000",
+    "jwt.refresh-expiration-ms=604800000",
+    "spring.profiles.active=test",
+    "spring.datasource.driver-class-name=org.postgresql.Driver",
+    "spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect"
+})
 class PortfolioIntegrationTest {
 
     @Container
@@ -61,7 +71,6 @@ class PortfolioIntegrationTest {
     void shouldSaveAndRetrievePortfolio() {
         // Given
         User user = User.builder()
-                .id(UUID.randomUUID())
                 .email("test@example.com")
                 .username("testuser")
                 .password("password")
@@ -101,7 +110,6 @@ class PortfolioIntegrationTest {
     void shouldSavePortfolioWithPositionsAndTransactions() {
         // Given
         User user = User.builder()
-                .id(UUID.randomUUID())
                 .email("test2@example.com")
                 .username("testuser2")
                 .password("password")

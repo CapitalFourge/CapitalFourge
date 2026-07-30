@@ -13,6 +13,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import com.capitalfourge.portfoliomanager.application.ports.out.PortfolioRepository;
 import com.capitalfourge.portfoliomanager.domain.Portfolio;
@@ -32,6 +34,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class PortfolioPersistenceAdapterTest {
 
     @Mock
@@ -129,7 +132,7 @@ class PortfolioPersistenceAdapterTest {
         entity.setTransactions(List.of(transactionEntity));
 
         when(jpaRepository.save(any(PortfolioEntity.class))).thenReturn(entity);
-        when(jpaRepository.findById(portfolioId)).thenReturn(Optional.of(entity));
+        when(jpaRepository.findByIdWithPositionsAndTransactions(portfolioId)).thenReturn(Optional.of(entity));
 
         // When - Save
         Portfolio saved = adapter.save(portfolio);

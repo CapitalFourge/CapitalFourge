@@ -64,4 +64,11 @@ public class UserEntity {
 
     @Version
     private Long version;
+
+    @PrePersist
+    protected void onCreate() {
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
+    }
 }

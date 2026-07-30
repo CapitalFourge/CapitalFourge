@@ -37,8 +37,9 @@ public class PortfolioPersistenceAdapter implements PortfolioRepository {
     }
 
     @Override
+    @Transactional
     public Optional<Portfolio> findById(UUID id) {
-        return jpaRepository.findById(id).map(this::toDomain);
+        return jpaRepository.findByIdWithPositionsAndTransactions(id).map(this::toDomain);
     }
 
     @Override

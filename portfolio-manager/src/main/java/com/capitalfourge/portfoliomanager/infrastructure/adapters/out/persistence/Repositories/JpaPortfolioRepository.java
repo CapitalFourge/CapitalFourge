@@ -17,7 +17,7 @@ public interface JpaPortfolioRepository extends JpaRepository<PortfolioEntity, U
 
     Optional<PortfolioEntity> findByShareSlug(String shareSlug);
 
-    @Query("SELECT p FROM PortfolioEntity p LEFT JOIN FETCH p.positions LEFT JOIN FETCH p.transactions WHERE p.id = :id")
+    @Query("SELECT p FROM PortfolioEntity p LEFT JOIN FETCH p.positions WHERE p.id = :id")
     Optional<PortfolioEntity> findByIdWithPositionsAndTransactions(@Param("id") UUID id);
 
     @EntityGraph(attributePaths = {"positions"}, type = EntityGraph.EntityGraphType.FETCH)

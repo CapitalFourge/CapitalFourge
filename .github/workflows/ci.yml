@@ -77,12 +77,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set up fallback JWT_SECRET
+        run: |
+          if [ -z "${{ secrets.JWT_SECRET }}" ]; then
+            echo "JWT_SECRET not set in secrets, using test fallback"
+            echo "JWT_SECRET=test-secret-key-for-unit-tests-only-32chars-minimum-length!!" >> $GITHUB_ENV
+          fi
+
       - name: Build and test with Maven
         working-directory: ./portfolio-manager
         env:
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          JWT_SECRET: ${{ env.JWT_SECRET }}
         run: |
           mvn -B clean test \
             -Dspring.profiles.active=test \
@@ -221,6 +228,11 @@ jobs:
           REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
         run: |
+          # Ensure JWT_SECRET is at least 32 chars for CI
+          if [ ${#JWT_SECRET} -lt 32 ]; then
+            echo "JWT_SECRET too short, using test fallback"
+            JWT_SECRET="test-secret-key-for-unit-tests-only-32chars!!"
+          fi
           mvn spring-boot:run \
             -Dspring-boot.run.profiles=test \
             -Dspring-boot.run.jvmArguments="-Xmx512m" \
@@ -230,7 +242,7 @@ jobs:
             -DDB_USER=user \
             -DDB_PASSWORD=${{ secrets.DB_PASSWORD }} \
             -DSPRING_REDIS_URL=redis://localhost:6379 \
-            -DJWT_SECRET=${{ secrets.JWT_SECRET }} \
+            -DJWT_SECRET=${JWT_SECRET} \
             -DJWT_ISSUER=${{ env.JWT_ISSUER }} \
             -DJWT_ACCESS_EXPIRATION_MS=${{ env.JWT_ACCESS_EXPIRATION_MS }} \
             -DJWT_REFRESH_EXPIRATION_MS=${{ env.JWT_REFRESH_EXPIRATION_MS }} \

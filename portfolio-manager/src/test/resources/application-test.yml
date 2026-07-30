@@ -17,7 +17,7 @@ spring:
 
 # JWT config for tests
 jwt:
-  secret: ${JWT_SECRET:test-secret-key-for-unit-tests-only-32chars!!}
+  secret: ${JWT_SECRET:test-secret-key-for-unit-tests-only-32chars-minimum-length!!}
   issuer: "capital-fourge"
   access-expiration-ms: 3600000
   refresh-expiration-ms: 604800000

@@ -56,6 +56,10 @@ async function login(page: import('@playwright/test').Page) {
       }
     });
     console.log('Register response:', response.status());
+    // 409 = conflict (user exists), 500 = server error (likely duplicate) - both OK
+    if (response.status() !== 200 && response.status() !== 201 && response.status() !== 409 && response.status() !== 500) {
+      console.log('Unexpected register response:', response.status());
+    }
   } catch (e) {
     console.log('Register attempt failed (user may exist):', e);
   }

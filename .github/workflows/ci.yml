@@ -264,29 +264,19 @@ jobs:
             sleep 5
           done
 
-      - name: Seed E2E test user
+      - name: Seed E2E test user via REST API
         working-directory: ./portfolio-manager
         run: |
-          # Create test user via REST API (need to register first, then update password)
-          # Using direct SQL insert since we need a specific password hash
-          PGPASSWORD=${{ secrets.DB_PASSWORD }} psql -h localhost -p 5433 -U user -d finsight_db -c "
-          INSERT INTO users (id, username, email, password, role, active, cash_balance, locked_balance, show_welcome, language)
-          VALUES (
-            gen_random_uuid(),
-            'analyst',
-            'analyst@firma.com',
-            '\$2a\$10\$2Kxm1pZXOFC2/mIFilrc5OzJZ8q9DFh06FqSVGq36I35dYcQxrGlO',
-            'USER',
-            true,
-            100000.00,
-            0.00,
-            true,
-            'es'
-          ) ON CONFLICT (email) DO UPDATE SET
-            password = EXCLUDED.password,
-            cash_balance = EXCLUDED.cash_balance,
-            active = EXCLUDED.active;
-          " || echo "Test user seeding attempted"
+          # Register test user via REST API (idempotent)
+          for i in {1..30}; do
+            if curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:10000/api/auth/register \
+              -H "Content-Type: application/json" \
+              -d '{"username":"analyst","email":"analyst@firma.com","password":"TestPass123!"}' | grep -qE '^(200|201|409)$'; then
+              echo "Test user seeded/already exists"
+              break
+            fi
+            sleep 2
+          done
 
       - name: Start data-collector mock
         run: |

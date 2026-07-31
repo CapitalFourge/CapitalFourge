@@ -45,59 +45,38 @@ async function login(page: import('@playwright/test').Page) {
   await page.goto('/login');
   await page.waitForLoadState('networkidle');
   
-  // First, try to register the test user via backend directly
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:10000';
-  try {
-    const response = await page.request.post(`${apiBaseUrl}/api/auth/register`, {
-      data: {
-        username: 'analyst',
-        email: 'analyst@firma.com',
-        password: 'TestPass123!'
-      }
-    });
-    console.log('Register response:', response.status());
-    // 409 = conflict (user exists), 500 = server error (likely duplicate) - both OK
-    if (response.status() !== 200 && response.status() !== 201 && response.status() !== 409 && response.status() !== 500) {
-      console.log('Unexpected register response:', response.status());
+  // In CI, user is pre-seeded via REST API. Locally, try to register if needed.
+  if (!process.env.CI) {
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:10000';
+    try {
+      const response = await page.request.post(`${apiBaseUrl}/api/auth/register`, {
+        data: { username: 'analyst', email: 'analyst@firma.com', password: 'TestPass123!' }
+      });
+      console.log('Local register response:', response.status());
+    } catch (e) {
+      console.log('Local register attempt failed:', e);
     }
-  } catch (e) {
-    console.log('Register attempt failed (user may exist):', e);
-  }
-  
-  // Debug: check if login endpoint works directly
-  try {
-    const loginResponse = await page.request.post(`${apiBaseUrl}/api/auth/login`, {
-      data: {
-        email: TEST_USER.email,
-        password: TEST_USER.password
-      }
-    });
-    console.log('Direct login API response:', loginResponse.status());
-    const body = await loginResponse.text();
-    console.log('Login response body:', body);
-  } catch (e) {
-    console.log('Direct login API failed:', e);
   }
   
   await fill(page, page.locator('input[type="email"]'), TEST_USER.email);
   await fill(page, page.locator('input[type="password"]'), TEST_USER.password);
   
-  // Wait for any network requests to complete after click
+  // Wait for login response
   const [response] = await Promise.all([
-    page.waitForResponse(r => r.url().includes('/api/auth/login')),
+    page.waitForResponse(r => r.url().includes('/api/auth/login') && r.request().method() === 'POST'),
     click(page, page.locator('button:has-text("Ingresar")'))
   ]);
   console.log('Login form submit response:', response.status());
   const respBody = await response.text();
   console.log('Login form submit body:', respBody);
   
-  // Check for error messages on page
+  // Check for error messages
   const errorToast = page.locator('[role="alert"], .sonner-toast, [data-sonner-toast], .toast-error').first();
   if (await errorToast.isVisible({ timeout: 3000 }).catch(() => false)) {
     console.log('Error toast visible:', await errorToast.textContent());
   }
   
-  // Wait for navigation with longer timeout and better condition
+  // Wait for navigation
   await page.waitForURL('**/dashboard', { timeout: 30000 });
   await page.waitForLoadState('networkidle');
   await page.waitForTimeout(1000);

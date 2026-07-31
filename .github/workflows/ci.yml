@@ -249,14 +249,14 @@ jobs:
             -Dserver.port=10000 \
             > backend.log 2>&1 &
           echo $! > backend.pid
-          # Wait for backend to be ready - increased timeout to 300 seconds (5 minutes)
+          # Wait for backend to be ready - use readiness probe which waits for Flyway migrations
           for i in {1..120}; do
-            if curl -s http://localhost:10000/actuator/health | grep -q '"status":"UP"'; then
-              echo "Backend is UP"
+            if curl -s http://localhost:10000/actuator/health/readiness | grep -q '"status":"UP"'; then
+              echo "Backend is READY (migrations complete)"
               break
             fi
             if [ $i -eq 120 ]; then
-              echo "Backend failed to start within 10 minutes"
+              echo "Backend failed to become ready within 10 minutes"
               cat backend.log
               exit 1
             fi
@@ -266,27 +266,18 @@ jobs:
       - name: Seed E2E test user via REST API
         working-directory: ./portfolio-manager
         run: |
-          # Wait for Flyway migrations to complete (backend UP doesn't guarantee migrations done)
-          echo "Waiting for Flyway migrations..."
-          for i in {1..60}; do
-            health=$(curl -s http://localhost:10000/actuator/health)
-            echo "Health check attempt $i: $health"
-            if echo "$health" | grep -q '"status":"UP"'; then
-              echo "Backend UP, checking if tables exist..."
-              # Additional check - try a simple query that requires tables
+          # Wait for readiness probe (includes Flyway migrations) then seed user
+          for i in {1..30}; do
+            if curl -s http://localhost:10000/actuator/health/readiness | grep -q '"status":"UP"'; then
               if curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:10000/api/auth/register \
                 -H "Content-Type: application/json" \
                 -d '{"username":"analyst","email":"analyst@firma.com","password":"TestPass123!"}' | grep -qE '^(200|201|409)$'; then
                 echo "Test user seeded/already exists"
                 break
-              else
-                echo "Tables not ready yet, waiting..."
               fi
             fi
-            if [ $i -eq 60 ]; then
-              echo "Failed to seed user after 120 seconds"
-              echo "Backend log:"
-              cat backend.log
+            if [ $i -eq 30 ]; then
+              echo "Failed to seed user after 60 seconds"
               exit 1
             fi
             sleep 2

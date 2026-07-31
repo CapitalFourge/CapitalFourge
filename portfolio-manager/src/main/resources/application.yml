@@ -26,7 +26,6 @@ spring:
     locations: classpath:db/migration
     validate-on-migrate: false
     out-of-order: true
-    ignore-migration-patterns: "*:missing"
 
   jpa:
     hibernate:

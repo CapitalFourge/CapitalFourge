@@ -234,7 +234,7 @@ jobs:
             JWT_SECRET="test-secret-key-for-unit-tests-only-32chars!!"
           fi
           mvn spring-boot:run \
-            -Dspring-boot.run.jvmArguments="-Xmx512m" \
+            -Dspring-boot.run.jvmArguments="-Xms64m -Xmx512m -XX:MaxRAMPercentage=80.0 -XX:+UseZGC -XX:MaxMetaspaceSize=256m -XX:CompressedClassSpaceSize=64m" \
             -DDB_HOST=localhost \
             -DDB_PORT=5433 \
             -DDB_NAME=finsight_db \
@@ -249,10 +249,10 @@ jobs:
             -Dserver.port=10000 \
             > backend.log 2>&1 &
           echo $! > backend.pid
-          # Wait for backend to be ready - use readiness probe which waits for Flyway migrations
+          # Wait for backend to be ready - readiness probe (no Flyway)
           for i in {1..120}; do
             if curl -s http://localhost:10000/actuator/health/readiness | grep -q '"status":"UP"'; then
-              echo "Backend is READY (migrations complete)"
+              echo "Backend is READY"
               break
             fi
             if [ $i -eq 120 ]; then
@@ -266,7 +266,7 @@ jobs:
       - name: Seed E2E test user via REST API
         working-directory: ./portfolio-manager
         run: |
-          # Wait for readiness probe (includes Flyway migrations) then seed user
+          # Wait for readiness probe then seed user
           for i in {1..30}; do
             if curl -s http://localhost:10000/actuator/health/readiness | grep -q '"status":"UP"'; then
               if curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:10000/api/auth/register \

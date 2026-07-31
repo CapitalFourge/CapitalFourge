@@ -266,13 +266,20 @@ jobs:
       - name: Seed E2E test user via REST API
         working-directory: ./portfolio-manager
         run: |
-          # Register test user via REST API (idempotent)
+          # Wait for Flyway migrations to complete (backend UP doesn't guarantee migrations done)
           for i in {1..30}; do
-            if curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:10000/api/auth/register \
-              -H "Content-Type: application/json" \
-              -d '{"username":"analyst","email":"analyst@firma.com","password":"TestPass123!"}' | grep -qE '^(200|201|409)$'; then
-              echo "Test user seeded/already exists"
-              break
+            if curl -s http://localhost:10000/actuator/health | grep -q '"status":"UP"'; then
+              # Additional check - try a simple query that requires tables
+              if curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:10000/api/auth/register \
+                -H "Content-Type: application/json" \
+                -d '{"username":"analyst","email":"analyst@firma.com","password":"TestPass123!"}' | grep -qE '^(200|201|409)$'; then
+                echo "Test user seeded/already exists"
+                break
+              fi
+            fi
+            if [ $i -eq 30 ]; then
+              echo "Failed to seed user after 60 seconds"
+              exit 1
             fi
             sleep 2
           done

@@ -3,7 +3,7 @@ services:
     name: portfolio-manager
     env: docker
     dockerfilePath: ./portfolio-manager/Dockerfile
-    dockerContext: ./portfolio-manager
+    dockerContext: .
     plan: free
     region: oregon
     healthCheckPath: /actuator/health/readiness

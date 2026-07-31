@@ -43,3 +43,18 @@ CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_portfolios_user ON portfolios(user_id);
 CREATE INDEX IF NOT EXISTS idx_positions_portfolio ON positions(portfolio_id);
 CREATE INDEX IF NOT EXISTS idx_positions_symbol ON positions(symbol);
+
+CREATE TABLE IF NOT EXISTS transactions (
+    id UUID PRIMARY KEY,
+    portfolio_id UUID NOT NULL,
+    type VARCHAR(20) NOT NULL,
+    symbol VARCHAR(20) NOT NULL,
+    quantity DECIMAL(20, 8) NOT NULL,
+    price DECIMAL(20, 8) NOT NULL,
+    balance_transaction DECIMAL(20, 8) NOT NULL,
+    timestamp TIMESTAMP NOT NULL,
+    CONSTRAINT fk_transactions_portfolio FOREIGN KEY (portfolio_id) REFERENCES portfolios(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_transactions_portfolio ON transactions(portfolio_id);
+CREATE INDEX IF NOT EXISTS idx_transactions_timestamp ON transactions(timestamp);

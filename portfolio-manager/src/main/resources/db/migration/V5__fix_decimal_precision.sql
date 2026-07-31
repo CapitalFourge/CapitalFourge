@@ -4,6 +4,7 @@
 ALTER TABLE positions ALTER COLUMN quantity TYPE DECIMAL(20, 8);
 ALTER TABLE positions ALTER COLUMN average_purchase_price TYPE DECIMAL(20, 8);
 ALTER TABLE positions ALTER COLUMN current_price TYPE DECIMAL(20, 8);
+ALTER TABLE positions ALTER COLUMN locked_quantity TYPE DECIMAL(20, 8);
 
 -- Transactions table
 ALTER TABLE transactions ALTER COLUMN quantity TYPE DECIMAL(20, 8);

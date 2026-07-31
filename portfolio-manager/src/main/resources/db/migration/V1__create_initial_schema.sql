@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS positions (
     symbol VARCHAR(20) NOT NULL,
     quantity DECIMAL(20, 8) NOT NULL,
     average_purchase_price DECIMAL(20, 8) NOT NULL,
+    current_price DECIMAL(20, 8) NOT NULL DEFAULT 0,
     locked_quantity DECIMAL(20, 8) NOT NULL DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

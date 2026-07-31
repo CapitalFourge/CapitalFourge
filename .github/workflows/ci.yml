@@ -250,13 +250,7 @@ jobs:
             > backend.log 2>&1 &
           echo $! > backend.pid
 
-      - name: Start data-collector mock
-        run: |
-          python3 .github/scripts/health_mock.py &
-          echo "Data collector mock running on 8000 (responds to /health)"
-          sleep 2
-
-      # Wait for backend to be ready - readiness probe (no Flyway)
+      # Wait for backend to be ready - readiness probe (no Flyway, no data-collector health check in CI)
       - name: Wait for backend readiness
         working-directory: ./portfolio-manager
         run: |

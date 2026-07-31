@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -27,6 +28,7 @@ public class HealthConfig {
     }
 
     @Bean
+    @ConditionalOnProperty(name = "spring.data-collector.health-check.enabled", havingValue = "true", matchIfMissing = false)
     public HealthIndicator dataCollectorHealthIndicator(
             @Value("${spring.data-collector.base-url}") String baseUrl,
             @Value("${spring.data-collector.api-key}") String apiKey,

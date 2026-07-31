@@ -64,9 +64,38 @@ async function login(page: import('@playwright/test').Page) {
     console.log('Register attempt failed (user may exist):', e);
   }
   
+  // Debug: check if login endpoint works directly
+  try {
+    const loginResponse = await page.request.post(`${apiBaseUrl}/api/auth/login`, {
+      data: {
+        email: TEST_USER.email,
+        password: TEST_USER.password
+      }
+    });
+    console.log('Direct login API response:', loginResponse.status());
+    const body = await loginResponse.text();
+    console.log('Login response body:', body);
+  } catch (e) {
+    console.log('Direct login API failed:', e);
+  }
+  
   await fill(page, page.locator('input[type="email"]'), TEST_USER.email);
   await fill(page, page.locator('input[type="password"]'), TEST_USER.password);
-  await click(page, page.locator('button:has-text("Ingresar")'));
+  
+  // Wait for any network requests to complete after click
+  const [response] = await Promise.all([
+    page.waitForResponse(r => r.url().includes('/api/auth/login')),
+    click(page, page.locator('button:has-text("Ingresar")'))
+  ]);
+  console.log('Login form submit response:', response.status());
+  const respBody = await response.text();
+  console.log('Login form submit body:', respBody);
+  
+  // Check for error messages on page
+  const errorToast = page.locator('[role="alert"], .sonner-toast, [data-sonner-toast], .toast-error').first();
+  if (await errorToast.isVisible({ timeout: 3000 }).catch(() => false)) {
+    console.log('Error toast visible:', await errorToast.textContent());
+  }
   
   // Wait for navigation with longer timeout and better condition
   await page.waitForURL('**/dashboard', { timeout: 30000 });

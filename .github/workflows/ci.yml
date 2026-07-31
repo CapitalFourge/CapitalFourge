@@ -252,9 +252,8 @@ jobs:
 
       - name: Start data-collector mock
         run: |
-          python3 -m http.server 8000 --directory /tmp &
-          echo "Data collector mock running on 8000"
-          # Give it a moment to start
+          python3 .github/scripts/health_mock.py &
+          echo "Data collector mock running on 8000 (responds to /health)"
           sleep 2
 
       # Wait for backend to be ready - readiness probe (no Flyway)

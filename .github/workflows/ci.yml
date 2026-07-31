@@ -267,18 +267,26 @@ jobs:
         working-directory: ./portfolio-manager
         run: |
           # Wait for Flyway migrations to complete (backend UP doesn't guarantee migrations done)
-          for i in {1..30}; do
-            if curl -s http://localhost:10000/actuator/health | grep -q '"status":"UP"'; then
+          echo "Waiting for Flyway migrations..."
+          for i in {1..60}; do
+            health=$(curl -s http://localhost:10000/actuator/health)
+            echo "Health check attempt $i: $health"
+            if echo "$health" | grep -q '"status":"UP"'; then
+              echo "Backend UP, checking if tables exist..."
               # Additional check - try a simple query that requires tables
               if curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:10000/api/auth/register \
                 -H "Content-Type: application/json" \
                 -d '{"username":"analyst","email":"analyst@firma.com","password":"TestPass123!"}' | grep -qE '^(200|201|409)$'; then
                 echo "Test user seeded/already exists"
                 break
+              else
+                echo "Tables not ready yet, waiting..."
               fi
             fi
-            if [ $i -eq 30 ]; then
-              echo "Failed to seed user after 60 seconds"
+            if [ $i -eq 60 ]; then
+              echo "Failed to seed user after 120 seconds"
+              echo "Backend log:"
+              cat backend.log
               exit 1
             fi
             sleep 2

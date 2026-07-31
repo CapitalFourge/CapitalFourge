@@ -20,13 +20,6 @@ spring:
         prepareThreshold: 0
         useServerPrepStmts: false
 
-  flyway:
-    baseline-on-migrate: true
-    baseline-version: 0
-    locations: classpath:db/migration
-    validate-on-migrate: false
-    out-of-order: true
-
   jpa:
     hibernate:
       ddl-auto: update

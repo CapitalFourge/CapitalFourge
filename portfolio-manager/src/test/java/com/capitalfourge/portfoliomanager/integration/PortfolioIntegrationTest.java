@@ -38,7 +38,8 @@ import com.capitalfourge.portfoliomanager.domain.User;
     "jwt.refresh-expiration-ms=604800000",
     "spring.profiles.active=test",
     "spring.datasource.driver-class-name=org.postgresql.Driver",
-    "spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect"
+    "spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect",
+    "spring.jpa.hibernate.ddl-auto=create-drop"
 })
 class PortfolioIntegrationTest {
 

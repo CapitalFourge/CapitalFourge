@@ -14,6 +14,9 @@ spring:
     url: ""
     listener:
       enabled: false
+  # Disable Flyway in tests (use Hibernate ddl-auto)
+  flyway:
+    enabled: false
 
 # JWT config for tests
 jwt:

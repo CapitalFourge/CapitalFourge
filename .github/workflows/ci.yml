@@ -249,7 +249,18 @@ jobs:
             -Dserver.port=10000 \
             > backend.log 2>&1 &
           echo $! > backend.pid
-          # Wait for backend to be ready - readiness probe (no Flyway)
+
+      - name: Start data-collector mock
+        run: |
+          python3 -m http.server 8000 --directory /tmp &
+          echo "Data collector mock running on 8000"
+          # Give it a moment to start
+          sleep 2
+
+      # Wait for backend to be ready - readiness probe (no Flyway)
+      - name: Wait for backend readiness
+        working-directory: ./portfolio-manager
+        run: |
           for i in {1..120}; do
             if curl -s http://localhost:10000/actuator/health/readiness | grep -q '"status":"UP"'; then
               echo "Backend is READY"
@@ -282,11 +293,6 @@ jobs:
             fi
             sleep 2
           done
-
-      - name: Start data-collector mock
-        run: |
-          python3 -m http.server 8000 --directory /tmp &
-          echo "Data collector mock running on 8000"
 
       - name: Start frontend dev server
         working-directory: ./frontend

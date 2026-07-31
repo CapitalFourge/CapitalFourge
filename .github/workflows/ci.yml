@@ -234,7 +234,6 @@ jobs:
             JWT_SECRET="test-secret-key-for-unit-tests-only-32chars!!"
           fi
           mvn spring-boot:run \
-            -Dspring-boot.run.profiles=test \
             -Dspring-boot.run.jvmArguments="-Xmx512m" \
             -DDB_HOST=localhost \
             -DDB_PORT=5433 \

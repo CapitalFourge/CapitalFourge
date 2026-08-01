@@ -221,6 +221,26 @@ jobs:
           NEXT_PUBLIC_API_BASE_URL: http://localhost:10000
         run: pnpm build
 
+      # Start data-collector mock FIRST (port 8000) - needed by frontend environment check
+      - name: Start data-collector mock
+        run: |
+          python3 .github/scripts/data_collector_mock.py &
+          MOCK_PID=$!
+          echo $MOCK_PID > data_collector_mock.pid
+          sleep 3
+          echo "Testing mock health endpoint..."
+          for i in {1..5}; do
+            RESPONSE=$(curl -s http://localhost:8000/health 2>/dev/null || echo "")
+            echo "Attempt $i: $RESPONSE"
+            if echo "$RESPONSE" | grep -q '"status"[[:space:]]*:[[:space:]]*"healthy"'; then
+              echo "Mock health check OK"
+              break
+            fi
+            sleep 2
+          done
+          # Final verification
+          curl -s http://localhost:8000/health | grep -q '"status"[[:space:]]*:[[:space:]]*"healthy"' && echo "Mock health check OK" || (echo "Mock health check FAILED" && exit 1)
+
       - name: Start backend (Spring Boot)
         working-directory: ./portfolio-manager
         env:
@@ -266,26 +286,6 @@ jobs:
             fi
             sleep 5
           done
-
-      # Start data-collector mock for frontend environment check (port 8000)
-      - name: Start data-collector mock
-        run: |
-          python3 .github/scripts/data_collector_mock.py &
-          MOCK_PID=$!
-          echo $MOCK_PID > data_collector_mock.pid
-          sleep 3
-          echo "Testing mock health endpoint..."
-          for i in {1..5}; do
-            RESPONSE=$(curl -s http://localhost:8000/health 2>/dev/null || echo "")
-            echo "Attempt $i: $RESPONSE"
-            if echo "$RESPONSE" | grep -q '"status"[[:space:]]*:[[:space:]]*"healthy"'; then
-              echo "Mock health check OK"
-              break
-            fi
-            sleep 2
-          done
-          # Final verification
-          curl -s http://localhost:8000/health | grep -q '"status"[[:space:]]*:[[:space:]]*"healthy"' && echo "Mock health check OK" || (echo "Mock health check FAILED" && exit 1)
 
       - name: Seed E2E test user via REST API
         working-directory: ./portfolio-manager

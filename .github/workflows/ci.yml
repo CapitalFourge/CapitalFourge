@@ -209,8 +209,9 @@ jobs:
         options: >-
           --health-cmd "curl -f http://localhost:8000/health || exit 1"
           --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+          --health-timeout 10s
+          --health-retries 10
+          --health-start-period 30s
         volumes:
           - ${{ github.workspace }}/.github/scripts:/app
         command: python3 data_collector_mock.py

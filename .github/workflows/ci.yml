@@ -392,12 +392,12 @@ jobs:
             -H "Authorization: Bearer $TOKEN")
           echo "Portfolio after deposit: $PORTFOLIO_RESPONSE"
           
-          # Buy AAPL position with retry for optimistic lock - smaller quantity first
-          echo "Buying AAPL (1 share @ $150 = $150)..."
+          # Buy AAPL position with retry for optimistic lock - 10 shares to match test expectations
+          echo "Buying AAPL (10 shares @ $150 = $1500)..."
           for attempt in 1 2 3 4 5; do
             echo "Attempt $attempt/5: POST buy"
             HTTP_CODE=$(curl -s -w "%{http_code}" -o /tmp/buy.json -X POST \
-              "http://localhost:10000/api/portfolios/$PORTFOLIO_ID/trade/buy?symbol=AAPL&quantity=1&price=150" \
+              "http://localhost:10000/api/portfolios/$PORTFOLIO_ID/trade/buy?symbol=AAPL&quantity=10&price=150" \
               -H "Authorization: Bearer $TOKEN")
             BUY_RESPONSE=$(cat /tmp/buy.json 2>/dev/null || echo "")
             echo "HTTP Code: $HTTP_CODE"

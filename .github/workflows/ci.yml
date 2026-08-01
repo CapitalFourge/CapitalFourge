@@ -352,6 +352,11 @@ jobs:
                 continue
               fi
               echo "Deposit successful"
+              # Check user cash balance after deposit
+              echo "Checking user cash balance after deposit..."
+              BALANCE_RESPONSE=$(curl -s -X GET "http://localhost:10000/api/portfolios/$PORTFOLIO_ID" \
+                -H "Authorization: Bearer $TOKEN")
+              echo "Portfolio after deposit: $BALANCE_RESPONSE"
               break
             else
               ERROR_MSG=$(echo "$DEPOSIT_RESPONSE" | jq -r '.message // .error // empty' 2>/dev/null || echo "")
@@ -370,12 +375,12 @@ jobs:
             fi
           done
           
-          # Buy AAPL position with retry for optimistic lock
-          echo "Buying AAPL..."
+          # Buy AAPL position with retry for optimistic lock - smaller quantity first
+          echo "Buying AAPL (1 share @ $150 = $150)..."
           for attempt in 1 2 3 4 5; do
             echo "Attempt $attempt/5: POST buy"
             HTTP_CODE=$(curl -s -w "%{http_code}" -o /tmp/buy.json -X POST \
-              "http://localhost:10000/api/portfolios/$PORTFOLIO_ID/trade/buy?symbol=AAPL&quantity=10&price=150" \
+              "http://localhost:10000/api/portfolios/$PORTFOLIO_ID/trade/buy?symbol=AAPL&quantity=1&price=150" \
               -H "Authorization: Bearer $TOKEN")
             BUY_RESPONSE=$(cat /tmp/buy.json 2>/dev/null || echo "")
             echo "HTTP Code: $HTTP_CODE"

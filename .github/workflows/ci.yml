@@ -201,6 +201,19 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+      # Data collector mock as persistent service
+      data-collector-mock:
+        image: python:3.11-alpine
+        ports:
+          - 8000:8000
+        options: >-
+          --health-cmd "wget -qO- http://localhost:8000/health || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        volumes:
+          - .github/scripts:/app
+        command: python3 data_collector_mock.py
 
     steps:
       - name: Checkout code
@@ -228,26 +241,6 @@ jobs:
         env:
           NEXT_PUBLIC_API_BASE_URL: http://localhost:10000
         run: pnpm build
-
-      # Start data-collector mock FIRST (port 8000) - needed by frontend environment check
-      - name: Start data-collector mock
-        run: |
-          python3 .github/scripts/data_collector_mock.py &
-          MOCK_PID=$!
-          echo $MOCK_PID > data_collector_mock.pid
-          sleep 3
-          echo "Testing mock health endpoint..."
-          for i in {1..5}; do
-            RESPONSE=$(curl -s http://localhost:8000/health 2>/dev/null || echo "")
-            echo "Attempt $i: $RESPONSE"
-            if echo "$RESPONSE" | grep -q '"status"[[:space:]]*:[[:space:]]*"healthy"'; then
-              echo "Mock health check OK"
-              break
-            fi
-            sleep 2
-          done
-          # Final verification
-          curl -s http://localhost:8000/health | grep -q '"status"[[:space:]]*:[[:space:]]*"healthy"' && echo "Mock health check OK" || (echo "Mock health check FAILED" && exit 1)
 
       - name: Start backend (Spring Boot)
         working-directory: ./portfolio-manager
@@ -467,20 +460,6 @@ jobs:
           
           echo "=== E2E TEST DATA SEEDED SUCCESSFULLY ==="
 
-      - name: Verify data-collector mock still alive
-        run: |
-          echo "Verifying data-collector mock before frontend..."
-          for i in {1..5}; do
-            RESPONSE=$(curl -s http://localhost:8000/health 2>/dev/null || echo "")
-            echo "Verification $i: $RESPONSE"
-            if echo "$RESPONSE" | grep -q '"status"[[:space:]]*:[[:space:]]*"healthy"'; then
-              echo "Mock is alive and healthy"
-              break
-            fi
-            sleep 2
-          done
-          curl -s http://localhost:8000/health | grep -q '"status"[[:space:]]*:[[:space:]]*"healthy"' || (echo "Mock died!" && exit 1)
-
       - name: Start frontend dev server
         working-directory: ./frontend
         env:
@@ -523,7 +502,6 @@ jobs:
         if: always()
         run: |
           if [ -f portfolio-manager/backend.pid ]; then kill $(cat portfolio-manager/backend.pid) 2>/dev/null || true; fi
-          if [ -f data_collector_mock.pid ]; then kill $(cat data_collector_mock.pid) 2>/dev/null || true; fi
 
       - name: Kill frontend
         if: always()

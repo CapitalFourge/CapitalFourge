@@ -1,0 +1,5 @@
+FROM python:3.11-alpine
+WORKDIR /app
+COPY data_collector_mock.py .
+EXPOSE 8000
+CMD ["python3", "data_collector_mock.py"]

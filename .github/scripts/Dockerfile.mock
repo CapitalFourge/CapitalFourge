@@ -1,5 +1,12 @@
-FROM python:3.11-alpine
+FROM python:3.11-slim
+
 WORKDIR /app
+
 COPY data_collector_mock.py .
+
 EXPOSE 8000
+
+HEALTHCHECK --interval=10s --timeout=5s --start-period=10s --retries=5 \
+    CMD wget -qO- http://localhost:8000/health || exit 1
+
 CMD ["python3", "data_collector_mock.py"]

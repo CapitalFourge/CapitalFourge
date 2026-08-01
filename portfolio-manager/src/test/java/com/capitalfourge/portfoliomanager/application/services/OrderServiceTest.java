@@ -100,6 +100,7 @@ class OrderServiceTest {
                 when(orderRepository.findById(any())).thenReturn(Optional.of(order));
                 when(portfolioRepository.findById(any())).thenReturn(Optional.of(portfolio));
                 when(userRepository.findById(any())).thenReturn(Optional.of(user));
+                when(orderRepository.save(any())).thenAnswer(i -> i.getArguments()[0]);
                 user.setCashBalance(new BigDecimal("850"));
                 user.setLockedBalance(new BigDecimal("150"));
 

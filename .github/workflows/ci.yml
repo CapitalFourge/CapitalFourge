@@ -305,56 +305,6 @@ jobs:
           set -e
           echo "=== SEED E2E TEST DATA START ==="
           
-          # Helper: retry curl with optimistic lock handling
-          curl_with_retry() {
-            local max_attempts=5
-            local attempt=1
-            local url="$1"
-            shift
-            local args=("$@")
-            
-            while [ $attempt -le $max_attempts ]; do
-              echo "Attempt $attempt/$max_attempts: POST $url"
-              # Use -w to get HTTP code, -o for body
-              HTTP_CODE=$(curl -s -w "%{http_code}" -o /tmp/response.json -X POST "$url" "${args[@]}")
-              RESPONSE=$(cat /tmp/response.json 2>/dev/null || echo "")
-              
-              echo "HTTP Code: $HTTP_CODE"
-              echo "Response: $RESPONSE"
-              
-              # Success on 2xx
-              if [[ "$HTTP_CODE" =~ ^2[0-9][0-9]$ ]]; then
-                # Check for optimistic lock error in response body
-                ERROR_MSG=$(echo "$RESPONSE" | jq -r '.message // .error // empty' 2>/dev/null || echo "")
-                if echo "$ERROR_MSG" | grep -qi "optimistic\|version\|Row was updated"; then
-                  echo "Attempt $attempt: Optimistic lock conflict in 2xx response, retrying in 2s... ($ERROR_MSG)"
-                  sleep 2
-                  attempt=$((attempt + 1))
-                  continue
-                fi
-                echo "$RESPONSE"
-                return 0
-              fi
-              
-              # Error - check if optimistic lock
-              ERROR_MSG=$(echo "$RESPONSE" | jq -r '.message // .error // empty' 2>/dev/null || echo "")
-              if echo "$ERROR_MSG" | grep -qi "optimistic\|version\|Row was updated"; then
-                echo "Attempt $attempt: Optimistic lock conflict (HTTP $HTTP_CODE), retrying in 2s... ($ERROR_MSG)"
-                sleep 2
-                attempt=$((attempt + 1))
-                continue
-              fi
-              
-              # Other error - don't retry
-              echo "ERROR: HTTP $HTTP_CODE - $ERROR_MSG"
-              return 1
-            done
-            
-            echo "ERROR: Failed after $max_attempts attempts due to optimistic lock"
-            echo "Last response: $RESPONSE"
-            return 1
-          }
-          
           # Login to get token
           echo "Attempting login..."
           LOGIN_RESPONSE=$(curl -s -X POST http://localhost:10000/api/auth/login \
@@ -383,27 +333,79 @@ jobs:
           fi
           echo "Portfolio ID: $PORTFOLIO_ID"
           
-          # Deposit cash (uses @RequestParam) - with retry for optimistic lock
+          # Deposit cash with retry for optimistic lock
           echo "Depositing cash..."
-          DEPOSIT_RESPONSE=$(curl_with_retry "http://localhost:10000/api/portfolios/$PORTFOLIO_ID/cash/deposit?amount=10000" \
-            -H "Authorization: Bearer $TOKEN")
-          echo "Deposit response: $DEPOSIT_RESPONSE"
-          DEPOSIT_ERROR=$(echo "$DEPOSIT_RESPONSE" | jq -r '.message // .error // empty' 2>/dev/null || echo "")
-          if [ -n "$DEPOSIT_ERROR" ] && [ "$DEPOSIT_ERROR" != "null" ]; then
-            echo "ERROR: Deposit failed: $DEPOSIT_ERROR"
-            exit 1
-          fi
+          for attempt in 1 2 3 4 5; do
+            echo "Attempt $attempt/5: POST deposit"
+            HTTP_CODE=$(curl -s -w "%{http_code}" -o /tmp/deposit.json -X POST \
+              "http://localhost:10000/api/portfolios/$PORTFOLIO_ID/cash/deposit?amount=10000" \
+              -H "Authorization: Bearer $TOKEN")
+            DEPOSIT_RESPONSE=$(cat /tmp/deposit.json 2>/dev/null || echo "")
+            echo "HTTP Code: $HTTP_CODE"
+            echo "Response: $DEPOSIT_RESPONSE"
+            
+            if [[ "$HTTP_CODE" =~ ^2[0-9][0-9]$ ]]; then
+              ERROR_MSG=$(echo "$DEPOSIT_RESPONSE" | jq -r '.message // .error // empty' 2>/dev/null || echo "")
+              if echo "$ERROR_MSG" | grep -qi "optimistic\|version\|Row was updated"; then
+                echo "Optimistic lock conflict, retrying in 2s..."
+                sleep 2
+                continue
+              fi
+              echo "Deposit successful"
+              break
+            else
+              ERROR_MSG=$(echo "$DEPOSIT_RESPONSE" | jq -r '.message // .error // empty' 2>/dev/null || echo "")
+              if echo "$ERROR_MSG" | grep -qi "optimistic\|version\|Row was updated"; then
+                echo "Optimistic lock conflict (HTTP $HTTP_CODE), retrying in 2s..."
+                sleep 2
+                continue
+              fi
+              echo "ERROR: HTTP $HTTP_CODE - $ERROR_MSG"
+              exit 1
+            fi
+            
+            if [ $attempt -eq 5 ]; then
+              echo "ERROR: Failed after 5 attempts"
+              exit 1
+            fi
+          done
           
-          # Buy AAPL position (uses @RequestParam) - with retry for optimistic lock
+          # Buy AAPL position with retry for optimistic lock
           echo "Buying AAPL..."
-          BUY_RESPONSE=$(curl_with_retry "http://localhost:10000/api/portfolios/$PORTFOLIO_ID/trade/buy?symbol=AAPL&quantity=10&price=150" \
-            -H "Authorization: Bearer $TOKEN")
-          echo "Buy AAPL response: $BUY_RESPONSE"
-          BUY_ERROR=$(echo "$BUY_RESPONSE" | jq -r '.message // .error // empty' 2>/dev/null || echo "")
-          if [ -n "$BUY_ERROR" ] && [ "$BUY_ERROR" != "null" ]; then
-            echo "ERROR: Buy failed: $BUY_ERROR"
-            exit 1
-          fi
+          for attempt in 1 2 3 4 5; do
+            echo "Attempt $attempt/5: POST buy"
+            HTTP_CODE=$(curl -s -w "%{http_code}" -o /tmp/buy.json -X POST \
+              "http://localhost:10000/api/portfolios/$PORTFOLIO_ID/trade/buy?symbol=AAPL&quantity=10&price=150" \
+              -H "Authorization: Bearer $TOKEN")
+            BUY_RESPONSE=$(cat /tmp/buy.json 2>/dev/null || echo "")
+            echo "HTTP Code: $HTTP_CODE"
+            echo "Response: $BUY_RESPONSE"
+            
+            if [[ "$HTTP_CODE" =~ ^2[0-9][0-9]$ ]]; then
+              ERROR_MSG=$(echo "$BUY_RESPONSE" | jq -r '.message // .error // empty' 2>/dev/null || echo "")
+              if echo "$ERROR_MSG" | grep -qi "optimistic\|version\|Row was updated"; then
+                echo "Optimistic lock conflict, retrying in 2s..."
+                sleep 2
+                continue
+              fi
+              echo "Buy successful"
+              break
+            else
+              ERROR_MSG=$(echo "$BUY_RESPONSE" | jq -r '.message // .error // empty' 2>/dev/null || echo "")
+              if echo "$ERROR_MSG" | grep -qi "optimistic\|version\|Row was updated"; then
+                echo "Optimistic lock conflict (HTTP $HTTP_CODE), retrying in 2s..."
+                sleep 2
+                continue
+              fi
+              echo "ERROR: HTTP $HTTP_CODE - $ERROR_MSG"
+              exit 1
+            fi
+            
+            if [ $attempt -eq 5 ]; then
+              echo "ERROR: Failed after 5 attempts"
+              exit 1
+            fi
+          done
           
           echo "=== E2E TEST DATA SEEDED SUCCESSFULLY ==="
 

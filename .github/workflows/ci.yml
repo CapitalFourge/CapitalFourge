@@ -213,7 +213,7 @@ jobs:
           --health-retries 10
           --health-start-period 10s
         volumes:
-          - ${{ github.workspace }}/.github/scripts/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+          - ${{ github.workspace }}/.github/scripts/nginx.conf:/etc/nginx/conf.d/health.conf:ro
 
     steps:
       - name: Checkout code

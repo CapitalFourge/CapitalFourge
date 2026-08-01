@@ -459,6 +459,20 @@ jobs:
           
           echo "=== E2E TEST DATA SEEDED SUCCESSFULLY ==="
 
+      - name: Verify data-collector mock still alive
+        run: |
+          echo "Verifying data-collector mock before frontend..."
+          for i in {1..5}; do
+            RESPONSE=$(curl -s http://localhost:8000/health 2>/dev/null || echo "")
+            echo "Verification $i: $RESPONSE"
+            if echo "$RESPONSE" | grep -q '"status"[[:space:]]*:[[:space:]]*"healthy"'; then
+              echo "Mock is alive and healthy"
+              break
+            fi
+            sleep 2
+          done
+          curl -s http://localhost:8000/health | grep -q '"status"[[:space:]]*:[[:space:]]*"healthy"' || (echo "Mock died!" && exit 1)
+
       - name: Start frontend dev server
         working-directory: ./frontend
         env:

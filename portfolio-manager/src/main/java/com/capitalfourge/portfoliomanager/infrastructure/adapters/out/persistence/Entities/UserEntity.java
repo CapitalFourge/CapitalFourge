@@ -63,7 +63,8 @@ public class UserEntity {
     private boolean showWelcome = true;
 
     @Version
-    private Long version;
+    @Builder.Default
+    private Long version = 0L;
 
     @PrePersist
     protected void onCreate() {

@@ -302,14 +302,15 @@ jobs:
         env:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
         run: |
+          set -e  # Exit on any error
           # Login to get token
           LOGIN_RESPONSE=$(curl -s -X POST http://localhost:10000/api/auth/login \
             -H "Content-Type: application/json" \
             -d '{"email":"analyst@firma.com","password":"TestPass123!"}')
-          TOKEN=$(echo "$LOGIN_RESPONSE" | jq -r '.accessToken // .token // empty')
           echo "Login response: $LOGIN_RESPONSE"
+          TOKEN=$(echo "$LOGIN_RESPONSE" | jq -r '.token // empty')
           if [ -z "$TOKEN" ] || [ "$TOKEN" = "null" ]; then
-            echo "Failed to get auth token"
+            echo "Failed to get auth token from login response"
             exit 1
           fi
           echo "Got token: ${TOKEN:0:20}..."
@@ -319,7 +320,7 @@ jobs:
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer $TOKEN" \
             -d '{"name":"Test E2E Portfolio","description":"E2E Test Portfolio"}')
-          echo "Portfolio create: $PORTFOLIO_RESPONSE"
+          echo "Portfolio create response: $PORTFOLIO_RESPONSE"
           PORTFOLIO_ID=$(echo "$PORTFOLIO_RESPONSE" | jq -r '.id // empty')
           if [ -z "$PORTFOLIO_ID" ] || [ "$PORTFOLIO_ID" = "null" ]; then
             echo "Failed to create portfolio"
@@ -330,12 +331,23 @@ jobs:
           # Deposit cash (uses @RequestParam)
           DEPOSIT_RESPONSE=$(curl -s -X POST "http://localhost:10000/api/portfolios/$PORTFOLIO_ID/cash/deposit?amount=10000" \
             -H "Authorization: Bearer $TOKEN")
-          echo "Deposit: $DEPOSIT_RESPONSE"
+          echo "Deposit response: $DEPOSIT_RESPONSE"
+          # Check for error
+          DEPOSIT_ERROR=$(echo "$DEPOSIT_RESPONSE" | jq -r '.message // .error // empty')
+          if [ -n "$DEPOSIT_ERROR" ] && [ "$DEPOSIT_ERROR" != "null" ]; then
+            echo "Deposit failed: $DEPOSIT_ERROR"
+            exit 1
+          fi
           
           # Buy AAPL position (uses @RequestParam)
           BUY_RESPONSE=$(curl -s -X POST "http://localhost:10000/api/portfolios/$PORTFOLIO_ID/trade/buy?symbol=AAPL&quantity=10&price=150" \
             -H "Authorization: Bearer $TOKEN")
-          echo "Buy AAPL: $BUY_RESPONSE"
+          echo "Buy AAPL response: $BUY_RESPONSE"
+          BUY_ERROR=$(echo "$BUY_RESPONSE" | jq -r '.message // .error // empty')
+          if [ -n "$BUY_ERROR" ] && [ "$BUY_ERROR" != "null" ]; then
+            echo "Buy failed: $BUY_ERROR"
+            exit 1
+          fi
           
           echo "E2E test data seeded successfully"
 

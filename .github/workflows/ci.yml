@@ -201,19 +201,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-      # Data collector mock as persistent service - use nginx as simple health endpoint
-      data-collector-mock:
-        image: nginx:alpine
-        ports:
-          - 8000:80
-        options: >-
-          --health-cmd "curl -f http://localhost/health || exit 1"
-          --health-interval 10s
-          --health-timeout 10s
-          --health-retries 10
-          --health-start-period 10s
-        volumes:
-          - ${{ github.workspace }}/.github/scripts/nginx.conf:/etc/nginx/conf.d/health.conf:ro
 
     steps:
       - name: Checkout code
@@ -241,6 +228,24 @@ jobs:
         env:
           NEXT_PUBLIC_API_BASE_URL: http://localhost:10000
         run: pnpm build
+
+      # Start data-collector mock (port 8000) - needed by frontend environment check
+      - name: Start data-collector mock
+        run: |
+          docker run -d --name data-collector-mock \
+            -p 8000:8000 \
+            --network github_network \
+            -v ${{ github.workspace }}/.github/scripts:/app \
+            python:3.11-bullseye \
+            python3 /app/data_collector_mock.py
+          # Wait for mock to be ready
+          for i in {1..30}; do
+            if curl -sf http://localhost:8000/health | grep -q healthy; then
+              echo "Data collector mock ready"
+              break
+            fi
+            sleep 2
+          done
 
       - name: Start backend (Spring Boot)
         working-directory: ./portfolio-manager
@@ -502,6 +507,8 @@ jobs:
         if: always()
         run: |
           if [ -f portfolio-manager/backend.pid ]; then kill $(cat portfolio-manager/backend.pid) 2>/dev/null || true; fi
+          docker stop data-collector-mock 2>/dev/null || true
+          docker rm data-collector-mock 2>/dev/null || true
 
       - name: Kill frontend
         if: always()

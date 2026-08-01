@@ -91,6 +91,14 @@ jobs:
           REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
           JWT_SECRET: ${{ env.JWT_SECRET }}
         run: |
+          # Retry Maven dependency resolution to handle 429 rate limits
+          for i in {1..3}; do
+            echo "Maven attempt $i/3..."
+            mvn -B dependency:go-offline -q && break
+            echo "Dependency resolution failed, retrying in 30s..."
+            sleep 30
+          done
+          
           mvn -B clean test \
             -Dspring.profiles.active=test \
             -DDB_HOST=${{ env.DB_HOST }} \

@@ -333,6 +333,12 @@ jobs:
           fi
           echo "Portfolio ID: $PORTFOLIO_ID"
           
+          # Check user cash balance BEFORE deposit
+          echo "Checking user cash balance BEFORE deposit..."
+          USER_RESPONSE=$(curl -s -X GET "http://localhost:10000/api/users/me" \
+            -H "Authorization: Bearer $TOKEN")
+          echo "User before deposit: $USER_RESPONSE"
+          
           # Deposit cash with retry for optimistic lock
           echo "Depositing cash..."
           for attempt in 1 2 3 4 5; do
@@ -352,11 +358,6 @@ jobs:
                 continue
               fi
               echo "Deposit successful"
-              # Check user cash balance after deposit
-              echo "Checking user cash balance after deposit..."
-              BALANCE_RESPONSE=$(curl -s -X GET "http://localhost:10000/api/portfolios/$PORTFOLIO_ID" \
-                -H "Authorization: Bearer $TOKEN")
-              echo "Portfolio after deposit: $BALANCE_RESPONSE"
               break
             else
               ERROR_MSG=$(echo "$DEPOSIT_RESPONSE" | jq -r '.message // .error // empty' 2>/dev/null || echo "")
@@ -374,6 +375,18 @@ jobs:
               exit 1
             fi
           done
+          
+          # Check user cash balance AFTER deposit
+          echo "Checking user cash balance AFTER deposit..."
+          USER_RESPONSE=$(curl -s -X GET "http://localhost:10000/api/users/me" \
+            -H "Authorization: Bearer $TOKEN")
+          echo "User after deposit: $USER_RESPONSE"
+          
+          # Also check portfolio
+          echo "Checking portfolio after deposit..."
+          PORTFOLIO_RESPONSE=$(curl -s -X GET "http://localhost:10000/api/portfolios/$PORTFOLIO_ID" \
+            -H "Authorization: Bearer $TOKEN")
+          echo "Portfolio after deposit: $PORTFOLIO_RESPONSE"
           
           # Buy AAPL position with retry for optimistic lock - smaller quantity first
           echo "Buying AAPL (1 share @ $150 = $150)..."

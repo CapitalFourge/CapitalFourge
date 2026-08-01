@@ -278,14 +278,14 @@ jobs:
           for i in {1..5}; do
             RESPONSE=$(curl -s http://localhost:8000/health 2>/dev/null || echo "")
             echo "Attempt $i: $RESPONSE"
-            if echo "$RESPONSE" | grep -q '"status":"healthy"'; then
+            if echo "$RESPONSE" | grep -q '"status"[[:space:]]*:[[:space:]]*"healthy"'; then
               echo "Mock health check OK"
               break
             fi
             sleep 2
           done
           # Final verification
-          curl -s http://localhost:8000/health | grep -q '"status":"healthy"' && echo "Mock health check OK" || (echo "Mock health check FAILED" && exit 1)
+          curl -s http://localhost:8000/health | grep -q '"status"[[:space:]]*:[[:space:]]*"healthy"' && echo "Mock health check OK" || (echo "Mock health check FAILED" && exit 1)
 
       - name: Seed E2E test user via REST API
         working-directory: ./portfolio-manager

@@ -436,6 +436,7 @@ jobs:
         env:
           NEXT_PUBLIC_API_BASE_URL: http://localhost:10000
         run: |
+          pnpm install --frozen-lockfile
           pnpm dev:3001 > frontend.log 2>&1 &
           echo $! > frontend.pid
           # Wait for frontend to be ready
@@ -449,11 +450,15 @@ jobs:
 
       - name: Install Playwright browsers
         working-directory: ./frontend
-        run: pnpm exec playwright install --with-deps chromium
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm exec playwright install --with-deps chromium
 
       - name: Run E2E tests
         working-directory: ./frontend
-        run: pnpm playwright test --reporter=line
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm playwright test --reporter=line
 
       - name: Upload Playwright artifacts
         if: always()

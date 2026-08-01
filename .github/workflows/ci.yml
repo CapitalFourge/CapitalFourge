@@ -233,8 +233,7 @@ jobs:
       - name: Start data-collector mock
         run: |
           docker run -d --name data-collector-mock \
-            -p 8000:8000 \
-            --network github_network \
+            --network host \
             -v ${{ github.workspace }}/.github/scripts:/app \
             python:3.11-bullseye \
             python3 /app/data_collector_mock.py

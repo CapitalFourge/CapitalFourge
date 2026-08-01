@@ -195,10 +195,19 @@ test.describe('Capital Fourge E2E Tests', () => {
     });
 
     await test.step('Verify Dashboard loads with non-zero data', async () => {
-      await expect(page.locator('h1, h2').filter({ hasText: /Hola|Welcome|testuser|Panel principal/i })).toBeVisible({ timeout: 10000 });
+      // Wait for dashboard to load - check for any dashboard indicator
+      await page.waitForURL('**/dashboard');
+      await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(1000);
+      
+      // Check for balance tiles with non-zero values
       await expect(page.locator('text=/Patrimonio|Total|Balance/i')).toBeVisible({ timeout: 10000 });
       const totalTile = page.locator('text=/Patrimonio|Total|Balance/i').locator('..').locator('..');
       await expect(totalTile).not.toContainText('$0.00');
+      
+      // Also verify cash and invested are visible
+      await expect(page.locator('text=/Caja disponible|Disponible|Cash|Available/i')).toBeVisible({ timeout: 5000 });
+      await expect(page.locator('text=/Capital invertido|Invertido|Invested/i')).toBeVisible({ timeout: 5000 });
     });
   });
 

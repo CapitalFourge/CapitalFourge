@@ -201,7 +201,7 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-      # Data collector mock as persistent service
+      # Data collector mock as persistent service (built and run in step)
       data-collector-mock:
         image: python:3.11-bullseye
         ports:

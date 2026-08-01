@@ -32,10 +32,18 @@ public class UserController {
             return ResponseEntity.status(401).build();
         }
 
-        String email = auth.getName();
-        log.info("GET /api/users/me - email: {}", email);
+        // Principal is UUID (userId) from JWT subject
+        UUID userId = null;
+        if (auth.getPrincipal() instanceof UUID) {
+            userId = (UUID) auth.getPrincipal();
+        } else {
+            log.warn("GET /api/users/me - principal is not UUID: {}", auth.getPrincipal().getClass());
+            return ResponseEntity.status(401).build();
+        }
+        
+        log.info("GET /api/users/me - userId: {}", userId);
 
-        return userUseCase.findByEmail(email)
+        return userUseCase.findById(userId)
                 .map(user -> ResponseEntity.ok(user))
                 .orElse(ResponseEntity.notFound().build());
     }

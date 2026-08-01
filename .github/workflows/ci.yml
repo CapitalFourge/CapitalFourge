@@ -273,11 +273,21 @@ jobs:
           # Wait for readiness probe then seed user
           for i in {1..30}; do
             if curl -s http://localhost:10000/actuator/health/readiness | grep -q '"status":"UP"'; then
-              if curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:10000/api/auth/register \
+              # Debug: show readiness details
+              curl -s http://localhost:10000/actuator/health/readiness | jq .
+              # Try to seed user with verbose output
+              HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:10000/api/auth/register \
                 -H "Content-Type: application/json" \
-                -d '{"username":"analyst","email":"analyst@firma.com","password":"TestPass123!"}' | grep -qE '^(200|201|409)$'; then
+                -d '{"username":"analyst","email":"analyst@firma.com","password":"TestPass123!"}')
+              echo "Register HTTP code: $HTTP_CODE"
+              if echo "$HTTP_CODE" | grep -qE '^(200|201|409)$'; then
                 echo "Test user seeded/already exists"
                 break
+              else
+                echo "Register failed with code $HTTP_CODE, response:"
+                curl -s -X POST http://localhost:10000/api/auth/register \
+                  -H "Content-Type: application/json" \
+                  -d '{"username":"analyst","email":"analyst@firma.com","password":"TestPass123!"}' | cat
               fi
             fi
             if [ $i -eq 30 ]; then

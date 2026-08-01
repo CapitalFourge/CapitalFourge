@@ -112,6 +112,7 @@ public class HealthConfig {
     }
 
     @Bean
+    @ConditionalOnProperty(name = "spring.data-collector.health-check.enabled", havingValue = "true", matchIfMissing = false)
     public HealthIndicator cacheMetricsHealthIndicator(GrpcFinancialDataClient client) {
         return () -> {
             // P2-16: Null check for metrics

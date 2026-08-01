@@ -267,6 +267,14 @@ jobs:
             sleep 5
           done
 
+      # Start data-collector mock for frontend environment check (port 8000)
+      - name: Start data-collector mock
+        run: |
+          python3 .github/scripts/data_collector_mock.py > /dev/null 2>&1 &
+          echo $! > data_collector_mock.pid
+          sleep 2
+          curl -s http://localhost:8000/health | grep -q healthy && echo "Mock health check OK" || echo "Mock health check FAILED"
+
       - name: Seed E2E test user via REST API
         working-directory: ./portfolio-manager
         run: |
@@ -473,6 +481,7 @@ jobs:
         if: always()
         run: |
           if [ -f portfolio-manager/backend.pid ]; then kill $(cat portfolio-manager/backend.pid) 2>/dev/null || true; fi
+          if [ -f data_collector_mock.pid ]; then kill $(cat data_collector_mock.pid) 2>/dev/null || true; fi
 
       - name: Kill frontend
         if: always()

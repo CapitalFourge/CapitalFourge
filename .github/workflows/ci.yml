@@ -327,17 +327,21 @@ jobs:
             -d '{"name":"Test E2E Portfolio","description":"E2E Test Portfolio"}')
           echo "Portfolio create response: $PORTFOLIO_RESPONSE"
           PORTFOLIO_ID=$(echo "$PORTFOLIO_RESPONSE" | jq -r '.id // empty')
+          PORTFOLIO_USER_ID=$(echo "$PORTFOLIO_RESPONSE" | jq -r '.userId // empty')
           if [ -z "$PORTFOLIO_ID" ] || [ "$PORTFOLIO_ID" = "null" ]; then
             echo "ERROR: Failed to create portfolio"
             exit 1
           fi
           echo "Portfolio ID: $PORTFOLIO_ID"
+          echo "Portfolio userId: $PORTFOLIO_USER_ID"
           
           # Check user cash balance BEFORE deposit
           echo "Checking user cash balance BEFORE deposit..."
           USER_RESPONSE=$(curl -s -X GET "http://localhost:10000/api/users/me" \
             -H "Authorization: Bearer $TOKEN")
           echo "User before deposit: $USER_RESPONSE"
+          USER_ID=$(echo "$USER_RESPONSE" | jq -r '.id // empty')
+          echo "User ID from /me: $USER_ID"
           
           # Deposit cash with retry for optimistic lock
           echo "Depositing cash..."

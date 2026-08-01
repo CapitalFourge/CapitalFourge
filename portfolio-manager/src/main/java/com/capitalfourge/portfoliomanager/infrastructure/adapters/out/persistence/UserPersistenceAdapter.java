@@ -94,7 +94,8 @@ public class UserPersistenceAdapter implements UserRepository {
         entity.setLockedBalance(domain.getLockedBalance());
         entity.setLanguage(domain.getLanguage());
         entity.setShowWelcome(domain.isShowWelcome());
-        entity.setVersion(domain.getVersion());
+        // Handle version: use domain version if present, otherwise 0L for new entities
+        entity.setVersion(domain.getVersion() != null ? domain.getVersion() : 0L);
         return entity;
     }
 

@@ -297,6 +297,52 @@ jobs:
             sleep 2
           done
 
+      - name: Seed E2E test data (portfolio, deposit, positions)
+        working-directory: ./portfolio-manager
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        run: |
+          # Login to get token
+          LOGIN_RESPONSE=$(curl -s -X POST http://localhost:10000/api/auth/login \
+            -H "Content-Type: application/json" \
+            -d '{"email":"analyst@firma.com","password":"TestPass123!"}')
+          TOKEN=$(echo "$LOGIN_RESPONSE" | jq -r '.accessToken // .token // empty')
+          echo "Login response: $LOGIN_RESPONSE"
+          if [ -z "$TOKEN" ] || [ "$TOKEN" = "null" ]; then
+            echo "Failed to get auth token"
+            exit 1
+          fi
+          echo "Got token: ${TOKEN:0:20}..."
+          
+          # Create portfolio
+          PORTFOLIO_RESPONSE=$(curl -s -X POST http://localhost:10000/api/portfolios \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $TOKEN" \
+            -d '{"name":"Test E2E Portfolio","description":"E2E Test Portfolio"}')
+          echo "Portfolio create: $PORTFOLIO_RESPONSE"
+          PORTFOLIO_ID=$(echo "$PORTFOLIO_RESPONSE" | jq -r '.id // empty')
+          if [ -z "$PORTFOLIO_ID" ] || [ "$PORTFOLIO_ID" = "null" ]; then
+            echo "Failed to create portfolio"
+            exit 1
+          fi
+          echo "Portfolio ID: $PORTFOLIO_ID"
+          
+          # Deposit cash
+          DEPOSIT_RESPONSE=$(curl -s -X POST http://localhost:10000/api/portfolios/$PORTFOLIO_ID/deposit \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $TOKEN" \
+            -d '{"amount":10000}')
+          echo "Deposit: $DEPOSIT_RESPONSE"
+          
+          # Buy AAPL position
+          BUY_RESPONSE=$(curl -s -X POST http://localhost:10000/api/portfolios/$PORTFOLIO_ID/positions \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $TOKEN" \
+            -d '{"symbol":"AAPL","quantity":10,"price":150}')
+          echo "Buy AAPL: $BUY_RESPONSE"
+          
+          echo "E2E test data seeded successfully"
+
       - name: Start frontend dev server
         working-directory: ./frontend
         env:

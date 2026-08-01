@@ -304,12 +304,41 @@ jobs:
         run: |
           set -e
           echo "=== SEED E2E TEST DATA START ==="
+          
+          # Helper: retry curl with optimistic lock handling
+          curl_with_retry() {
+            local max_attempts=5
+            local attempt=1
+            local url="$1"
+            shift
+            local args=("$@")
+            
+            while [ $attempt -le $max_attempts ]; do
+              RESPONSE=$(curl -s -X POST "$url" "${args[@]}")
+              HTTP_CODE=$(echo "$RESPONSE" | jq -r 'if type=="object" and has("status") then .status elif type=="object" and has("error") then 500 else 200 end')
+              ERROR_MSG=$(echo "$RESPONSE" | jq -r '.message // .error // empty')
+              
+              if echo "$ERROR_MSG" | grep -qi "optimistic\|version\|Row was updated"; then
+                echo "Attempt $attempt: Optimistic lock conflict, retrying in 2s... ($ERROR_MSG)"
+                sleep 2
+                attempt=$((attempt + 1))
+                continue
+              fi
+              
+              echo "$RESPONSE"
+              return 0
+            done
+            
+            echo "ERROR: Failed after $max_attempts attempts due to optimistic lock"
+            echo "Last response: $RESPONSE"
+            return 1
+          }
+          
           # Login to get token
           echo "Attempting login..."
           LOGIN_RESPONSE=$(curl -s -X POST http://localhost:10000/api/auth/login \
             -H "Content-Type: application/json" \
             -d '{"email":"analyst@firma.com","password":"TestPass123!"}')
-          echo "Login response status: $(echo "$LOGIN_RESPONSE" | jq -r 'if type=="object" then "JSON" else "NON-JSON" end')"
           echo "Login response: $LOGIN_RESPONSE"
           TOKEN=$(echo "$LOGIN_RESPONSE" | jq -r '.token // .accessToken // empty')
           if [ -z "$TOKEN" ] || [ "$TOKEN" = "null" ]; then
@@ -333,9 +362,9 @@ jobs:
           fi
           echo "Portfolio ID: $PORTFOLIO_ID"
           
-          # Deposit cash (uses @RequestParam)
+          # Deposit cash (uses @RequestParam) - with retry for optimistic lock
           echo "Depositing cash..."
-          DEPOSIT_RESPONSE=$(curl -s -X POST "http://localhost:10000/api/portfolios/$PORTFOLIO_ID/cash/deposit?amount=10000" \
+          DEPOSIT_RESPONSE=$(curl_with_retry "http://localhost:10000/api/portfolios/$PORTFOLIO_ID/cash/deposit?amount=10000" \
             -H "Authorization: Bearer $TOKEN")
           echo "Deposit response: $DEPOSIT_RESPONSE"
           DEPOSIT_ERROR=$(echo "$DEPOSIT_RESPONSE" | jq -r '.message // .error // empty')
@@ -344,9 +373,9 @@ jobs:
             exit 1
           fi
           
-          # Buy AAPL position (uses @RequestParam)
+          # Buy AAPL position (uses @RequestParam) - with retry for optimistic lock
           echo "Buying AAPL..."
-          BUY_RESPONSE=$(curl -s -X POST "http://localhost:10000/api/portfolios/$PORTFOLIO_ID/trade/buy?symbol=AAPL&quantity=10&price=150" \
+          BUY_RESPONSE=$(curl_with_retry "http://localhost:10000/api/portfolios/$PORTFOLIO_ID/trade/buy?symbol=AAPL&quantity=10&price=150" \
             -H "Authorization: Bearer $TOKEN")
           echo "Buy AAPL response: $BUY_RESPONSE"
           BUY_ERROR=$(echo "$BUY_RESPONSE" | jq -r '.message // .error // empty')

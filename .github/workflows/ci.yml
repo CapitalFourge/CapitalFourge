@@ -203,11 +203,11 @@ jobs:
           --health-retries 5
       # Data collector mock as persistent service
       data-collector-mock:
-        image: python:3.11-alpine
+        image: python:3.11-slim
         ports:
           - 8000:8000
         options: >-
-          --health-cmd "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\" || exit 1"
+          --health-cmd "wget -qO- http://localhost:8000/health || exit 1"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5

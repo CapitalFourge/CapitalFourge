@@ -201,20 +201,19 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-      # Data collector mock as persistent service (built and run in step)
+      # Data collector mock as persistent service - use nginx as simple health endpoint
       data-collector-mock:
-        image: python:3.11-bullseye
+        image: nginx:alpine
         ports:
-          - 8000:8000
+          - 8000:80
         options: >-
-          --health-cmd "curl -f http://localhost:8000/health || exit 1"
+          --health-cmd "curl -f http://localhost/health || exit 1"
           --health-interval 10s
           --health-timeout 10s
           --health-retries 10
-          --health-start-period 30s
+          --health-start-period 10s
         volumes:
-          - ${{ github.workspace }}/.github/scripts:/app
-        command: python3 data_collector_mock.py
+          - ${{ github.workspace }}/.github/scripts/nginx.conf:/etc/nginx/conf.d/default.conf:ro
 
     steps:
       - name: Checkout code

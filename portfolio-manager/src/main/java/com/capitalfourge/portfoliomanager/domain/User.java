@@ -32,6 +32,9 @@ public class User {
     private BigDecimal lockedBalance = BigDecimal.ZERO;
     @Builder.Default
     private boolean showWelcome = true;
+    
+    // Optimistic locking
+    private Long version;
 
     public boolean isActive() {
         return this.active;

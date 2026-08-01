@@ -203,7 +203,7 @@ jobs:
           --health-retries 5
       # Data collector mock as persistent service
       data-collector-mock:
-        image: python:3.11-slim
+        image: python:3.11-bullseye
         ports:
           - 8000:8000
         options: >-

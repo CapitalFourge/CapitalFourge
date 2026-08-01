@@ -290,9 +290,14 @@ jobs:
       - name: Seed E2E test user via REST API
         working-directory: ./portfolio-manager
         run: |
+          echo "=== SEED USER START ==="
           # Wait for readiness probe then seed user
           for i in {1..30}; do
-            if curl -s http://localhost:10000/actuator/health/readiness | grep -q '"status":"UP"'; then
+            echo "Attempt $i/30: Checking backend readiness..."
+            READINESS=$(curl -s http://localhost:10000/actuator/health/readiness 2>/dev/null || echo "FAILED")
+            echo "Readiness: $READINESS"
+            if echo "$READINESS" | grep -q '"status":"UP"'; then
+              echo "Backend READY"
               # Debug: show readiness details
               curl -s http://localhost:10000/actuator/health/readiness | jq .
               # Try to seed user with verbose output
@@ -312,10 +317,13 @@ jobs:
             fi
             if [ $i -eq 30 ]; then
               echo "Failed to seed user after 60 seconds"
+              echo "Backend log (last 50 lines):"
+              tail -50 backend.log
               exit 1
             fi
             sleep 2
           done
+          echo "=== SEED USER END ==="
 
       - name: Seed E2E test data (portfolio, deposit, positions)
         working-directory: ./portfolio-manager

@@ -327,18 +327,14 @@ jobs:
           fi
           echo "Portfolio ID: $PORTFOLIO_ID"
           
-          # Deposit cash
-          DEPOSIT_RESPONSE=$(curl -s -X POST http://localhost:10000/api/portfolios/$PORTFOLIO_ID/deposit \
-            -H "Content-Type: application/json" \
-            -H "Authorization: Bearer $TOKEN" \
-            -d '{"amount":10000}')
+          # Deposit cash (uses @RequestParam)
+          DEPOSIT_RESPONSE=$(curl -s -X POST "http://localhost:10000/api/portfolios/$PORTFOLIO_ID/cash/deposit?amount=10000" \
+            -H "Authorization: Bearer $TOKEN")
           echo "Deposit: $DEPOSIT_RESPONSE"
           
-          # Buy AAPL position
-          BUY_RESPONSE=$(curl -s -X POST http://localhost:10000/api/portfolios/$PORTFOLIO_ID/positions \
-            -H "Content-Type: application/json" \
-            -H "Authorization: Bearer $TOKEN" \
-            -d '{"symbol":"AAPL","quantity":10,"price":150}')
+          # Buy AAPL position (uses @RequestParam)
+          BUY_RESPONSE=$(curl -s -X POST "http://localhost:10000/api/portfolios/$PORTFOLIO_ID/trade/buy?symbol=AAPL&quantity=10&price=150" \
+            -H "Authorization: Bearer $TOKEN")
           echo "Buy AAPL: $BUY_RESPONSE"
           
           echo "E2E test data seeded successfully"

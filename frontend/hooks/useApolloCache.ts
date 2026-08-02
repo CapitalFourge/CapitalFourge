@@ -3,6 +3,11 @@
 import { useApolloClient as useApolloClientHook } from '@apollo/client';
 
 export function useApolloCache() {
+  // Only use Apollo client during client-side rendering
+  if (typeof window === 'undefined') {
+    return { clearUserCache: async () => {}, refetchUserQueries: async () => {} };
+  }
+  
   const client = useApolloClientHook();
   
   const clearUserCache = async () => {
@@ -21,5 +26,9 @@ export function useApolloCache() {
 }
 
 export function getApolloClient() {
+  // Only use Apollo client during client-side rendering
+  if (typeof window === 'undefined') {
+    return null;
+  }
   return useApolloClientHook();
 }

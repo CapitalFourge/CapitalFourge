@@ -207,17 +207,17 @@ test.describe('Capital Fourge E2E Tests', () => {
         // Wait for dashboard to load
         await page.waitForURL('**/dashboard');
         await page.waitForLoadState('networkidle');
-        
+
         // Wait for dashboard query to complete - wait for stats grid or error
         await page.waitForSelector('.metric-tile, [class*="bg-red-500"], [class*="animate-spin"]', { timeout: 30000 });
-        
+
         // Check if error state
         const errorEl = page.locator('text=/No fue posible cargar|Error|error/i').first();
         if (await errorEl.isVisible({ timeout: 2000 }).catch(() => false)) {
           const errorText = await errorEl.textContent();
           throw new Error(`Dashboard error: ${errorText}`);
         }
-        
+
         // Close welcome dialog if present
         const welcomeDialog = page.locator('button:has-text("Entendido, empecemos")');
         if (await welcomeDialog.isVisible({ timeout: 3000 }).catch(() => false)) {

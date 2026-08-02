@@ -242,7 +242,7 @@ jobs:
           for i in {1..5}; do
             RESPONSE=$(curl -sf http://localhost:8000/health 2>/dev/null || echo "")
             echo "Attempt $i: $RESPONSE"
-            if echo "$RESPONSE" | grep -q '"status"[[:space:]]*:[[:space:]]*"healthy"'; then
+            if echo "$RESPONSE" | grep -q '"status"[[:space:]]*:[[:space:]]*"alive"'; then
               echo "Data collector mock ready"
               break
             fi
@@ -254,7 +254,7 @@ jobs:
             sleep 2
           done
           # Verify mock stays alive
-          curl -sf http://localhost:8000/health | grep -q '"status"[[:space:]]*:[[:space:]]*"healthy"' && echo "Mock verified alive" || (echo "Mock died after verification" && exit 1)
+          curl -sf http://localhost:8000/health | grep -q '"status"[[:space:]]*:[[:space:]]*"alive"' && echo "Mock verified alive" || (echo "Mock died after verification" && exit 1)
 
       - name: Start backend (Spring Boot)
         working-directory: ./portfolio-manager

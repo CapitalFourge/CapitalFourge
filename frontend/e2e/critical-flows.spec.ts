@@ -152,6 +152,10 @@ async function sellAsset(page: import('@playwright/test').Page, symbol: string, 
   await page.waitForTimeout(1000);
   const dialog = await waitForDialog(page);
 
+  // Wait for both comboboxes to be visible (Portfolio and Symbol)
+  await dialog.locator('[role="combobox"]').first().waitFor({ state: 'visible', timeout: 10000 });
+  await dialog.locator('[role="combobox"]').nth(1).waitFor({ state: 'visible', timeout: 10000 });
+  
   // Symbol combobox - second combobox (first is Portfolio)
   const symbolCombobox = dialog.locator('[role="combobox"]').nth(1);
   await expect(symbolCombobox).toBeVisible({ timeout: 10000 });

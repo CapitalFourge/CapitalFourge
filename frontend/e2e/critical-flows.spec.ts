@@ -152,10 +152,14 @@ async function sellAsset(page: import('@playwright/test').Page, symbol: string, 
   await page.waitForTimeout(1000);
   const dialog = await waitForDialog(page);
 
-  // Symbol selector is a native <select> in sell mode
-  const symbolSelect = dialog.locator('select').first();
-  await expect(symbolSelect).toBeVisible({ timeout: 10000 });
-  await symbolSelect.selectOption(symbol);
+  // Symbol combobox - second combobox (first is Portfolio)
+  const symbolCombobox = dialog.locator('[role="combobox"]').nth(1);
+  await expect(symbolCombobox).toBeVisible({ timeout: 10000 });
+  await click(page, symbolCombobox);
+  await page.waitForTimeout(500);
+  const symbolOption = dialog.locator(`[role="option"]:has-text("${symbol}")`).first();
+  await expect(symbolOption).toBeVisible({ timeout: 5000 });
+  await click(page, symbolOption);
   await page.waitForTimeout(500);
 
   const quantityInput = dialog.locator('input[type="number"]').first();

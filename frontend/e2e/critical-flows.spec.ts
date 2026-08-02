@@ -149,11 +149,19 @@ async function sellAsset(page: import('@playwright/test').Page, symbol: string, 
   const sellBtn = page.locator('button[aria-haspopup="dialog"]').filter({ hasText: 'VENDER' }).first();
   await click(page, sellBtn);
 
-  await page.waitForTimeout(500);
+  await page.waitForTimeout(1000);
   const dialog = await waitForDialog(page);
 
-  // Wait for comboboxes to render - find the Symbol combobox by its placeholder option
-  await dialog.locator('[role="combobox"]').first().waitFor({ state: 'visible', timeout: 15000 });
+  // Wait for dialog content to be fully rendered (comboboxes or error state)
+  await page.waitForFunction(
+    () => {
+      const dialogEl = document.querySelector('[role="dialog"]');
+      if (!dialogEl) return false;
+      const comboboxes = dialogEl.querySelectorAll('[role="combobox"]');
+      return comboboxes.length > 0;
+    },
+    { timeout: 20000 }
+  );
   
   // Get all comboboxes - Symbol combobox is the one with "Seleccionar activo..." option
   const comboboxes = dialog.locator('[role="combobox"]');

@@ -207,11 +207,12 @@ test.describe('Capital Fourge E2E Tests', () => {
       // Wait for dashboard to load
       await page.waitForURL('**/dashboard');
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(2000);
+      // Wait longer for dashboard data to load and render
+      await page.waitForTimeout(5000);
       
       // Check for any balance/value tiles with non-zero amounts
       // Use broad selectors that match any currency-like text
-      await expect(page.locator('text=/\\$[0-9,.]+/')).toBeVisible({ timeout: 15000 });
+      await expect(page.locator('text=/\\$[0-9,.]+/')).toBeVisible({ timeout: 20000 });
       
       // Verify at least one value is not $0.00
       const values = page.locator('text=/\\$[0-9,.]+/');

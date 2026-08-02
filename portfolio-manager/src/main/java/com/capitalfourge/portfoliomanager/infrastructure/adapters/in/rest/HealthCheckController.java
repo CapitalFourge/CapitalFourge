@@ -9,8 +9,10 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
@@ -22,6 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 
+@CrossOrigin(origins = "*", allowedHeaders = "*", methods = {RequestMethod.GET})
 @RestController
 @RequestMapping("/api/health")
 public class HealthCheckController {

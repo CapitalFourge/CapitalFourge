@@ -24,6 +24,7 @@ const GET_SHARED_PORTFOLIO = gql`
       performance
       isPublic
       positions {
+        id
         symbol
         quantity
         averagePurchasePrice

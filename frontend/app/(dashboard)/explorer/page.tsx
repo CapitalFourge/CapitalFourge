@@ -29,6 +29,7 @@ const EXPLORER_QUERY = gql`
       id
       name
       positions {
+        id
         symbol
         quantity
         averagePurchasePrice

@@ -17,6 +17,7 @@ const PORTFOLIOS_QUERY = gql`
       name
       performance
       positions {
+        id
         symbol
         quantity
         averagePurchasePrice

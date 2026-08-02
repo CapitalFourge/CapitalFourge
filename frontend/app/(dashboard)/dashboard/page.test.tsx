@@ -18,6 +18,7 @@ const DASHBOARD_QUERY = gql`
       name
       performance
       positions {
+        id
         symbol
         quantity
         averagePurchasePrice
@@ -52,6 +53,7 @@ const mockPortfolios = [
     positions: [
       {
         __typename: 'Position',
+        id: 'position-1',
         symbol: 'AAPL',
         quantity: 10,
         averagePurchasePrice: 150,

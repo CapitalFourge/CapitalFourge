@@ -81,6 +81,7 @@ const PORTFOLIOS_QUERY = gql`
       name
       performance
       positions {
+        id
         symbol
         quantity
         averagePurchasePrice
@@ -103,6 +104,7 @@ const DASHBOARD_QUERY = gql`
       name
       performance
       positions {
+        id
         symbol
         quantity
         averagePurchasePrice

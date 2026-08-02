@@ -1,6 +1,7 @@
 package com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistence.Entities;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -38,11 +39,11 @@ public class PortfolioEntity {
     private String shareSlug;
 
     @OneToMany(mappedBy = "portfolio", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    private List<PositionEntity> positions;
+    private List<PositionEntity> positions = new ArrayList<>();
 
     @OneToMany(mappedBy = "portfolio", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<TransactionEntity> transactions;
+    private List<TransactionEntity> transactions = new ArrayList<>();
 
     @OneToMany(mappedBy = "portfolio", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<OrderEntity> orders;
+    private List<OrderEntity> orders = new ArrayList<>();
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react";
-import { getApolloClient } from '@/hooks/useApolloCache';
+import { useApolloCache } from '@/hooks/useApolloCache';
 
 interface User {
   id: string;
@@ -44,8 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   
-  // Only get Apollo client in client-side rendering
-  const apolloClient = typeof window !== 'undefined' ? getApolloClient() : null;
+  const { clearUserCache } = useApolloCache();
 
   const loadTokens = useCallback(() => {
     if (typeof window !== "undefined") {
@@ -115,12 +114,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("user", JSON.stringify(data.user));
 
     // Clear Apollo cache and refetch user data after login (only client-side)
-    if (typeof window !== 'undefined' && apolloClient) {
-      try {
-        await apolloClient.clearStore();
-      } catch (e) {
-        console.warn("Could not clear Apollo cache:", e);
-      }
+    try {
+      const { clearUserCache } = useApolloCache();
+      await clearUserCache();
+    } catch (e) {
+      console.warn("Could not clear Apollo cache:", e);
     }
     
     // Fetch fresh user data including cash balance after login

@@ -1,25 +1,35 @@
 "use client";
 
-import { useApolloClient as useApolloClientHook } from '@apollo/client';
+import { useRef, useCallback } from 'react';
+import { useApolloClient } from '@apollo/client';
 
 export function useApolloCache() {
-  // Only use Apollo client during client-side rendering
-  if (typeof window === 'undefined') {
-    return { clearUserCache: async () => {}, refetchUserQueries: async () => {} };
-  }
+  const clientRef = useRef<ReturnType<typeof useApolloClient> | null>(null);
   
-  const client = useApolloClientHook();
-  
+  const getClient = useCallback(() => {
+    if (typeof window === 'undefined') return null;
+    if (!clientRef.current) {
+      // This will only be called during client-side rendering
+      const client = require('@apollo/client').useApolloClient();
+      clientRef.current = client;
+    }
+    return clientRef.current;
+  }, []);
+
   const clearUserCache = async () => {
-    // Evict user and portfolio queries from cache
-    await client.clearStore();
+    const client = getClient();
+    if (client) {
+      await client.clearStore();
+    }
   };
   
   const refetchUserQueries = async () => {
-    // Refetch specific queries
-    await client.refetchQueries({
-      include: ['GetDashboardData', 'me', 'portfolios']
-    });
+    const client = getClient();
+    if (client) {
+      await client.refetchQueries({
+        include: ['GetDashboardData', 'me', 'portfolios']
+      });
+    }
   };
   
   return { clearUserCache, refetchUserQueries };
@@ -30,5 +40,6 @@ export function getApolloClient() {
   if (typeof window === 'undefined') {
     return null;
   }
-  return useApolloClientHook();
+  // We can't use the hook here - return a function that lazily gets the client
+  return null;
 }

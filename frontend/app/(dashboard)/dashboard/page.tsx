@@ -96,7 +96,7 @@ const formatMetricVolume = (value: number) =>
 export default function DashboardPage() {
   const [volatilitySort, setVolatilitySort] = useState<"volatile" | "gain" | "loss">("volatile");
 
-  const { data, error } = useQuery(DASHBOARD_QUERY, {
+  const { data, error, loading } = useQuery(DASHBOARD_QUERY, {
     variables: { sort: volatilitySort, limit: 8 },
     pollInterval: 60000,
     fetchPolicy: "cache-and-network",
@@ -163,6 +163,17 @@ export default function DashboardPage() {
       <div className="rounded-[1.75rem] border border-red-400/20 bg-red-500/10 p-8 text-red-200">
         <h2 className="text-lg font-semibold">No fue posible cargar el dashboard</h2>
         <p className="mt-2 text-sm text-red-100/80">{error.message}</p>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-4 border-emerald-300 border-t-transparent" />
+        </div>
+        <p className="text-center text-slate-400">Cargando dashboard...</p>
       </div>
     );
   }

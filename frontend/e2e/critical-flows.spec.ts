@@ -153,7 +153,7 @@ async function sellAsset(page: import('@playwright/test').Page, symbol: string, 
   const dialog = await waitForDialog(page);
 
   // Symbol combobox - find by its placeholder option text (unique to symbol combobox)
-  const symbolCombobox = dialog.locator('[role="combobox"]').filter({ hasText: 'Seleccionar activo' }).first();
+  const symbolCombobox = dialog.locator('[role="combobox"]').filter({ hasText: 'Seleccionar activo...' }).first();
   await expect(symbolCombobox).toBeVisible({ timeout: 10000 });
   await click(page, symbolCombobox);
   await page.waitForTimeout(500);

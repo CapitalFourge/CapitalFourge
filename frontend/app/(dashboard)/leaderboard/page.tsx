@@ -25,6 +25,7 @@ const GET_LEADERBOARD = gql`
       performance
       shareSlug
       positions {
+        id
         symbol
       }
     }

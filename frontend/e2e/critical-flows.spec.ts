@@ -199,35 +199,42 @@ test.describe('Capital Fourge E2E Tests', () => {
   });
 
   test('E2E-01: Login → Dashboard shows data (not 0)', async ({ page }) => {
-    await test.step('Login', async () => {
-      await login(page);
-    });
+      await test.step('Login', async () => {
+        await login(page);
+      });
 
-    await test.step('Verify Dashboard loads with non-zero data', async () => {
-      // Wait for dashboard to load
-      await page.waitForURL('**/dashboard');
-      await page.waitForLoadState('networkidle');
-      // Wait longer for dashboard data to load and render
-      await page.waitForTimeout(5000);
+      await test.step('Verify Dashboard loads with non-zero data', async () => {
+        // Wait for dashboard to load
+        await page.waitForURL('**/dashboard');
+        await page.waitForLoadState('networkidle');
+        // Wait longer for dashboard data to load and render
+        await page.waitForTimeout(5000);
       
-      // Check for any balance/value tiles with non-zero amounts
-      // Use broad selectors that match any currency-like text
-      await expect(page.locator('text=/\\$[0-9,.]+/')).toBeVisible({ timeout: 20000 });
-      
-      // Verify at least one value is not $0.00
-      const values = page.locator('text=/\\$[0-9,.]+/');
-      const count = await values.count();
-      let foundNonZero = false;
-      for (let i = 0; i < count; i++) {
-        const text = await values.nth(i).textContent();
-        if (text && !text.includes('$0.00') && !text.includes('$0,00')) {
-          foundNonZero = true;
-          break;
+        // Close welcome dialog if present
+        const welcomeDialog = page.locator('button:has-text("Entendido, empecemos")');
+        if (await welcomeDialog.isVisible({ timeout: 3000 }).catch(() => false)) {
+          await welcomeDialog.click();
+          await page.waitForTimeout(500);
         }
-      }
-      expect(foundNonZero).toBeTruthy();
+      
+        // Check for any balance/value tiles with non-zero amounts
+        // Use broad selectors that match any currency-like text
+        await expect(page.locator('text=/\\$[0-9,.]+/')).toBeVisible({ timeout: 20000 });
+      
+        // Verify at least one value is not $0.00
+        const values = page.locator('text=/\\$[0-9,.]+/');
+        const count = await values.count();
+        let foundNonZero = false;
+        for (let i = 0; i < count; i++) {
+          const text = await values.nth(i).textContent();
+          if (text && !text.includes('$0.00') && !text.includes('$0,00')) {
+            foundNonZero = true;
+            break;
+          }
+        }
+        expect(foundNonZero).toBeTruthy();
+      });
     });
-  });
 
   test('E2E-02: Create Portfolio → Deposit → Dashboard updates', async ({ page }) => {
     await test.step('Login', async () => {

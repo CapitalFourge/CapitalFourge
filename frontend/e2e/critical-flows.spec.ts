@@ -152,13 +152,14 @@ async function sellAsset(page: import('@playwright/test').Page, symbol: string, 
   await page.waitForTimeout(1000);
   const dialog = await waitForDialog(page);
 
-  // Wait for dialog content to be fully rendered (comboboxes or error state)
+  // Wait for dialog content - either combobox appears OR price loading text appears
   await page.waitForFunction(
     () => {
       const dialogEl = document.querySelector('[role="dialog"]');
       if (!dialogEl) return false;
       const comboboxes = dialogEl.querySelectorAll('[role="combobox"]');
-      return comboboxes.length > 0;
+      const text = dialogEl.textContent || '';
+      return comboboxes.length > 0 || text.includes('Cargando precio') || text.includes('Selecciona un simbolo');
     },
     { timeout: 20000 }
   );

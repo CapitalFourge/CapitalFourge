@@ -10,7 +10,6 @@ const SYMBOL = 'AAPL';
 const QUANTITY = 10;
 
 async function getDialog(page: import('@playwright/test').Page) {
-  // Get the currently open dialog
   return page.locator('[role="dialog"]').first();
 }
 
@@ -20,10 +19,8 @@ async function waitForDialog(page: import('@playwright/test').Page) {
 }
 
 async function closeDialog(page: import('@playwright/test').Page) {
-  // Try to close dialog by pressing Escape
   await page.keyboard.press('Escape');
   await page.waitForTimeout(300);
-  // Also try clicking the close button if visible
   const closeBtn = page.locator('[role="dialog"] button:has(svg.lucide-x), [role="dialog"] button[aria-label="Close"]').first();
   if (await closeBtn.isVisible({ timeout: 500 }).catch(() => false)) {
     await closeBtn.click({ force: true });
@@ -44,8 +41,7 @@ async function fill(page: import('@playwright/test').Page, locator: import('@pla
 async function login(page: import('@playwright/test').Page) {
   await page.goto('/login');
   await page.waitForLoadState('networkidle');
-  
-  // In CI, user is pre-seeded via REST API. Locally, try to register if needed.
+
   if (!process.env.CI) {
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:10000';
     try {
@@ -57,11 +53,10 @@ async function login(page: import('@playwright/test').Page) {
       console.log('Local register attempt failed:', e);
     }
   }
-  
+
   await fill(page, page.locator('input[type="email"]'), TEST_USER.email);
   await fill(page, page.locator('input[type="password"]'), TEST_USER.password);
-  
-  // Wait for login response
+
   const [response] = await Promise.all([
     page.waitForResponse(r => r.url().includes('/api/auth/login') && r.request().method() === 'POST'),
     click(page, page.locator('button:has-text("Ingresar")'))
@@ -69,10 +64,8 @@ async function login(page: import('@playwright/test').Page) {
   console.log('Login form submit response:', response.status());
   const respBody = await response.text();
   console.log('Login form submit body:', respBody);
-  
-  // Check for error messages ONLY (not success toasts)
+
   const errorToast = page.locator('[role="alert"], .sonner-toast, [data-sonner-toast], .toast-error').first();
-  // Only consider it an error if it contains error-like text
   if (await errorToast.isVisible({ timeout: 3000 }).catch(() => false)) {
     const toastText = await errorToast.textContent();
     if (toastText && /error|failed|invalid|incorrect|denied|unauthorized/i.test(toastText)) {
@@ -82,8 +75,7 @@ async function login(page: import('@playwright/test').Page) {
       console.log('Success/info toast visible (ignored):', toastText);
     }
   }
-  
-  // Wait for navigation
+
   await page.waitForURL('**/dashboard', { timeout: 30000 });
   await page.waitForLoadState('networkidle');
   await page.waitForTimeout(1000);
@@ -108,17 +100,16 @@ async function gotoPortfolioDetail(page: import('@playwright/test').Page, portfo
 
 async function createPortfolio(page: import('@playwright/test').Page, name: string, description: string) {
   const createBtn = page.locator('button:has-text("NUEVA ESTRATEGIA")').first();
-  // Wait for button to be visible and enabled
   await expect(createBtn).toBeVisible({ timeout: 15000 });
   await click(page, createBtn);
-  
+
   const dialog = await waitForDialog(page);
-  
+
   await fill(page, dialog.locator('input[placeholder*="Ej:"]'), name);
   await fill(page, dialog.locator('input[placeholder*="Detalles"]'), description);
-  
+
   await click(page, dialog.locator('button:has-text("DESPLEGAR ESTRATEGIA")').first());
-  
+
   await page.waitForSelector(`text=${name}`, { timeout: 10000 });
   await closeDialog(page);
 }
@@ -126,13 +117,13 @@ async function createPortfolio(page: import('@playwright/test').Page, name: stri
 async function deposit(page: import('@playwright/test').Page, amount: string) {
   const depositBtn = page.locator('button:has-text("Recarga")').first();
   await click(page, depositBtn);
-  
+
   const dialog = await waitForDialog(page);
-  
+
   await fill(page, dialog.locator('input[placeholder*="0.00"]').first(), amount);
-  
+
   await click(page, dialog.locator('button:has-text("CONFIRMAR DEPÓSITO")').first());
-  
+
   await page.waitForSelector('text=/Depósito|depósito|exitoso/i', { timeout: 10000 });
   await closeDialog(page);
 }
@@ -140,18 +131,16 @@ async function deposit(page: import('@playwright/test').Page, amount: string) {
 async function buyAsset(page: import('@playwright/test').Page, symbol: string, quantity: string) {
   const buyBtn = page.locator('button[aria-haspopup="dialog"]').filter({ hasText: 'COMPRAR' }).first();
   await click(page, buyBtn);
-  
+
   const dialog = await waitForDialog(page);
-  
-  // Symbol input
+
   await fill(page, dialog.locator('input[placeholder*="AAPL"], input[placeholder*="BTC"], input[placeholder*="ETH"]'), symbol);
-  
-  // Quantity input - first number input
+
   const quantityInput = dialog.locator('input[type="number"]').first();
   await fill(page, quantityInput, quantity);
-  
+
   await click(page, dialog.locator('button:has-text("Comprar ahora")').first());
-  
+
   await page.waitForSelector('text=/Compra|compra|exitoso|ejecutada/i', { timeout: 15000 });
   await closeDialog(page);
 }
@@ -159,18 +148,22 @@ async function buyAsset(page: import('@playwright/test').Page, symbol: string, q
 async function sellAsset(page: import('@playwright/test').Page, symbol: string, quantity: string) {
   const sellBtn = page.locator('button[aria-haspopup="dialog"]').filter({ hasText: 'VENDER' }).first();
   await click(page, sellBtn);
-  
+
   await page.waitForTimeout(500);
   const dialog = await waitForDialog(page);
-  
-  // Symbol input (uses SymbolAutocomplete like buy)
-  await fill(page, dialog.locator('input[placeholder*="AAPL"], input[placeholder*="BTC"], input[placeholder*="ETH"]'), symbol);
-  
+
+  // Symbol combobox - click to open and select
+  const symbolCombobox = dialog.locator('[role="combobox"]').first();
+  await click(page, symbolCombobox);
+  await page.waitForTimeout(300);
+  const symbolOption = dialog.locator(`[role="option"]:has-text("${symbol}")`).first();
+  await click(page, symbolOption);
+
   const quantityInput = dialog.locator('input[type="number"]').first();
   await fill(page, quantityInput, quantity);
-  
+
   await click(page, dialog.locator('button:has-text("Vender ahora")').first());
-  
+
   await page.waitForSelector('text=/Venta|venta|exitoso|ejecutada/i', { timeout: 15000 });
   await closeDialog(page);
 }
@@ -178,18 +171,54 @@ async function sellAsset(page: import('@playwright/test').Page, symbol: string, 
 async function withdraw(page: import('@playwright/test').Page, amount: string) {
   const withdrawBtn = page.locator('button:has-text("Retiro")').first();
   await click(page, withdrawBtn);
-  
+
   const dialog = await waitForDialog(page);
-  
-  // Switch to Retiro tab
+
   await click(page, dialog.locator('button:has-text("RETIRO")').first());
-  
+
   await fill(page, dialog.locator('input[placeholder*="0.00"]').first(), amount);
-  
+
   await click(page, dialog.locator('button:has-text("CONFIRMAR RETIRO")').first());
-  
+
   await page.waitForSelector('text=/Retiro|retiro|exitoso/i', { timeout: 10000 });
   await closeDialog(page);
+}
+
+async function checkDashboardValues(page: import('@playwright/test').Page) {
+  const values = page.locator('text=/\\$[0-9,.]+/');
+  await expect(values.first()).toBeVisible({ timeout: 10000 });
+  const count = await values.count();
+  let foundNonZero = false;
+  for (let i = 0; i < count; i++) {
+    const text = await values.nth(i).textContent();
+    if (text && !text.includes('$0.00') && !text.includes('$0,00')) {
+      foundNonZero = true;
+      break;
+    }
+  }
+  expect(foundNonZero).toBeTruthy();
+}
+
+async function waitForDashboardReady(page: import('@playwright/test').Page) {
+  await page.waitForURL('**/dashboard');
+  await page.waitForLoadState('networkidle');
+
+  // Wait for dashboard query to complete - wait for stats grid or error
+  await page.waitForSelector('.metric-tile, [class*="bg-red-500"], [class*="animate-spin"]', { timeout: 30000 });
+
+  // Check if error state
+  const errorEl = page.locator('text=/No fue posible cargar|Error|error/i').first();
+  if (await errorEl.isVisible({ timeout: 2000 }).catch(() => false)) {
+    const errorText = await errorEl.textContent();
+    throw new Error(`Dashboard error: ${errorText}`);
+  }
+
+  // Close welcome dialog if present
+  const welcomeDialog = page.locator('button:has-text("Entendido, empecemos")');
+  if (await welcomeDialog.isVisible({ timeout: 3000 }).catch(() => false)) {
+    await welcomeDialog.click();
+    await page.waitForTimeout(500);
+  }
 }
 
 test.describe('Capital Fourge E2E Tests', () => {
@@ -199,49 +228,15 @@ test.describe('Capital Fourge E2E Tests', () => {
   });
 
   test('E2E-01: Login → Dashboard shows data (not 0)', async ({ page }) => {
-      await test.step('Login', async () => {
-        await login(page);
-      });
-
-      await test.step('Verify Dashboard loads with non-zero data', async () => {
-        // Wait for dashboard to load
-        await page.waitForURL('**/dashboard');
-        await page.waitForLoadState('networkidle');
-
-        // Wait for dashboard query to complete - wait for stats grid or error
-        await page.waitForSelector('.metric-tile, [class*="bg-red-500"], [class*="animate-spin"]', { timeout: 30000 });
-
-        // Check if error state
-        const errorEl = page.locator('text=/No fue posible cargar|Error|error/i').first();
-        if (await errorEl.isVisible({ timeout: 2000 }).catch(() => false)) {
-          const errorText = await errorEl.textContent();
-          throw new Error(`Dashboard error: ${errorText}`);
-        }
-
-        // Close welcome dialog if present
-        const welcomeDialog = page.locator('button:has-text("Entendido, empecemos")');
-        if (await welcomeDialog.isVisible({ timeout: 3000 }).catch(() => false)) {
-          await welcomeDialog.click();
-          await page.waitForTimeout(500);
-        }
-
-        // Check for any balance/value tiles with non-zero amounts
-        const values = page.locator('text=/\\\\$[0-9,.]+/');
-        await expect(values.first()).toBeVisible({ timeout: 10000 });
-
-        // Verify at least one value is not $0.00
-        const count = await values.count();
-        let foundNonZero = false;
-        for (let i = 0; i < count; i++) {
-          const text = await values.nth(i).textContent();
-          if (text && !text.includes('$0.00') && !text.includes('$0,00')) {
-            foundNonZero = true;
-            break;
-          }
-        }
-        expect(foundNonZero).toBeTruthy();
-      });
+    await test.step('Login', async () => {
+      await login(page);
     });
+
+    await test.step('Verify Dashboard loads with non-zero data', async () => {
+      await waitForDashboardReady(page);
+      await checkDashboardValues(page);
+    });
+  });
 
   test('E2E-02: Create Portfolio → Deposit → Dashboard updates', async ({ page }) => {
     await test.step('Login', async () => {
@@ -271,22 +266,8 @@ test.describe('Capital Fourge E2E Tests', () => {
     });
 
     await test.step('Verify Dashboard reflects deposit', async () => {
-      await page.goto('/dashboard');
-      await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(1000);
-      // Check for any currency value that's not $0.00
-      await expect(page.locator('text=/\\$[0-9,.]+/')).toBeVisible({ timeout: 10000 });
-      const values = page.locator('text=/\\$[0-9,.]+/');
-      const count = await values.count();
-      let foundNonZero = false;
-      for (let i = 0; i < count; i++) {
-        const text = await values.nth(i).textContent();
-        if (text && !text.includes('$0.00') && !text.includes('$0,00')) {
-          foundNonZero = true;
-          break;
-        }
-      }
-      expect(foundNonZero).toBeTruthy();
+      await waitForDashboardReady(page);
+      await checkDashboardValues(page);
     });
   });
 
@@ -300,22 +281,8 @@ test.describe('Capital Fourge E2E Tests', () => {
     });
 
     await test.step('Verify Dashboard shows invested amount', async () => {
-      await page.goto('/dashboard');
-      await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(1000);
-      // Check for any currency value that's not $0.00
-      await expect(page.locator('text=/\\$[0-9,.]+/')).toBeVisible({ timeout: 10000 });
-      const values = page.locator('text=/\\$[0-9,.]+/');
-      const count = await values.count();
-      let foundNonZero = false;
-      for (let i = 0; i < count; i++) {
-        const text = await values.nth(i).textContent();
-        if (text && !text.includes('$0.00') && !text.includes('$0,00')) {
-          foundNonZero = true;
-          break;
-        }
-      }
-      expect(foundNonZero).toBeTruthy();
+      await waitForDashboardReady(page);
+      await checkDashboardValues(page);
     });
   });
 
@@ -329,22 +296,8 @@ test.describe('Capital Fourge E2E Tests', () => {
     });
 
     await test.step('Verify Dashboard shows updated cash', async () => {
-      await page.goto('/dashboard');
-      await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(1000);
-      // Check for any currency value that's not $0.00
-      await expect(page.locator('text=/\\$[0-9,.]+/')).toBeVisible({ timeout: 10000 });
-      const values = page.locator('text=/\\$[0-9,.]+/');
-      const count = await values.count();
-      let foundNonZero = false;
-      for (let i = 0; i < count; i++) {
-        const text = await values.nth(i).textContent();
-        if (text && !text.includes('$0.00') && !text.includes('$0,00')) {
-          foundNonZero = true;
-          break;
-        }
-      }
-      expect(foundNonZero).toBeTruthy();
+      await waitForDashboardReady(page);
+      await checkDashboardValues(page);
     });
   });
 
@@ -358,22 +311,8 @@ test.describe('Capital Fourge E2E Tests', () => {
     });
 
     await test.step('Verify Dashboard reflects withdrawal', async () => {
-      await page.goto('/dashboard');
-      await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(1000);
-      // Check for any currency value that's not $0.00
-      await expect(page.locator('text=/\\$[0-9,.]+/')).toBeVisible({ timeout: 10000 });
-      const values = page.locator('text=/\\$[0-9,.]+/');
-      const count = await values.count();
-      let foundNonZero = false;
-      for (let i = 0; i < count; i++) {
-        const text = await values.nth(i).textContent();
-        if (text && !text.includes('$0.00') && !text.includes('$0,00')) {
-          foundNonZero = true;
-          break;
-        }
-      }
-      expect(foundNonZero).toBeTruthy();
+      await waitForDashboardReady(page);
+      await checkDashboardValues(page);
     });
   });
 
@@ -395,17 +334,16 @@ test.describe('Capital Fourge E2E Tests', () => {
   });
 
   test('E2E-07: Performance/ROI Calculation', async ({ page }) => {
-      await test.step('Login', async () => {
-        await login(page);
-      });
-
-      await test.step('Verify performance calculation', async () => {
-        await page.goto('/dashboard');
-        await page.waitForLoadState('networkidle');
-        // Check for any percentage value (positive or negative)
-        await expect(page.locator('text=/[+-]\\d+(\\.\\d+)?%/')).toBeVisible({ timeout: 10000 });
-      });
+    await test.step('Login', async () => {
+      await login(page);
     });
+
+    await test.step('Verify performance calculation', async () => {
+      await waitForDashboardReady(page);
+      // Check for any percentage value (positive or negative)
+      await expect(page.locator('text=/[+-]\\d+(\\.\\d+)?%/')).toBeVisible({ timeout: 10000 });
+    });
+  });
 
   test('E2E-08: Leaderboard Public Access (if available)', async ({ page }) => {
     await test.step('Navigate to Leaderboard', async () => {
@@ -426,9 +364,9 @@ test.describe('Capital Fourge E2E Tests', () => {
   test('E2E-09: Refresh Persistence (F5)', async ({ page }) => {
     await test.step('Login and get initial data', async () => {
       await login(page);
-      await page.waitForLoadState('networkidle');
-      // Get any non-zero currency value as initial state
+      await waitForDashboardReady(page);
       const values = page.locator('text=/\\$[0-9,.]+/');
+      await expect(values.first()).toBeVisible({ timeout: 10000 });
       const count = await values.count();
       let initialValue = '';
       for (let i = 0; i < count; i++) {
@@ -438,13 +376,13 @@ test.describe('Capital Fourge E2E Tests', () => {
           break;
         }
       }
-      
+
       await test.step('Refresh page', async () => {
         await page.reload();
         await page.waitForURL('/dashboard');
-        await page.waitForLoadState('networkidle');
-        // Verify data persists - check for same non-zero value
+        await waitForDashboardReady(page);
         const afterValues = page.locator('text=/\\$[0-9,.]+/');
+        await expect(afterValues.first()).toBeVisible({ timeout: 10000 });
         const afterCount = await afterValues.count();
         let foundMatch = false;
         for (let i = 0; i < afterCount; i++) {
@@ -466,13 +404,11 @@ test.describe('Capital Fourge E2E Tests', () => {
 
     await test.step('Logout', async () => {
       const logoutBtn = page.locator('button:has-text("Cerrar sesión")').first();
-      // Try alternative logout selectors
       if (!(await logoutBtn.isVisible({ timeout: 3000 }).catch(() => false))) {
         const altLogout = page.locator('button:has-text("Salir"), button:has-text("Logout"), [aria-label="Cerrar sesión"]').first();
         if (await altLogout.isVisible({ timeout: 3000 }).catch(() => false)) {
           await click(page, altLogout);
         } else {
-          // Try clicking user menu first
           const userMenu = page.locator('[aria-label="Usuario"], [aria-label="Perfil"], button:has-text("analyst")').first();
           if (await userMenu.isVisible({ timeout: 3000 }).catch(() => false)) {
             await click(page, userMenu);
@@ -494,22 +430,8 @@ test.describe('Capital Fourge E2E Tests', () => {
     });
 
     await test.step('Verify data persists', async () => {
-      await page.waitForLoadState('networkidle');
-      // Check for any currency value that's not $0.00
-      await expect(page.locator('text=/\\$[0-9,.]+/')).toBeVisible({ timeout: 10000 });
-      const values = page.locator('text=/\\$[0-9,.]+/');
-      const count = await values.count();
-      let foundNonZero = false;
-      for (let i = 0; i < count; i++) {
-        const text = await values.nth(i).textContent();
-        if (text && !text.includes('$0.00') && !text.includes('$0,00')) {
-          foundNonZero = true;
-          break;
-        }
-      }
-      expect(foundNonZero).toBeTruthy();
-      // Verify portfolio name visible
-      await expect(page.locator(`text=${PORTFOLIO_NAME}`).first()).toBeVisible({ timeout: 10000 });
+      await waitForDashboardReady(page);
+      await checkDashboardValues(page);
     });
   });
 });

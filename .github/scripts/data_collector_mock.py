@@ -18,8 +18,9 @@ class HealthHandler(BaseHTTPRequestHandler):
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
-            self.wfile.write(json.dumps({'status': 'healthy'}).encode())
-            print(f"[{time.strftime('%H:%M:%S')}] Health check OK", flush=True)
+            response = json.dumps({'status': 'healthy'})
+            self.wfile.write(response.encode())
+            print(f"[{time.strftime('%H:%M:%S')}] Health check OK -> {response}", flush=True)
         else:
             self.send_response(404)
             self.end_headers()

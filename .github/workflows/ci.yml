@@ -237,14 +237,24 @@ jobs:
             -v ${{ github.workspace }}/.github/scripts:/app \
             python:3.11-bullseye \
             python3 /app/data_collector_mock.py
-          # Wait for mock to be ready
-          for i in {1..30}; do
-            if curl -sf http://localhost:8000/health | grep -q healthy; then
+          # Wait for mock to be ready with more retries
+          echo "Waiting for data-collector-mock to be ready..."
+          for i in {1..60}; do
+            RESPONSE=$(curl -sf http://localhost:8000/health 2>/dev/null || echo "")
+            echo "Attempt $i: $RESPONSE"
+            if echo "$RESPONSE" | grep -q '"status"[[:space:]]*:[[:space:]]*"healthy"'; then
               echo "Data collector mock ready"
               break
             fi
+            if [ $i -eq 60 ]; then
+              echo "ERROR: Data collector mock failed to start"
+              docker logs data-collector-mock
+              exit 1
+            fi
             sleep 2
           done
+          # Verify mock stays alive
+          curl -sf http://localhost:8000/health | grep -q '"status"[[:space:]]*:[[:space:]]*"healthy"' && echo "Mock verified alive" || (echo "Mock died after verification" && exit 1)
 
       - name: Start backend (Spring Boot)
         working-directory: ./portfolio-manager

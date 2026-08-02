@@ -122,9 +122,9 @@ async function deposit(page: import('@playwright/test').Page, amount: string) {
 
   await fill(page, dialog.locator('input[placeholder*="0.00"]').first(), amount);
 
-  await click(page, dialog.locator('button:has-text("CONFIRMAR DEPÓSITO")').first());
+  await click(page, dialog.locator('button:has-text("CONFIRMAR DEPOSITO")').first());
 
-  await page.waitForSelector('text=/Depósito|depósito|exitoso/i', { timeout: 10000 });
+  await page.waitForSelector('text=/Deposito|deposito|exitoso/i', { timeout: 10000 });
   await closeDialog(page);
 }
 
@@ -152,6 +152,9 @@ async function sellAsset(page: import('@playwright/test').Page, symbol: string, 
   await page.waitForTimeout(500);
   const dialog = await waitForDialog(page);
 
+  // Wait for both comboboxes to be rendered (Portfolio and Symbol)
+  await dialog.locator('[role="combobox"]').first().waitFor({ state: 'visible', timeout: 10000 });
+  
   // Symbol combobox - second combobox in dialog (first is Portfolio, second is Symbol)
   const symbolCombobox = dialog.locator('[role="combobox"]').nth(1);
   await expect(symbolCombobox).toBeVisible({ timeout: 10000 });
@@ -187,7 +190,7 @@ async function withdraw(page: import('@playwright/test').Page, amount: string) {
 }
 
 async function checkDashboardValues(page: import('@playwright/test').Page) {
-  const values = page.locator('text=/\\$[0-9,.]+/');
+  const values = page.locator('text=/\\\\$[0-9,.]+/');
   await expect(values.first()).toBeVisible({ timeout: 10000 });
   const count = await values.count();
   let foundNonZero = false;
@@ -229,7 +232,7 @@ test.describe('Capital Fourge E2E Tests', () => {
     await page.waitForTimeout(500);
   });
 
-  test('E2E-01: Login → Dashboard shows data (not 0)', async ({ page }) => {
+  test('E2E-01: Login -> Dashboard shows data (not 0)', async ({ page }) => {
     await test.step('Login', async () => {
       await login(page);
     });
@@ -240,7 +243,7 @@ test.describe('Capital Fourge E2E Tests', () => {
     });
   });
 
-  test('E2E-02: Create Portfolio → Deposit → Dashboard updates', async ({ page }) => {
+  test('E2E-02: Create Portfolio -> Deposit -> Dashboard updates', async ({ page }) => {
     await test.step('Login', async () => {
       await login(page);
     });
@@ -273,7 +276,7 @@ test.describe('Capital Fourge E2E Tests', () => {
     });
   });
 
-  test('E2E-03: Buy Asset → Dashboard updates invested/total', async ({ page }) => {
+  test('E2E-03: Buy Asset -> Dashboard updates invested/total', async ({ page }) => {
     await test.step('Login', async () => {
       await login(page);
     });
@@ -288,7 +291,7 @@ test.describe('Capital Fourge E2E Tests', () => {
     });
   });
 
-  test('E2E-04: Sell Asset → Dashboard updates cash/invested', async ({ page }) => {
+  test('E2E-04: Sell Asset -> Dashboard updates cash/invested', async ({ page }) => {
     await test.step('Login', async () => {
       await login(page);
     });
@@ -303,7 +306,7 @@ test.describe('Capital Fourge E2E Tests', () => {
     });
   });
 
-  test('E2E-05: Withdraw Cash → Dashboard updates', async ({ page }) => {
+  test('E2E-05: Withdraw Cash -> Dashboard updates', async ({ page }) => {
     await test.step('Login', async () => {
       await login(page);
     });
@@ -318,7 +321,7 @@ test.describe('Capital Fourge E2E Tests', () => {
     });
   });
 
-  test('E2E-06: Multi-Portfolio → Dashboard shows all', async ({ page }) => {
+  test('E2E-06: Multi-Portfolio -> Dashboard shows all', async ({ page }) => {
     await test.step('Login', async () => {
       await login(page);
     });
@@ -343,7 +346,7 @@ test.describe('Capital Fourge E2E Tests', () => {
     await test.step('Verify performance calculation', async () => {
       await waitForDashboardReady(page);
       // Check for any percentage value (positive or negative)
-      const percentageValues = page.locator('text=/[+-]\\d+(\\.\\d+)?%/');
+      const percentageValues = page.locator('text=/[+-]\\\\d+(\\\\.\\\\d+)?%/');
       await expect(percentageValues.first()).toBeVisible({ timeout: 10000 });
     });
   });
@@ -351,7 +354,7 @@ test.describe('Capital Fourge E2E Tests', () => {
   test('E2E-08: Leaderboard Public Access (if available)', async ({ page }) => {
     await test.step('Navigate to Leaderboard', async () => {
       await page.goto('/leaderboard');
-      const heading = page.locator('h1, h2, h3').filter({ hasText: /Leaderboard|Ranking|Clasificación|Líderes/i });
+      const heading = page.locator('h1, h2, h3').filter({ hasText: /Leaderboard|Ranking|Clasificacion|Lideres/i });
       if (await heading.first().isVisible({ timeout: 5000 }).catch(() => false)) {
         await expect(heading.first()).toBeVisible();
       } else {
@@ -368,7 +371,7 @@ test.describe('Capital Fourge E2E Tests', () => {
     await test.step('Login and get initial data', async () => {
       await login(page);
       await waitForDashboardReady(page);
-      const values = page.locator('text=/\\$[0-9,.]+/');
+      const values = page.locator('text=/\\\\$[0-9,.]+/');
       await expect(values.first()).toBeVisible({ timeout: 10000 });
       const count = await values.count();
       let initialValue = '';
@@ -384,7 +387,7 @@ test.describe('Capital Fourge E2E Tests', () => {
         await page.reload();
         await page.waitForURL('/dashboard');
         await waitForDashboardReady(page);
-        const afterValues = page.locator('text=/\\$[0-9,.]+/');
+        const afterValues = page.locator('text=/\\\\$[0-9,.]+/');
         await expect(afterValues.first()).toBeVisible({ timeout: 10000 });
         const afterCount = await afterValues.count();
         let foundMatch = false;
@@ -406,9 +409,9 @@ test.describe('Capital Fourge E2E Tests', () => {
     });
 
     await test.step('Logout', async () => {
-      const logoutBtn = page.locator('button:has-text("Cerrar sesión")').first();
+      const logoutBtn = page.locator('button:has-text("Cerrar sesion")').first();
       if (!(await logoutBtn.isVisible({ timeout: 3000 }).catch(() => false))) {
-        const altLogout = page.locator('button:has-text("Salir"), button:has-text("Logout"), [aria-label="Cerrar sesión"]').first();
+        const altLogout = page.locator('button:has-text("Salir"), button:has-text("Logout"), [aria-label="Cerrar sesion"]').first();
         if (await altLogout.isVisible({ timeout: 3000 }).catch(() => false)) {
           await click(page, altLogout);
         } else {
@@ -416,7 +419,7 @@ test.describe('Capital Fourge E2E Tests', () => {
           if (await userMenu.isVisible({ timeout: 3000 }).catch(() => false)) {
             await click(page, userMenu);
             await page.waitForTimeout(500);
-            const menuLogout = page.locator('button:has-text("Cerrar sesión"), button:has-text("Salir")').first();
+            const menuLogout = page.locator('button:has-text("Cerrar sesion"), button:has-text("Salir")').first();
             if (await menuLogout.isVisible({ timeout: 3000 }).catch(() => false)) {
               await click(page, menuLogout);
             }

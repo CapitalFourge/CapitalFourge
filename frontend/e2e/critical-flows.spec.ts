@@ -154,9 +154,11 @@ async function sellAsset(page: import('@playwright/test').Page, symbol: string, 
 
   // Symbol combobox - click to open and select
   const symbolCombobox = dialog.locator('[role="combobox"]').first();
+  await expect(symbolCombobox).toBeVisible({ timeout: 10000 });
   await click(page, symbolCombobox);
-  await page.waitForTimeout(300);
+  await page.waitForTimeout(500);
   const symbolOption = dialog.locator(`[role="option"]:has-text("${symbol}")`).first();
+  await expect(symbolOption).toBeVisible({ timeout: 5000 });
   await click(page, symbolOption);
 
   const quantityInput = dialog.locator('input[type="number"]').first();
@@ -341,7 +343,8 @@ test.describe('Capital Fourge E2E Tests', () => {
     await test.step('Verify performance calculation', async () => {
       await waitForDashboardReady(page);
       // Check for any percentage value (positive or negative)
-      await expect(page.locator('text=/[+-]\\d+(\\.\\d+)?%/')).toBeVisible({ timeout: 10000 });
+      const percentageValues = page.locator('text=/[+-]\\d+(\\.\\d+)?%/');
+      await expect(percentageValues.first()).toBeVisible({ timeout: 10000 });
     });
   });
 

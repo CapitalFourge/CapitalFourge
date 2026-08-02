@@ -237,16 +237,16 @@ jobs:
             -v ${{ github.workspace }}/.github/scripts:/app \
             python:3.11-bullseye \
             python3 /app/data_collector_mock.py
-          # Wait for mock to be ready with more retries
+          # Wait for mock to be ready - fast failure (5 retries)
           echo "Waiting for data-collector-mock to be ready..."
-          for i in {1..60}; do
+          for i in {1..5}; do
             RESPONSE=$(curl -sf http://localhost:8000/health 2>/dev/null || echo "")
             echo "Attempt $i: $RESPONSE"
             if echo "$RESPONSE" | grep -q '"status"[[:space:]]*:[[:space:]]*"healthy"'; then
               echo "Data collector mock ready"
               break
             fi
-            if [ $i -eq 60 ]; then
+            if [ $i -eq 5 ]; then
               echo "ERROR: Data collector mock failed to start"
               docker logs data-collector-mock
               exit 1

@@ -15,6 +15,7 @@ services:
             interval: 10s
             timeout: 5s
             retries: 5
+            start_period: 20s
 
     mongodb:
         image: mongo:latest
@@ -31,6 +32,7 @@ services:
             interval: 10s
             timeout: 5s
             retries: 5
+            start_period: 30s
 
     redis:
         image: redis:latest
@@ -43,6 +45,7 @@ services:
             interval: 10s
             timeout: 5s
             retries: 5
+            start_period: 10s
 
     data-collector:
         build: ./data-collector
@@ -84,7 +87,7 @@ services:
             dockerfile: portfolio-manager/Dockerfile
         container_name: capital-fourge-portfolio-manager
         ports:
-            - "8080:8080"
+            - "10000:10000"
         environment:
             - DB_HOST=postgres
             - DB_PORT=5432
@@ -92,6 +95,7 @@ services:
             - DB_USER=${DB_POSTGRES_USER}
             - DB_PASSWORD=${DB_POSTGRES_PASSWORD}
             - GRPC_DATA_COLLECTOR_HOST=data-collector
+            - DATA_COLLECTOR_BASE_URL=http://data-collector:8000
             - DATA_COLLECTOR_API_KEY=${DATA_COLLECTOR_API_KEY:-internal-service-key}
             - JWT_SECRET=${JWT_SECRET:-}
             - JWT_ISSUER=${JWT_ISSUER:-capital-fourge}

@@ -1,6 +1,8 @@
 package com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistence.Entities;
 
 import jakarta.persistence.*;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -21,6 +23,10 @@ public class OrderEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "portfolio_id", nullable = false, insertable = false, updatable = false)
+    private PortfolioEntity portfolio;
 
     @Column(name = "portfolio_id", nullable = false)
     private UUID portfolioId;

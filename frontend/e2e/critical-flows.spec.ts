@@ -207,9 +207,17 @@ test.describe('Capital Fourge E2E Tests', () => {
         // Wait for dashboard to load
         await page.waitForURL('**/dashboard');
         await page.waitForLoadState('networkidle');
-        // Wait longer for dashboard data to load and render
-        await page.waitForTimeout(5000);
-
+        
+        // Wait for dashboard query to complete - wait for stats grid or error
+        await page.waitForSelector('.metric-tile, [class*="bg-red-500"], [class*="animate-spin"]', { timeout: 30000 });
+        
+        // Check if error state
+        const errorEl = page.locator('text=/No fue posible cargar|Error|error/i').first();
+        if (await errorEl.isVisible({ timeout: 2000 }).catch(() => false)) {
+          const errorText = await errorEl.textContent();
+          throw new Error(`Dashboard error: ${errorText}`);
+        }
+        
         // Close welcome dialog if present
         const welcomeDialog = page.locator('button:has-text("Entendido, empecemos")');
         if (await welcomeDialog.isVisible({ timeout: 3000 }).catch(() => false)) {
@@ -218,9 +226,8 @@ test.describe('Capital Fourge E2E Tests', () => {
         }
 
         // Check for any balance/value tiles with non-zero amounts
-        // Use broad selectors that match any currency-like text
         const values = page.locator('text=/\\\\$[0-9,.]+/');
-        await expect(values.first()).toBeVisible({ timeout: 20000 });
+        await expect(values.first()).toBeVisible({ timeout: 10000 });
 
         // Verify at least one value is not $0.00
         const count = await values.count();

@@ -70,10 +70,17 @@ async function login(page: import('@playwright/test').Page) {
   const respBody = await response.text();
   console.log('Login form submit body:', respBody);
   
-  // Check for error messages
+  // Check for error messages ONLY (not success toasts)
   const errorToast = page.locator('[role="alert"], .sonner-toast, [data-sonner-toast], .toast-error').first();
+  // Only consider it an error if it contains error-like text
   if (await errorToast.isVisible({ timeout: 3000 }).catch(() => false)) {
-    console.log('Error toast visible:', await errorToast.textContent());
+    const toastText = await errorToast.textContent();
+    if (toastText && /error|failed|invalid|incorrect|denied|unauthorized/i.test(toastText)) {
+      console.log('Error toast visible:', toastText);
+      throw new Error(`Login error: ${toastText}`);
+    } else {
+      console.log('Success/info toast visible (ignored):', toastText);
+    }
   }
   
   // Wait for navigation
@@ -101,6 +108,8 @@ async function gotoPortfolioDetail(page: import('@playwright/test').Page, portfo
 
 async function createPortfolio(page: import('@playwright/test').Page, name: string, description: string) {
   const createBtn = page.locator('button:has-text("NUEVA ESTRATEGIA")').first();
+  // Wait for button to be visible and enabled
+  await expect(createBtn).toBeVisible({ timeout: 15000 });
   await click(page, createBtn);
   
   const dialog = await waitForDialog(page);

@@ -164,10 +164,22 @@ async function sellAsset(page: import('@playwright/test').Page, symbol: string, 
     { timeout: 20000 }
   );
   
-  // Symbol selector is a native <select> in sell mode (not role="combobox")
+  // Symbol selector is a native <select> in sell mode - wait for options to be populated
   const symbolSelect = dialog.locator('select').first();
-  
   await expect(symbolSelect).toBeVisible({ timeout: 10000 });
+  
+  // Wait for the specific symbol option to be available (value = symbol)
+  await page.waitForFunction(
+    (sel, sym) => {
+      const select = document.querySelector(sel);
+      if (!select) return false;
+      return Array.from(select.options).some(opt => opt.value === sym);
+    },
+    'select',
+    symbol,
+    { timeout: 15000 }
+  );
+  
   await symbolSelect.selectOption(symbol);
   await page.waitForTimeout(500);
 

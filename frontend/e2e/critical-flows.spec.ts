@@ -152,8 +152,8 @@ async function sellAsset(page: import('@playwright/test').Page, symbol: string, 
   await page.waitForTimeout(500);
   const dialog = await waitForDialog(page);
 
-  // Symbol combobox - click to open and select
-  const symbolCombobox = dialog.locator('[role="combobox"]').first();
+  // Symbol combobox - the second combobox (first is Portfolio)
+  const symbolCombobox = dialog.locator('[role="combobox"]').nth(1);
   await expect(symbolCombobox).toBeVisible({ timeout: 10000 });
   await click(page, symbolCombobox);
   await page.waitForTimeout(500);

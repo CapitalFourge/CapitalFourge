@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react";
-import { useApolloClient } from '@apollo/client';
+import { getApolloClient } from '@/hooks/useApolloCache';
 
 interface User {
   id: string;
@@ -43,7 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [refreshToken, setRefreshToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const apolloClient = useApolloClient();
+  const apolloClient = getApolloClient();
 
   const loadTokens = useCallback(() => {
     if (typeof window !== "undefined") {

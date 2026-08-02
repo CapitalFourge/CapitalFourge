@@ -1,9 +1,9 @@
 "use client";
 
-import { useApolloClient } from '@apollo/client';
+import { useApolloClient as useApolloClientHook } from '@apollo/client';
 
 export function useApolloCache() {
-  const client = useApolloClient();
+  const client = useApolloClientHook();
   
   const clearUserCache = async () => {
     // Evict user and portfolio queries from cache
@@ -20,7 +20,6 @@ export function useApolloCache() {
   return { clearUserCache, refetchUserQueries };
 }
 
-export function useApolloClient() {
-  const client = useApolloClient();
-  return client;
+export function getApolloClient() {
+  return useApolloClientHook();
 }

@@ -81,13 +81,13 @@ const item = {
 };
 
 const formatCurrency = (value: number) =>
-  value.toLocaleString("en-US", {
+  `$${value.toLocaleString("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  });
+  })}`;
 
 const formatSignedPercent = (value: number) => `${value >= 0 ? "+" : ""}${value.toFixed(2)}%`;
-const formatSignedCurrency = (value: number) => `${value >= 0 ? "+" : "-"}$${formatCurrency(Math.abs(value))}`;
+const formatSignedCurrency = (value: number) => `${value >= 0 ? "+" : "-"}${formatCurrency(Math.abs(value))}`;
 const formatMetricVolume = (value: number) =>
   value.toLocaleString("en-US", {
     minimumFractionDigits: value >= 100 ? 0 : 2,

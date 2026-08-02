@@ -152,34 +152,9 @@ async function sellAsset(page: import('@playwright/test').Page, symbol: string, 
   await page.waitForTimeout(1000);
   const dialog = await waitForDialog(page);
 
-  // Wait for dialog content - either select appears OR price loading text appears
-  await page.waitForFunction(
-    () => {
-      const dialogEl = document.querySelector('[role="dialog"]');
-      if (!dialogEl) return false;
-      const selects = dialogEl.querySelectorAll('select');
-      const text = dialogEl.textContent || '';
-      return selects.length > 0 || text.includes('Cargando precio') || text.includes('Selecciona un simbolo');
-    },
-    { timeout: 20000 }
-  );
-  
-  // Symbol selector is a native <select> in sell mode - wait for options to be populated
+  // Symbol selector is a native <select> in sell mode
   const symbolSelect = dialog.locator('select').first();
   await expect(symbolSelect).toBeVisible({ timeout: 10000 });
-  
-  // Wait for the specific symbol option to be available (value = symbol)
-  await page.waitForFunction(
-    (sel, sym) => {
-      const select = document.querySelector(sel);
-      if (!select) return false;
-      return Array.from(select.options).some(opt => opt.value === sym);
-    },
-    'select',
-    symbol,
-    { timeout: 15000 }
-  );
-  
   await symbolSelect.selectOption(symbol);
   await page.waitForTimeout(500);
 
@@ -313,6 +288,10 @@ test.describe('Capital Fourge E2E Tests', () => {
   test('E2E-04: Sell Asset -> Dashboard updates cash/invested', async ({ page }) => {
     await test.step('Login', async () => {
       await login(page);
+    });
+
+    await test.step('Buy asset first (need position to sell)', async () => {
+      await buyAsset(page, SYMBOL, String(QUANTITY));
     });
 
     await test.step('Sell asset from Dashboard', async () => {

@@ -152,11 +152,18 @@ async function sellAsset(page: import('@playwright/test').Page, symbol: string, 
   await page.waitForTimeout(500);
   const dialog = await waitForDialog(page);
 
-  // Wait for both comboboxes to be rendered (Portfolio and Symbol)
-  await dialog.locator('[role="combobox"]').first().waitFor({ state: 'visible', timeout: 10000 });
+  // Wait for comboboxes to render - find the Symbol combobox by its placeholder option
+  await dialog.locator('[role="combobox"]').first().waitFor({ state: 'visible', timeout: 15000 });
   
-  // Symbol combobox - second combobox in dialog (first is Portfolio, second is Symbol)
-  const symbolCombobox = dialog.locator('[role="combobox"]').nth(1);
+  // Get all comboboxes - Symbol combobox is the one with "Seleccionar activo..." option
+  const comboboxes = dialog.locator('[role="combobox"]');
+  const count = await comboboxes.count();
+  
+  // If only 1 combobox, it's the Symbol one (Portfolio is hidden/auto-selected)
+  // If 2 comboboxes, second is Symbol
+  const symbolComboboxIndex = count >= 2 ? 1 : 0;
+  const symbolCombobox = comboboxes.nth(symbolComboboxIndex);
+  
   await expect(symbolCombobox).toBeVisible({ timeout: 10000 });
   await click(page, symbolCombobox);
   await page.waitForTimeout(500);

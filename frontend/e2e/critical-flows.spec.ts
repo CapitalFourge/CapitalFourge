@@ -152,33 +152,24 @@ async function sellAsset(page: import('@playwright/test').Page, symbol: string, 
   await page.waitForTimeout(1000);
   const dialog = await waitForDialog(page);
 
-  // Wait for dialog content - either combobox appears OR price loading text appears
+  // Wait for dialog content - either select appears OR price loading text appears
   await page.waitForFunction(
     () => {
       const dialogEl = document.querySelector('[role="dialog"]');
       if (!dialogEl) return false;
-      const comboboxes = dialogEl.querySelectorAll('[role="combobox"]');
+      const selects = dialogEl.querySelectorAll('select');
       const text = dialogEl.textContent || '';
-      return comboboxes.length > 0 || text.includes('Cargando precio') || text.includes('Selecciona un simbolo');
+      return selects.length > 0 || text.includes('Cargando precio') || text.includes('Selecciona un simbolo');
     },
     { timeout: 20000 }
   );
   
-  // Get all comboboxes - Symbol combobox is the one with "Seleccionar activo..." option
-  const comboboxes = dialog.locator('[role="combobox"]');
-  const count = await comboboxes.count();
+  // Symbol selector is a native <select> in sell mode (not role="combobox")
+  const symbolSelect = dialog.locator('select').first();
   
-  // If only 1 combobox, it's the Symbol one (Portfolio is hidden/auto-selected)
-  // If 2 comboboxes, second is Symbol
-  const symbolComboboxIndex = count >= 2 ? 1 : 0;
-  const symbolCombobox = comboboxes.nth(symbolComboboxIndex);
-  
-  await expect(symbolCombobox).toBeVisible({ timeout: 10000 });
-  await click(page, symbolCombobox);
+  await expect(symbolSelect).toBeVisible({ timeout: 10000 });
+  await symbolSelect.selectOption(symbol);
   await page.waitForTimeout(500);
-  const symbolOption = dialog.locator(`[role="option"]:has-text("${symbol}")`).first();
-  await expect(symbolOption).toBeVisible({ timeout: 5000 });
-  await click(page, symbolOption);
 
   const quantityInput = dialog.locator('input[type="number"]').first();
   await fill(page, quantityInput, quantity);

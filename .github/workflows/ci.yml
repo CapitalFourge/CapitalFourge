@@ -229,14 +229,13 @@ jobs:
           NEXT_PUBLIC_API_BASE_URL: http://localhost:10000
         run: pnpm build
 
-      # Start data-collector mock (port 8000) - needed by frontend environment check
+      # Start data-collector mock (port 8000) - built from Dockerfile
       - name: Start data-collector mock
         run: |
+          docker build -t data-collector-mock .github/scripts
           docker run -d --name data-collector-mock \
             --network host \
-            -v ${{ github.workspace }}/.github/scripts:/app \
-            python:3.11-bullseye \
-            python3 /app/data_collector_mock.py
+            data-collector-mock
           # Wait for mock to be ready - fast failure (5 retries)
           echo "Waiting for data-collector-mock to be ready..."
           for i in {1..5}; do

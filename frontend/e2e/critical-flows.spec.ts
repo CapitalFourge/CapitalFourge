@@ -147,14 +147,16 @@ async function sellAsset(page: import('@playwright/test').Page, symbol: string, 
   // Verify it's the sell dialog by checking for "Vender ahora" button
   await expect(dialog.locator('button:has-text("Vender ahora")')).toBeVisible({ timeout: 5000 });
 
-  // Symbol field - wait for the Symbol combobox option "Seleccionar activo..."
-  await dialog.locator('[role="option"]:has-text("Seleccionar activo")').first().waitFor({ state: 'attached', timeout: 15000 });
-  
-  // Now the combobox is ready - it's the parent of the "Seleccionar activo" option
-  const symbolCombobox = dialog.locator('[role="option"]:has-text("Seleccionar activo")').first().locator('..');
+  // Symbol field - find the Symbol combobox (2nd combobox in dialog)
+  const symbolCombobox = dialog.locator('[role="combobox"]').nth(1);
   await expect(symbolCombobox).toBeVisible({ timeout: 10000 });
+  
+  // Click combobox to open and render options
   await click(page, symbolCombobox);
   await page.waitForTimeout(500);
+  
+  // Now wait for the option to appear (rendered on open)
+  await dialog.locator('[role="option"]:has-text("Seleccionar activo")').first().waitFor({ state: 'attached', timeout: 10000 });
   
   // Select the symbol
   const symbolOption = dialog.locator('[role="option"]:has-text("AAPL")').first();

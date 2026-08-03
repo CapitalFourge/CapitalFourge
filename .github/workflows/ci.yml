@@ -114,7 +114,8 @@ jobs:
             -DJWT_ISSUER=${{ env.JWT_ISSUER }} \
             -DJWT_ACCESS_EXPIRATION_MS=${{ env.JWT_ACCESS_EXPIRATION_MS }} \
             -DJWT_REFRESH_EXPIRATION_MS=${{ env.JWT_REFRESH_EXPIRATION_MS }} \
-            -DDATA_COLLECTOR_BASE_URL=${{ env.DATA_COLLECTOR_BASE_URL }}
+            -DDATA_COLLECTOR_BASE_URL=${{ env.DATA_COLLECTOR_BASE_URL }} \
+            -Dspring.redis.ssl.enabled=false
 
       - name: Upload test reports
         if: always()
@@ -292,6 +293,7 @@ jobs:
             -DJWT_REFRESH_EXPIRATION_MS=${{ env.JWT_REFRESH_EXPIRATION_MS }} \
             -DDATA_COLLECTOR_BASE_URL=http://localhost:8000 \
             -Dserver.port=10000 \
+            -Dspring.redis.ssl.enabled=false \
             > backend.log 2>&1 &
           echo $! > backend.pid
 

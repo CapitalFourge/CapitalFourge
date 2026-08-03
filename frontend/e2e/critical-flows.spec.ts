@@ -165,7 +165,14 @@ async function sellAsset(page: import('@playwright/test').Page, symbol: string, 
   await expect(symbolField).toBeVisible({ timeout: 10000 });
   
   if (hasNativeSelect) {
-    // Native select - use selectOption
+    // Native select - wait for options to be populated, then selectOption
+    await page.waitForFunction(
+      () => {
+        const selectEl = document.querySelector('[role="dialog"] select');
+        return selectEl && selectEl.options.length > 1 && Array.from(selectEl.options).some(opt => opt.value === 'AAPL');
+      },
+      { timeout: 10000 }
+    );
     await symbolField.selectOption(symbol);
   } else {
     // Combobox - click to open, wait for option, click

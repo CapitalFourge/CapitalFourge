@@ -165,7 +165,9 @@ async function sellAsset(page: import('@playwright/test').Page, symbol: string, 
   await expect(symbolField).toBeVisible({ timeout: 10000 });
   
   if (hasNativeSelect) {
-    // Native select - wait for options to be populated, then selectOption
+    // Native select - click to open/trigger data fetch, wait for options populated, then selectOption
+    await click(page, symbolField);
+    await page.waitForTimeout(500);
     await page.waitForFunction(
       () => {
         const selectEl = document.querySelector('[role="dialog"] select');

@@ -280,22 +280,22 @@ jobs:
             JWT_SECRET="test-secret-key-for-unit-tests-only-32chars!!"
           fi
           mvn spring-boot:run \
-                      -Dspring-boot.run.jvmArguments="-Xms64m -Xmx512m -XX:MaxRAMPercentage=80.0 -XX:+UseZGC -XX:MaxMetaspaceSize=256m -XX:CompressedClassSpaceSize=64m" \
-                      -DDB_HOST=localhost \
-                      -DDB_PORT=5433 \
-                      -DDB_NAME=finsight_db \
-                      -DDB_USER=user \
-                      -DDB_PASSWORD=${{ secrets.DB_PASSWORD }} \
-                      -DDB_SSLMODE=disable \
-                      -DSPRING_REDIS_URL=redis://localhost:6379 \
-                      -DJWT_SECRET=${JWT_SECRET} \
-                      -DJWT_ISSUER=${{ env.JWT_ISSUER }} \
-                      -DJWT_ACCESS_EXPIRATION_MS=${{ env.JWT_ACCESS_EXPIRATION_MS }} \
-                      -DJWT_REFRESH_EXPIRATION_MS=${{ env.JWT_REFRESH_EXPIRATION_MS }} \
-                      -DDATA_COLLECTOR_BASE_URL=http://localhost:8000 \
-                      -Dserver.port=10000 \
-                      -Dspring.data-collector.health-check.enabled=false \
-                      > backend.log 2>&1 &
+            -Dspring-boot.run.jvmArguments="-Xms64m -Xmx512m -XX:MaxRAMPercentage=80.0 -XX:+UseZGC -XX:MaxMetaspaceSize=256m -XX:CompressedClassSpaceSize=64m" \
+            -DDB_HOST=localhost \
+            -DDB_PORT=5433 \
+            -DDB_NAME=finsight_db \
+            -DDB_USER=user \
+            -DDB_PASSWORD=${{ secrets.DB_PASSWORD }} \
+            -DDB_SSLMODE=disable \
+            -DSPRING_REDIS_URL=redis://localhost:6379 \
+            -DJWT_SECRET=${JWT_SECRET} \
+            -DJWT_ISSUER=${{ env.JWT_ISSUER }} \
+            -DJWT_ACCESS_EXPIRATION_MS=${{ env.JWT_ACCESS_EXPIRATION_MS }} \
+            -DJWT_REFRESH_EXPIRATION_MS=${{ env.JWT_REFRESH_EXPIRATION_MS }} \
+            -DDATA_COLLECTOR_BASE_URL=http://localhost:8000 \
+            -Dserver.port=10000 \
+            > backend.log 2>&1 &
+          echo $! > backend.pid
 
       # Wait for backend to be ready - readiness probe (no Flyway, no data-collector health check in CI)
       - name: Wait for backend readiness

@@ -11,5 +11,5 @@ WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 EXPOSE 10000
 ENV PORT=10000
-ENV JAVA_OPTS="-Xms64m -Xmx200m -XX:MaxRAMPercentage=40.0 -XX:+UseZGC -XX:MaxMetaspaceSize=128m -XX:CompressedClassSpaceSize=32m -Dserver.address=0.0.0.0 -Dserver.port=${PORT}"
+ENV JAVA_OPTS="-Xms64m -Xmx256m -XX:MaxMetaspaceSize=96m -XX:CompressedClassSpaceSize=16m -XX:+UseZGC -Dserver.address=0.0.0.0 -Dserver.port=${PORT}"
 ENTRYPOINT ["sh","-c","exec java $JAVA_OPTS -jar app.jar"]

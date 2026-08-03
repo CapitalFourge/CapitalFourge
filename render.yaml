@@ -9,7 +9,7 @@ services:
     healthCheckPath: /actuator/health/readiness
     envVars:
       - key: DB_HOST
-        value: dpg-xxxxx
+        sync: false
       - key: DB_PORT
         value: "5432"
       - key: DB_NAME
@@ -19,13 +19,7 @@ services:
       - key: DB_PASSWORD
         sync: false
       - key: SPRING_REDIS_URL
-        value: redis://localhost:6379
-      - key: SPRING_DATA_REDIS_ENABLED
-        value: "false"
-      - key: SPRING_REDIS_ENABLED
-        value: "false"
-      - key: SPRING_DATA_COLLECTOR_HEALTH_CHECK_ENABLED
-        value: "true"
+        sync: false
       - key: JWT_SECRET
         sync: false
       - key: JWT_ISSUER
@@ -36,8 +30,6 @@ services:
         value: "604800000"
       - key: DATA_COLLECTOR_BASE_URL
         value: https://data-collector.onrender.com
-      - key: PORT
-        value: "10000"
 
   - type: web
     name: data-collector

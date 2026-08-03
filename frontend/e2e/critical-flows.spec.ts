@@ -140,11 +140,14 @@ async function sellAsset(page: import('@playwright/test').Page, symbol: string, 
   const sellBtn = page.locator('button[aria-haspopup="dialog"]').filter({ hasText: 'VENDER' }).first();
   await click(page, sellBtn);
 
-  await page.waitForTimeout(1000);
-  const dialog = await waitForDialog(page);
+  // Wait for the sell dialog to open (after clicking VENDER)
+  const dialog = page.locator('[role="dialog"]').first();
+  await expect(dialog).toBeVisible({ timeout: 10000 });
+  
+  // Verify it's the sell dialog by checking for "Vender ahora" button
+  await expect(dialog.locator('button:has-text("Vender ahora")')).toBeVisible({ timeout: 5000 });
 
-  // Symbol field - when portfolio has positions, it's a combobox (2nd combobox in dialog)
-  // Wait for the Symbol combobox to be present (by its unique "Seleccionar activo..." option)
+  // Symbol field - wait for the Symbol combobox option "Seleccionar activo..."
   await dialog.locator('[role="option"]:has-text("Seleccionar activo")').first().waitFor({ state: 'attached', timeout: 15000 });
   
   // Now the combobox is ready - it's the parent of the "Seleccionar activo" option

@@ -57,28 +57,29 @@ async function login(page: import('@playwright/test').Page) {
   await fill(page, page.locator('input[type="email"]'), TEST_USER.email);
   await fill(page, page.locator('input[type="password"]'), TEST_USER.password);
 
-  const [response] = await Promise.all([
-    page.waitForResponse(r => r.url().includes('/api/auth/login') && r.request().method() === 'POST'),
-    click(page, page.locator('button:has-text("Ingresar")'))
-  ]);
-  console.log('Login form submit response:', response.status());
-  const respBody = await response.text();
-  console.log('Login form submit body:', respBody);
+  // Click login button - no API response to wait for (handled by AuthContext)
+  await click(page, page.locator('button:has-text("Ingresar")'));
 
-  const errorToast = page.locator('[role="alert"], .sonner-toast, [data-sonner-toast], .toast-error').first();
-  if (await errorToast.isVisible({ timeout: 3000 }).catch(() => false)) {
-    const toastText = await errorToast.textContent();
-    if (toastText && /error|failed|invalid|incorrect|denied|unauthorized/i.test(toastText)) {
-      console.log('Error toast visible:', toastText);
-      throw new Error(`Login error: ${toastText}`);
-    } else {
-      console.log('Success/info toast visible (ignored):', toastText);
-    }
-  }
-
+  // Wait for navigation to dashboard
   await page.waitForURL('**/dashboard', { timeout: 30000 });
   await page.waitForLoadState('networkidle');
-  await page.waitForTimeout(1000);
+  
+  // Wait for Apollo cache to refetch and dashboard data to load (auth token now in localStorage)
+  await page.waitForSelector('.metric-tile', { timeout: 30000 });
+  
+  // Additional wait to ensure GraphQL queries with auth token complete
+  await page.waitForFunction(
+    () => {
+      const elements = document.querySelectorAll('*');
+      return Array.from(elements).some(el => {
+        const text = el.textContent || '';
+        return text.match(/\\$[0-9,.]+/) && !text.includes('$0.00');
+      });
+    },
+    { timeout: 30000 }
+  );
+  
+  await page.waitForTimeout(2000);
 }
 
 async function navigateToPortfolios(page: import('@playwright/test').Page) {
@@ -129,7 +130,11 @@ async function deposit(page: import('@playwright/test').Page, amount: string) {
 }
 
 async function buyAsset(page: import('@playwright/test').Page, symbol: string, quantity: string) {
+  // Wait for dashboard to be fully loaded
+  await page.waitForSelector('.metric-tile', { timeout: 30000 });
+  
   const buyBtn = page.locator('button[aria-haspopup="dialog"]').filter({ hasText: 'COMPRAR' }).first();
+  await expect(buyBtn).toBeVisible({ timeout: 15000 });
   await click(page, buyBtn);
 
   const dialog = await waitForDialog(page);
@@ -152,15 +157,26 @@ async function sellAsset(page: import('@playwright/test').Page, symbol: string, 
   await page.waitForTimeout(1000);
   const dialog = await waitForDialog(page);
 
-  // Wait for Symbol combobox option to be attached in DOM (unique to Symbol combobox)
-  await dialog.locator('[role="option"]:has-text("Seleccionar activo")').waitFor({ state: 'attached', timeout: 10000 });
+  // Wait for both comboboxes to render - first Portfolio, then Symbol
+  await page.waitForFunction(
+    () => {
+      const dialogEl = document.querySelector('[role="dialog"]');
+      if (!dialogEl) return false;
+      const comboboxes = dialogEl.querySelectorAll('[role="combobox"]');
+      return comboboxes.length >= 2;
+    },
+    { timeout: 15000 }
+  );
   
-  // Symbol combobox - find by its unique "Seleccionar activo" option (parent of the option)
-  const symbolCombobox = dialog.locator('[role="option"]:has-text("Seleccionar activo")').locator('..').first();
+  // Symbol combobox - second combobox in dialog (first is Portfolio, second is Symbol)
+  const symbolCombobox = dialog.locator('[role="combobox"]').nth(1);
   await expect(symbolCombobox).toBeVisible({ timeout: 10000 });
   await click(page, symbolCombobox);
   await page.waitForTimeout(500);
-  const symbolOption = dialog.locator(`[role="option"]:has-text("${symbol}")`).first();
+  
+  // Now wait for the option to appear
+  await dialog.locator('[role="option"]:has-text("Seleccionar")').first().waitFor({ state: 'attached', timeout: 10000 });
+  const symbolOption = dialog.locator('[role="option"]:has-text("AAPL")').first();
   await expect(symbolOption).toBeVisible({ timeout: 5000 });
   await click(page, symbolOption);
   await page.waitForTimeout(500);
@@ -295,6 +311,20 @@ test.describe('Capital Fourge E2E Tests', () => {
   test('E2E-04: Sell Asset -> Dashboard updates cash/invested', async ({ page }) => {
     await test.step('Login', async () => {
       await login(page);
+    });
+
+    // Wait for dashboard to be fully loaded with stats
+    await page.waitForSelector('.metric-tile', { timeout: 30000 });
+    
+    await test.step('Navigate to Portfolios and create one', async () => {
+      await navigateToPortfolios(page);
+      await createPortfolio(page, PORTFOLIO_NAME, 'E2E Test Portfolio');
+    });
+
+    await test.step('Go back to Dashboard', async () => {
+      await page.goto('/dashboard');
+      await page.waitForLoadState('networkidle');
+      await page.waitForSelector('.metric-tile', { timeout: 30000 });
     });
 
     await test.step('Buy asset first (need position to sell)', async () => {

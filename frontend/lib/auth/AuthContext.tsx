@@ -115,10 +115,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Clear Apollo cache and refetch user data after login (only client-side)
     try {
-      const { clearUserCache } = useApolloCache();
+      const { clearUserCache, refetchUserQueries } = useApolloCache();
       await clearUserCache();
+      // Small delay to ensure cache is cleared before refetch
+      await new Promise(r => setTimeout(r, 100));
+      await refetchUserQueries();
     } catch (e) {
-      console.warn("Could not clear Apollo cache:", e);
+      console.warn("Could not clear/refetch Apollo cache:", e);
     }
     
     // Fetch fresh user data including cash balance after login

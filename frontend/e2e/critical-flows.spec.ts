@@ -6,6 +6,7 @@ const TEST_USER = {
 };
 
 const PORTFOLIO_NAME = 'Test E2E Portfolio';
+const E2E04_PORTFOLIO_NAME = 'E2E-04 Sell Test Portfolio';
 const SYMBOL = 'AAPL';
 const QUANTITY = 10;
 
@@ -147,19 +148,28 @@ async function sellAsset(page: import('@playwright/test').Page, symbol: string, 
   // Verify it's the sell dialog by checking for "Vender ahora" button
   await expect(dialog.locator('button:has-text("Vender ahora")')).toBeVisible({ timeout: 5000 });
 
-  // In sell mode with positions, Symbol is a native <select>, not a combobox
-  // Wait for either the native select OR combobox to be present
-  const nativeSelect = dialog.locator('select').first();
-  const symbolCombobox = dialog.locator('[role="combobox"]').nth(1); // 2nd combobox if exists
+  // Select the portfolio with positions first
+  // The portfolio select is the first <select> in the dialog
+  const portfolioSelect = dialog.locator('select').first();
+  await expect(portfolioSelect).toBeVisible({ timeout: 5000 });
+  // Select by label (portfolio name) - use the unique name for this test
+  await portfolioSelect.selectOption({ label: 'E2E-04 Sell Test Portfolio' });
+  await page.waitForTimeout(3000); // wait for positions to load for selected portfolio
+
+  // In sell mode with positions, Symbol is a native <select> (2nd select in DOM, after Portfolio select)
+  // Wait for either the native select OR SymbolAutocomplete to be present
+  const nativeSelect = dialog.locator('select').nth(1); // 2nd select = Symbol select (1st = Portfolio)
+  // SymbolAutocomplete renders as input with placeholder, not role=combobox
+  const symbolAutocomplete = dialog.locator('input[placeholder="AAPL, BTC, ETH..."]').first();
   
   let symbolField;
   const hasNativeSelect = await nativeSelect.isVisible({ timeout: 5000 }).catch(() => false);
   if (hasNativeSelect) {
     symbolField = nativeSelect;
   } else {
-    // Fallback to combobox (sell without positions uses autocomplete)
-    await expect(symbolCombobox).toBeVisible({ timeout: 10000 });
-    symbolField = symbolCombobox;
+    // Fallback to SymbolAutocomplete (sell without positions uses autocomplete)
+    await expect(symbolAutocomplete).toBeVisible({ timeout: 10000 });
+    symbolField = symbolAutocomplete;
   }
   
   await expect(symbolField).toBeVisible({ timeout: 10000 });
@@ -170,18 +180,19 @@ async function sellAsset(page: import('@playwright/test').Page, symbol: string, 
     await page.waitForTimeout(500);
     await page.waitForFunction(
       () => {
-        const selectEl = document.querySelector('[role="dialog"] select');
-        return selectEl && selectEl.options.length > 1 && Array.from(selectEl.options).some(opt => opt.value === 'AAPL');
+        const selectEl = document.querySelector('[role="dialog"] select:nth-of-type(2)');
+        return selectEl && selectEl.options.length >= 2 && Array.from(selectEl.options).some(opt => opt.value === 'AAPL');
       },
-      { timeout: 10000 }
+      { timeout: 15000 }
     );
     await symbolField.selectOption(symbol);
   } else {
-    // Combobox - click to open, wait for option, click
+    // SymbolAutocomplete - type to search, wait for suggestions, click
     await click(page, symbolField);
     await page.waitForTimeout(500);
-    await dialog.locator('[role="option"]:has-text("Seleccionar activo")').first().waitFor({ state: 'attached', timeout: 10000 });
-    const symbolOption = dialog.locator('[role="option"]:has-text("AAPL")').first();
+    await symbolField.fill(symbol);
+    await page.waitForTimeout(1000); // wait for search results
+    const symbolOption = dialog.locator('button:has-text("AAPL")').first(); // SymbolAutocomplete renders suggestions as buttons
     await expect(symbolOption).toBeVisible({ timeout: 5000 });
     await click(page, symbolOption);
   }
@@ -313,7 +324,7 @@ test.describe('Capital Fourge E2E Tests', () => {
 
     await test.step('Navigate to Portfolios and create one', async () => {
       await navigateToPortfolios(page);
-      await createPortfolio(page, PORTFOLIO_NAME, 'E2E Test Portfolio');
+      await createPortfolio(page, E2E04_PORTFOLIO_NAME, 'E2E Test Portfolio for Sell');
     });
 
     await test.step('Go back to Dashboard', async () => {
@@ -324,6 +335,11 @@ test.describe('Capital Fourge E2E Tests', () => {
 
     await test.step('Buy asset first (need position to sell)', async () => {
       await buyAsset(page, SYMBOL, String(QUANTITY));
+      // Wait for dashboard to refresh with the new position (buy mutation triggers refetchQueries)
+      await waitForDashboardReady(page);
+      await page.waitForSelector('text=/\\d+ posiciones activas/', { timeout: 15000 });
+      // Extra wait for Apollo cache to update and TradeDialog to receive positions
+      await page.waitForTimeout(5000);
     });
 
     await test.step('Sell asset from Dashboard', async () => {

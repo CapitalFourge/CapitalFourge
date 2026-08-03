@@ -166,7 +166,7 @@ async function sellAsset(page: import('@playwright/test').Page, symbol: string, 
       }
       return false;
     },
-    { timeout: 15000 }
+    { timeout: 10000 }
   );
   
   // Symbol combobox - find by its unique "Seleccionar activo..." option

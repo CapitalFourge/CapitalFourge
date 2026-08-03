@@ -42,6 +42,7 @@ public class UserService implements UserUseCase {
     private final EmailValidator emailValidator;
 
     private static final long REFRESH_TTL_SECONDS = 60L * 60L * 24L * 7L;
+    private static final int MAX_OPTIMISTIC_LOCK_RETRIES = 3;
 
     @Override
     public AuthResult register(RegisterCommand command) {
@@ -94,6 +95,10 @@ public class UserService implements UserUseCase {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Credenciales inválidas");
         }
 
+        return retryWithOptimisticLock(() -> doLogin(command));
+    }
+
+    private AuthResult doLogin(LoginCommand command) {
         User user = userRepository.findByEmail(command.getEmail())
                 .orElseThrow(() -> {
                     log.warn("User not found for email: {}", command.getEmail());
@@ -124,6 +129,28 @@ public class UserService implements UserUseCase {
                 .refreshToken(refresh)
                 .user(saved)
                 .build();
+    }
+
+    private <T> T retryWithOptimisticLock(java.util.function.Supplier<T> operation) {
+        int attempts = 0;
+        while (true) {
+            try {
+                return operation.get();
+            } catch (org.springframework.orm.ObjectOptimisticLockingFailureException e) {
+                attempts++;
+                if (attempts >= MAX_OPTIMISTIC_LOCK_RETRIES) {
+                    log.error("Optimistic lock failed after {} attempts", attempts);
+                    throw new RuntimeException("Conflicto de concurrencia, intente nuevamente");
+                }
+                log.warn("Optimistic lock conflict on attempt {}, retrying...", attempts);
+                try {
+                    Thread.sleep(50L * attempts); // exponential backoff: 50ms, 100ms, 150ms
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    throw new RuntimeException("Interrupted during retry");
+                }
+            }
+        }
     }
 
     @Override

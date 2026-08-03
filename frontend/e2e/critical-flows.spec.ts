@@ -147,32 +147,35 @@ async function sellAsset(page: import('@playwright/test').Page, symbol: string, 
   // Verify it's the sell dialog by checking for "Vender ahora" button
   await expect(dialog.locator('button:has-text("Vender ahora")')).toBeVisible({ timeout: 5000 });
 
-  // Wait for both comboboxes to be present (Portfolio + Symbol)
-  await page.waitForFunction(
-    () => {
-      const dialogEl = document.querySelector('[role="dialog"]');
-      if (!dialogEl) return false;
-      const comboboxes = dialogEl.querySelectorAll('[role="combobox"]');
-      return comboboxes.length >= 2;
-    },
-    { timeout: 15000 }
-  );
+  // In sell mode with positions, Symbol is a native <select>, not a combobox
+  // Wait for either the native select OR combobox to be present
+  const nativeSelect = dialog.locator('select').first();
+  const symbolCombobox = dialog.locator('[role="combobox"]').nth(1); // 2nd combobox if exists
   
-  // Symbol combobox is the 2nd combobox in dialog (index 1)
-  const symbolCombobox = dialog.locator('[role="combobox"]').nth(1);
-  await expect(symbolCombobox).toBeVisible({ timeout: 10000 });
+  let symbolField;
+  const hasNativeSelect = await nativeSelect.isVisible({ timeout: 5000 }).catch(() => false);
+  if (hasNativeSelect) {
+    symbolField = nativeSelect;
+  } else {
+    // Fallback to combobox (sell without positions uses autocomplete)
+    await expect(symbolCombobox).toBeVisible({ timeout: 10000 });
+    symbolField = symbolCombobox;
+  }
   
-  // Click combobox to open and render options
-  await click(page, symbolCombobox);
-  await page.waitForTimeout(500);
+  await expect(symbolField).toBeVisible({ timeout: 10000 });
   
-  // Now wait for the option to appear (rendered on open)
-  await dialog.locator('[role="option"]:has-text("Seleccionar activo")').first().waitFor({ state: 'attached', timeout: 10000 });
-  
-  // Select the symbol
-  const symbolOption = dialog.locator('[role="option"]:has-text("AAPL")').first();
-  await expect(symbolOption).toBeVisible({ timeout: 5000 });
-  await click(page, symbolOption);
+  if (hasNativeSelect) {
+    // Native select - use selectOption
+    await symbolField.selectOption(symbol);
+  } else {
+    // Combobox - click to open, wait for option, click
+    await click(page, symbolField);
+    await page.waitForTimeout(500);
+    await dialog.locator('[role="option"]:has-text("Seleccionar activo")').first().waitFor({ state: 'attached', timeout: 10000 });
+    const symbolOption = dialog.locator('[role="option"]:has-text("AAPL")').first();
+    await expect(symbolOption).toBeVisible({ timeout: 5000 });
+    await click(page, symbolOption);
+  }
   await page.waitForTimeout(500);
 
   const quantityInput = dialog.locator('input[type="number"]').first();

@@ -5,8 +5,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -42,9 +42,12 @@ public class UserService implements UserUseCase {
     private final TokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailValidator emailValidator;
+    private final PlatformTransactionManager transactionManager;
 
     private static final long REFRESH_TTL_SECONDS = 60L * 60L * 24L * 7L;
     private static final int MAX_OPTIMISTIC_LOCK_RETRIES = 3;
+
+    private final TransactionTemplate transactionTemplate = new TransactionTemplate();
 
     @Override
     public AuthResult register(RegisterCommand command) {
@@ -97,10 +100,12 @@ public class UserService implements UserUseCase {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Credenciales inválidas");
         }
 
-        return retryWithOptimisticLock(() -> doLogin(command));
+        transactionTemplate.setTransactionManager(transactionManager);
+        transactionTemplate.setPropagationBehavior(TransactionTemplate.PROPAGATION_REQUIRES_NEW);
+
+        return retryWithOptimisticLock(() -> transactionTemplate.execute(status -> doLogin(command)));
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     private AuthResult doLogin(LoginCommand command) {
         User user = userRepository.findByEmail(command.getEmail())
                 .orElseThrow(() -> {

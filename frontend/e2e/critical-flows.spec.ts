@@ -152,12 +152,19 @@ async function sellAsset(page: import('@playwright/test').Page, symbol: string, 
   await page.waitForTimeout(1000);
   const dialog = await waitForDialog(page);
 
-  // Wait for both comboboxes to be visible (Portfolio and Symbol)
-  await dialog.locator('[role="combobox"]').first().waitFor({ state: 'visible', timeout: 10000 });
-  await dialog.locator('[role="combobox"]').nth(1).waitFor({ state: 'visible', timeout: 10000 });
+  // Wait for comboboxes - find the Symbol one by its label "Simbolo"
+  await page.waitForFunction(
+    () => {
+      const dialogEl = document.querySelector('[role="dialog"]');
+      if (!dialogEl) return false;
+      const text = dialogEl.textContent || '';
+      return text.includes('Simbolo') || text.includes('Símbolo');
+    },
+    { timeout: 15000 }
+  );
   
-  // Symbol combobox - second combobox (first is Portfolio)
-  const symbolCombobox = dialog.locator('[role="combobox"]').nth(1);
+  // Symbol combobox - find by proximity to "Simbolo" label
+  const symbolCombobox = dialog.locator('text=Simbolo').locator('..').locator('[role="combobox"]').first();
   await expect(symbolCombobox).toBeVisible({ timeout: 10000 });
   await click(page, symbolCombobox);
   await page.waitForTimeout(500);

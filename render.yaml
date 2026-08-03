@@ -16,6 +16,8 @@ services:
         value: finsight_db
       - key: DB_USER
         value: user
+      - key: DB_SSLMODE
+        value: "require"
       - key: DB_PASSWORD
         sync: false
       - key: SPRING_REDIS_URL

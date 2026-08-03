@@ -22,8 +22,6 @@ services:
         sync: false
       - key: SPRING_REDIS_SSL_ENABLED
         value: "true"
-      - key: SPRING_DATA_COLLECTOR_HEALTH_CHECK_ENABLED
-        value: "true"
       - key: JWT_SECRET
         sync: false
       - key: JWT_ISSUER

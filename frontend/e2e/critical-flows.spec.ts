@@ -169,8 +169,8 @@ async function sellAsset(page: import('@playwright/test').Page, symbol: string, 
     { timeout: 10000 }
   );
   
-  // Symbol combobox - find by its unique "Seleccionar activo..." option
-  const symbolCombobox = dialog.locator('[role="combobox"]').filter({ hasText: 'Seleccionar activo' }).first();
+  // Symbol combobox - find by its unique "Seleccionar activo..." option (parent of the option)
+  const symbolCombobox = dialog.locator('[role="option"]:has-text("Seleccionar activo")').locator('..').first();
   await expect(symbolCombobox).toBeVisible({ timeout: 10000 });
   await click(page, symbolCombobox);
   await page.waitForTimeout(500);

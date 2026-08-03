@@ -143,30 +143,20 @@ async function sellAsset(page: import('@playwright/test').Page, symbol: string, 
   await page.waitForTimeout(1000);
   const dialog = await waitForDialog(page);
 
-  // Symbol field - when portfolio has positions, it's a combobox; when empty, it's a textbox (autocomplete)
-  // Check for combobox first (has positions)
-  const symbolCombobox = dialog.locator('[role="combobox"]').nth(1);
-  const hasCombobox = await symbolCombobox.isVisible({ timeout: 5000 }).catch(() => false);
+  // Symbol field - when portfolio has positions, it's a combobox (2nd combobox in dialog)
+  // Wait for the Symbol combobox to be present (by its unique "Seleccionar activo..." option)
+  await dialog.locator('[role="option"]:has-text("Seleccionar activo")').first().waitFor({ state: 'attached', timeout: 15000 });
   
-  if (hasCombobox) {
-    // Has positions - use combobox
-    await expect(symbolCombobox).toBeVisible({ timeout: 10000 });
-    await click(page, symbolCombobox);
-    await page.waitForTimeout(500);
-    await dialog.locator('[role="option"]:has-text("Seleccionar")').first().waitFor({ state: 'attached', timeout: 10000 });
-    const symbolOption = dialog.locator('[role="option"]:has-text("AAPL")').first();
-    await expect(symbolOption).toBeVisible({ timeout: 5000 });
-    await click(page, symbolOption);
-  } else {
-    // No positions - use autocomplete textbox
-    const symbolTextbox = dialog.locator('input[placeholder*="AAPL"], input[placeholder*="BTC"], input[placeholder*="ETH"]').first();
-    await expect(symbolTextbox).toBeVisible({ timeout: 10000 });
-    await fill(page, symbolTextbox, symbol);
-    await page.waitForTimeout(500);
-    const symbolOption = dialog.locator('[role="option"]:has-text("AAPL")').first();
-    await expect(symbolOption).toBeVisible({ timeout: 5000 });
-    await click(page, symbolOption);
-  }
+  // Now the combobox is ready - it's the parent of the "Seleccionar activo" option
+  const symbolCombobox = dialog.locator('[role="option"]:has-text("Seleccionar activo")').first().locator('..');
+  await expect(symbolCombobox).toBeVisible({ timeout: 10000 });
+  await click(page, symbolCombobox);
+  await page.waitForTimeout(500);
+  
+  // Select the symbol
+  const symbolOption = dialog.locator('[role="option"]:has-text("AAPL")').first();
+  await expect(symbolOption).toBeVisible({ timeout: 5000 });
+  await click(page, symbolOption);
   await page.waitForTimeout(500);
 
   const quantityInput = dialog.locator('input[type="number"]').first();

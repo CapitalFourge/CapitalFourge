@@ -140,15 +140,36 @@ async function sellAsset(page: import('@playwright/test').Page, symbol: string, 
   const sellBtn = page.locator('button[aria-haspopup="dialog"]').filter({ hasText: 'VENDER' }).first();
   await click(page, sellBtn);
 
-  // Wait for the sell dialog to open (after clicking VENDER)
+  // Wait for the NEW sell dialog to appear (not a stale one from buy)
   const dialog = page.locator('[role="dialog"]').first();
   await expect(dialog).toBeVisible({ timeout: 10000 });
   
   // Verify it's the sell dialog by checking for "Vender ahora" button
   await expect(dialog.locator('button:has-text("Vender ahora")')).toBeVisible({ timeout: 5000 });
 
-  // Symbol field - find the Symbol combobox (2nd combobox in dialog)
-  const symbolCombobox = dialog.locator('[role="combobox"]').nth(1);
+  // Symbol field - find the Symbol combobox by its label "Simbolo"
+  // The dialog has: [Portfolio combobox] [Simbolo label] [Symbol combobox]
+  const simboloLabel = dialog.locator('text=Simbolo').first();
+  await expect(simboloLabel).toBeVisible({ timeout: 5000 });
+  
+  // Symbol combobox is the combobox AFTER the "Simbolo" label
+  const symbolCombobox = dialog.locator('[role="combobox"]').locator('..').filter({ hasText: 'Simbolo' }).locator('[role="combobox"]').first();
+  
+  // Fallback: if above fails, use nth(1) but with longer timeout and retry
+  let symbolComboboxEl = await dialog.locator('[role="combobox"]').nth(1).elementHandle({ timeout: 5000 }).catch(() => null);
+  if (!symbolComboboxEl) {
+    // Try to find by proximity to "Simbolo"
+    const allComboboxes = await dialog.locator('[role="combobox"]').all();
+    if (allComboboxes.length >= 2) {
+      symbolComboboxEl = allComboboxes[1];
+    }
+  }
+  
+  if (!symbolComboboxEl) {
+    throw new Error('Symbol combobox not found in sell dialog');
+  }
+  
+  const symbolCombobox = page.locator(symbolComboboxEl);
   await expect(symbolCombobox).toBeVisible({ timeout: 10000 });
   
   // Click combobox to open and render options

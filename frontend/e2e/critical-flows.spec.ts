@@ -152,24 +152,8 @@ async function sellAsset(page: import('@playwright/test').Page, symbol: string, 
   const simboloLabel = dialog.locator('text=Simbolo').first();
   await expect(simboloLabel).toBeVisible({ timeout: 5000 });
   
-  // Symbol combobox is the combobox AFTER the "Simbolo" label
-  let symbolCombobox = dialog.locator('[role="combobox"]').locator('..').filter({ hasText: 'Simbolo' }).locator('[role="combobox"]').first();
-  
-  // Fallback: if above fails, use nth(1) but with longer timeout and retry
-  let symbolComboboxEl = await dialog.locator('[role="combobox"]').nth(1).elementHandle({ timeout: 5000 }).catch(() => null);
-  if (!symbolComboboxEl) {
-    // Try to find by proximity to "Simbolo"
-    const allComboboxes = await dialog.locator('[role="combobox"]').all();
-    if (allComboboxes.length >= 2) {
-      symbolComboboxEl = allComboboxes[1];
-    }
-  }
-  
-  if (!symbolComboboxEl) {
-    throw new Error('Symbol combobox not found in sell dialog');
-  }
-  
-  symbolCombobox = page.locator(symbolComboboxEl);
+  // Symbol combobox is the 2nd combobox in dialog (index 1)
+  const symbolCombobox = dialog.locator('[role="combobox"]').nth(1);
   await expect(symbolCombobox).toBeVisible({ timeout: 10000 });
   
   // Click combobox to open and render options

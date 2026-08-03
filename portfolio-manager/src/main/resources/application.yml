@@ -31,7 +31,7 @@ spring:
   redis:
     url: ${SPRING_REDIS_URL}
     ssl:
-      enabled: ${SPRING_REDIS_SSL_ENABLED:false}
+      enabled: false
     lettuce:
       pool:
         max-active: 8

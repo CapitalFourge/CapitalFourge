@@ -110,7 +110,6 @@ jobs:
             -DDB_USER=${{ env.DB_USER }} \
             -DDB_PASSWORD=${{ env.DB_PASSWORD }} \
             -DSPRING_REDIS_URL=${{ env.SPRING_REDIS_URL }} \
-            -DSPRING_REDIS_SSL_ENABLED=false \
             -DJWT_SECRET=${{ env.JWT_SECRET }} \
             -DJWT_ISSUER=${{ env.JWT_ISSUER }} \
             -DJWT_ACCESS_EXPIRATION_MS=${{ env.JWT_ACCESS_EXPIRATION_MS }} \
@@ -289,7 +288,6 @@ jobs:
             -DDB_USER=user \
             -DDB_PASSWORD=${{ secrets.DB_PASSWORD }} \
             -DSPRING_REDIS_URL=redis://localhost:6379 \
-            -DSPRING_REDIS_SSL_ENABLED=false \
             -DJWT_SECRET=${JWT_SECRET} \
             -DJWT_ISSUER=${{ env.JWT_ISSUER }} \
             -DJWT_ACCESS_EXPIRATION_MS=${{ env.JWT_ACCESS_EXPIRATION_MS }} \

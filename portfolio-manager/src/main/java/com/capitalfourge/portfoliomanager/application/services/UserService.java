@@ -7,6 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import javax.annotation.PostConstruct;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -48,6 +50,12 @@ public class UserService implements UserUseCase {
     private static final int MAX_OPTIMISTIC_LOCK_RETRIES = 3;
 
     private final TransactionTemplate transactionTemplate = new TransactionTemplate();
+
+    @PostConstruct
+    private void initTransactionTemplate() {
+        transactionTemplate.setTransactionManager(transactionManager);
+        transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+    }
 
     @Override
     public AuthResult register(RegisterCommand command) {
@@ -99,9 +107,6 @@ public class UserService implements UserUseCase {
             log.warn("Invalid email format: {}", command.getEmail());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Credenciales inválidas");
         }
-
-        transactionTemplate.setTransactionManager(transactionManager);
-        transactionTemplate.setPropagationBehavior(TransactionTemplate.PROPAGATION_REQUIRES_NEW);
 
         return retryWithOptimisticLock(() -> transactionTemplate.execute(status -> doLogin(command)));
     }

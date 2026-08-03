@@ -115,8 +115,7 @@ jobs:
             -DJWT_ACCESS_EXPIRATION_MS=${{ env.JWT_ACCESS_EXPIRATION_MS }} \
             -DJWT_REFRESH_EXPIRATION_MS=${{ env.JWT_REFRESH_EXPIRATION_MS }} \
             -DDATA_COLLECTOR_BASE_URL=${{ env.DATA_COLLECTOR_BASE_URL }} \
-            -Dspring.data-collector.health-check.enabled=false \
-            -Dmanagement.health.redis.enabled=false
+            -Dspring.data-collector.health-check.enabled=false
 
       - name: Upload test reports
         if: always()
@@ -295,7 +294,6 @@ jobs:
             -DDATA_COLLECTOR_BASE_URL=http://localhost:8000 \
             -Dserver.port=10000 \
             -Dspring.data-collector.health-check.enabled=false \
-            -Dmanagement.health.redis.enabled=false \
             > backend.log 2>&1 &
           echo $! > backend.pid
 

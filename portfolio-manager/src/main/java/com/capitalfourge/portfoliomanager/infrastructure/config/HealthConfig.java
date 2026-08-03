@@ -86,7 +86,6 @@ public class HealthConfig {
     }
 
     @Bean
-    @ConditionalOnProperty(name = "management.health.redis.enabled", havingValue = "true", matchIfMissing = true)
     public HealthIndicator redisHealthIndicator(RedisConnectionFactory redisConnectionFactory) {
         return () -> {
             try {

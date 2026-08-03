@@ -77,6 +77,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Cache Maven dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: maven-${{ runner.os }}-${{ hashFiles('portfolio-manager/pom.xml') }}
+          restore-keys: |
+            maven-${{ runner.os }}-
+
       - name: Set up fallback JWT_SECRET
         run: |
           if [ -z "${{ secrets.JWT_SECRET }}" ]; then
@@ -91,13 +99,8 @@ jobs:
           REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
           JWT_SECRET: ${{ env.JWT_SECRET }}
         run: |
-          # Retry Maven dependency resolution to handle 429 rate limits
-          for i in {1..3}; do
-            echo "Maven attempt $i/3..."
-            mvn -B dependency:go-offline -q && break
-            echo "Dependency resolution failed, retrying in 30s..."
-            sleep 30
-          done
+          # Download dependencies offline (uses cache if available)
+          mvn -B dependency:go-offline -q
           
           mvn -B clean test \
             -Dspring.profiles.active=test \
@@ -205,6 +208,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: maven-${{ runner.os }}-${{ hashFiles('portfolio-manager/pom.xml') }}
+          restore-keys: |
+            maven-${{ runner.os }}-
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4

@@ -144,11 +144,11 @@ async function sellAsset(page: import('@playwright/test').Page, symbol: string, 
   const dialog = await waitForDialog(page);
 
   // Symbol field - when portfolio has positions, it's a combobox; when empty, it's a textbox (autocomplete)
-  // Check which one is present
+  // Check for combobox first (has positions)
   const symbolCombobox = dialog.locator('[role="combobox"]').nth(1);
-  const symbolTextbox = dialog.locator('textbox[placeholder*="AAPL"], input[placeholder*="AAPL, BTC, ETH"]').first();
+  const hasCombobox = await symbolCombobox.isVisible({ timeout: 5000 }).catch(() => false);
   
-  if (await symbolCombobox.isVisible({ timeout: 5000 }).catch(() => false)) {
+  if (hasCombobox) {
     // Has positions - use combobox
     await expect(symbolCombobox).toBeVisible({ timeout: 10000 });
     await click(page, symbolCombobox);
@@ -159,6 +159,7 @@ async function sellAsset(page: import('@playwright/test').Page, symbol: string, 
     await click(page, symbolOption);
   } else {
     // No positions - use autocomplete textbox
+    const symbolTextbox = dialog.locator('input[placeholder*="AAPL"], input[placeholder*="BTC"], input[placeholder*="ETH"]').first();
     await expect(symbolTextbox).toBeVisible({ timeout: 10000 });
     await fill(page, symbolTextbox, symbol);
     await page.waitForTimeout(500);
@@ -212,15 +213,8 @@ async function waitForDashboardReady(page: import('@playwright/test').Page) {
   await page.waitForURL('**/dashboard');
   await page.waitForLoadState('networkidle');
 
-  // Wait for dashboard query to complete - wait for stats grid or error
-  await page.waitForSelector('.metric-tile, [class*="bg-red-500"], [class*="animate-spin"]', { timeout: 30000 });
-
-  // Check if error state
-  const errorEl = page.locator('text=/No fue posible cargar|Error|error/i').first();
-  if (await errorEl.isVisible({ timeout: 2000 }).catch(() => false)) {
-    const errorText = await errorEl.textContent();
-    throw new Error(`Dashboard error: ${errorText}`);
-  }
+  // Wait for dashboard query to complete - wait for stats grid
+  await page.waitForSelector('.metric-tile', { timeout: 30000 });
 
   // Close welcome dialog if present
   const welcomeDialog = page.locator('button:has-text("Entendido, empecemos")');

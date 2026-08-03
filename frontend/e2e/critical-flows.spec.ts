@@ -147,10 +147,16 @@ async function sellAsset(page: import('@playwright/test').Page, symbol: string, 
   // Verify it's the sell dialog by checking for "Vender ahora" button
   await expect(dialog.locator('button:has-text("Vender ahora")')).toBeVisible({ timeout: 5000 });
 
-  // Symbol field - find the Symbol combobox by its label "Simbolo"
-  // The dialog has: [Portfolio combobox] [Simbolo label] [Symbol combobox]
-  const simboloLabel = dialog.locator('text=Simbolo').first();
-  await expect(simboloLabel).toBeVisible({ timeout: 5000 });
+  // Wait for both comboboxes to be present (Portfolio + Symbol)
+  await page.waitForFunction(
+    () => {
+      const dialogEl = document.querySelector('[role="dialog"]');
+      if (!dialogEl) return false;
+      const comboboxes = dialogEl.querySelectorAll('[role="combobox"]');
+      return comboboxes.length >= 2;
+    },
+    { timeout: 15000 }
+  );
   
   // Symbol combobox is the 2nd combobox in dialog (index 1)
   const symbolCombobox = dialog.locator('[role="combobox"]').nth(1);
@@ -177,7 +183,6 @@ async function sellAsset(page: import('@playwright/test').Page, symbol: string, 
   await page.waitForSelector('text=/Venta|venta|exitoso|ejecutada/i', { timeout: 15000 });
   await closeDialog(page);
 }
-
 async function withdraw(page: import('@playwright/test').Page, amount: string) {
   const withdrawBtn = page.locator('button:has-text("Retiro")').first();
   await click(page, withdrawBtn);

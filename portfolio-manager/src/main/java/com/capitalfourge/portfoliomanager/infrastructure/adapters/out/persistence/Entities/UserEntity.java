@@ -64,6 +64,7 @@ public class UserEntity {
 
     @Version
     @Builder.Default
+    @Column(nullable = false, columnDefinition = "BIGINT DEFAULT 0")
     private Long version = 0L;
 
     @PrePersist

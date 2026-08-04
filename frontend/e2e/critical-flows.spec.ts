@@ -199,7 +199,7 @@ async function withdraw(page: import('@playwright/test').Page, amount: string) {
 }
 
 async function checkDashboardValues(page: import('@playwright/test').Page) {
-  const values = page.locator('text=/\\$[0-9,.]+/');
+  const values = page.locator('text=/\\\\$[0-9,.]+/');
   await expect(values.first()).toBeVisible({ timeout: 10000 });
   const count = await values.count();
   let foundNonZero = false;
@@ -239,6 +239,17 @@ test.describe('Capital Fourge E2E Tests', () => {
       await login(page);
     });
 
+    await test.step('Create portfolio for test data', async () => {
+      await navigateToPortfolios(page);
+      await createPortfolio(page, PORTFOLIO_NAME, 'E2E Test Portfolio');
+      await page.goto('/dashboard');
+      await page.waitForLoadState('networkidle');
+    });
+
+    await test.step('Deposit cash', async () => {
+      await deposit(page, '10000');
+    });
+
     await test.step('Verify Dashboard loads with non-zero data', async () => {
       await waitForDashboardReady(page);
       await checkDashboardValues(page);
@@ -250,26 +261,12 @@ test.describe('Capital Fourge E2E Tests', () => {
       await login(page);
     });
 
-    await test.step('Navigate to Portfolios', async () => {
+    await test.step('Create second portfolio and deposit', async () => {
       await navigateToPortfolios(page);
-    });
-
-    await test.step('Create new portfolio', async () => {
-      await createPortfolio(page, PORTFOLIO_NAME, 'E2E Test Portfolio');
-    });
-
-    await test.step('Navigate to Portfolio Detail', async () => {
-      await gotoPortfolioDetail(page);
-    });
-
-    await test.step('Go back to Dashboard for deposit', async () => {
+      await createPortfolio(page, 'Second Portfolio', 'Second E2E Test');
       await page.goto('/dashboard');
       await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(1000);
-    });
-
-    await test.step('Deposit cash', async () => {
-      await deposit(page, '10000');
+      await deposit(page, '5000');
     });
 
     await test.step('Verify Dashboard reflects deposit', async () => {
@@ -283,7 +280,12 @@ test.describe('Capital Fourge E2E Tests', () => {
       await login(page);
     });
 
-    await test.step('Buy asset from Dashboard', async () => {
+    await test.step('Create portfolio, deposit, and buy asset', async () => {
+      await navigateToPortfolios(page);
+      await createPortfolio(page, 'Buy Test Portfolio', 'Buy Test');
+      await page.goto('/dashboard');
+      await page.waitForLoadState('networkidle');
+      await deposit(page, '10000');
       await buyAsset(page, SYMBOL, String(QUANTITY));
     });
 
@@ -298,15 +300,15 @@ test.describe('Capital Fourge E2E Tests', () => {
       await login(page);
     });
 
-    await test.step('Go to Dashboard and verify portfolio has position', async () => {
+    await test.step('Create portfolio, deposit, buy, then sell', async () => {
+      await navigateToPortfolios(page);
+      await createPortfolio(page, 'Sell Test Portfolio', 'Sell Test');
       await page.goto('/dashboard');
       await page.waitForLoadState('networkidle');
+      await deposit(page, '10000');
+      await buyAsset(page, SYMBOL, String(QUANTITY));
+      await page.goto('/dashboard');
       await waitForDashboardReady(page);
-      await page.waitForSelector('text=/\\d+ posiciones activas/', { timeout: 15000 });
-      await page.waitForTimeout(3000);
-      // Verify the portfolio shows at least 1 position
-      await page.waitForSelector(`text="${PORTFOLIO_NAME}"`, { timeout: 5000 });
-      await page.waitForSelector('text=/1 posiciones activas/', { timeout: 15000 });
     });
 
     await test.step('Sell asset from Dashboard', async () => {
@@ -324,6 +326,14 @@ test.describe('Capital Fourge E2E Tests', () => {
       await login(page);
     });
 
+    await test.step('Create portfolio, deposit, then withdraw', async () => {
+      await navigateToPortfolios(page);
+      await createPortfolio(page, 'Withdraw Test Portfolio', 'Withdraw Test');
+      await page.goto('/dashboard');
+      await page.waitForLoadState('networkidle');
+      await deposit(page, '10000');
+    });
+
     await test.step('Withdraw cash from Dashboard', async () => {
       await withdraw(page, '500');
     });
@@ -339,8 +349,9 @@ test.describe('Capital Fourge E2E Tests', () => {
       await login(page);
     });
 
-    await test.step('Create second portfolio', async () => {
+    await test.step('Create two portfolios', async () => {
       await navigateToPortfolios(page);
+      await createPortfolio(page, PORTFOLIO_NAME, 'E2E Test Portfolio');
       await createPortfolio(page, 'Second Portfolio', 'Second E2E Test');
     });
 

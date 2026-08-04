@@ -61,7 +61,7 @@ async function login(page: import('@playwright/test').Page) {
   await click(page, page.locator('button:has-text("Ingresar")'));
 
   // Wait for navigation to dashboard
-  await page.waitForURL('**/dashboard', { timeout: 30000 });
+  await page.waitForURL('**/dashboard', { timeout: 10000 });
   await page.waitForLoadState('networkidle');
   
   // Wait for dashboard to be ready
@@ -117,7 +117,7 @@ async function deposit(page: import('@playwright/test').Page, amount: string) {
 
 async function buyAsset(page: import('@playwright/test').Page, symbol: string, quantity: string) {
   // Wait for dashboard to be fully loaded
-  await page.waitForSelector('.metric-tile', { timeout: 30000 });
+  await page.waitForSelector('.metric-tile', { timeout: 10000 });
   
   const buyBtn = page.locator('button[aria-haspopup="dialog"]').filter({ hasText: 'COMPRAR' }).first();
   await expect(buyBtn).toBeVisible({ timeout: 15000 });
@@ -159,7 +159,7 @@ async function sellAsset(page: import('@playwright/test').Page, symbol: string, 
       const symbolSelect = selects[1];
       return symbolSelect.offsetParent !== null; // is visible
     },
-    { timeout: 30000 }
+    { timeout: 10000 }
   );
   
   const nativeSelect = dialog.locator('select').nth(1);
@@ -218,7 +218,7 @@ async function waitForDashboardReady(page: import('@playwright/test').Page) {
   await page.waitForLoadState('networkidle');
 
   // Wait for dashboard query to complete - wait for stats grid
-  await page.waitForSelector('.metric-tile', { timeout: 30000 });
+  await page.waitForSelector('.metric-tile', { timeout: 10000 });
 
   // Close welcome dialog if present
   const welcomeDialog = page.locator('button:has-text("Entendido, empecemos")');

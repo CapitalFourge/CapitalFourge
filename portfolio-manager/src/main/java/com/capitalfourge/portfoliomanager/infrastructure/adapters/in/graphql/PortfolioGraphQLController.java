@@ -67,7 +67,7 @@ public class PortfolioGraphQLController {
     }
 
     @QueryMapping
-    public List<AssetMover> assetMovers(String sort, Integer limit) {
+    public List<AssetMover> assetMovers(@Argument String sort, @Argument Integer limit) {
         return List.of(); // Not implemented via REST yet
     }
 

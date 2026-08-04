@@ -33,6 +33,7 @@ public class PortfolioEntity {
     private BigDecimal cumulativeDeposits;
     private BigDecimal cumulativeWithdrawals;
     // P2-11: Default performance to 0.0 to avoid null
+    @Builder.Default
     private Double performance = 0.0;
     private boolean isPublic;
     @Column(unique = true)

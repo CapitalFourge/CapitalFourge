@@ -42,28 +42,26 @@ async function login(page: import('@playwright/test').Page) {
   await page.goto('/login');
   await page.waitForLoadState('networkidle');
 
-  if (!process.env.CI) {
-    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:10000';
-    try {
-      const response = await page.request.post(`${apiBaseUrl}/api/auth/register`, {
-        data: { username: 'analyst', email: 'analyst@firma.com', password: 'TestPass123!' }
-      });
-      console.log('Local register response:', response.status());
-    } catch (e) {
-      console.log('Local register attempt failed:', e);
-    }
+  // Register user if not exists (works in both CI and local)
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:10000';
+  try {
+    await page.request.post(`${apiBaseUrl}/api/auth/register`, {
+      data: { username: 'analyst', email: 'analyst@firma.com', password: 'TestPass123!' }
+    });
+  } catch (e) {
+    // User might already exist, ignore
   }
 
   await fill(page, page.locator('input[type="email"]'), TEST_USER.email);
   await fill(page, page.locator('input[type="password"]'), TEST_USER.password);
 
-  // Click login button - no API response to wait for (handled by AuthContext)
+  // Click login button
   await click(page, page.locator('button:has-text("Ingresar")'));
 
   // Wait for navigation to dashboard
   await page.waitForURL('**/dashboard', { timeout: 10000 });
   await page.waitForLoadState('networkidle');
-  
+
   // Wait for dashboard to be ready
   await waitForDashboardReady(page);
 }

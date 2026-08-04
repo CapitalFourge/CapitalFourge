@@ -53,8 +53,30 @@ public class UserPersistenceAdapter implements UserRepository {
 
     @Override
     public User saveAndFlush(User user) {
-        UserEntity entity = toEntity(user);
-        UserEntity saved = jpaRepository.saveAndFlush(entity);
+        // Load managed entity to preserve version and let Hibernate handle optimistic locking
+        UserEntity managedEntity = jpaRepository.findById(user.getId())
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + user.getId()));
+        
+        // Update only mutable fields from domain
+        managedEntity.setLastLoginAt(user.getLastLoginAt());
+        managedEntity.setCashBalance(user.getCashBalance());
+        managedEntity.setLockedBalance(user.getLockedBalance());
+        managedEntity.setLanguage(user.getLanguage());
+        managedEntity.setShowWelcome(user.isShowWelcome());
+        managedEntity.setActive(user.isActive());
+        managedEntity.setUsername(user.getUsername());
+        managedEntity.setRole(user.getRole());
+        // Password and email typically don't change on login, but update if needed
+        if (user.getPassword() != null) {
+            String password = user.getPassword();
+            if (!password.startsWith("$2a$") && !password.startsWith("$2b$") && !password.startsWith("$2y$")) {
+                password = passwordEncoder.encode(password);
+            }
+            managedEntity.setPassword(password);
+        }
+        managedEntity.setEmail(user.getEmail());
+        
+        UserEntity saved = jpaRepository.saveAndFlush(managedEntity);
         return toDomain(saved);
     }
 

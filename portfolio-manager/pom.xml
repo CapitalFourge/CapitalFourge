@@ -150,6 +150,11 @@
             <version>0.12.3</version>
             <scope>runtime</scope>
         </dependency>
+        <!-- GraphQL for dashboard only -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-graphql</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

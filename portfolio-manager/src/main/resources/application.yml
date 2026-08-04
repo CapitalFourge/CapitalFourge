@@ -43,6 +43,7 @@ spring:
   graphql:
     graphiql:
       enabled: false
+    path: /graphql
 
   data-collector:
     api-key: ${DATA_COLLECTOR_API_KEY:internal-service-key}

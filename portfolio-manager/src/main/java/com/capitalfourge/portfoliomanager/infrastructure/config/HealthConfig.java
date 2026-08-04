@@ -1,6 +1,5 @@
 package com.capitalfourge.portfoliomanager.infrastructure.config;
 
-import com.capitalfourge.portfoliomanager.infrastructure.grpc.GrpcFinancialDataClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.health.Health;
@@ -113,29 +112,10 @@ public class HealthConfig {
 
     @Bean
     @ConditionalOnProperty(name = "spring.data-collector.health-check.enabled", havingValue = "true", matchIfMissing = false)
-    public HealthIndicator cacheMetricsHealthIndicator(GrpcFinancialDataClient client) {
-        return () -> {
-            // P2-16: Null check for metrics
-            var metrics = client.getCacheMetrics();
-            if (metrics == null) {
-                return Health.down()
-                        .withDetail("cache", "Caffeine (price cache)")
-                        .withDetail("error", "Cache metrics unavailable")
-                        .build();
-            }
-            return Health.up()
-                    .withDetail("cache", "Caffeine (price cache)")
-                    .withDetail("size", metrics.estimatedSize())
-                    .withDetail("hitRate", String.format("%.2f%%", metrics.hitRate() * 100))
-                    .withDetail("hits", metrics.hitCount())
-                    .withDetail("misses", metrics.missCount())
-                    .withDetail("evictions", metrics.evictionCount())
-                    .withDetail("loadSuccess", metrics.loadSuccessCount())
-                    .withDetail("loadErrors", metrics.loadFailureCount())
-                    .withDetail("avgLoadTimeMs", metrics.totalLoadTimeNanos() > 0
-                        ? metrics.totalLoadTimeNanos() / Math.max(1, metrics.loadSuccessCount() + metrics.loadFailureCount()) / 1_000_000
-                        : 0)
-                    .build();
-        };
+    public HealthIndicator cacheMetricsHealthIndicator() {
+        return () -> Health.down()
+                .withDetail("cache", "Caffeine (price cache)")
+                .withDetail("error", "gRPC client removed")
+                .build();
     }
 }

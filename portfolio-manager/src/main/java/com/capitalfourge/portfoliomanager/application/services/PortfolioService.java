@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestClient;
 
 import com.capitalfourge.portfoliomanager.application.ports.in.PortfolioUseCase;
 import com.capitalfourge.portfoliomanager.application.ports.out.MetricRepository;
@@ -27,7 +28,6 @@ import com.capitalfourge.portfoliomanager.domain.User;
 import com.capitalfourge.portfoliomanager.domain.Order;
 import com.capitalfourge.portfoliomanager.domain.OrderStatus;
 import com.capitalfourge.portfoliomanager.domain.OrderType;
-import com.capitalfourge.portfoliomanager.infrastructure.grpc.GrpcFinancialDataClient;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +42,7 @@ public class PortfolioService implements PortfolioUseCase {
     private final TransactionRepository transactionRepository;
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
-    private final GrpcFinancialDataClient grpcFinancialDataClient;
+    private final RestClient dataCollectorClient;
 
     @Override
     @Transactional(readOnly = true)
@@ -104,7 +104,7 @@ public class PortfolioService implements PortfolioUseCase {
                     .toList();
 
             if (!symbols.isEmpty()) {
-                Map<String, Double> currentPrices = grpcFinancialDataClient.getBatchPrices(symbols);
+                Map<String, Double> currentPrices = getBatchPrices(symbols);
 
                 portfolio.getPositions().forEach(position -> {
                     Double price = currentPrices.get(position.getSymbol());
@@ -113,6 +113,20 @@ public class PortfolioService implements PortfolioUseCase {
                     }
                 });
             }
+        }
+    }
+    
+    private Map<String, Double> getBatchPrices(List<String> symbols) {
+        try {
+            String symbolsParam = String.join(",", symbols);
+            String url = "/api/v1/prices/batch?symbols=" + symbolsParam;
+            return dataCollectorClient.get()
+                    .uri(url)
+                    .retrieve()
+                    .body(new org.springframework.core.ParameterizedTypeReference<Map<String, Double>>() {});
+        } catch (Exception e) {
+            log.warn("Failed to fetch prices from data-collector: {}", e.getMessage());
+            return Map.of();
         }
     }
 

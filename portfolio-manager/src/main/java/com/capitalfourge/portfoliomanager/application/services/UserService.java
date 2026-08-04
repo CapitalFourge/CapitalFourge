@@ -7,7 +7,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.annotation.Propagation;
-import jakarta.persistence.EntityManager;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -43,7 +42,6 @@ public class UserService implements UserUseCase {
     private final TokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailValidator emailValidator;
-    private final EntityManager entityManager;
 
     private static final long REFRESH_TTL_SECONDS = 60L * 60L * 24L * 7L;
     private static final int MAX_OPTIMISTIC_LOCK_RETRIES = 3;
@@ -119,8 +117,7 @@ public class UserService implements UserUseCase {
         }
 
         user.setLastLoginAt(LocalDateTime.now());
-        User saved = userRepository.save(user);
-        entityManager.flush(); // force version increment and persist within transaction
+        User saved = userRepository.saveAndFlush(user);
 
         String access = tokenService.createAccessToken(saved);
         String refresh = tokenService.createRefreshToken(saved);

@@ -52,6 +52,13 @@ public class UserPersistenceAdapter implements UserRepository {
     }
 
     @Override
+    public User saveAndFlush(User user) {
+        UserEntity entity = toEntity(user);
+        UserEntity saved = jpaRepository.saveAndFlush(entity);
+        return toDomain(saved);
+    }
+
+    @Override
     public Page<User> findAll(Pageable pageable) {
         return jpaRepository.findAll(pageable).map(this::toDomain);
     }

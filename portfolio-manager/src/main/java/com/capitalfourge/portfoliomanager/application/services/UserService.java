@@ -5,10 +5,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.transaction.support.TransactionTemplate;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionDefinition;
-import javax.annotation.PostConstruct;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Propagation;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -44,23 +42,13 @@ public class UserService implements UserUseCase {
     private final TokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailValidator emailValidator;
-    private final PlatformTransactionManager transactionManager;
 
     private static final long REFRESH_TTL_SECONDS = 60L * 60L * 24L * 7L;
     private static final int MAX_OPTIMISTIC_LOCK_RETRIES = 3;
 
-    private final TransactionTemplate transactionTemplate = new TransactionTemplate();
-
-    @PostConstruct
-    private void initTransactionTemplate() {
-        transactionTemplate.setTransactionManager(transactionManager);
-        transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
-    }
-
     @Override
     public AuthResult register(RegisterCommand command) {
         log.info("Register attempt for email: {}", command.getEmail());
-        // Validate email
         EmailValidator.ValidationResult emailValidation = emailValidator.validate(command.getEmail());
         if (!emailValidation.isValid()) {
             log.warn("Invalid email format on register: {}", command.getEmail());
@@ -101,17 +89,17 @@ public class UserService implements UserUseCase {
     @Override
     public AuthResult login(LoginCommand command) {
         log.info("Login attempt for email: {}", command.getEmail());
-        // Validate email format
         EmailValidator.ValidationResult emailValidation = emailValidator.validate(command.getEmail());
         if (!emailValidation.isValid()) {
             log.warn("Invalid email format: {}", command.getEmail());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Credenciales inválidas");
         }
 
-        return retryWithOptimisticLock(() -> transactionTemplate.execute(status -> doLogin(command)));
+        return retryWithOptimisticLock(() -> doLoginInNewTransaction(command));
     }
 
-    private AuthResult doLogin(LoginCommand command) {
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public AuthResult doLoginInNewTransaction(LoginCommand command) {
         User user = userRepository.findByEmail(command.getEmail())
                 .orElseThrow(() -> {
                     log.warn("User not found for email: {}", command.getEmail());
@@ -157,7 +145,7 @@ public class UserService implements UserUseCase {
                 }
                 log.warn("Optimistic lock conflict on attempt {}, retrying...", attempts);
                 try {
-                    Thread.sleep(50L * attempts); // exponential backoff: 50ms, 100ms, 150ms
+                    Thread.sleep(50L * attempts);
                 } catch (InterruptedException ie) {
                     Thread.currentThread().interrupt();
                     throw new RuntimeException("Interrupted during retry");
@@ -241,7 +229,6 @@ public class UserService implements UserUseCase {
 
     @Override
     public void changeEmail(ChangeEmailCommand command) {
-        // Validate new email
         EmailValidator.ValidationResult emailValidation = emailValidator.validate(command.getNewEmail());
         if (!emailValidation.isValid()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, emailValidation.getMessage());

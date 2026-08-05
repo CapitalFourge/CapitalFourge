@@ -57,6 +57,10 @@ print("🛰️ Iniciando servidor gRPC en hilo secundario...")
 grpc_thread = threading.Thread(target=serve, daemon=True)
 grpc_thread.start()
 
+@app.get("/")
+def root():
+    return {"status": "alive", "service": "data_collector", "version": "2.0.0", "deployed": "2026-08-05-v2"}
+
 @app.get("/health")
 def health_check():
     return {"status": "alive","service": "data_collector", "version": "1.0.1"}

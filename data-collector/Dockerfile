@@ -19,7 +19,7 @@ RUN python -m grpc_tools.protoc -Iprotos --python_out=src --grpc_python_out=src 
 
 EXPOSE 8000
 
-# Force rebuild v3 - added PORT env var
 ENV PORT=8000
 
+# Force rebuild v4 - ensure new endpoints are deployed
 CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]

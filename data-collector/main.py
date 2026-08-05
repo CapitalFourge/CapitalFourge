@@ -59,7 +59,7 @@ grpc_thread.start()
 
 @app.get("/health")
 def health_check():
-    return {"status": "alive","service": "data_collector"}
+    return {"status": "alive","service": "data_collector", "version": "1.0.1"}
 
 @app.post("/collect/batch", dependencies=[Depends(require_api_key)])
 def collect_batch(data: List[Dict[str, Any]]):

@@ -34,6 +34,8 @@ services:
         value: "604800000"
       - key: DATA_COLLECTOR_BASE_URL
         value: https://datacollector-4djm.onrender.com
+      - key: DATA_COLLECTOR_API_KEY
+        value: a3f9c2e7b1d4f6a8
 
   - type: web
     name: data-collector
@@ -49,7 +51,7 @@ services:
       - key: PORT
         value: "8000"
       - key: SERVICE_API_KEY
-        value: "internal-service-key"
+        value: "a3f9c2e7b1d4f6a8"
       - key: DB_MONGO_HOST
         sync: false
       - key: DB_MONGO_ROOT_PASSWORD

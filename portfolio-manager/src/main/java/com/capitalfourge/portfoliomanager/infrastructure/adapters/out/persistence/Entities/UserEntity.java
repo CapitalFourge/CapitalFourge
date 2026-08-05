@@ -73,4 +73,11 @@ public class UserEntity {
             createdAt = LocalDateTime.now();
         }
     }
+
+    @PostLoad
+    protected void onLoad() {
+        if (version == null) {
+            version = 0L;
+        }
+    }
 }

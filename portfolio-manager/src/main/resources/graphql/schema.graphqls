@@ -10,6 +10,24 @@ type Query {
   assetMovers(sort: String, limit: Int): [AssetMover!]!
   assetsByCategory(category: String): [Asset!]!
   searchSymbols(query: String!, limit: Int!): [Asset!]!
+  myFeedbacks: [Feedback!]!
+}
+
+type Feedback {
+  id: ID!
+  userId: ID!
+  username: String!
+  category: FeedbackCategory!
+  message: String!
+  createdAt: String!
+  read: Boolean!
+}
+
+enum FeedbackCategory {
+  QUEJA
+  RECLAMO
+  SUGERENCIA
+  OTRO
 }
 
 type Asset {
@@ -45,8 +63,10 @@ type AuthResult {
 type User {
   id: ID!
   username: String!
+  email: String!
   cashBalance: Float!
   lockedBalance: Float!
+  language: String!
 }
 
 type Portfolio {
@@ -68,6 +88,7 @@ type Transaction {
   price: Float!
   totalAmount: Float!
   timestamp: String!
+  balanceTransaction: Float!
 }
 
 type Position {

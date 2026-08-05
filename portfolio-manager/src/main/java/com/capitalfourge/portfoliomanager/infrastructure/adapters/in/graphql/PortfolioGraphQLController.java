@@ -23,6 +23,7 @@ import com.capitalfourge.portfoliomanager.application.ports.in.PortfolioUseCase;
 import com.capitalfourge.portfoliomanager.application.ports.in.UserUseCase;
 import com.capitalfourge.portfoliomanager.application.ports.out.UserRepository;
 import com.capitalfourge.portfoliomanager.domain.Asset;
+import com.capitalfourge.portfoliomanager.domain.Feedback;
 import com.capitalfourge.portfoliomanager.domain.Portfolio;
 import com.capitalfourge.portfoliomanager.domain.Position;
 import com.capitalfourge.portfoliomanager.domain.Role;
@@ -93,6 +94,12 @@ public class PortfolioGraphQLController {
         return List.of();
     }
 
+    @QueryMapping
+    public List<Feedback> myFeedbacks() {
+        // Return empty list for now - in production this would come from a feedback service
+        return List.of();
+    }
+
     // Type resolvers
     @SchemaMapping(typeName = "Portfolio")
     public List<Position> positions(Portfolio portfolio) {
@@ -149,6 +156,36 @@ public class PortfolioGraphQLController {
     @SchemaMapping(typeName = "Transaction")
     public String symbol(Transaction transaction) {
         return transaction.getSymbol();
+    }
+
+    @SchemaMapping(typeName = "Transaction")
+    public Float balanceTransaction(Transaction transaction) {
+        return transaction.getBalanceTransaction() != null ? transaction.getBalanceTransaction().floatValue() : 0.0f;
+    }
+
+    @SchemaMapping(typeName = "User")
+    public String email(User user) {
+        return user.getEmail();
+    }
+
+    @SchemaMapping(typeName = "User")
+    public String language(User user) {
+        return user.getLanguage() != null ? user.getLanguage() : "ES";
+    }
+
+    @SchemaMapping(typeName = "Feedback")
+    public String userId(Feedback feedback) {
+        return feedback.getUserId() != null ? feedback.getUserId().toString() : "";
+    }
+
+    @SchemaMapping(typeName = "Feedback")
+    public String category(Feedback feedback) {
+        return feedback.getCategory() != null ? feedback.getCategory().name() : "OTRO";
+    }
+
+    @SchemaMapping(typeName = "Feedback")
+    public String createdAt(Feedback feedback) {
+        return feedback.getCreatedAt() != null ? feedback.getCreatedAt().toString() : "";
     }
 
     @SchemaMapping(typeName = "Position")

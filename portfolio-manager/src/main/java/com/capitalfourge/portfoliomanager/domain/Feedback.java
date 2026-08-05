@@ -1,6 +1,5 @@
 package com.capitalfourge.portfoliomanager.domain;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -14,14 +13,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Feedback {
-
-    public enum Category {
-        QUEJA,
-        RECLAMO,
-        SUGERENCIA,
-        OTRO
-    }
-
     private UUID id;
     private UUID userId;
     private String username;
@@ -29,4 +20,11 @@ public class Feedback {
     private String message;
     private LocalDateTime createdAt;
     private boolean read;
+
+    public enum Category {
+        QUEJA,
+        RECLAMO,
+        SUGERENCIA,
+        OTRO
+    }
 }

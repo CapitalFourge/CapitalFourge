@@ -25,6 +25,7 @@ import com.capitalfourge.portfoliomanager.application.ports.out.UserRepository;
 import com.capitalfourge.portfoliomanager.domain.Portfolio;
 import com.capitalfourge.portfoliomanager.domain.Position;
 import com.capitalfourge.portfoliomanager.domain.Role;
+import com.capitalfourge.portfoliomanager.domain.Transaction;
 import com.capitalfourge.portfoliomanager.domain.User;
 
 import lombok.RequiredArgsConstructor;
@@ -89,6 +90,52 @@ public class PortfolioGraphQLController {
     public Float performance(Portfolio portfolio) {
         Double perf = portfolio.getPerformance();
         return perf != null ? perf.floatValue() : 0.0f;
+    }
+
+    @SchemaMapping(typeName = "Portfolio")
+    public Boolean isPublic(Portfolio portfolio) {
+        return portfolio.isPublic();
+    }
+
+    @SchemaMapping(typeName = "Portfolio")
+    public String shareSlug(Portfolio portfolio) {
+        return portfolio.getShareSlug();
+    }
+
+    @SchemaMapping(typeName = "Portfolio")
+    public List<Transaction> transactions(Portfolio portfolio) {
+        return portfolio.getTransactions();
+    }
+
+    @SchemaMapping(typeName = "Transaction")
+    public String type(Transaction transaction) {
+        return transaction.getType() != null ? transaction.getType().name() : "UNKNOWN";
+    }
+
+    @SchemaMapping(typeName = "Transaction")
+    public String timestamp(Transaction transaction) {
+        return transaction.getTimestamp() != null ? transaction.getTimestamp().toString() : "";
+    }
+
+    @SchemaMapping(typeName = "Transaction")
+    public Float totalAmount(Transaction transaction) {
+        BigDecimal amount = transaction.getTotalAmount();
+        return amount != null ? amount.floatValue() : 0.0f;
+    }
+
+    @SchemaMapping(typeName = "Transaction")
+    public Float quantity(Transaction transaction) {
+        return transaction.getQuantity() != null ? transaction.getQuantity().floatValue() : 0.0f;
+    }
+
+    @SchemaMapping(typeName = "Transaction")
+    public Float price(Transaction transaction) {
+        return transaction.getPrice() != null ? transaction.getPrice().floatValue() : 0.0f;
+    }
+
+    @SchemaMapping(typeName = "Transaction")
+    public String symbol(Transaction transaction) {
+        return transaction.getSymbol();
     }
 
     @SchemaMapping(typeName = "Position")

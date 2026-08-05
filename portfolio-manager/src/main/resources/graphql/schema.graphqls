@@ -44,8 +44,22 @@ type User {
 type Portfolio {
   id: ID!
   name: String!
+  description: String
   performance: Float!
+  isPublic: Boolean!
+  shareSlug: String
   positions: [Position!]!
+  transactions: [Transaction!]!
+}
+
+type Transaction {
+  id: ID!
+  symbol: String!
+  type: String!
+  quantity: Float!
+  price: Float!
+  totalAmount: Float!
+  timestamp: String!
 }
 
 type Position {

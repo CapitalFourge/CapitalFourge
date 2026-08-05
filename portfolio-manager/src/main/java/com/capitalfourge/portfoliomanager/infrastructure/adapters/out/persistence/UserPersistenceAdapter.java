@@ -76,6 +76,11 @@ public class UserPersistenceAdapter implements UserRepository {
         }
         managedEntity.setEmail(user.getEmail());
         
+        // Ensure version is never null for optimistic locking
+        if (managedEntity.getVersion() == null) {
+            managedEntity.setVersion(0L);
+        }
+        
         UserEntity saved = jpaRepository.saveAndFlush(managedEntity);
         return toDomain(saved);
     }

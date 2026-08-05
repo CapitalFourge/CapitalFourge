@@ -43,7 +43,7 @@ public class PortfolioService implements PortfolioUseCase {
     private final TransactionRepository transactionRepository;
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
-    @Qualifier("portfolioDataCollectorClient")
+    @Qualifier("dataCollectorClient")
     private final RestClient dataCollectorClient;
 
     @Override

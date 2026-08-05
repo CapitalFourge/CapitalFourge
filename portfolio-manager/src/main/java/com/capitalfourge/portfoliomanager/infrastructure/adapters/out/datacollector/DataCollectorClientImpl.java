@@ -13,7 +13,7 @@ public class DataCollectorClientImpl implements DataCollectorClient {
     private final RestClient dataCollectorClient;
 
     @Autowired
-    public DataCollectorClientImpl(RestClient dataCollectorClient) {
+    public DataCollectorClientImpl(@Qualifier("dataCollectorClient") RestClient dataCollectorClient) {
         this.dataCollectorClient = dataCollectorClient;
     }
 

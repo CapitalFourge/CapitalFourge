@@ -44,8 +44,8 @@ public class PortfolioGraphQLController {
         if (auth == null || !auth.isAuthenticated()) {
             return null;
         }
-        String email = auth.getName();
-        User user = userUseCase.findByEmail(email).orElse(null);
+        UUID userId = getUserIdFromAuth(auth);
+        User user = userUseCase.findById(userId).orElse(null);
         if (user != null) {
             // Ensure balances are never null
             if (user.getCashBalance() == null) user.setCashBalance(BigDecimal.ZERO);
@@ -60,10 +60,8 @@ public class PortfolioGraphQLController {
         if (auth == null || !auth.isAuthenticated()) {
             return List.of();
         }
-        String email = auth.getName();
-        return userUseCase.findByEmail(email)
-                .map(user -> portfolioUseCase.getPortfoliosByUser(user.getId()))
-                .orElse(List.of());
+        UUID userId = getUserIdFromAuth(auth);
+        return portfolioUseCase.getPortfoliosByUser(userId);
     }
 
     @QueryMapping
@@ -251,10 +249,12 @@ public class PortfolioGraphQLController {
         if (auth == null || !auth.isAuthenticated()) {
             throw new RuntimeException("Authentication required");
         }
-        String email = auth.getName();
-        return userUseCase.findByEmail(email)
-                .map(User::getId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        Object principal = auth.getPrincipal();
+        if (principal instanceof UUID) {
+            return (UUID) principal;
+        }
+        // Fallback for string representation
+        return UUID.fromString(principal.toString());
     }
 
     private void verifyPortfolioOwnership(UUID portfolioId) {

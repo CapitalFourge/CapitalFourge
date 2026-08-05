@@ -8,8 +8,8 @@ spring:
     password: ${DB_PASSWORD:password}
     driver-class-name: org.postgresql.Driver
     hikari:
-      maximum-pool-size: 10
-      minimum-idle: 2
+      maximum-pool-size: 4
+      minimum-idle: 1
       idle-timeout: 300000
       connection-timeout: 20000
       data-source-properties:
@@ -34,8 +34,8 @@ spring:
       enabled: false
     lettuce:
       pool:
-        max-active: 8
-        max-idle: 8
+        max-active: 4
+        max-idle: 4
         min-idle: 0
       shutdown-timeout: 100ms
     client-type: lettuce
@@ -91,6 +91,8 @@ management:
     redis:
       enabled: false
     caches:
+      enabled: false
+    db:
       enabled: true
   prometheus:
     metrics:

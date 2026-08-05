@@ -10,6 +10,7 @@ import java.util.UUID;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
@@ -42,6 +43,7 @@ public class PortfolioService implements PortfolioUseCase {
     private final TransactionRepository transactionRepository;
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
+    @Qualifier("portfolioDataCollectorClient")
     private final RestClient dataCollectorClient;
 
     @Override

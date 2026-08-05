@@ -8,8 +8,8 @@ import org.springframework.web.client.RestClient;
 @Configuration
 public class RestClientConfig {
 
-    @Bean
-    public RestClient dataCollectorClient(@Value("${data-collector.base-url:http://localhost:8081}") String baseUrl) {
+    @Bean(name = "portfolioDataCollectorClient")
+    public RestClient portfolioDataCollectorClient(@Value("${data-collector.base-url:http://localhost:8081}") String baseUrl) {
         return RestClient.builder()
                 .baseUrl(baseUrl)
                 .defaultHeader("Accept", "application/json")

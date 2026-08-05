@@ -95,12 +95,23 @@ async function createPortfolio(page: import('@playwright/test').Page, name: stri
 
   await click(page, dialog.locator('button:has-text("DESPLEGAR ESTRATEGIA")').first());
 
-  // Wait for dialog to close (mutation success) or error message
+  // Wait for dialog to close (mutation success) or error toast/message
   await page.waitForFunction(
-    () => !document.querySelector('[role="dialog"]') || document.body.innerText.includes('Estrategia') || document.body.innerText.includes('Error'),
-    { timeout: 15000 }
+    () => {
+      const dialogEl = document.querySelector('[role="dialog"]');
+      const hasError = document.body.innerText.includes('Error') || document.body.innerText.includes('error') || document.body.innerText.includes('Fallo');
+      return !dialogEl || hasError || document.body.innerText.includes('Estrategia');
+    },
+    { timeout: 20000 }
   );
-  
+
+  // Check if there's an error toast
+  const errorToast = page.locator('[role="alert"], .toast, [data-sonner-toast]').filter({ hasText: /Error|error|Fallo|fallo/i }).first();
+  if (await errorToast.isVisible({ timeout: 3000 }).catch(() => false)) {
+    const errorText = await errorToast.textContent();
+    throw new Error(`Portfolio creation failed: ${errorText}`);
+  }
+
   // Verify portfolio appears in list
   await page.waitForSelector(`text=${name}`, { timeout: 10000 });
   await closeDialog(page);

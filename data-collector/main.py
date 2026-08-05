@@ -19,6 +19,14 @@ app = FastAPI(title="Capital Fourge Data Collector")
 API_KEY = os.getenv("SERVICE_API_KEY", "internal-service-key")
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
+@app.get("/debug/api-key")
+def debug_api_key(api_key: str = Security(api_key_header)):
+    return {
+        "expected": API_KEY,
+        "received": api_key,
+        "match": api_key == API_KEY if api_key else False
+    }
+
 async def require_api_key(api_key: str = Security(api_key_header)):
     if api_key != API_KEY:
         raise HTTPException(status_code=403, detail="Invalid API key")

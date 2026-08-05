@@ -45,11 +45,14 @@ async function login(page: import('@playwright/test').Page) {
   // Register user if not exists (works in both CI and local)
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:10000';
   try {
-    await page.request.post(`${apiBaseUrl}/api/auth/register`, {
+    const registerResponse = await page.request.post(`${apiBaseUrl}/api/auth/register`, {
       data: { username: 'analyst', email: 'analyst@firma.com', password: 'TestPass123!' }
     });
+    console.log('Register response:', registerResponse.status());
+    // Wait a bit for DB commit
+    await page.waitForTimeout(1000);
   } catch (e) {
-    // User might already exist, ignore
+    console.log('Register attempt failed:', e);
   }
 
   await fill(page, page.locator('input[type="email"]'), TEST_USER.email);
@@ -64,6 +67,9 @@ async function login(page: import('@playwright/test').Page) {
 
   // Wait for dashboard to be ready
   await waitForDashboardReady(page);
+  
+  // Verify we're actually logged in by checking for logout button
+  await expect(page.locator('button:has-text("Cerrar sesión")')).toBeVisible({ timeout: 5000 });
 }
 
 async function navigateToPortfolios(page: import('@playwright/test').Page) {

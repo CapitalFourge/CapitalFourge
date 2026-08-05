@@ -5,6 +5,7 @@ schema {
 
 type Query {
   me: User
+  portfolio(id: ID!): Portfolio
   portfolios(sort: String, limit: Int): [Portfolio!]!
   assetMovers(sort: String, limit: Int): [AssetMover!]!
 }

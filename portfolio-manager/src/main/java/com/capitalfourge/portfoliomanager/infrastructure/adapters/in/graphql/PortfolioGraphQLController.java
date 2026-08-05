@@ -65,6 +65,16 @@ public class PortfolioGraphQLController {
     }
 
     @QueryMapping
+    public Portfolio portfolio(@Argument UUID id) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return null;
+        }
+        UUID userId = getUserIdFromAuth(auth);
+        return portfolioUseCase.getPortfolio(id);
+    }
+
+    @QueryMapping
     public List<AssetMover> assetMovers(@Argument String sort, @Argument Integer limit) {
         return List.of(); // Not implemented via REST yet
     }

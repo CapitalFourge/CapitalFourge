@@ -29,6 +29,8 @@ import com.capitalfourge.portfoliomanager.domain.Position;
 import com.capitalfourge.portfoliomanager.domain.Role;
 import com.capitalfourge.portfoliomanager.domain.Transaction;
 import com.capitalfourge.portfoliomanager.domain.User;
+import com.capitalfourge.portfoliomanager.infrastructure.adapters.out.datacollector.DataCollectorClient;
+import com.capitalfourge.portfoliomanager.infrastructure.adapters.out.datacollector.DataCollectorClient.AssetDTO;
 
 import lombok.RequiredArgsConstructor;
 
@@ -39,6 +41,7 @@ public class PortfolioGraphQLController {
     private final UserUseCase userUseCase;
     private final PortfolioUseCase portfolioUseCase;
     private final UserRepository userRepository;
+    private final DataCollectorClient dataCollectorClient;
 
     // Queries
     @QueryMapping
@@ -84,14 +87,24 @@ public class PortfolioGraphQLController {
 
     @QueryMapping
     public List<Asset> assetsByCategory(@Argument String category) {
-        // Return mock data for now - in production this would come from data-collector service
-        return List.of();
+        return dataCollectorClient.getAssetsByCategory(category).stream()
+                .map(dto -> Asset.builder()
+                        .symbol(dto.symbol())
+                        .name(dto.name())
+                        .category(dto.category())
+                        .build())
+                .toList();
     }
 
     @QueryMapping
     public List<Asset> searchSymbols(@Argument String query, @Argument Integer limit) {
-        // Return mock data for now - in production this would come from data-collector service
-        return List.of();
+        return dataCollectorClient.searchSymbols(query, limit != null ? limit : 20).stream()
+                .map(dto -> Asset.builder()
+                        .symbol(dto.symbol())
+                        .name(dto.name())
+                        .category(dto.category())
+                        .build())
+                .toList();
     }
 
     @QueryMapping
@@ -171,6 +184,11 @@ public class PortfolioGraphQLController {
     @SchemaMapping(typeName = "User")
     public String language(User user) {
         return user.getLanguage() != null ? user.getLanguage() : "ES";
+    }
+
+    @SchemaMapping(typeName = "User")
+    public String id(User user) {
+        return user.getId() != null ? user.getId().toString() : "";
     }
 
     @SchemaMapping(typeName = "Feedback")

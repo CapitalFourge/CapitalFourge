@@ -95,6 +95,13 @@ async function createPortfolio(page: import('@playwright/test').Page, name: stri
 
   await click(page, dialog.locator('button:has-text("DESPLEGAR ESTRATEGIA")').first());
 
+  // Wait for dialog to close (mutation success) or error message
+  await page.waitForFunction(
+    () => !document.querySelector('[role="dialog"]') || document.body.innerText.includes('Estrategia') || document.body.innerText.includes('Error'),
+    { timeout: 15000 }
+  );
+  
+  // Verify portfolio appears in list
   await page.waitForSelector(`text=${name}`, { timeout: 10000 });
   await closeDialog(page);
 }

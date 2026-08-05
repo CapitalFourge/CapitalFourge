@@ -84,8 +84,8 @@ export default function RegisterPage() {
               Crea una cuenta para empezar a operar con una vista <span className="text-gradient">más seria y moderna</span>.
             </h1>
                <p className="mt-5 max-w-xl text-base leading-8 text-slate-300">
-               Aprende conceptos financieros, prueba estrategias sin riesgo y construye confianza para invertir con conocimiento.
-               </p>
+                             Aprende conceptos financieros, {/* prueba estrategias sin riesgo y */} construye confianza para invertir con conocimiento.
+                             </p>
 
             <div className="mt-10 grid gap-4">
               {requirements.map((item) => (

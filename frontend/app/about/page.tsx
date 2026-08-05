@@ -3,21 +3,21 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, ArrowRight, BarChart3, BookOpen, CheckCircle2, Globe, Shield, Sparkles, Target, Users } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, CheckCircle2, Globe, Shield, Sparkles, Target, Users } from "lucide-react";
 
 const values = [
   { icon: Target, title: "Enfoque realista", desc: "Simulamos condiciones reales: spreads, slippage, comisiones, horarios de mercado. Nada de datos perfectos." },
   { icon: Shield, title: "Integridad primero", desc: "Sin datos fabricados. Sin backtests amañados. Sin promesas de riqueza rápida. Educación honesta." },
   { icon: BookOpen, title: "Educación accionable", desc: "Conceptos financieros explicados con ejemplos de mercado real. Teoría que se puede aplicar mañana." },
   { icon: Globe, title: "Cobertura global", desc: "Acciones, crypto, forex, commodities, índices. Un workspace para todo tu universo inversor." },
-  { icon: BarChart3, title: "Herramientas de grado profesional", desc: "Charting avanzado, indicadores técnicos, métricas fundamentales, dibujo técnico. Sin juguetes." },
+  // { icon: BarChart3, title: "Herramientas de grado profesional", desc: "Charting avanzado, indicadores técnicos, métricas fundamentales, dibujo técnico. Sin juguetes." }, // PAUSADO
   { icon: Users, title: "Comunidad seria", desc: "Espacio para analistas, no para ruido. Comparte estrategias, no señales de telegram." },
 ];
 
 const milestones = [
   { year: "2024", title: "Inicio del proyecto", desc: "Arquitectura base: Spring Boot + Next.js + GraphQL. Paper trading con Alpaca/Alpaca." },
   { year: "2025 Q1", title: "Lanzamiento alfa", desc: "Primeros usuarios reales. Feedback loop semanal. Corrección de fricciones UX críticas." },
-  { year: "2025 Q2", title: "Estrategias académicas", desc: "7 estrategias basadas en papers (momentum, mean reversion, pairs, factor, etc.). Backtesting vectorizado." },
+  // { year: "2025 Q2", title: "Estrategias académicas", desc: "7 estrategias basadas en papers (momentum, mean reversion, pairs, factor, etc.). Backtesting vectorizado." }, // PAUSADO
   { year: "2025 Q3", title: "Dashboard institucional", desc: "Multi-portfolio, risk metrics, attribution, reporting automatizado. Preparación para beta pública." },
   { year: "2025 Q4", title: "Beta pública + API", desc: "Registro abierto. API para integraciones. Programa de partners educativos." },
 ];
@@ -216,9 +216,9 @@ export default function AboutPage() {
               Crear cuenta gratis
               <ArrowRight className="inline h-5 w-5 ml-2" />
             </Link>
-            <Link href="/strategies" className="w-full sm:w-auto rounded-full border border-white/12 bg-white/[0.03] px-8 py-4 text-base font-medium text-white hover:bg-white/[0.08] transition-colors">
+            {/* <Link href="/strategies" className="w-full sm:w-auto rounded-full border border-white/12 bg-white/[0.03] px-8 py-4 text-base font-medium text-white hover:bg-white/[0.08] transition-colors">
               Ver estrategias
-            </Link>
+            </Link> */}
           </div>
         </motion.section>
       </div>

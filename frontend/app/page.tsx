@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowRight, BarChart3, ShieldCheck, Sparkles, Wallet } from "lucide-react";
+import { ArrowRight, ShieldCheck, Sparkles, Wallet } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
@@ -18,11 +18,6 @@ const features = [
     icon: Wallet,
     title: "Control patrimonial claro",
     copy: "Caja, posiciones, bloqueos y rendimiento neto visibles sin navegar entre pantallas inconexas.",
-  },
-  {
-    icon: BarChart3,
-    title: "Lectura táctica del mercado",
-    copy: "Explora instrumentos, filtra categorías y opera desde una interfaz sobria orientada a decisión.",
   },
   {
     icon: ShieldCheck,
@@ -87,9 +82,9 @@ export default function Home() {
                   <ArrowRight />
                 </Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="rounded-full border-white/12 bg-white/[0.03] px-7 text-white hover:bg-white/[0.08]">
+              {/* <Button asChild size="lg" variant="outline" className="rounded-full border-white/12 bg-white/[0.03] px-7 text-white hover:bg-white/[0.08]">
                 <Link href="/strategies">Ver estrategias</Link>
-              </Button>
+              </Button> */}
             </div>
 
             <div className="mt-10 flex flex-wrap items-center gap-8 text-sm text-slate-400">

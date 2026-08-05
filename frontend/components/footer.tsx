@@ -56,11 +56,11 @@ export function Footer() {
               Plataforma
             </p>
             <ul className="mt-4 space-y-3 text-sm text-slate-400">
-              <li>
+              {/* <li>
                 <Link href="/strategies" className="transition hover:text-white">
                   Estrategias
                 </Link>
-              </li>
+              </li> */}
               <li>
                 <Link href="/portfolio" className="transition hover:text-white">
                   Portafolios

@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 import {
-  BarChart3,
   Compass,
   History,
   LayoutDashboard,
@@ -25,7 +24,7 @@ const navigation = [
   { href: "/dashboard", label: "Resumen", icon: LayoutDashboard },
   { href: "/portfolio", label: "Portafolios", icon: Wallet },
   { href: "/explorer", label: "Mercados", icon: Compass },
-  { href: "/strategies", label: "Estrategias", icon: BarChart3 },
+  // { href: "/strategies", label: "Estrategias", icon: BarChart3 }, // PAUSADO - separar a workers Python
   { href: "/transactions", label: "Movimientos", icon: History },
   { href: "/settings", label: "Configuración", icon: Settings },
 ];

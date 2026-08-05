@@ -202,7 +202,7 @@ def get_price_history(symbol: str, days: int = 30):
         return [{"error": str(e)}]
 
 @app.get("/assets/categorized", dependencies=[Depends(require_api_key)])
-def get_categorized_assets():
+def get_categorized_assets(category: str = None):
     assets = [
         {"symbol": "AAPL", "name": "Apple Inc.", "category": "STOCKS"},
         {"symbol": "ADBE", "name": "Adobe Inc.", "category": "STOCKS"},
@@ -257,6 +257,8 @@ def get_categorized_assets():
         {"symbol": "EURGBP=X", "name": "EUR/GBP", "category": "FOREX"},
         {"symbol": "EURJPY=X", "name": "EUR/JPY", "category": "FOREX"}
     ]
+    if category:
+        assets = [a for a in assets if a["category"] == category]
     return assets
 
 @app.get("/assets/symbols", dependencies=[Depends(require_api_key)])

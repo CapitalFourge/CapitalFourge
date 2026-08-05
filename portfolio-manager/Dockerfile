@@ -11,5 +11,5 @@ WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 EXPOSE 10000
 ENV PORT=10000
-ENV JAVA_OPTS="-Xms48m -Xmx128m -XX:MaxMetaspaceSize=150m -XX:CompressedClassSpaceSize=20m -XX:+UseZGC -Dserver.address=0.0.0.0 -Dspring.datasource.hikari.maximum-pool-size=4 -Dspring.redis.lettuce.pool.max-active=4"
+ENV JAVA_OPTS="-Xms48m -Xmx128m -XX:MaxMetaspaceSize=180m -XX:CompressedClassSpaceSize=24m -XX:+UseZGC -Dserver.address=0.0.0.0 -Dspring.datasource.hikari.maximum-pool-size=4 -Dspring.redis.lettuce.pool.max-active=4"
 ENTRYPOINT ["sh","-c","exec java $JAVA_OPTS -jar app.jar"]

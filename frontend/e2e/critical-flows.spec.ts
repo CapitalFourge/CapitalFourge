@@ -221,13 +221,16 @@ async function withdraw(page: import('@playwright/test').Page, amount: string) {
 }
 
 async function checkDashboardValues(page: import('@playwright/test').Page) {
-  const values = page.locator('text=/\\\\$[0-9,.]+/');
-  await expect(values.first()).toBeVisible({ timeout: 10000 });
-  const count = await values.count();
+  // Wait for metric tiles to be present and get their text content
+  const metricTiles = page.locator('.metric-tile');
+  await expect(metricTiles.first()).toBeVisible({ timeout: 10000 });
+  
+  // Get all text from metric tiles and check for non-zero dollar amounts
+  const count = await metricTiles.count();
   let foundNonZero = false;
   for (let i = 0; i < count; i++) {
-    const text = await values.nth(i).textContent();
-    if (text && !text.includes('$0.00') && !text.includes('$0,00')) {
+    const text = await metricTiles.nth(i).textContent();
+    if (text && /\$[0-9,.]+/.test(text) && !text.includes('$0.00') && !text.includes('$0,00')) {
       foundNonZero = true;
       break;
     }

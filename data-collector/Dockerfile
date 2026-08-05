@@ -19,4 +19,5 @@ RUN python -m grpc_tools.protoc -Iprotos --python_out=src --grpc_python_out=src 
 
 EXPOSE 8000
 
+# Force rebuild v2 - added health check endpoint
 CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]

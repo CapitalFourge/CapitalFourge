@@ -33,7 +33,7 @@ services:
       - key: JWT_REFRESH_EXPIRATION_MS
         value: "604800000"
       - key: DATA_COLLECTOR_BASE_URL
-        value: https://data-collector.onrender.com
+        value: https://datacollector-4djm.onrender.com
 
   - type: web
     name: data-collector

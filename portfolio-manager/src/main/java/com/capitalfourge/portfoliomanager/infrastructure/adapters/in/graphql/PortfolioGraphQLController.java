@@ -22,6 +22,7 @@ import com.capitalfourge.portfoliomanager.application.ports.dto.auth.LoginComman
 import com.capitalfourge.portfoliomanager.application.ports.in.PortfolioUseCase;
 import com.capitalfourge.portfoliomanager.application.ports.in.UserUseCase;
 import com.capitalfourge.portfoliomanager.application.ports.out.UserRepository;
+import com.capitalfourge.portfoliomanager.domain.Asset;
 import com.capitalfourge.portfoliomanager.domain.Portfolio;
 import com.capitalfourge.portfoliomanager.domain.Position;
 import com.capitalfourge.portfoliomanager.domain.Role;
@@ -78,6 +79,18 @@ public class PortfolioGraphQLController {
     @QueryMapping
     public List<AssetMover> assetMovers(@Argument String sort, @Argument Integer limit) {
         return List.of(); // Not implemented via REST yet
+    }
+
+    @QueryMapping
+    public List<Asset> assetsByCategory(@Argument String category) {
+        // Return mock data for now - in production this would come from data-collector service
+        return List.of();
+    }
+
+    @QueryMapping
+    public List<Asset> searchSymbols(@Argument String query, @Argument Integer limit) {
+        // Return mock data for now - in production this would come from data-collector service
+        return List.of();
     }
 
     // Type resolvers

@@ -8,6 +8,14 @@ type Query {
   portfolio(id: ID!): Portfolio
   portfolios(sort: String, limit: Int): [Portfolio!]!
   assetMovers(sort: String, limit: Int): [AssetMover!]!
+  assetsByCategory(category: String): [Asset!]!
+  searchSymbols(query: String!, limit: Int!): [Asset!]!
+}
+
+type Asset {
+  symbol: String!
+  name: String
+  category: String!
 }
 
 type Mutation {

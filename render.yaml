@@ -48,3 +48,15 @@ services:
         value: "true"
       - key: PORT
         value: "8000"
+      - key: SERVICE_API_KEY
+        value: "internal-service-key"
+      - key: DB_MONGO_HOST
+        sync: false
+      - key: DB_MONGO_ROOT_PASSWORD
+        sync: false
+      - key: SPRING_REDIS_URL
+        sync: false
+      - key: DB_REDIS_HOST
+        value: "localhost"
+      - key: DB_REDIS_PASSWORD
+        value: ""

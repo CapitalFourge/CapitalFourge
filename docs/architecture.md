@@ -13,8 +13,8 @@
 
 ## Communication
 - **GraphQL**: Primary frontend-to-backend API for flexible data fetching.
-- **gRPC**: Internal high-performance service-to-service communication.
-- **WebSockets (STOMP)**: Real-time price streaming to the frontend.
+- **gRPC**: ~~Internal high-performance service-to-service communication.~~ **REMOVED** - uses REST to data-collector now
+- **WebSockets (STOMP)**: ~~Real-time price streaming to the frontend.~~ **REMOVED** - not in current stack
 - **REST**: Authentication and legacy endpoint exposure.
 
 ## Patterns
@@ -32,3 +32,44 @@ The system implements role-based access control with the following roles:
   - Deactivate user accounts via `adminDeactivateUser` mutation
 
 The `User` domain entity contains an `isAdmin()` helper method that checks if `role == Role.ADMIN`. All admin mutations verify the requesting user has admin privileges before execution.
+
+## Memory Constraints (Render Free Tier)
+**Critical**: Total memory must stay ≤ 512MB
+
+### Removed Dependencies (Saved ~120MB)
+- `spring-boot-starter-webflux` - Reactive stack not needed
+- `spring-boot-starter-grpc` - gRPC removed, use REST to data-collector
+- `spring-boot-starter-websocket` - WebSocket not used
+- `springdoc-openapi-starter-webmvc-ui` - OpenAPI/Swagger UI
+- `caffeine` - Caching library (used Redis instead)
+
+### JVM Settings (Dockerfile)
+```dockerfile
+ENV JAVA_OPTS="-Xms48m -Xmx128m -XX:MaxMetaspaceSize=150m -XX:CompressedClassSpaceSize=20m -XX:+UseZGC -Dserver.address=0.0.0.0 -Dspring.datasource.hikari.maximum-pool-size=4 -Dspring.redis.lettuce.pool.max-active=4"
+```
+
+### Pool Sizes (application.yml)
+```yaml
+spring:
+  datasource:
+    hikari:
+      maximum-pool-size: 4      # Was 10
+      minimum-idle: 1           # Was 2
+  redis:
+    lettuce:
+      pool:
+        max-active: 4           # Was 8
+        max-idle: 4             # Was 8
+```
+
+### Actuator Health Indicators
+```yaml
+management:
+  health:
+    caches:
+      enabled: false    # Disable to save memory
+    db:
+      enabled: true     # Keep for readiness
+```
+
+**Target**: Heap 128MB + Metaspace 150MB + Off-heap < 512MB total

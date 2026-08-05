@@ -1,11 +1,36 @@
 schema {
   query: Query
+  mutation: Mutation
 }
 
 type Query {
   me: User
   portfolios(sort: String, limit: Int): [Portfolio!]!
   assetMovers(sort: String, limit: Int): [AssetMover!]!
+}
+
+type Mutation {
+  login(email: String!, password: String!): AuthResult
+  createPortfolio(name: String!, description: String): Portfolio
+  buyAsset(portfolioId: ID!, symbol: String!, quantity: Float!, price: Float!): Portfolio
+  sellAsset(portfolioId: ID!, symbol: String!, quantity: Float!, price: Float!): Portfolio
+  buyAssetByUSD(portfolioId: ID!, symbol: String!, usdAmount: Float!, price: Float!): Portfolio
+  sellAssetByUSD(portfolioId: ID!, symbol: String!, usdAmount: Float!, price: Float!): Portfolio
+  addCash(portfolioId: ID!, amount: Float!): Portfolio
+  withdrawCash(portfolioId: ID!, amount: Float!): Portfolio
+  deposit(amount: Float!): User
+  withdraw(amount: Float!): User
+  deletePortfolio(id: ID!): Boolean
+  toggleVisibility(portfolioId: ID!, isPublic: Boolean!): Portfolio
+  repairBalance: Boolean
+  adminSetRole(userId: ID!, role: String!): User
+  adminDeactivateUser(userId: ID!): Boolean
+}
+
+type AuthResult {
+  token: String!
+  refreshToken: String!
+  user: User!
 }
 
 type User {

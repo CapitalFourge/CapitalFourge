@@ -1,6 +1,7 @@
 package com.capitalfourge.portfoliomanager.infrastructure.adapters.out.datacollector;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;

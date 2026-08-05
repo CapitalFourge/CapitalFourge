@@ -11,5 +11,5 @@ WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 EXPOSE 10000
 ENV PORT=10000
-ENV JAVA_OPTS="-Xms64m -Xmx96m -XX:MaxMetaspaceSize=96m -XX:CompressedClassSpaceSize=16m -XX:+UseZGC -XX:MaxDirectMemorySize=16m -Dserver.address=0.0.0.0 -Dspring.datasource.hikari.maximum-pool-size=2 -Dspring.redis.lettuce.pool.max-active=2 -Djdk.net.URLClassPath.disableClassPathURLCheck=true -XX:+ExitOnOutOfMemoryError"
+ENV JAVA_OPTS="-Xms64m -Xmx96m -XX:MaxMetaspaceSize=160m -XX:CompressedClassSpaceSize=24m -XX:+UseZGC -XX:MaxDirectMemorySize=16m -Dserver.address=0.0.0.0 -Dspring.datasource.hikari.maximum-pool-size=2 -Dspring.redis.lettuce.pool.max-active=2 -Djdk.net.URLClassPath.disableClassPathURLCheck=true -XX:+ExitOnOutOfMemoryError"
 ENTRYPOINT ["sh","-c","exec java $JAVA_OPTS -jar app.jar"]

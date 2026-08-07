@@ -18,12 +18,14 @@ import graphql.GraphQLError;
 import graphql.schema.DataFetchingEnvironment;
 
 import com.capitalfourge.portfoliomanager.application.ports.dto.auth.AuthResult;
+import com.capitalfourge.portfoliomanager.application.ports.dto.auth.ChangePasswordCommand;
 import com.capitalfourge.portfoliomanager.application.ports.dto.auth.LoginCommand;
 import com.capitalfourge.portfoliomanager.application.ports.in.PortfolioUseCase;
 import com.capitalfourge.portfoliomanager.application.ports.in.UserUseCase;
 import com.capitalfourge.portfoliomanager.application.ports.out.UserRepository;
 import com.capitalfourge.portfoliomanager.domain.Asset;
 import com.capitalfourge.portfoliomanager.domain.Feedback;
+import com.capitalfourge.portfoliomanager.domain.PricePoint;
 import com.capitalfourge.portfoliomanager.domain.Portfolio;
 import com.capitalfourge.portfoliomanager.domain.Position;
 import com.capitalfourge.portfoliomanager.domain.Role;
@@ -82,7 +84,17 @@ public class PortfolioGraphQLController {
 
     @QueryMapping
     public List<AssetMover> assetMovers(@Argument String sort, @Argument Integer limit) {
-        return List.of(); // Not implemented via REST yet
+        int effectiveLimit = limit != null ? limit : 8;
+        return dataCollectorClient.getAssetMovers("STOCKS", sort != null ? sort : "volatile", effectiveLimit).stream()
+                .map(dto -> new AssetMover(
+                        dto.symbol(),
+                        dto.name(),
+                        dto.price(),
+                        dto.changePercent(),
+                        dto.changeValue(),
+                        dto.volume()
+                ))
+                .toList();
     }
 
     @QueryMapping
@@ -111,6 +123,95 @@ public class PortfolioGraphQLController {
     public List<Feedback> myFeedbacks() {
         // Return empty list for now - in production this would come from a feedback service
         return List.of();
+    }
+
+    @QueryMapping
+    public Asset asset(@Argument String symbol) {
+        DataCollectorClient.AssetDTO dto = dataCollectorClient.getAsset(symbol);
+        if (dto == null) {
+            return null;
+        }
+        return Asset.builder()
+                .symbol(dto.symbol())
+                .name(dto.name())
+                .category(dto.category())
+                .description(dto.description())
+                .website(dto.website())
+                .logo(dto.logo())
+                .sector(dto.sector())
+                .industry(dto.industry())
+                .marketCap(null)
+                .peRatio(null)
+                .dividendYield(null)
+                .beta(null)
+                .week52High(null)
+                .week52Low(null)
+                .build();
+    }
+
+    @QueryMapping
+    public List<PricePoint> priceHistory(@Argument String symbol, @Argument String range, @Argument Integer days) {
+        String effectiveRange = range != null ? range : "1m";
+        if (days != null) {
+            effectiveRange = days + "d";
+        }
+        return dataCollectorClient.getPriceHistory(symbol, effectiveRange).stream()
+                .map(dto -> PricePoint.builder()
+                        .timestamp(dto.timestamp())
+                        .open(dto.open())
+                        .high(dto.high())
+                        .low(dto.low())
+                        .close(dto.close())
+                        .volume(dto.volume())
+                        .date(dto.date())
+                        .marketCap(dto.marketCap())
+                        .trailingPe(dto.trailingPe())
+                        .forwardPe(dto.forwardPe())
+                        .pegRatio(dto.pegRatio())
+                        .priceToBook(dto.priceToBook())
+                        .priceToSales(dto.priceToSales())
+                        .enterpriseToEbitda(dto.enterpriseToEbitda())
+                        .profitMargins(dto.profitMargins())
+                        .operatingMargins(dto.operatingMargins())
+                        .returnOnEquity(dto.returnOnEquity())
+                        .returnOnAssets(dto.returnOnAssets())
+                        .debtToEquity(dto.debtToEquity())
+                        .currentRatio(dto.currentRatio())
+                        .quickRatio(dto.quickRatio())
+                        .dividendYield(dto.dividendYield())
+                        .freeCashFlow(dto.freeCashFlow())
+                        .circulatingSupply(dto.circulatingSupply())
+                        .totalSupply(dto.totalSupply())
+                        .maxSupply(dto.maxSupply())
+                        .inflationRate(dto.inflationRate())
+                        .fdv(dto.fdv())
+                        .activeAddresses(dto.activeAddresses())
+                        .transactionVolume(dto.transactionVolume())
+                        .transactionCount(dto.transactionCount())
+                        .feesGenerated(dto.feesGenerated())
+                        .tvl(dto.tvl())
+                        .hashRate(dto.hashRate())
+                        .stakingRatio(dto.stakingRatio())
+                        .nakamotoCoefficient(dto.nakamotoCoefficient())
+                        .orderBookDepth(dto.orderBookDepth())
+                        .developerActivity(dto.developerActivity())
+                        .userGrowth(dto.userGrowth())
+                        .revenue(dto.revenue())
+                        .priceToFeesRatio(dto.priceToFeesRatio())
+                        .bitcoinDominance(dto.bitcoinDominance())
+                        .fearGreedIndex(dto.fearGreedIndex())
+                        .inventoryLevels(dto.inventoryLevels())
+                        .costOfProduction(dto.costOfProduction())
+                        .allInSustainingCost(dto.allInSustainingCost())
+                        .reserveReplacementRatio(dto.reserveReplacementRatio())
+                        .contangoBackwardation(dto.contangoBackwardation())
+                        .dollarIndexExposure(dto.dollarIndexExposure())
+                        .inflationCorrelation(dto.inflationCorrelation())
+                        .opecSpareCapacity(dto.opecSpareCapacity())
+                        .chineseDemandIndex(dto.chineseDemandIndex())
+                        .weatherIndex(dto.weatherIndex())
+                        .build())
+                .toList();
     }
 
     // Type resolvers
@@ -354,6 +455,32 @@ public class PortfolioGraphQLController {
     @MutationMapping
     @PreAuthorize("hasRole('USER')")
     public Boolean repairBalance() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UUID userId = getUserIdFromAuth(auth);
+        portfolioUseCase.repairUserBalance(userId);
+        return true;
+    }
+
+    @MutationMapping
+    @PreAuthorize("hasRole('USER')")
+    public User updateProfile(@Argument String username, @Argument String email, @Argument String language) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UUID userId = getUserIdFromAuth(auth);
+        return userUseCase.updateProfile(userId, username, email, language);
+    }
+
+    @MutationMapping
+    @PreAuthorize("hasRole('USER')")
+    public Boolean changePassword(@Argument String currentPassword, @Argument String newPassword) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UUID userId = getUserIdFromAuth(auth);
+        userUseCase.changePassword(new ChangePasswordCommand(userId, currentPassword, newPassword));
+        return true;
+    }
+
+    @MutationMapping
+    @PreAuthorize("hasRole('USER')")
+    public Boolean repairMyBalance() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UUID userId = getUserIdFromAuth(auth);
         portfolioUseCase.repairUserBalance(userId);

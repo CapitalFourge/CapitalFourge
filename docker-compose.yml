@@ -1,117 +1,199 @@
+version: '3.8'
+
 services:
-    postgres:
-        image: postgres:15
-        container_name: capital-fourge-postgres
-        environment:
-            POSTGRES_USER: ${DB_POSTGRES_USER}
-            POSTGRES_PASSWORD: ${DB_POSTGRES_PASSWORD}
-            POSTGRES_DB: ${DB_POSTGRES_NAME}
-        ports:
-            - "5433:5432"
-        volumes:
-            - postgres_data:/var/lib/postgresql/data
-        healthcheck:
-            test: [ "CMD-SHELL", "pg_isready -U ${DB_POSTGRES_USER} -d ${DB_POSTGRES_NAME}" ]
-            interval: 10s
-            timeout: 5s
-            retries: 5
-            start_period: 20s
+  # ─────────────────────────────────────────────────────────────
+  # POSTGRESQL 15 + TimescaleDB + pgvector
+  # ─────────────────────────────────────────────────────────────
+  postgres:
+    image: timescale/timescaledb:latest-pg15
+    container_name: cf-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: finsight_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    command: >
+      postgres
+      -c shared_buffers=2GB
+      -c effective_cache_size=6GB
+      -c maintenance_work_mem=512MB
+      -c max_connections=200
+      -c max_worker_processes=4
+      -c max_parallel_workers_per_gather=2
+      -c max_parallel_workers=4
+      -c work_mem=32MB
+      -c random_page_cost=1.1
+      -c effective_io_concurrency=200
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d finsight_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+        reservations:
+          memory: 2G
 
-    mongodb:
-        image: mongo:latest
-        container_name: capital-fourge-mongodb
-        environment:
-            MONGO_INITDB_ROOT_USERNAME: ${DB_MONGO_ROOT_USER}
-            MONGO_INITDB_ROOT_PASSWORD: ${DB_MONGO_ROOT_PASSWORD}
-        ports:
-            - "27017:27017"
-        volumes:
-            - mongo_data:/data/db
-        healthcheck:
-            test: [ "CMD-SHELL", "mongosh -u ${DB_MONGO_ROOT_USER} -p ${DB_MONGO_ROOT_PASSWORD} --authenticationDatabase admin --eval 'db.hello().isWritablePrimary' --quiet" ]
-            interval: 10s
-            timeout: 5s
-            retries: 5
-            start_period: 30s
+  # ─────────────────────────────────────────────────────────────
+  # REDIS 7
+  # ─────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: cf-redis
+    restart: unless-stopped
+    command: >
+      redis-server
+      --maxmemory 2gb
+      --maxmemory-policy allkeys-lru
+      --save 900 1
+      --save 300 10
+      --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 2.5G
+        reservations:
+          memory: 1G
 
-    redis:
-        image: redis:latest
-        container_name: capital-fourge-redis
-        ports:
-            - "6379:6379"
-        command: redis-server --requirepass ${DB_REDIS_PASSWORD}
-        healthcheck:
-            test: [ "CMD-SHELL", "redis-cli -a ${DB_REDIS_PASSWORD} ping | grep PONG" ]
-            interval: 10s
-            timeout: 5s
-            retries: 5
-            start_period: 10s
+  # ─────────────────────────────────────────────────────────────
+  # SPRING BOOT - Portfolio Manager
+  # ─────────────────────────────────────────────────────────────
+  portfolio-manager:
+    build:
+      context: ./portfolio-manager
+      dockerfile: Dockerfile
+    container_name: cf-portfolio-manager
+    restart: unless-stopped
+    environment:
+      # Database
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: finsight_db
+      DB_USER: user
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_SSLMODE: disable
+      # Redis
+      SPRING_REDIS_URL: redis://redis:6379
+      SPRING_REDIS_SSL_ENABLED: "false"
+      # JWT
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ISSUER: capital-fourge
+      JWT_ACCESS_EXPIRATION_MS: 86400000
+      JWT_REFRESH_EXPIRATION_MS: 604800000
+      # Data Collector
+      DATA_COLLECTOR_BASE_URL: http://data-collector:8000
+      DATA_COLLECTOR_API_KEY: ${DATA_COLLECTOR_API_KEY}
+      # Render/Cloud detection
+      RENDER: "false"
+      # Java
+      JAVA_OPTS: "-Xms2g -Xmx4g -XX:MaxMetaspaceSize=256m -XX:CompressedClassSpaceSize=32m -XX:+UseZGC -XX:MaxDirectMemorySize=512m -Dserver.address=0.0.0.0 -Dspring.datasource.hikari.maximum-pool-size=20 -Dspring.datasource.hikari.minimum-idle=5 -Dspring.redis.lettuce.pool.max-active=20 -Djdk.net.URLClassPath.disableClassPathURLCheck=true -XX:+ExitOnOutOfMemoryError"
+    ports:
+      - "10000:10000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      data-collector:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:10000/actuator/health/readiness"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 6G
+        reservations:
+          memory: 3G
 
-    data-collector:
-        build: ./data-collector
-        container_name: capital-fourge-data-collector
-        ports:
-            - "8000:8000"
-            - "50051:50051"
-        volumes:
-            - ./data-collector:/app
-        command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-        environment:
-            - DB_MONGO_ROOT_PASSWORD=${DB_MONGO_ROOT_PASSWORD}
-            - DB_MONGO_HOST=mongodb
-            - DB_REDIS_HOST=redis
-            - DB_REDIS_PASSWORD=${DB_REDIS_PASSWORD}
-            - EIA_API_KEY=Ps3dC17c5iZXwERmnwb4HxIOMkFRaSIeLGk6BdtX
-            - SERVICE_API_KEY=${DATA_COLLECTOR_API_KEY:-internal-service-key}
-        depends_on:
-            mongodb:
-                condition: service_healthy
+  # ─────────────────────────────────────────────────────────────
+  # DATA COLLECTOR - Python FastAPI
+  # ─────────────────────────────────────────────────────────────
+  data-collector:
+    build:
+      context: ./data-collector
+      dockerfile: Dockerfile
+    container_name: cf-data-collector
+    restart: unless-stopped
+    environment:
+      # API Key for internal services
+      SERVICE_API_KEY: ${DATA_COLLECTOR_API_KEY}
+      # MongoDB (optional - for historical data)
+      DB_MONGO_HOST: ${DB_MONGO_HOST:-}
+      DB_MONGO_ROOT_PASSWORD: ${DB_MONGO_ROOT_PASSWORD:-}
+      # Redis
+      SPRING_REDIS_URL: redis://redis:6379
+      DB_REDIS_HOST: redis
+      DB_REDIS_PASSWORD: ""
+      # Port
+      PORT: "8000"
+      RENDER: "false"
+    ports:
+      - "8000:8000"
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
 
-    frontend:
-        build:
-            context: ./frontend
-            dockerfile: Dockerfile
-        container_name: capital-fourge-frontend
-        ports:
-            - "3000:3000"
-        volumes:
-            - ./frontend:/app
-            - /app/node_modules
-            - /app/.next
-        environment:
-            - NODE_ENV=development
-            - NEXT_PUBLIC_API_BASE_URL=http://localhost:10000
-
-    portfolio-manager:
-        build: 
-            context: .
-            dockerfile: portfolio-manager/Dockerfile
-        container_name: capital-fourge-portfolio-manager
-        ports:
-            - "10000:10000"
-        environment:
-            - DB_HOST=postgres
-            - DB_PORT=5432
-            - DB_NAME=${DB_POSTGRES_NAME}
-            - DB_USER=${DB_POSTGRES_USER}
-            - DB_PASSWORD=${DB_POSTGRES_PASSWORD}
-            - GRPC_DATA_COLLECTOR_HOST=data-collector
-            - DATA_COLLECTOR_BASE_URL=http://data-collector:8000
-            - DATA_COLLECTOR_API_KEY=${DATA_COLLECTOR_API_KEY:-internal-service-key}
-            - JWT_SECRET=${JWT_SECRET:-}
-            - JWT_ISSUER=${JWT_ISSUER:-capital-fourge}
-            - JWT_ACCESS_EXPIRATION_MS=${JWT_ACCESS_EXPIRATION_MS:-3600000}
-            - JWT_REFRESH_EXPIRATION_MS=${JWT_REFRESH_EXPIRATION_MS:-604800000}
-            - SPRING_REDIS_URL=redis://:redis@redis:6379
-        depends_on:
-            postgres:
-                condition: service_healthy
-            redis:
-                condition: service_healthy
-            data-collector:
-                condition: service_started
+  # ─────────────────────────────────────────────────────────────
+  # CADDY - Reverse Proxy + Auto HTTPS
+  # ─────────────────────────────────────────────────────────────
+  caddy:
+    image: caddy:2-alpine
+    container_name: cf-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - portfolio-manager
+    healthcheck:
+      test: ["CMD", "caddy", "validate", "--config", "/etc/caddy/Caddyfile"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
 volumes:
-    postgres_data:
-    mongo_data:
-# Trivial change to trigger rebuild
+  postgres_data:
+  redis_data:
+  caddy_data:
+  caddy_config:
+
+networks:
+  default:
+    name: capitalfourge-network

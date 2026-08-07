@@ -33,11 +33,15 @@ async def require_api_key(api_key: str = Security(api_key_header)):
     return api_key
 
 # 2. Configurar la Infraestructura (Adaptadores)
-mongo_host = os.getenv("DB_MONGO_HOST", "localhost")
-mongo_pass = os.getenv("DB_MONGO_ROOT_PASSWORD")
-uri = f"mongodb://admin:{mongo_pass}@{mongo_host}:27017/?authSource=admin"
+# DB_MONGO_HOST ya contiene la URI completa de Atlas
+mongo_uri = os.getenv("DB_MONGO_HOST")
+repo = None
+if mongo_uri:
+    repo = MongoFinancialDataRepository(connection_string=mongo_uri, database_name="capital_fourge_data")
+else:
+    print("⚠️  DB_MONGO_HOST not set, running without MongoDB")
+    repo = None
 
-repo = MongoFinancialDataRepository(connection_string=uri, database_name="capital_fourge_data")
 processor = PolarsDataProcessor()
 service = FinancialDataService(repository=repo, processor=processor)
 
@@ -216,58 +220,58 @@ def get_price_history(symbol: str, days: int = 30):
 @app.get("/assets/categorized", dependencies=[Depends(require_api_key)])
 def get_categorized_assets(category: str = None):
     assets = [
-        {"symbol": "AAPL", "name": "Apple Inc.", "category": "STOCKS"},
-        {"symbol": "ADBE", "name": "Adobe Inc.", "category": "STOCKS"},
-        {"symbol": "GOOGL", "name": "Alphabet Inc.", "category": "STOCKS"},
-        {"symbol": "MSFT", "name": "Microsoft Corp.", "category": "STOCKS"},
-        {"symbol": "AMZN", "name": "Amazon.com Inc.", "category": "STOCKS"},
-        {"symbol": "TSLA", "name": "Tesla, Inc.", "category": "STOCKS"},
-        {"symbol": "NVDA", "name": "NVIDIA Corporation", "category": "STOCKS"},
-        {"symbol": "NFLX", "name": "Netflix, Inc.", "category": "STOCKS"},
-        {"symbol": "AMD", "name": "Advanced Micro Devices", "category": "STOCKS"},
-        {"symbol": "META", "name": "Meta Platforms, Inc.", "category": "STOCKS"},
-        {"symbol": "BRK-B", "name": "Berkshire Hathaway", "category": "STOCKS"},
-        {"symbol": "V", "name": "Visa Inc.", "category": "STOCKS"},
-        {"symbol": "JPM", "name": "JPMorgan Chase & Co.", "category": "STOCKS"},
-        {"symbol": "DIS", "name": "The Walt Disney Co.", "category": "STOCKS"},
-        {"symbol": "MA", "name": "Mastercard Inc.", "category": "STOCKS"},
-        {"symbol": "EC", "name": "Ecopetrol S.A.", "category": "STOCKS"},
-        {"symbol": "ECOPETROL", "name": "Ecopetrol S.A.", "category": "STOCKS"},
-        {"symbol": "AVAL", "name": "Grupo Aval Acciones y Valores", "category": "STOCKS"},
-        {"symbol": "BANCOLOMBIA", "name": "Bancolombia S.A.", "category": "STOCKS"},
-        {"symbol": "PF", "name": "Pfizer S.A.", "category": "STOCKS"},
-        {"symbol": "CEMEX", "name": "CEMEX S.A.", "category": "STOCKS"},
-        {"symbol": "ISA", "name": "ISA Interconexión Eléctrica", "category": "STOCKS"},
-        {"symbol": "BOGOTA", "name": "Banco de Bogotá", "category": "STOCKS"},
-        {"symbol": "CELSIA", "name": "CELSIA Energía", "category": "STOCKS"},
-        {"symbol": "BTC-USD", "name": "Bitcoin", "category": "CRYPTO"},
-        {"symbol": "ETH-USD", "name": "Ethereum", "category": "CRYPTO"},
-        {"symbol": "SOL-USD", "name": "Solana", "category": "CRYPTO"},
-        {"symbol": "ADA-USD", "name": "Cardano", "category": "CRYPTO"},
-        {"symbol": "DOT-USD", "name": "Polkadot", "category": "CRYPTO"},
-        {"symbol": "XRP-USD", "name": "XRP", "category": "CRYPTO"},
-        {"symbol": "DOGE-USD", "name": "Dogecoin", "category": "CRYPTO"},
-        {"symbol": "MATIC-USD", "name": "Polygon", "category": "CRYPTO"},
-        {"symbol": "LINK-USD", "name": "Chainlink", "category": "CRYPTO"},
-        {"symbol": "AVAX-USD", "name": "Avalanche", "category": "CRYPTO"},
-        {"symbol": "GC=F", "name": "Gold", "category": "COMMODITIES"},
-        {"symbol": "SI=F", "name": "Silver", "category": "COMMODITIES"},
-        {"symbol": "CL=F", "name": "Crude Oil", "category": "COMMODITIES"},
-        {"symbol": "NG=F", "name": "Natural Gas", "category": "COMMODITIES"},
-        {"symbol": "HG=F", "name": "Copper", "category": "COMMODITIES"},
-        {"symbol": "BZ=F", "name": "Brent Crude Oil", "category": "COMMODITIES"},
-        {"symbol": "PL=F", "name": "Platinum", "category": "COMMODITIES"},
-        {"symbol": "PA=F", "name": "Palladium", "category": "COMMODITIES"},
-        {"symbol": "EURUSD=X", "name": "EUR/USD", "category": "FOREX"},
-        {"symbol": "GBPUSD=X", "name": "GBP/USD", "category": "FOREX"},
-        {"symbol": "JPY=X", "name": "USD/JPY", "category": "FOREX"},
-        {"symbol": "MXN=X", "name": "USD/MXN", "category": "FOREX"},
-        {"symbol": "CAD=X", "name": "USD/CAD", "category": "FOREX"},
-        {"symbol": "AUDUSD=X", "name": "AUD/USD", "category": "FOREX"},
-        {"symbol": "CHF=X", "name": "USD/CHF", "category": "FOREX"},
-        {"symbol": "NZDUSD=X", "name": "NZD/USD", "category": "FOREX"},
-        {"symbol": "EURGBP=X", "name": "EUR/GBP", "category": "FOREX"},
-        {"symbol": "EURJPY=X", "name": "EUR/JPY", "category": "FOREX"}
+        {"symbol": "AAPL", "name": "Apple Inc.", "category": "STOCKS", "description": "Apple Inc. designs, manufactures, and markets smartphones, personal computers, tablets, wearables, and accessories worldwide.", "website": "https://www.apple.com", "logo": "https://logo.clearbit.com/apple.com", "sector": "Technology", "industry": "Consumer Electronics"},
+        {"symbol": "ADBE", "name": "Adobe Inc.", "category": "STOCKS", "description": "Adobe Inc. operates as a diversified software company worldwide.", "website": "https://www.adobe.com", "logo": "https://logo.clearbit.com/adobe.com", "sector": "Technology", "industry": "Software—Infrastructure"},
+        {"symbol": "GOOGL", "name": "Alphabet Inc.", "category": "STOCKS", "description": "Alphabet Inc. provides online advertising services in the United States, Europe, the Middle East, Africa, the Asia-Pacific, Canada, and Latin America.", "website": "https://abc.xyz", "logo": "https://logo.clearbit.com/google.com", "sector": "Communication Services", "industry": "Internet Content & Information"},
+        {"symbol": "MSFT", "name": "Microsoft Corp.", "category": "STOCKS", "description": "Microsoft Corporation develops, licenses, and supports software, services, devices, and solutions worldwide.", "website": "https://www.microsoft.com", "logo": "https://logo.clearbit.com/microsoft.com", "sector": "Technology", "industry": "Software—Infrastructure"},
+        {"symbol": "AMZN", "name": "Amazon.com Inc.", "category": "STOCKS", "description": "Amazon.com, Inc. engages in the retail sale of consumer products and subscriptions through online and physical stores in North America and internationally.", "website": "https://www.amazon.com", "logo": "https://logo.clearbit.com/amazon.com", "sector": "Consumer Cyclical", "industry": "Internet Retail"},
+        {"symbol": "TSLA", "name": "Tesla, Inc.", "category": "STOCKS", "description": "Tesla, Inc. designs, develops, manufactures, leases, and sells electric vehicles, and energy generation and storage systems in the United States, China, and internationally.", "website": "https://www.tesla.com", "logo": "https://logo.clearbit.com/tesla.com", "sector": "Consumer Cyclical", "industry": "Auto Manufacturers"},
+        {"symbol": "NVDA", "name": "NVIDIA Corporation", "category": "STOCKS", "description": "NVIDIA Corporation provides graphics, and compute and networking solutions in the United States, Taiwan, China, and internationally.", "website": "https://www.nvidia.com", "logo": "https://logo.clearbit.com/nvidia.com", "sector": "Technology", "industry": "Semiconductors"},
+        {"symbol": "NFLX", "name": "Netflix, Inc.", "category": "STOCKS", "description": "Netflix, Inc. provides entertainment services in the United States and internationally.", "website": "https://www.netflix.com", "logo": "https://logo.clearbit.com/netflix.com", "sector": "Communication Services", "industry": "Entertainment"},
+        {"symbol": "AMD", "name": "Advanced Micro Devices", "category": "STOCKS", "description": "Advanced Micro Devices, Inc. operates as a semiconductor company worldwide.", "website": "https://www.amd.com", "logo": "https://logo.clearbit.com/amd.com", "sector": "Technology", "industry": "Semiconductors"},
+        {"symbol": "META", "name": "Meta Platforms, Inc.", "category": "STOCKS", "description": "Meta Platforms, Inc. develops products that enable people to connect and share with friends and family through mobile devices, personal computers, virtual reality headsets, and wearables worldwide.", "website": "https://about.meta.com", "logo": "https://logo.clearbit.com/meta.com", "sector": "Communication Services", "industry": "Internet Content & Information"},
+        {"symbol": "BRK-B", "name": "Berkshire Hathaway", "category": "STOCKS", "description": "Berkshire Hathaway Inc., through its subsidiaries, engages in the insurance, freight rail transportation, and utility businesses worldwide.", "website": "https://www.berkshirehathaway.com", "logo": "https://logo.clearbit.com/berkshirehathaway.com", "sector": "Financial Services", "industry": "Insurance—Diversified"},
+        {"symbol": "V", "name": "Visa Inc.", "category": "STOCKS", "description": "Visa Inc. operates as a payment technology company worldwide.", "website": "https://www.visa.com", "logo": "https://logo.clearbit.com/visa.com", "sector": "Financial Services", "industry": "Credit Services"},
+        {"symbol": "JPM", "name": "JPMorgan Chase & Co.", "category": "STOCKS", "description": "JPMorgan Chase & Co. operates as a financial services company worldwide.", "website": "https://www.jpmorganchase.com", "logo": "https://logo.clearbit.com/jpmorganchase.com", "sector": "Financial Services", "industry": "Banks—Diversified"},
+        {"symbol": "DIS", "name": "The Walt Disney Co.", "category": "STOCKS", "description": "The Walt Disney Company, together with its subsidiaries, operates as an entertainment company worldwide.", "website": "https://www.disney.com", "logo": "https://logo.clearbit.com/disney.com", "sector": "Communication Services", "industry": "Entertainment"},
+        {"symbol": "MA", "name": "Mastercard Inc.", "category": "STOCKS", "description": "Mastercard Incorporated, a technology company, provides transaction processing and other payment-related products and services in the United States and internationally.", "website": "https://www.mastercard.com", "logo": "https://logo.clearbit.com/mastercard.com", "sector": "Financial Services", "industry": "Credit Services"},
+        {"symbol": "EC", "name": "Ecopetrol S.A.", "category": "STOCKS", "description": "Ecopetrol S.A. operates as an integrated energy company in Colombia and internationally.", "website": "https://www.ecopetrol.com.co", "logo": "https://logo.clearbit.com/ecopetrol.com.co", "sector": "Energy", "industry": "Oil & Gas Integrated"},
+        {"symbol": "ECOPETROL", "name": "Ecopetrol S.A.", "category": "STOCKS", "description": "Ecopetrol S.A. operates as an integrated energy company in Colombia and internationally.", "website": "https://www.ecopetrol.com.co", "logo": "https://logo.clearbit.com/ecopetrol.com.co", "sector": "Energy", "industry": "Oil & Gas Integrated"},
+        {"symbol": "AVAL", "name": "Grupo Aval Acciones y Valores", "category": "STOCKS", "description": "Grupo Aval Acciones y Valores S.A. provides financial services and products in Colombia and Central America.", "website": "https://www.grupoaval.com", "logo": "https://logo.clearbit.com/grupoaval.com", "sector": "Financial Services", "industry": "Banks—Regional"},
+        {"symbol": "BANCOLOMBIA", "name": "Bancolombia S.A.", "category": "STOCKS", "description": "Bancolombia S.A. provides banking products and services in Colombia, Panama, El Salvador, the United States, and Puerto Rico.", "website": "https://www.bancolombia.com", "logo": "https://logo.clearbit.com/bancolombia.com", "sector": "Financial Services", "industry": "Banks—Regional"},
+        {"symbol": "PF", "name": "Pfizer S.A.", "category": "STOCKS", "description": "Pfizer Inc. discovers, develops, manufactures, markets, distributes, and sells biopharmaceutical products worldwide.", "website": "https://www.pfizer.com", "logo": "https://logo.clearbit.com/pfizer.com", "sector": "Healthcare", "industry": "Drug Manufacturers—General"},
+        {"symbol": "CEMEX", "name": "CEMEX S.A.", "category": "STOCKS", "description": "CEMEX, S.A.B. de C.V., together with its subsidiaries, produces, markets, distributes, and sells cement, ready-mix concrete, aggregates, urbanization solutions, and other construction materials worldwide.", "website": "https://www.cemex.com", "logo": "https://logo.clearbit.com/cemex.com", "sector": "Basic Materials", "industry": "Building Materials"},
+        {"symbol": "ISA", "name": "ISA Interconexión Eléctrica", "category": "STOCKS", "description": "Interconexión Eléctrica S.A. E.S.P. transmits, operates, and maintains electric energy in Colombia, Peru, Bolivia, Brazil, Chile, and internationally.", "website": "https://www.isa.co", "logo": "https://logo.clearbit.com/isa.co", "sector": "Utilities—Regulated", "industry": "Utilities—Regulated Electric"},
+        {"symbol": "BOGOTA", "name": "Banco de Bogotá", "category": "STOCKS", "description": "Banco de Bogotá S.A. provides various banking products and services in Colombia and internationally.", "website": "https://www.bancodebogota.com", "logo": "https://logo.clearbit.com/bancodebogota.com", "sector": "Financial Services", "industry": "Banks—Regional"},
+        {"symbol": "CELSIA", "name": "CELSIA Energía", "category": "STOCKS", "description": "Celsia S.A. E.S.P., an energy company, generates, transmits, distributes, and markets electric energy in Colombia, Panama, and Central America.", "website": "https://www.celsia.com", "logo": "https://logo.clearbit.com/celsia.com", "sector": "Utilities—Regulated", "industry": "Utilities—Regulated Electric"},
+        {"symbol": "BTC-USD", "name": "Bitcoin", "category": "CRYPTO", "description": "Bitcoin is a decentralized digital currency.", "website": "https://bitcoin.org", "logo": "https://logo.clearbit.com/bitcoin.org", "sector": "Cryptocurrency", "industry": "Cryptocurrency"},
+        {"symbol": "ETH-USD", "name": "Ethereum", "category": "CRYPTO", "description": "Ethereum is a decentralized, open-source blockchain with smart contract functionality.", "website": "https://ethereum.org", "logo": "https://logo.clearbit.com/ethereum.org", "sector": "Cryptocurrency", "industry": "Cryptocurrency"},
+        {"symbol": "SOL-USD", "name": "Solana", "category": "CRYPTO", "description": "Solana is a high-performance blockchain supporting builders around the world creating crypto apps that scale today.", "website": "https://solana.com", "logo": "https://logo.clearbit.com/solana.com", "sector": "Cryptocurrency", "industry": "Cryptocurrency"},
+        {"symbol": "ADA-USD", "name": "Cardano", "category": "CRYPTO", "description": "Cardano is a proof-of-stake blockchain platform.", "website": "https://cardano.org", "logo": "https://logo.clearbit.com/cardano.org", "sector": "Cryptocurrency", "industry": "Cryptocurrency"},
+        {"symbol": "DOT-USD", "name": "Polkadot", "category": "CRYPTO", "description": "Polkadot enables cross-blockchain transfers of any type of data or asset.", "website": "https://polkadot.network", "logo": "https://logo.clearbit.com/polkadot.network", "sector": "Cryptocurrency", "industry": "Cryptocurrency"},
+        {"symbol": "XRP-USD", "name": "XRP", "category": "CRYPTO", "description": "XRP is a digital asset built for payments.", "website": "https://xrpl.org", "logo": "https://logo.clearbit.com/xrpl.org", "sector": "Cryptocurrency", "industry": "Cryptocurrency"},
+        {"symbol": "DOGE-USD", "name": "Dogecoin", "category": "CRYPTO", "description": "Dogecoin is a cryptocurrency created as a joke.", "website": "https://dogecoin.com", "logo": "https://logo.clearbit.com/dogecoin.com", "sector": "Cryptocurrency", "industry": "Cryptocurrency"},
+        {"symbol": "MATIC-USD", "name": "Polygon", "category": "CRYPTO", "description": "Polygon is a protocol and a framework for building and connecting Ethereum-compatible blockchain networks.", "website": "https://polygon.technology", "logo": "https://logo.clearbit.com/polygon.technology", "sector": "Cryptocurrency", "industry": "Cryptocurrency"},
+        {"symbol": "LINK-USD", "name": "Chainlink", "category": "CRYPTO", "description": "Chainlink is a decentralized oracle network.", "website": "https://chain.link", "logo": "https://logo.clearbit.com/chain.link", "sector": "Cryptocurrency", "industry": "Cryptocurrency"},
+        {"symbol": "AVAX-USD", "name": "Avalanche", "category": "CRYPTO", "description": "Avalanche is a decentralized platform for building applications.", "website": "https://avax.network", "logo": "https://logo.clearbit.com/avax.network", "sector": "Cryptocurrency", "industry": "Cryptocurrency"},
+        {"symbol": "GC=F", "name": "Gold", "category": "COMMODITIES", "description": "Gold futures.", "website": "", "logo": "", "sector": "Commodities", "industry": "Precious Metals"},
+        {"symbol": "SI=F", "name": "Silver", "category": "COMMODITIES", "description": "Silver futures.", "website": "", "logo": "", "sector": "Commodities", "industry": "Precious Metals"},
+        {"symbol": "CL=F", "name": "Crude Oil", "category": "COMMODITIES", "description": "Crude oil futures.", "website": "", "logo": "", "sector": "Commodities", "industry": "Energy"},
+        {"symbol": "NG=F", "name": "Natural Gas", "category": "COMMODITIES", "description": "Natural gas futures.", "website": "", "logo": "", "sector": "Commodities", "industry": "Energy"},
+        {"symbol": "HG=F", "name": "Copper", "category": "COMMODITIES", "description": "Copper futures.", "website": "", "logo": "", "sector": "Commodities", "industry": "Industrial Metals"},
+        {"symbol": "BZ=F", "name": "Brent Crude Oil", "category": "COMMODITIES", "description": "Brent crude oil futures.", "website": "", "logo": "", "sector": "Commodities", "industry": "Energy"},
+        {"symbol": "PL=F", "name": "Platinum", "category": "COMMODITIES", "description": "Platinum futures.", "website": "", "logo": "", "sector": "Commodities", "industry": "Precious Metals"},
+        {"symbol": "PA=F", "name": "Palladium", "category": "COMMODITIES", "description": "Palladium futures.", "website": "", "logo": "", "sector": "Commodities", "industry": "Precious Metals"},
+        {"symbol": "EURUSD=X", "name": "EUR/USD", "category": "FOREX", "description": "Euro to US Dollar exchange rate.", "website": "", "logo": "", "sector": "Forex", "industry": "Forex"},
+        {"symbol": "GBPUSD=X", "name": "GBP/USD", "category": "FOREX", "description": "British Pound to US Dollar exchange rate.", "website": "", "logo": "", "sector": "Forex", "industry": "Forex"},
+        {"symbol": "JPY=X", "name": "USD/JPY", "category": "FOREX", "description": "US Dollar to Japanese Yen exchange rate.", "website": "", "logo": "", "sector": "Forex", "industry": "Forex"},
+        {"symbol": "MXN=X", "name": "USD/MXN", "category": "FOREX", "description": "US Dollar to Mexican Peso exchange rate.", "website": "", "logo": "", "sector": "Forex", "industry": "Forex"},
+        {"symbol": "CAD=X", "name": "USD/CAD", "category": "FOREX", "description": "US Dollar to Canadian Dollar exchange rate.", "website": "", "logo": "", "sector": "Forex", "industry": "Forex"},
+        {"symbol": "AUDUSD=X", "name": "AUD/USD", "category": "FOREX", "description": "Australian Dollar to US Dollar exchange rate.", "website": "", "logo": "", "sector": "Forex", "industry": "Forex"},
+        {"symbol": "CHF=X", "name": "USD/CHF", "category": "FOREX", "description": "US Dollar to Swiss Franc exchange rate.", "website": "", "logo": "", "sector": "Forex", "industry": "Forex"},
+        {"symbol": "NZDUSD=X", "name": "NZD/USD", "category": "FOREX", "description": "New Zealand Dollar to US Dollar exchange rate.", "website": "", "logo": "", "sector": "Forex", "industry": "Forex"},
+        {"symbol": "EURGBP=X", "name": "EUR/GBP", "category": "FOREX", "description": "Euro to British Pound exchange rate.", "website": "", "logo": "", "sector": "Forex", "industry": "Forex"},
+        {"symbol": "EURJPY=X", "name": "EUR/JPY", "category": "FOREX", "description": "Euro to Japanese Yen exchange rate.", "website": "", "logo": "", "sector": "Forex", "industry": "Forex"}
     ]
     if category:
         assets = [a for a in assets if a["category"] == category]
@@ -330,8 +334,62 @@ def get_asset_name(symbol: str):
     assets = get_categorized_assets()
     for a in assets:
         if a["symbol"] == symbol:
-            return {"symbol": symbol, "name": a["name"]}
-    return {"symbol": symbol, "name": symbol}
+            return a  # Return full asset object with all fields
+    return {"symbol": symbol, "name": symbol, "category": "STOCKS", "description": "", "website": "", "logo": "", "sector": "", "industry": ""}
+
+@app.get("/assets/movers", dependencies=[Depends(require_api_key)])
+def get_asset_movers(category: str = "STOCKS", sort: str = "volatile", limit: int = 8):
+    """Get top movers by volatility or volume for a category."""
+    assets = get_categorized_assets(category)
+    if not assets:
+        return []
+    
+    results = []
+    for asset in assets:
+        try:
+            import yfinance as yf
+            yf_symbol = resolve_yfinance_symbol(asset["symbol"])
+            ticker = yf.Ticker(yf_symbol)
+            hist = ticker.history(period="5d")
+            
+            if len(hist) >= 2:
+                current_price = float(hist['Close'].iloc[-1])
+                prev_price = float(hist['Close'].iloc[-2])
+                change_value = current_price - prev_price
+                change_percent = (change_value / prev_price) * 100 if prev_price > 0 else 0
+                volume = float(hist['Volume'].iloc[-1]) if 'Volume' in hist.columns else 0
+                
+                # Calculate volatility (std dev of daily returns over 5 days)
+                if len(hist) >= 3:
+                    returns = hist['Close'].pct_change().dropna()
+                    volatility = float(returns.std() * 100) if len(returns) > 1 else 0
+                else:
+                    volatility = abs(change_percent)
+                
+                results.append({
+                    "symbol": asset["symbol"],
+                    "name": asset["name"],
+                    "price": current_price,
+                    "changePercent": round(change_percent, 2),
+                    "changeValue": round(change_value, 2),
+                    "volume": volume,
+                    "volatility": round(volatility, 2)
+                })
+        except Exception as e:
+            print(f"Error calculating movers for {asset['symbol']}: {e}")
+            continue
+    
+    # Sort by requested criteria
+    if sort == "volatile":
+        results.sort(key=lambda x: x["volatility"], reverse=True)
+    elif sort == "gainers":
+        results.sort(key=lambda x: x["changePercent"], reverse=True)
+    elif sort == "losers":
+        results.sort(key=lambda x: x["changePercent"])
+    elif sort == "volume":
+        results.sort(key=lambda x: x["volume"], reverse=True)
+    
+    return results[:limit]
 
 
 if __name__ == "__main__":

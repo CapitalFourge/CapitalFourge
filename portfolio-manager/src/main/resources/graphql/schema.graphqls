@@ -11,6 +11,10 @@ type Query {
   assetsByCategory(category: String): [Asset!]!
   searchSymbols(query: String!, limit: Int!): [Asset!]!
   myFeedbacks: [Feedback!]!
+  
+  # NUEVOS - para frontend Explorer y charts
+  asset(symbol: String!): Asset
+  priceHistory(symbol: String!, range: String, days: Int): [PricePoint!]!
 }
 
 type Feedback {
@@ -34,10 +38,24 @@ type Asset {
   symbol: String!
   name: String
   category: String!
+  description: String
+  website: String
+  logo: String
+  sector: String
+  industry: String
+  marketCap: Float
+  peRatio: Float
+  dividendYield: Float
+  beta: Float
+  week52High: Float
+  week52Low: Float
 }
 
 type Mutation {
   login(email: String!, password: String!): AuthResult
+  updateProfile(username: String, email: String, language: String): User
+  changePassword(currentPassword: String!, newPassword: String!): Boolean
+  repairMyBalance: Boolean
   createPortfolio(name: String!, description: String): Portfolio
   buyAsset(portfolioId: ID!, symbol: String!, quantity: Float!, price: Float!): Portfolio
   sellAsset(portfolioId: ID!, symbol: String!, quantity: Float!, price: Float!): Portfolio
@@ -106,4 +124,60 @@ type AssetMover {
   changePercent: Float!
   changeValue: Float!
   volume: Float!
+}
+
+type PricePoint {
+  timestamp: String!
+  open: Float!
+  high: Float!
+  low: Float!
+  close: Float!
+  volume: Float!
+  date: String
+  marketCap: Float
+  trailingPe: Float
+  forwardPe: Float
+  pegRatio: Float
+  priceToBook: Float
+  priceToSales: Float
+  enterpriseToEbitda: Float
+  profitMargins: Float
+  operatingMargins: Float
+  returnOnEquity: Float
+  returnOnAssets: Float
+  debtToEquity: Float
+  currentRatio: Float
+  quickRatio: Float
+  dividendYield: Float
+  freeCashFlow: Float
+  circulatingSupply: Float
+  totalSupply: Float
+  maxSupply: Float
+  inflationRate: Float
+  fdv: Float
+  activeAddresses: Float
+  transactionVolume: Float
+  transactionCount: Float
+  feesGenerated: Float
+  tvl: Float
+  hashRate: Float
+  stakingRatio: Float
+  nakamotoCoefficient: Float
+  orderBookDepth: Float
+  developerActivity: Float
+  userGrowth: Float
+  revenue: Float
+  priceToFeesRatio: Float
+  bitcoinDominance: Float
+  fearGreedIndex: Float
+  inventoryLevels: Float
+  costOfProduction: Float
+  allInSustainingCost: Float
+  reserveReplacementRatio: Float
+  contangoBackwardation: Float
+  dollarIndexExposure: Float
+  inflationCorrelation: Float
+  opecSpareCapacity: Float
+  chineseDemandIndex: Float
+  weatherIndex: Float
 }

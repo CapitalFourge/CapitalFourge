@@ -60,16 +60,15 @@ public class UserService implements UserUseCase {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Este correo ya está registrado");
         }
 
-        User user = User.builder()
-                .id(UUID.randomUUID())
-                .email(command.getEmail())
-                .password(passwordEncoder.encode(command.getPassword()))
-                .username(command.getUsername())
-                .role(Role.USER)
-                .active(true)
-                .createdAt(LocalDateTime.now())
-                .lastLoginAt(null)
-                .build();
+        User user = new User();
+        user.setId(UUID.randomUUID());
+        user.setEmail(command.getEmail());
+        user.setPassword(passwordEncoder.encode(command.getPassword()));
+        user.setUsername(command.getUsername());
+        user.setRole(Role.USER);
+        user.setActive(true);
+        user.setCreatedAt(LocalDateTime.now());
+        user.setLastLoginAt(null);
 
         User saved = userRepository.save(user);
 

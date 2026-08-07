@@ -55,10 +55,9 @@ class OrderServiceTest {
                 UUID userId = UUID.randomUUID();
                 UUID portfolioId = UUID.randomUUID();
 
-                user = User.builder()
-                                .id(userId)
-                                .cashBalance(new BigDecimal("1000"))
-                                .build();
+                user = new User();
+                user.setId(userId);
+                user.setCashBalance(new BigDecimal("1000"));
 
                 portfolio = Portfolio.builder()
                                 .id(portfolioId)

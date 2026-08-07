@@ -4,15 +4,11 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@Builder
 @NoArgsConstructor
-@AllArgsConstructor
 public class User {
 
     private UUID id;
@@ -20,17 +16,12 @@ public class User {
     private String password; // BCrypt hash, never plain text
     private String username;
     private Role role;
-    @Builder.Default
     private boolean active = true;
     private LocalDateTime createdAt;
     private LocalDateTime lastLoginAt;
-    @Builder.Default
     private String language = "ES";
-    @Builder.Default
     private BigDecimal cashBalance = BigDecimal.ZERO;
-    @Builder.Default
     private BigDecimal lockedBalance = BigDecimal.ZERO;
-    @Builder.Default
     private boolean showWelcome = true;
     
     // Optimistic locking

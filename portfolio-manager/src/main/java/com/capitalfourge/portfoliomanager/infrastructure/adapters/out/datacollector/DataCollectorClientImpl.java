@@ -76,10 +76,10 @@ public class DataCollectorClientImpl implements DataCollectorClient {
             return raw.stream()
                     .map(r -> new PricePointDTO(
                             r.timestamp(),
-                            r.price(),      // open
-                            r.price(),      // high
-                            r.price(),      // low
-                            r.price(),      // close (use price as close)
+                            r.open(),
+                            r.high(),
+                            r.low(),
+                            r.close(),
                             r.volume() != null ? r.volume() : 0f,
                             r.timestamp(),  // date = timestamp
                             r.market_cap(),
@@ -153,7 +153,10 @@ public class DataCollectorClientImpl implements DataCollectorClient {
     // Raw DTO matching the data collector's response
     private record RawPricePointDTO(
         String timestamp,
-        Float price,
+        Float open,
+        Float high,
+        Float low,
+        Float close,
         Float volume,
         Float market_cap,
         Float trailing_pe,

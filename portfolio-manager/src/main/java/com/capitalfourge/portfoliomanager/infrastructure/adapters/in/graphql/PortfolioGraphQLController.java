@@ -14,6 +14,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 
+import com.capitalfourge.portfoliomanager.infrastructure.security.UserPrincipal;
 import graphql.GraphQLError;
 import graphql.schema.DataFetchingEnvironment;
 
@@ -502,10 +503,10 @@ public class PortfolioGraphQLController {
             throw new RuntimeException("Authentication required");
         }
         Object principal = auth.getPrincipal();
-        if (principal instanceof UUID) {
-            return (UUID) principal;
+        if (principal instanceof UserPrincipal userPrincipal) {
+            return userPrincipal.userId();
         }
-        // Fallback for string representation
+        // Fallback for legacy string representation
         return UUID.fromString(principal.toString());
     }
 

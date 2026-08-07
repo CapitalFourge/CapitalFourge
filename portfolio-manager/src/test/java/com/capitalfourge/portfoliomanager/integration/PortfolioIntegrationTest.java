@@ -71,15 +71,14 @@ class PortfolioIntegrationTest {
     @Test
     void shouldSaveAndRetrievePortfolio() {
         // Given
-        User user = User.builder()
-                .email("test@example.com")
-                .username("testuser")
-                .password("password")
-                .role(Role.USER)
-                .active(true)
-                .cashBalance(new BigDecimal("10000"))
-                .lockedBalance(BigDecimal.ZERO)
-                .build();
+        User user = new User();
+        user.setEmail("test@example.com");
+        user.setUsername("testuser");
+        user.setPassword("password");
+        user.setRole(Role.USER);
+        user.setActive(true);
+        user.setCashBalance(new BigDecimal("10000"));
+        user.setLockedBalance(BigDecimal.ZERO);
         userRepository.save(user);
 
         Portfolio portfolio = Portfolio.builder()
@@ -110,15 +109,14 @@ class PortfolioIntegrationTest {
     @Test
     void shouldSavePortfolioWithPositionsAndTransactions() {
         // Given
-        User user = User.builder()
-                .email("test2@example.com")
-                .username("testuser2")
-                .password("password")
-                .role(Role.USER)
-                .active(true)
-                .cashBalance(new BigDecimal("10000"))
-                .lockedBalance(BigDecimal.ZERO)
-                .build();
+        User user = new User();
+        user.setEmail("test2@example.com");
+        user.setUsername("testuser2");
+        user.setPassword("password");
+        user.setRole(Role.USER);
+        user.setActive(true);
+        user.setCashBalance(new BigDecimal("10000"));
+        user.setLockedBalance(BigDecimal.ZERO);
         userRepository.save(user);
 
         UUID portfolioId = UUID.randomUUID();

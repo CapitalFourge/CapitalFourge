@@ -193,7 +193,10 @@ def get_price_history(symbol: str, days: int = 30):
         for date, row in hist.iterrows():
             point_data = {
                 'timestamp': date.strftime('%Y-%m-%d'),
-                'price': float(row['Close']),
+                'open': float(row['Open']),
+                'high': float(row['High']),
+                'low': float(row['Low']),
+                'close': float(row['Close']),
                 'volume': float(row['Volume']),
                 'market_cap': _get_market_cap(ticker, info),
                 'trailing_pe': float(info.get('trailingPE', 0)) if info.get('trailingPE') else 0.0,

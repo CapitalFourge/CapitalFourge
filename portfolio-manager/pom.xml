@@ -150,6 +150,12 @@
             <version>0.12.3</version>
             <scope>runtime</scope>
         </dependency>
+        <!-- Bucket4j for rate limiting (core only) -->
+        <dependency>
+            <groupId>com.bucket4j</groupId>
+            <artifactId>bucket4j_jdk17-core</artifactId>
+            <version>8.13.0</version>
+        </dependency>
         <!-- GraphQL for dashboard only -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

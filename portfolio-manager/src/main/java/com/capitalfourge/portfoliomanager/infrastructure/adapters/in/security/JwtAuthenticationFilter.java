@@ -1,5 +1,6 @@
 package com.capitalfourge.portfoliomanager.infrastructure.adapters.in.security;
 
+import com.capitalfourge.portfoliomanager.infrastructure.security.UserPrincipal;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -82,9 +83,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 UUID userId = UUID.fromString(subject);
                 String role = (String) claims.get("role");
+                String email = (String) claims.get("email");
+                String username = (String) claims.get("username");
+
+                // Create UserPrincipal with full user info
+                UserPrincipal principal = new UserPrincipal(userId, username, email);
 
                 var auth = new UsernamePasswordAuthenticationToken(
-                        userId,
+                        principal,
                         null,
                         role == null
                                 ? List.of()

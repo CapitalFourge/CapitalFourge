@@ -14,19 +14,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 
-import com.capitalfourge.portfoliomanager.infrastructure.security.UserPrincipal;
-import graphql.GraphQLError;
-import graphql.schema.DataFetchingEnvironment;
-
-import com.capitalfourge.portfoliomanager.application.ports.dto.auth.AuthResult;
-import com.capitalfourge.portfoliomanager.application.ports.dto.auth.ChangePasswordCommand;
-import com.capitalfourge.portfoliomanager.application.ports.dto.auth.LoginCommand;
-import com.capitalfourge.portfoliomanager.application.ports.in.PortfolioUseCase;
-import com.capitalfourge.portfoliomanager.application.ports.in.UserUseCase;
-import com.capitalfourge.portfoliomanager.application.ports.out.UserRepository;
+import com.capitalfourge.portfoliomanager.domain.StockPricePoint;
+import com.capitalfourge.portfoliomanager.domain.CryptoPricePoint;
+import com.capitalfourge.portfoliomanager.domain.CommodityPricePoint;
+import com.capitalfourge.portfoliomanager.domain.ForexPricePoint;
 import com.capitalfourge.portfoliomanager.domain.Asset;
 import com.capitalfourge.portfoliomanager.domain.Feedback;
-import com.capitalfourge.portfoliomanager.domain.PricePoint;
 import com.capitalfourge.portfoliomanager.domain.Portfolio;
 import com.capitalfourge.portfoliomanager.domain.Position;
 import com.capitalfourge.portfoliomanager.domain.Role;
@@ -34,6 +27,15 @@ import com.capitalfourge.portfoliomanager.domain.Transaction;
 import com.capitalfourge.portfoliomanager.domain.User;
 import com.capitalfourge.portfoliomanager.infrastructure.adapters.out.datacollector.DataCollectorClient;
 import com.capitalfourge.portfoliomanager.infrastructure.adapters.out.datacollector.DataCollectorClient.AssetDTO;
+import com.capitalfourge.portfoliomanager.infrastructure.security.UserPrincipal;
+import com.capitalfourge.portfoliomanager.application.ports.dto.auth.AuthResult;
+import com.capitalfourge.portfoliomanager.application.ports.dto.auth.ChangePasswordCommand;
+import com.capitalfourge.portfoliomanager.application.ports.dto.auth.LoginCommand;
+import com.capitalfourge.portfoliomanager.application.ports.in.PortfolioUseCase;
+import com.capitalfourge.portfoliomanager.application.ports.in.UserUseCase;
+import com.capitalfourge.portfoliomanager.application.ports.out.UserRepository;
+import graphql.GraphQLError;
+import graphql.schema.DataFetchingEnvironment;
 
 import lombok.RequiredArgsConstructor;
 
@@ -46,6 +48,14 @@ public class PortfolioGraphQLController {
     private final UserRepository userRepository;
     private final DataCollectorClient dataCollectorClient;
 
+    // Helper to determine asset type from symbol
+    private String getAssetType(String symbol) {
+        if (symbol.endsWith("-USD")) return "CRYPTO";
+        if (symbol.endsWith("=F") || symbol.matches("^(GC|SI|CL|NG|HG|BZ|PL|PA)$")) return "COMMODITIES";
+        if (symbol.endsWith("=X")) return "FOREX";
+        return "STOCKS";
+    }
+
     // Queries
     @QueryMapping
     public User me() {
@@ -56,7 +66,6 @@ public class PortfolioGraphQLController {
         UUID userId = getUserIdFromAuth(auth);
         User user = userUseCase.findById(userId).orElse(null);
         if (user != null) {
-            // Ensure balances are never null
             if (user.getCashBalance() == null) user.setCashBalance(BigDecimal.ZERO);
             if (user.getLockedBalance() == null) user.setLockedBalance(BigDecimal.ZERO);
         }
@@ -122,7 +131,6 @@ public class PortfolioGraphQLController {
 
     @QueryMapping
     public List<Feedback> myFeedbacks() {
-        // Return empty list for now - in production this would come from a feedback service
         return List.of();
     }
 
@@ -151,67 +159,107 @@ public class PortfolioGraphQLController {
     }
 
     @QueryMapping
-    public List<PricePoint> priceHistory(@Argument String symbol, @Argument String range, @Argument Integer days) {
+    public List<Object> priceHistory(@Argument String symbol, @Argument String range, @Argument Integer days) {
         String effectiveRange = range != null ? range : "1m";
         if (days != null) {
             effectiveRange = days + "d";
         }
+        String assetType = getAssetType(symbol);
+        
         return dataCollectorClient.getPriceHistory(symbol, effectiveRange).stream()
-                .map(dto -> PricePoint.builder()
-                        .timestamp(dto.timestamp())
-                        .open(dto.open())
-                        .high(dto.high())
-                        .low(dto.low())
-                        .close(dto.close())
-                        .volume(dto.volume())
-                        .date(dto.date())
-                        .marketCap(dto.marketCap())
-                        .trailingPe(dto.trailingPe())
-                        .forwardPe(dto.forwardPe())
-                        .pegRatio(dto.pegRatio())
-                        .priceToBook(dto.priceToBook())
-                        .priceToSales(dto.priceToSales())
-                        .enterpriseToEbitda(dto.enterpriseToEbitda())
-                        .profitMargins(dto.profitMargins())
-                        .operatingMargins(dto.operatingMargins())
-                        .returnOnEquity(dto.returnOnEquity())
-                        .returnOnAssets(dto.returnOnAssets())
-                        .debtToEquity(dto.debtToEquity())
-                        .currentRatio(dto.currentRatio())
-                        .quickRatio(dto.quickRatio())
-                        .dividendYield(dto.dividendYield())
-                        .freeCashFlow(dto.freeCashFlow())
-                        .circulatingSupply(dto.circulatingSupply())
-                        .totalSupply(dto.totalSupply())
-                        .maxSupply(dto.maxSupply())
-                        .inflationRate(dto.inflationRate())
-                        .fdv(dto.fdv())
-                        .activeAddresses(dto.activeAddresses())
-                        .transactionVolume(dto.transactionVolume())
-                        .transactionCount(dto.transactionCount())
-                        .feesGenerated(dto.feesGenerated())
-                        .tvl(dto.tvl())
-                        .hashRate(dto.hashRate())
-                        .stakingRatio(dto.stakingRatio())
-                        .nakamotoCoefficient(dto.nakamotoCoefficient())
-                        .orderBookDepth(dto.orderBookDepth())
-                        .developerActivity(dto.developerActivity())
-                        .userGrowth(dto.userGrowth())
-                        .revenue(dto.revenue())
-                        .priceToFeesRatio(dto.priceToFeesRatio())
-                        .bitcoinDominance(dto.bitcoinDominance())
-                        .fearGreedIndex(dto.fearGreedIndex())
-                        .inventoryLevels(dto.inventoryLevels())
-                        .costOfProduction(dto.costOfProduction())
-                        .allInSustainingCost(dto.allInSustainingCost())
-                        .reserveReplacementRatio(dto.reserveReplacementRatio())
-                        .contangoBackwardation(dto.contangoBackwardation())
-                        .dollarIndexExposure(dto.dollarIndexExposure())
-                        .inflationCorrelation(dto.inflationCorrelation())
-                        .opecSpareCapacity(dto.opecSpareCapacity())
-                        .chineseDemandIndex(dto.chineseDemandIndex())
-                        .weatherIndex(dto.weatherIndex())
-                        .build())
+                .map(dto -> {
+                    switch (assetType) {
+                        case "CRYPTO":
+                            return CryptoPricePoint.builder()
+                                    .timestamp(dto.timestamp())
+                                    .open(dto.open())
+                                    .high(dto.high())
+                                    .low(dto.low())
+                                    .close(dto.close())
+                                    .volume(dto.volume())
+                                    .date(dto.timestamp())
+                                    .marketCap(dto.marketCap())
+                                    .circulatingSupply(null)
+                                    .totalSupply(null)
+                                    .maxSupply(null)
+                                    .inflationRate(null)
+                                    .fdv(null)
+                                    .activeAddresses(null)
+                                    .transactionVolume(null)
+                                    .transactionCount(null)
+                                    .feesGenerated(null)
+                                    .tvl(null)
+                                    .hashRate(null)
+                                    .stakingRatio(null)
+                                    .nakamotoCoefficient(null)
+                                    .orderBookDepth(null)
+                                    .developerActivity(null)
+                                    .userGrowth(null)
+                                    .revenue(null)
+                                    .priceToFeesRatio(null)
+                                    .bitcoinDominance(null)
+                                    .fearGreedIndex(null)
+                                    .build();
+                        case "COMMODITIES":
+                            return CommodityPricePoint.builder()
+                                    .timestamp(dto.timestamp())
+                                    .open(dto.open())
+                                    .high(dto.high())
+                                    .low(dto.low())
+                                    .close(dto.close())
+                                    .volume(dto.volume())
+                                    .date(dto.timestamp())
+                                    .marketCap(dto.marketCap())
+                                    .inventoryLevels(null)
+                                    .costOfProduction(null)
+                                    .allInSustainingCost(null)
+                                    .reserveReplacementRatio(null)
+                                    .contangoBackwardation(null)
+                                    .dollarIndexExposure(null)
+                                    .inflationCorrelation(null)
+                                    .opecSpareCapacity(null)
+                                    .chineseDemandIndex(null)
+                                    .weatherIndex(null)
+                                    .build();
+                        case "FOREX":
+                            return ForexPricePoint.builder()
+                                    .timestamp(dto.timestamp())
+                                    .open(dto.open())
+                                    .high(dto.high())
+                                    .low(dto.low())
+                                    .close(dto.close())
+                                    .volume(dto.volume())
+                                    .date(dto.timestamp())
+                                    .marketCap(dto.marketCap())
+                                    .build();
+                        default: // STOCKS
+                            return StockPricePoint.builder()
+                                    .timestamp(dto.timestamp())
+                                    .open(dto.open())
+                                    .high(dto.high())
+                                    .low(dto.low())
+                                    .close(dto.close())
+                                    .volume(dto.volume())
+                                    .date(dto.timestamp())
+                                    .marketCap(dto.marketCap())
+                                    .trailingPe(dto.trailingPe())
+                                    .forwardPe(dto.forwardPe())
+                                    .pegRatio(dto.pegRatio())
+                                    .priceToBook(dto.priceToBook())
+                                    .priceToSales(dto.priceToSales())
+                                    .enterpriseToEbitda(dto.enterpriseToEbitda())
+                                    .profitMargins(dto.profitMargins())
+                                    .operatingMargins(dto.operatingMargins())
+                                    .returnOnEquity(dto.returnOnEquity())
+                                    .returnOnAssets(dto.returnOnAssets())
+                                    .debtToEquity(dto.debtToEquity())
+                                    .currentRatio(dto.currentRatio())
+                                    .quickRatio(dto.quickRatio())
+                                    .dividendYield(dto.dividendYield())
+                                    .freeCashFlow(dto.freeCashFlow())
+                                    .build();
+                    }
+                })
                 .toList();
     }
 
@@ -506,7 +554,6 @@ public class PortfolioGraphQLController {
         if (principal instanceof UserPrincipal userPrincipal) {
             return userPrincipal.userId();
         }
-        // Fallback for legacy string representation
         return UUID.fromString(principal.toString());
     }
 

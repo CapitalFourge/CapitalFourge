@@ -14,7 +14,7 @@ type Query {
   
   # NUEVOS - para frontend Explorer y charts
   asset(symbol: String!): Asset
-  priceHistory(symbol: String!, range: String, days: Int): [PricePoint!]!
+  priceHistory(symbol: String!, range: String, days: Int): [PricePointUnion!]!
 }
 
 type Feedback {
@@ -126,7 +126,20 @@ type AssetMover {
   volume: Float!
 }
 
-type PricePoint {
+# Base interface - fields common to ALL asset types
+interface PricePoint {
+  timestamp: String!
+  open: Float!
+  high: Float!
+  low: Float!
+  close: Float!
+  volume: Float!
+  date: String
+  marketCap: Float
+}
+
+# Stock-specific fields
+type StockPricePoint implements PricePoint {
   timestamp: String!
   open: Float!
   high: Float!
@@ -150,6 +163,18 @@ type PricePoint {
   quickRatio: Float
   dividendYield: Float
   freeCashFlow: Float
+}
+
+# Crypto-specific fields
+type CryptoPricePoint implements PricePoint {
+  timestamp: String!
+  open: Float!
+  high: Float!
+  low: Float!
+  close: Float!
+  volume: Float!
+  date: String
+  marketCap: Float
   circulatingSupply: Float
   totalSupply: Float
   maxSupply: Float
@@ -170,6 +195,18 @@ type PricePoint {
   priceToFeesRatio: Float
   bitcoinDominance: Float
   fearGreedIndex: Float
+}
+
+# Commodity-specific fields
+type CommodityPricePoint implements PricePoint {
+  timestamp: String!
+  open: Float!
+  high: Float!
+  low: Float!
+  close: Float!
+  volume: Float!
+  date: String
+  marketCap: Float
   inventoryLevels: Float
   costOfProduction: Float
   allInSustainingCost: Float
@@ -181,3 +218,17 @@ type PricePoint {
   chineseDemandIndex: Float
   weatherIndex: Float
 }
+
+# Forex-specific fields (minimal - mostly just OHLCV)
+type ForexPricePoint implements PricePoint {
+  timestamp: String!
+  open: Float!
+  high: Float!
+  low: Float!
+  close: Float!
+  volume: Float!
+  date: String
+  marketCap: Float
+}
+
+union PricePointUnion = StockPricePoint | CryptoPricePoint | CommodityPricePoint | ForexPricePoint

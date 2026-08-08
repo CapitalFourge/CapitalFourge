@@ -8,12 +8,9 @@ on:
 
 env:
   # Database
-  DB_HOST: localhost
-  DB_PORT: 5433
   DB_NAME: finsight_db
   DB_USER: user
   # Redis
-  SPRING_REDIS_URL: redis://localhost:6379
   # JWT
   JWT_ISSUER: capital-fourge
   JWT_ACCESS_EXPIRATION_MS: 86400000
@@ -96,13 +93,13 @@ jobs:
           mvn -B dependency:go-offline -q
           mvn -B clean test \
             -Dspring.profiles.active=test \
-            -DDB_HOST=${{ env.DB_HOST }} \
-            -DDB_PORT=${{ env.DB_PORT }} \
+            -DDB_HOST=postgres \
+            -DDB_PORT=5432 \
             -DDB_NAME=${{ env.DB_NAME }} \
             -DDB_USER=${{ env.DB_USER }} \
             -DDB_PASSWORD=${{ env.DB_PASSWORD }} \
             -DDB_SSLMODE=disable \
-            -DSPRING_REDIS_URL=${{ env.SPRING_REDIS_URL }} \
+            -DSPRING_REDIS_URL=redis://redis:6379 \
             -DJWT_SECRET=${{ env.JWT_SECRET }} \
             -DJWT_ISSUER=${{ env.JWT_ISSUER }} \
             -DJWT_ACCESS_EXPIRATION_MS=${{ env.JWT_ACCESS_EXPIRATION_MS }} \
@@ -568,7 +565,7 @@ jobs:
   # ──────────────────────────────────────────────────────────────────
   docker-build:
     name: Docker Build & Push
-    needs: [backend-test, data-collector-test, frontend-test]
+    needs: [backend-test, data-collector-test, frontend-unit-test]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'

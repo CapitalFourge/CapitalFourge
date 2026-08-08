@@ -98,3 +98,27 @@ management:
     metrics:
       export:
         enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+        http.client.requests: true
+      sla:
+        http.server.requests: 100ms,500ms,1s,5s
+      percentiles:
+        http.server.requests: 0.5,0.95,0.99
+
+logging:
+  level:
+    root: INFO
+    com.capitalfourge.portfoliomanager: DEBUG
+    org.springframework.graphql: DEBUG
+    org.springframework.web: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      max-history: 30

@@ -1,6 +1,7 @@
 package com.capitalfourge.portfoliomanager.infrastructure.config;
 
 import com.capitalfourge.portfoliomanager.infrastructure.adapters.in.security.JwtAuthenticationFilter;
+import com.capitalfourge.portfoliomanager.infrastructure.adapters.in.web.CorrelationIdFilter;
 import com.capitalfourge.portfoliomanager.infrastructure.security.UserPrincipal;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,9 +32,12 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final CorrelationIdFilter correlationIdFilter;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
+                          CorrelationIdFilter correlationIdFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.correlationIdFilter = correlationIdFilter;
     }
 
     @Bean
@@ -46,6 +50,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**", "/actuator/**", "/graphql").permitAll()
                         .anyRequest().authenticated()
                 )
+                .addFilterBefore(correlationIdFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -61,7 +66,7 @@ public class SecurityConfig {
                 "http://localhost:3001"
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With", "X-Correlation-ID"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 

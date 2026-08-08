@@ -299,7 +299,7 @@ jobs:
         run: |
           docker build -t data-collector-mock .github/scripts
           docker run -d --name data-collector-mock \
-            --network host \
+            -p 8000:8000 \
             data-collector-mock
           echo "Waiting for data-collector-mock to be ready..."
           for i in {1..5}; do

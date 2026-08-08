@@ -135,6 +135,12 @@ public class PortfolioGraphQLController {
     }
 
     @QueryMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<User> adminUsers() {
+        return userUseCase.adminGetAllUsers();
+    }
+
+    @QueryMapping
     public Asset asset(@Argument String symbol) {
         DataCollectorClient.AssetDTO dto = dataCollectorClient.getAsset(symbol);
         if (dto == null) {
@@ -339,6 +345,21 @@ public class PortfolioGraphQLController {
     @SchemaMapping(typeName = "User")
     public String id(User user) {
         return user.getId() != null ? user.getId().toString() : "";
+    }
+
+    @SchemaMapping(typeName = "User")
+    public String role(User user) {
+        return user.getRole() != null ? user.getRole().name() : "USER";
+    }
+
+    @SchemaMapping(typeName = "User")
+    public Boolean active(User user) {
+        return user.isActive();
+    }
+
+    @SchemaMapping(typeName = "User")
+    public String createdAt(User user) {
+        return user.getCreatedAt() != null ? user.getCreatedAt().toString() : "";
     }
 
     @SchemaMapping(typeName = "Feedback")

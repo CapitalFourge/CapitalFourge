@@ -11,7 +11,8 @@ type Query {
   assetsByCategory(category: String): [Asset!]!
   searchSymbols(query: String!, limit: Int!): [Asset!]!
   myFeedbacks: [Feedback!]!
-  
+  adminUsers: [User!]!
+
   # NUEVOS - para frontend Explorer y charts
   asset(symbol: String!): Asset
   priceHistory(symbol: String!, range: String, days: Int): [PricePointUnion!]!
@@ -85,6 +86,9 @@ type User {
   cashBalance: Float!
   lockedBalance: Float!
   language: String!
+  role: String!
+  active: Boolean!
+  createdAt: String
 }
 
 type Portfolio {

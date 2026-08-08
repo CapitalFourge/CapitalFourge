@@ -1,7 +1,7 @@
 "use client";
 
 import { gql, useMutation, useQuery } from "@apollo/client";
-import { User as UserIcon, Loader2, Users, Database, BarChart3, Shield, Activity, TrendingUp, AlertCircle, CheckCircle, Server } from "lucide-react";
+import { Loader2, Users, Database, BarChart3, Shield, Activity, TrendingUp, AlertCircle, CheckCircle, Server } from "lucide-react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";

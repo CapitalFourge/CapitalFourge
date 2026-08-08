@@ -9,6 +9,9 @@ export default defineConfig({
     include: ['**/*.{test,spec}.{ts,tsx}'],
     exclude: ['**/e2e/**', '**/node_modules/**', '**/.next/**'],
     globals: true,
+    typecheck: {
+      tsconfig: './tsconfig.json',
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

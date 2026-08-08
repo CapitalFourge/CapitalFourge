@@ -4,6 +4,8 @@ polars
 pymongo
 python-dotenv
 pytest
+pytest-mock
+httpx
 yfinance
 redis
 grpcio

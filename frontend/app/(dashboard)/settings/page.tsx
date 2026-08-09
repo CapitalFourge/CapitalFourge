@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 const ME_QUERY = gql`
   query GetMe {
     me {
+      id
       username
       email
       language

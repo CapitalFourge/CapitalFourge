@@ -27,7 +27,7 @@ public class HealthConfig {
     }
 
     @Bean
-    @ConditionalOnProperty(name = "spring.data-collector.health-check.enabled", havingValue = "true", matchIfMissing = false)
+    @ConditionalOnProperty(name = "spring.data-collector.health-check.enabled", havingValue = "true", matchIfMissing = true)
     public HealthIndicator dataCollectorHealthIndicator(
             @Value("${spring.data-collector.base-url}") String baseUrl,
             @Value("${spring.data-collector.api-key}") String apiKey,

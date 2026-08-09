@@ -258,7 +258,8 @@ public class UserService implements UserUseCase {
             if (!emailValidation.isValid()) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, emailValidation.getMessage());
             }
-            if (userRepository.existsByEmail(email)) {
+            // Only check for conflict if email is different from current user's email
+            if (!email.equals(user.getEmail()) && userRepository.existsByEmail(email)) {
                 throw new ResponseStatusException(HttpStatus.CONFLICT, "Este correo ya está registrado");
             }
             user.setEmail(email);

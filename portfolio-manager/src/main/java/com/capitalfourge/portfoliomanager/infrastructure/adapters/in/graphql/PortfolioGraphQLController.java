@@ -532,7 +532,7 @@ public class PortfolioGraphQLController {
     }
 
     @MutationMapping
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("isAuthenticated()")
     public User updateProfile(@Argument String username, @Argument String email, @Argument String language) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UUID userId = getUserIdFromAuth(auth);

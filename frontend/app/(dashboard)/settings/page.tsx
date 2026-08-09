@@ -44,6 +44,7 @@ const ME_QUERY = gql`
 const UPDATE_PROFILE = gql`
   mutation UpdateProfile($username: String, $email: String, $language: String) {
     updateProfile(username: $username, email: $email, language: $language) {
+      id
       username
       email
       language

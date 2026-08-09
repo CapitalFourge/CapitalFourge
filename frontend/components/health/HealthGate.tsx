@@ -21,7 +21,7 @@ export function HealthGate({ children }: { children: ReactNode }) {
     setError(null);
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL!;
-      const response = await fetch(`${baseUrl}/api/health/readiness`, {
+      const response = await fetch(`${baseUrl}/actuator/health/readiness`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         signal: AbortSignal.timeout(10000),

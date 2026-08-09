@@ -18,7 +18,7 @@ export function useHealthCheck() {
   const checkHealth = useCallback(async () => {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL!;
-      const response = await fetch(`${apiUrl}/api/health/readiness`, {
+      const response = await fetch(`${apiUrl}/actuator/health/readiness`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
         // Timeout after 5 seconds

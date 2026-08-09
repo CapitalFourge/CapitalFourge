@@ -575,6 +575,10 @@ public class PortfolioGraphQLController {
         if (principal instanceof UserPrincipal userPrincipal) {
             return userPrincipal.userId();
         }
+        // Handle anonymous authentication (principal is "anonymousUser" string)
+        if (principal instanceof String str && "anonymousUser".equals(str)) {
+            throw new RuntimeException("Authentication required");
+        }
         return UUID.fromString(principal.toString());
     }
 

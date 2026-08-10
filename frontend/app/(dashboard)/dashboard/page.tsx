@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { gql, useQuery } from "@apollo/client";
 import { motion } from "framer-motion";
-import { Clock3, Landmark, RefreshCcw, TrendingUp, Wallet } from "lucide-react";
+import { Clock3, ExternalLink, Landmark, RefreshCcw, TrendingUp, Trophy, Wallet } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { CashActionDialog } from "@/components/trading/cash-action-dialog";
@@ -282,32 +282,49 @@ export default function DashboardPage() {
 
             <div className="mt-6">
               {portfolios.length > 0 ? (
-                <div className="space-y-3 rounded-[1.6rem] border border-white/8 bg-white/[0.03] p-4">
-                  {portfolios.map((portfolio) => (
-                    <div
-                      key={portfolio.id}
-                      className="flex items-center justify-between rounded-[1.2rem] border border-white/6 bg-slate-950/35 px-4 py-3"
-                    >
-                      <div>
-                        <p className="font-medium text-white">{portfolio.name}</p>
-                        <p className="mt-1 text-xs uppercase tracking-[0.22em] text-slate-500">
-                          {portfolio.positions?.length ?? 0} posiciones activas
-                        </p>
+                <div className="grid gap-6 lg:grid-cols-2">
+                  {/* Left: Portfolios list */}
+                  <div className="space-y-3 rounded-[1.6rem] border border-white/8 bg-white/[0.03] p-4">
+                    {portfolios.map((portfolio) => (
+                      <div
+                        key={portfolio.id}
+                        className="flex items-center justify-between rounded-[1.2rem] border border-white/6 bg-slate-950/35 px-4 py-3"
+                      >
+                        <div>
+                          <p className="font-medium text-white">{portfolio.name}</p>
+                          <p className="mt-1 text-xs uppercase tracking-[0.22em] text-slate-500">
+                            {portfolio.positions?.length ?? 0} posiciones activas
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p
+                            className={
+                              portfolio.performance >= 0
+                                ? "text-sm font-semibold text-emerald-300"
+                                : "text-sm font-semibold text-rose-300"
+                            }
+                          >
+                            {formatSignedPercent(portfolio.performance)}
+                          </p>
+                          <p className="mt-1 text-xs text-slate-500">Rendimiento</p>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p
-                          className={
-                            portfolio.performance >= 0
-                              ? "text-sm font-semibold text-emerald-300"
-                              : "text-sm font-semibold text-rose-300"
-                          }
-                        >
-                          {formatSignedPercent(portfolio.performance)}
-                        </p>
-                        <p className="mt-1 text-xs text-slate-500">Rendimiento</p>
-                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Right: Leaderboard - Próximamente */}
+                  <div className="flex min-h-[220px] flex-col items-center justify-center rounded-[1.6rem] border border-dashed border-white/10 bg-white/[0.03] px-5 py-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Trophy className="h-5 w-5 text-emerald-300" />
+                      <p className="text-lg font-semibold text-white">Leaderboard</p>
                     </div>
-                  ))}
+                    <p className="text-sm text-slate-400 text-center max-w-xs">
+                      Ranking público de portafolios con mejor rendimiento. Disponible próximamente.
+                    </p>
+                    <span className="mt-4 text-xs uppercase tracking-[0.2em] text-emerald-300 bg-emerald-300/10 px-3 py-1 rounded-full">
+                      Próximamente
+                    </span>
+                  </div>
                 </div>
               ) : (
                 <div className="flex min-h-[220px] flex-col items-start justify-center rounded-[1.6rem] border border-dashed border-white/10 bg-white/[0.03] px-5 py-6">
@@ -359,9 +376,10 @@ export default function DashboardPage() {
 
           <div className="mt-6 grid gap-3 lg:grid-cols-2">
             {volatileAssets.map((asset) => (
-              <div
+              <Link
                 key={asset.symbol}
-                className="rounded-[1.25rem] border border-white/8 bg-slate-950/25 px-5 py-4 transition hover:bg-white/[0.04]"
+                href={`/explorer/${asset.symbol}`}
+                className="rounded-[1.25rem] border border-white/8 bg-slate-950/25 px-5 py-4 transition hover:bg-white/[0.04] hover:border-emerald-300/30"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
@@ -397,7 +415,11 @@ export default function DashboardPage() {
                     </p>
                   </div>
                 </div>
-              </div>
+                
+                <div className="mt-3 flex items-center justify-end">
+                  <ExternalLink className="h-4 w-4 text-slate-500 hover:text-emerald-300 transition" />
+                </div>
+              </Link>
             ))}
             {volatileAssets.length === 0 && (
               <div className="rounded-[1.1rem] border border-dashed border-white/10 bg-slate-950/25 px-4 py-6 text-sm text-slate-400 lg:col-span-2">

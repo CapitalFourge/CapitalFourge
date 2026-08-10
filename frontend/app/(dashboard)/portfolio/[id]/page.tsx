@@ -235,7 +235,7 @@ export default function PortfolioDetailPage() {
             Ver órdenes
           </Button>
           <Button asChild className="h-11 rounded-2xl bg-emerald-300 text-slate-950 hover:bg-emerald-200">
-            <Link href="/dashboard">
+            <Link href="/explorer">
               <ShoppingCart className="h-4 w-4" />
               Comprar activos
             </Link>

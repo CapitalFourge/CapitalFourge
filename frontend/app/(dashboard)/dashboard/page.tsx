@@ -4,7 +4,7 @@ import Link from "next/link";
 import { gql, useQuery } from "@apollo/client";
 import { motion } from "framer-motion";
 import { Clock3, ExternalLink, Landmark, RefreshCcw, TrendingUp, Trophy, Wallet } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 
 import { CashActionDialog } from "@/components/trading/cash-action-dialog";
 import { TradeDialog } from "@/components/trading/trade-dialog";
@@ -281,8 +281,8 @@ function PortfolioSection({ onInvestedTotalChange }: { onInvestedTotalChange: (v
     }, 0);
   }, [portfolios]);
 
-  // Notify parent of invested total
-  useMemo(() => {
+  // Notify parent of invested total - use useEffect to avoid state update during render
+  useEffect(() => {
     onInvestedTotalChange(investedTotal);
   }, [investedTotal, onInvestedTotalChange]);
 

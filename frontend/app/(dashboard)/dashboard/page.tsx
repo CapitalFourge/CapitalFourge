@@ -523,6 +523,21 @@ const item = {
 
 export default function DashboardPage() {
   const [investedTotal, setInvestedTotal] = useState(0);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
+        <HeaderSkeleton />
+        <PortfoliosSkeleton />
+        <VolatileAssetsSkeleton />
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">

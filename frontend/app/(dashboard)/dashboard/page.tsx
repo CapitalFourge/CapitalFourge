@@ -148,6 +148,7 @@ function HeaderSection({ investedTotal = 0 }) {
   const { data, error, loading } = useQuery(ME_QUERY, {
     fetchPolicy: "cache-and-network",
     pollInterval: 60000,
+    ssr: false,
   });
 
   if (error) {
@@ -251,6 +252,7 @@ function PortfolioSection({ onInvestedTotalChange }: { onInvestedTotalChange: (v
   const { data, error, loading } = useQuery(PORTFOLIOS_QUERY, {
     fetchPolicy: "cache-and-network",
     pollInterval: 60000,
+    ssr: false,
   });
 
   if (error) {
@@ -387,6 +389,7 @@ function VolatileAssetsSection() {
     variables: { sort: volatilitySort, limit: 8 },
     fetchPolicy: "cache-and-network",
     pollInterval: 60000,
+    ssr: false,
   });
 
   if (error) {

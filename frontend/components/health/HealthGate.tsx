@@ -15,6 +15,7 @@ export function HealthGate({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const checkHealth = useCallback(async () => {
     setLoading(true);
@@ -39,12 +40,18 @@ export function HealthGate({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    setMounted(true);
     checkHealth();
     const interval = setInterval(checkHealth, 30000);
     return () => clearInterval(interval);
   }, [checkHealth]);
 
   const allUp = health?.status === "UP";
+
+  // Don't block during SSR - only show loading UI after client mount
+  if (!mounted) {
+    return <>{children}</>;
+  }
 
   if (!allUp) {
     return (

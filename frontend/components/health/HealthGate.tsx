@@ -17,26 +17,41 @@ export function HealthGate({ children }: { children: ReactNode }) {
   const [showDetails, setShowDetails] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  const checkHealth = useCallback(async () => {
+  const checkHealth = useCallback(() => {
+    let isCancelled = false;
+
     setLoading(true);
     setError(null);
-    try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL!;
-      const response = await fetch(`${baseUrl}/actuator/health`, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-        signal: AbortSignal.timeout(10000),
-      });
-      const data = await response.json();
-      setHealth(data);
-      if (data.status !== "UP") {
-        setError("Algunos servicios no están listos");
+
+    (async () => {
+      try {
+        const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL!;
+        const response = await fetch(`${baseUrl}/actuator/health`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          signal: AbortSignal.timeout(10000),
+        });
+        const data = await response.json();
+        if (!isCancelled) {
+          setHealth(data);
+          if (data.status !== "UP") {
+            setError("Algunos servicios no están listos");
+          }
+        }
+      } catch (err) {
+        if (!isCancelled) {
+          setError(err instanceof Error ? err.message : "Error de conexión");
+        }
+      } finally {
+        if (!isCancelled) {
+          setLoading(false);
+        }
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error de conexión");
-    } finally {
-      setLoading(false);
-    }
+    })();
+
+    return () => {
+      isCancelled = true;
+    };
   }, []);
 
   useEffect(() => {

@@ -18,8 +18,8 @@ interface AuthContextType {
   refreshToken: string | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  logout: () => Promise<void>;
-  refreshAccessToken: () => Promise<void>;
+  logout: () => void;
+  refreshAccessToken: () => void;
   isAuthenticated: boolean;
 }
 
@@ -62,11 +62,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loadTokens();
   }, [loadTokens]);
 
-  const logout = useCallback(async () => {
-    if (user?.id) {
-      try {
-        await fetch(`${TOKEN_URL}/api/auth/logout/${user.id}`, { method: "POST" });
-      } catch {}
+  const logout = useCallback(() => {
+    const currentUserId = user?.id;
+    if (currentUserId) {
+      fetch(`${TOKEN_URL}/api/auth/logout/${currentUserId}`, { method: "POST" }).catch(() => {});
     }
     setUser(null);
     setAccessToken(null);
@@ -76,23 +75,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem("user");
   }, [user?.id]);
 
-  const refreshAccessToken = useCallback(async () => {
+  const refreshAccessToken = useCallback(() => {
     if (!refreshToken || refreshing) return;
+    let isCancelled = false;
+
     setRefreshing(true);
-    try {
-      const data = await refreshTokenCall(refreshToken);
-      setAccessToken(data.token);
-      setRefreshToken(data.refreshToken);
-      setUser(data.user);
-      localStorage.setItem("access_token", data.token);
-      localStorage.setItem("refresh_token", data.refreshToken);
-      localStorage.setItem("user", JSON.stringify(data.user));
-    } catch (e) {
-      console.error("Token refresh failed:", e);
-      await logout();
-    } finally {
-      setRefreshing(false);
-    }
+
+    (async () => {
+      try {
+        const data = await refreshTokenCall(refreshToken);
+        if (!isCancelled) {
+          setAccessToken(data.token);
+          setRefreshToken(data.refreshToken);
+          setUser(data.user);
+          localStorage.setItem("access_token", data.token);
+          localStorage.setItem("refresh_token", data.refreshToken);
+          localStorage.setItem("user", JSON.stringify(data.user));
+        }
+      } catch (e) {
+        if (!isCancelled) {
+          console.error("Token refresh failed:", e);
+          logout();
+        }
+      } finally {
+        if (!isCancelled) {
+          setRefreshing(false);
+        }
+      }
+    })();
+
+    return () => {
+      isCancelled = true;
+    };
   }, [refreshToken, refreshing, logout]);
 
   const login = async (email: string, password: string) => {

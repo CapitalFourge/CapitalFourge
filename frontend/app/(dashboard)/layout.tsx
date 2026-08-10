@@ -48,8 +48,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { logout: authLogout } = useAuth();
 
   // During SSR with ssr:false, query doesn't run -> data=undefined, loading=false
-  // Render skeleton/placeholder to match client initial render
+  // Render SAME structure as hydrated version (without Admin item) to avoid mismatch
   const isSSR = typeof window === "undefined";
+  const isAdmin = !isSSR && data?.me?.role === "ADMIN";
+  
+  const allNavigation = isAdmin
+    ? [...navigation, { href: "/admin", label: "Admin", icon: ShieldCheck }]
+    : navigation;
+
+  const handleLogout = () => {
+    authLogout();
+    window.location.href = "/";
+  };
+
+  // Render skeleton/placeholder during SSR or initial load
   if (isSSR || loading) {
     return (
       <HealthGate>
@@ -76,7 +88,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       <Link
                         key={item.href}
                         href={item.href}
-                        className="flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm transition duration-200 text-slate-300 hover:bg-white/[0.06] hover:text-white"
+                        className={cn(
+                          "flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm transition duration-200",
+                          "text-slate-300 hover:bg-white/[0.06] hover:text-white"
+                        )}
                       >
                         <Icon className="h-4 w-4" />
                         <span className="font-medium">{item.label}</span>
@@ -96,19 +111,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </HealthGate>
     );
   }
-
-  const isAdmin = useMemo(() => {
-    return data?.me?.role === "ADMIN";
-  }, [data]);
-
-  const allNavigation = isAdmin
-    ? [...navigation, { href: "/admin", label: "Admin", icon: ShieldCheck }]
-    : navigation;
-
-  const handleLogout = () => {
-    authLogout();
-    window.location.href = "/";
-  };
 
   return (
     <HealthGate>

@@ -41,8 +41,61 @@ const ME_QUERY = gql`
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { data } = useQuery(ME_QUERY, { fetchPolicy: "cache-and-network" });
+  const { data, loading } = useQuery(ME_QUERY, { 
+    fetchPolicy: "cache-and-network",
+    ssr: false,
+  });
   const { logout: authLogout } = useAuth();
+
+  // During SSR with ssr:false, query doesn't run -> data=undefined, loading=false
+  // Render skeleton/placeholder to match client initial render
+  const isSSR = typeof window === "undefined";
+  if (isSSR || loading) {
+    return (
+      <HealthGate>
+        <div className="min-h-screen bg-dashboard">
+          <div className="pointer-events-none fixed inset-0 bg-grid opacity-20" />
+          <div className="relative mx-auto flex min-h-screen max-w-[1700px] gap-6 px-4 py-4 sm:px-6 lg:px-8">
+            <aside className="hidden w-[290px] shrink-0 lg:block">
+              <div className="sticky top-4 flex h-[calc(100vh-2rem)] flex-col rounded-[2rem] border border-white/10 bg-slate-950/55 p-5 backdrop-blur-2xl">
+                <div className="flex items-center justify-center border-b border-white/10 pb-5">
+                  <Link href="/dashboard">
+                    <Image
+                      src="/icon.png"
+                      alt="Capital Fourge"
+                      width={180}
+                      height={50}
+                      className="h-16 w-auto max-w-[180px] object-contain block leading-none"
+                    />
+                  </Link>
+                </div>
+                <nav className="mt-6 flex-1 space-y-2">
+                  {navigation.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className="flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm transition duration-200 text-slate-300 hover:bg-white/[0.06] hover:text-white"
+                      >
+                        <Icon className="h-4 w-4" />
+                        <span className="font-medium">{item.label}</span>
+                      </Link>
+                    );
+                  })}
+                </nav>
+              </div>
+            </aside>
+            <div className="flex min-w-0 flex-1 flex-col">
+              <main className="min-w-0 flex-1 rounded-[2rem] border border-white/8 bg-slate-950/28 p-4 backdrop-blur-xl sm:p-6 lg:p-7">
+                {children}
+              </main>
+            </div>
+          </div>
+        </div>
+      </HealthGate>
+    );
+  }
 
   const isAdmin = useMemo(() => {
     return data?.me?.role === "ADMIN";

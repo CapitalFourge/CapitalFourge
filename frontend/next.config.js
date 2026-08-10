@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'standalone',
   // Allow the hostnames and IPs we are using to access the dev server
   // Note: values are compared against window.location.hostname (without port)
   allowedDevOrigins: [

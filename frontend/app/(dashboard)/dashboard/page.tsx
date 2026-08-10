@@ -11,6 +11,7 @@ import { TradeDialog } from "@/components/trading/trade-dialog";
 import { Button } from "@/components/ui/button";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ClientOnly } from "@/components/ui/client-only";
 
 export const dynamic = "force-dynamic";
 
@@ -523,27 +524,22 @@ const item = {
 
 export default function DashboardPage() {
   const [investedTotal, setInvestedTotal] = useState(0);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return (
-      <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
-        <HeaderSkeleton />
-        <PortfoliosSkeleton />
-        <VolatileAssetsSkeleton />
-      </motion.div>
-    );
-  }
 
   return (
-    <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
-      <HeaderSection investedTotal={investedTotal} />
-      <PortfolioSection onInvestedTotalChange={setInvestedTotal} />
-      <VolatileAssetsSection />
-    </motion.div>
+    <ClientOnly
+      fallback={
+        <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
+          <HeaderSkeleton />
+          <PortfoliosSkeleton />
+          <VolatileAssetsSkeleton />
+        </motion.div>
+      }
+    >
+      <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
+        <HeaderSection investedTotal={investedTotal} />
+        <PortfolioSection onInvestedTotalChange={setInvestedTotal} />
+        <VolatileAssetsSection />
+      </motion.div>
+    </ClientOnly>
   );
 }

@@ -286,9 +286,10 @@ export default function DashboardPage() {
                   {/* Left: Portfolios list */}
                   <div className="space-y-3 rounded-[1.6rem] border border-white/8 bg-white/[0.03] p-4">
                     {portfolios.map((portfolio) => (
-                      <div
+                      <Link
                         key={portfolio.id}
-                        className="flex items-center justify-between rounded-[1.2rem] border border-white/6 bg-slate-950/35 px-4 py-3"
+                        href={`/portfolio/${portfolio.id}`}
+                        className="flex items-center justify-between rounded-[1.2rem] border border-white/6 bg-slate-950/35 px-4 py-3 transition hover:bg-white/[0.04] hover:border-emerald-300/30"
                       >
                         <div>
                           <p className="font-medium text-white">{portfolio.name}</p>
@@ -308,7 +309,7 @@ export default function DashboardPage() {
                           </p>
                           <p className="mt-1 text-xs text-slate-500">Rendimiento</p>
                         </div>
-                      </div>
+                      </Link>
                     ))}
                   </div>
                   
@@ -387,7 +388,7 @@ export default function DashboardPage() {
                     <p className="mt-1 truncate text-sm text-slate-500">{asset.name || "Activo monitoreado"}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-base font-semibold text-white">${formatCurrency(asset.price)}</p>
+                    <p className="text-base font-semibold text-white">{formatCurrency(asset.price)}</p>
                     <p
                       className={
                         asset.changePercent >= 0

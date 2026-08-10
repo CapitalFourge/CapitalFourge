@@ -144,7 +144,7 @@ function VolatileAssetsSkeleton() {
 }
 
 // Individual section components with their own queries
-function HeaderSection() {
+function HeaderSection({ investedTotal = 0 }) {
   const { data, error, loading } = useQuery(ME_QUERY, {
     fetchPolicy: "cache-and-network",
     pollInterval: 60000,
@@ -163,9 +163,8 @@ function HeaderSection() {
 
   const userCashBalance = data?.me?.cashBalance ?? 0;
   const userLockedBalance = data?.me?.lockedBalance ?? 0;
+  const totalBalance = userCashBalance + userLockedBalance + investedTotal;
 
-  // We need investedTotal from portfolios - pass via context or separate query
-  // For now, show what we have
   return (
     <motion.section variants={item} className="panel overflow-hidden p-6 sm:p-7">
       <div className="space-y-6">
@@ -212,7 +211,7 @@ function HeaderSection() {
               <Landmark className="h-4 w-4 text-slate-500" />
             </div>
             <p className="mt-4 text-3xl font-semibold tracking-[-0.04em] text-white">
-              {formatCurrency(userCashBalance + userLockedBalance)} {/* investedTotal added by PortfolioSection via context */}
+              {formatCurrency(totalBalance)}
             </p>
           </div>
           <div className="metric-tile">
@@ -229,8 +228,8 @@ function HeaderSection() {
               <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Capital invertido</p>
               <TrendingUp className="h-4 w-4 text-slate-500" />
             </div>
-            <p className="mt-4 text-3xl font-semibold tracking-[-0.04em] text-sky-300" id="invested-total">
-              Calculando...
+            <p className="mt-4 text-3xl font-semibold tracking-[-0.04em] text-sky-300">
+              {formatCurrency(investedTotal)}
             </p>
           </div>
           <div className="metric-tile">
@@ -248,7 +247,7 @@ function HeaderSection() {
   );
 }
 
-function PortfolioSection() {
+function PortfolioSection({ onInvestedTotalChange }: { onInvestedTotalChange: (value: number) => void }) {
   const { data, error, loading } = useQuery(PORTFOLIOS_QUERY, {
     fetchPolicy: "cache-and-network",
     pollInterval: 60000,
@@ -278,13 +277,10 @@ function PortfolioSection() {
     }, 0);
   }, [portfolios]);
 
-  // Update invested total in header
+  // Notify parent of invested total
   useMemo(() => {
-    const el = document.getElementById("invested-total");
-    if (el) el.textContent = formatCurrency(investedTotal);
-    const totalEl = document.getElementById("total-balance");
-    if (totalEl) totalEl.textContent = formatCurrency(investedTotal + (data?.portfolios?.[0]?.me?.cashBalance ?? 0) + (data?.portfolios?.[0]?.me?.lockedBalance ?? 0));
-  }, [investedTotal, data]);
+    onInvestedTotalChange(investedTotal);
+  }, [investedTotal, onInvestedTotalChange]);
 
   return (
     <motion.div variants={item}>
@@ -508,10 +504,12 @@ const item = {
 };
 
 export default function DashboardPage() {
+  const [investedTotal, setInvestedTotal] = useState(0);
+
   return (
     <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
-      <HeaderSection />
-      <PortfolioSection />
+      <HeaderSection investedTotal={investedTotal} />
+      <PortfolioSection onInvestedTotalChange={setInvestedTotal} />
       <VolatileAssetsSection />
     </motion.div>
   );

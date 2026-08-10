@@ -1,8 +1,11 @@
 "use client";
 
-import { ApolloProvider } from "@apollo/client";
-import { client } from "@/lib/apollo-client";
+import { useMemo } from "react";
+import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
+import { makeClient } from "@/lib/apollo-client";
 
 export function ApolloWrapper({ children }: { children: React.ReactNode }) {
-    return <ApolloProvider client={client}>{children}</ApolloProvider>;
+  const client = useMemo(() => makeClient(), []);
+
+  return <ApolloProvider client={client}>{children}</ApolloProvider>;
 }

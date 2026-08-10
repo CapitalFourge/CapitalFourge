@@ -1,19 +1,19 @@
-import { ApolloClient, InMemoryCache, createHttpLink, TypePolicies } from '@apollo/client';
-import { setContext } from '@apollo/client/link/context';
-import { setAuthCookie } from './auth-cookie';
+"use client";
 
-// Get GraphQL endpoint from environment variable
+import { useMemo } from "react";
+import { ApolloClient, InMemoryCache, createHttpLink, TypePolicies } from "@apollo/client";
+import { setContext } from "@apollo/client/link/context";
+import { setAuthCookie } from "@/lib/auth-cookie";
+
 const getGraphQLUri = () => {
-  if (typeof window !== 'undefined') {
-    // Client-side: use the environment variable
+  if (typeof window !== "undefined") {
     return process.env.NEXT_PUBLIC_API_BASE_URL
       ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/graphql`
-      : 'http://localhost:8080/graphql';
+      : "http://localhost:8080/graphql";
   }
-  // Server-side: also use environment variable
   return process.env.NEXT_PUBLIC_API_BASE_URL
     ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/graphql`
-    : 'http://localhost:8080/graphql';
+    : "http://localhost:8080/graphql";
 };
 
 const httpLink = createHttpLink({
@@ -21,28 +21,25 @@ const httpLink = createHttpLink({
 });
 
 const authLink = setContext((_, { headers }) => {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+  const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
   if (token) {
     setAuthCookie(token);
   }
   return {
     headers: {
       ...headers,
-      authorization: token ? `Bearer ${token}` : '',
-    }
+      authorization: token ? `Bearer ${token}` : "",
+    },
   };
 });
 
-// Cache type policies for proper normalization and refetching
 export const typePolicies: TypePolicies = {
   Query: {
     fields: {
       me: {
-        // Don't cache user data - always fetch fresh for balance accuracy
         merge: false,
       },
       portfolios: {
-        // Merge portfolio arrays instead of replacing
         merge(existing = [], incoming) {
           return incoming;
         },
@@ -55,18 +52,18 @@ export const typePolicies: TypePolicies = {
     },
   },
   User: {
-    keyFields: ['id'],
+    keyFields: ["id"],
     fields: {
       cashBalance: {
-        merge: false, // Always fetch fresh
+        merge: false,
       },
       lockedBalance: {
-        merge: false, // Always fetch fresh
+        merge: false,
       },
     },
   },
   Portfolio: {
-    keyFields: ['id'],
+    keyFields: ["id"],
     fields: {
       positions: {
         merge(existing = [], incoming) {
@@ -79,7 +76,7 @@ export const typePolicies: TypePolicies = {
     },
   },
   Position: {
-    keyFields: ['id', 'symbol'],
+    keyFields: ["id", "symbol"],
     fields: {
       currentPrice: {
         merge: false,
@@ -88,9 +85,12 @@ export const typePolicies: TypePolicies = {
   },
 };
 
-export const client = new ApolloClient({
-  link: authLink.concat(httpLink),
-  cache: new InMemoryCache({
-    typePolicies,
-  }),
-});
+export function makeClient() {
+  return new ApolloClient({
+    link: authLink.concat(httpLink),
+    cache: new InMemoryCache({
+      typePolicies,
+    }),
+    ssrMode: typeof window === "undefined",
+  });
+}

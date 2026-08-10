@@ -153,6 +153,11 @@ function HeaderSection({ investedTotal = 0 }) {
     ssr: false,
   });
 
+  // During SSR, query doesn't run (ssr:false) -> data=undefined, loading=false
+  // We must render skeleton to match client initial render
+  const isSSR = typeof window === "undefined";
+  if (isSSR || loading) return <HeaderSkeleton />;
+
   if (error) {
     return (
       <div className="rounded-[1.75rem] border border-red-400/20 bg-red-500/10 p-8 text-red-200">
@@ -161,8 +166,6 @@ function HeaderSection({ investedTotal = 0 }) {
       </div>
     );
   }
-
-  if (loading) return <HeaderSkeleton />;
 
   const userCashBalance = data?.me?.cashBalance ?? 0;
   const userLockedBalance = data?.me?.lockedBalance ?? 0;
@@ -256,6 +259,11 @@ function PortfolioSection({ onInvestedTotalChange }: { onInvestedTotalChange: (v
     pollInterval: 60000,
     ssr: false,
   });
+
+  // During SSR, query doesn't run (ssr:false) -> data=undefined, loading=false
+  // We must render skeleton to match client initial render
+  const isSSR = typeof window === "undefined";
+  if (isSSR || loading) return <PortfoliosSkeleton />;
 
   if (error) {
     return (
@@ -393,6 +401,11 @@ function VolatileAssetsSection() {
     pollInterval: 60000,
     ssr: false,
   });
+
+  // During SSR, query doesn't run (ssr:false) -> data=undefined, loading=false
+  // We must render skeleton to match client initial render
+  const isSSR = typeof window === "undefined";
+  if (isSSR || loading) return <VolatileAssetsSkeleton />;
 
   if (error) {
     return (

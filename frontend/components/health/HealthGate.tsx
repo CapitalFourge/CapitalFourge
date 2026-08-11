@@ -23,7 +23,8 @@ export function HealthGate({ children }: { children: ReactNode }) {
     setLoading(true);
     setError(null);
 
-    (async () => {
+    // Async work - don't return the promise
+    const runCheck = async () => {
       try {
         const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL!;
         const response = await fetch(`${baseUrl}/actuator/health`, {
@@ -47,8 +48,11 @@ export function HealthGate({ children }: { children: ReactNode }) {
           setLoading(false);
         }
       }
-    })();
+    };
 
+    runCheck();
+
+    // Return cleanup function ONLY
     return () => {
       isCancelled = true;
     };

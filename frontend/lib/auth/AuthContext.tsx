@@ -44,7 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   
-  const { clearUserCache } = useApolloCache();
+  const { clearUserCache, refetchUserQueries } = useApolloCache();
 
   const loadTokens = useCallback(() => {
     if (typeof window !== "undefined") {
@@ -77,11 +77,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshAccessToken = useCallback(() => {
     if (!refreshToken || refreshing) return;
+    
     let isCancelled = false;
-
     setRefreshing(true);
 
-    (async () => {
+    const runRefresh = async () => {
       try {
         const data = await refreshTokenCall(refreshToken);
         if (!isCancelled) {
@@ -102,7 +102,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setRefreshing(false);
         }
       }
-    })();
+    };
+
+    runRefresh();
 
     return () => {
       isCancelled = true;
@@ -129,7 +131,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Clear Apollo cache and refetch user data after login (only client-side)
     try {
-      const { clearUserCache, refetchUserQueries } = useApolloCache();
       await clearUserCache();
       // Small delay to ensure cache is cleared before refetch
       await new Promise(r => setTimeout(r, 100));

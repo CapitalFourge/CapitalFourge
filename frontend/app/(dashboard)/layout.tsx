@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import {
   Compass,
@@ -41,11 +41,12 @@ const ME_QUERY = gql`
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { data, loading } = useQuery(ME_QUERY, { 
+  const router = useRouter();
+  const { data, loading, error } = useQuery(ME_QUERY, { 
     fetchPolicy: "cache-and-network",
     ssr: false,
   });
-  const { logout: authLogout } = useAuth();
+  const { accessToken, isAuthenticated, logout: authLogout } = useAuth();
 
   // During SSR with ssr:false, query doesn't run -> data=undefined, loading=false
   // Render SAME structure as hydrated version (without Admin item) to avoid mismatch
@@ -58,8 +59,27 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const handleLogout = () => {
     authLogout();
-    window.location.href = "/";
+    router.push("/");
   };
+
+  // If not authenticated, redirect to login
+  if (!isSSR && !isAuthenticated && !loading) {
+    router.push("/login");
+    return null;
+  }
+
+  // If auth error (401), redirect to login
+  if (!isSSR && error) {
+    const isAuthError = 
+      (error.networkError && typeof error.networkError === 'object' && 'statusCode' in error.networkError && (error.networkError as any).statusCode === 401) ||
+      error.message?.includes("Unauthorized") ||
+      error.message?.includes("401");
+    if (isAuthError) {
+      authLogout();
+      router.push("/login");
+      return null;
+    }
+  }
 
   // Render skeleton/placeholder during SSR or initial load
   if (isSSR || loading) {

@@ -15,33 +15,50 @@ export function useHealthCheck() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const checkHealth = useCallback(async () => {
-    try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL!;
-      const response = await fetch(`${apiUrl}/actuator/health/readiness`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-        // Timeout after 5 seconds
-        signal: AbortSignal.timeout(5000),
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setHealth(data);
-      } else {
-        const data = await response.json().catch(() => ({}));
-        setHealth(data);
+  const checkHealth = useCallback(() => {
+    let isCancelled = false;
+
+    setLoading(true);
+    setError(null);
+
+    (async () => {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL!;
+        const response = await fetch(`${apiUrl}/actuator/health/readiness`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+          // Timeout after 5 seconds
+          signal: AbortSignal.timeout(5000),
+        });
+
+        if (!isCancelled) {
+          if (response.ok) {
+            const data = await response.json();
+            setHealth(data);
+          } else {
+            const data = await response.json().catch(() => ({}));
+            setHealth(data);
+          }
+        }
+      } catch (err) {
+        if (!isCancelled) {
+          setError(err instanceof Error ? err.message : 'Health check failed');
+          setHealth({
+            status: 'DOWN',
+            checks: {},
+            timestamp: new Date().toISOString(),
+          });
+        }
+      } finally {
+        if (!isCancelled) {
+          setLoading(false);
+        }
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Health check failed');
-      setHealth({
-        status: 'DOWN',
-        checks: {},
-        timestamp: new Date().toISOString(),
-      });
-    } finally {
-      setLoading(false);
-    }
+    })();
+
+    return () => {
+      isCancelled = true;
+    };
   }, []);
 
   useEffect(() => {

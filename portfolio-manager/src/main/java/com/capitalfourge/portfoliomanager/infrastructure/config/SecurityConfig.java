@@ -64,7 +64,8 @@ public class SecurityConfig {
                 "https://capitalfourge.com",
                 "http://localhost:3000",
                 "http://localhost:3001",
-                "http://132.145.205.0:3000"
+                "http://132.145.205.0:3000",
+                "http://132.145.205.0:10000"
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With", "X-Correlation-ID"));

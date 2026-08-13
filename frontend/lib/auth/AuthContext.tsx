@@ -1,15 +1,21 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react";
-import { useApolloCache } from '@/hooks/useApolloCache';
+import { createContext, useContext, useEffect, useState, useCallback, useRef, ReactNode } from "react";
 
 interface User {
   id: string;
   email: string;
   username: string;
   role: string;
-  cashBalance?: number;
-  lockedBalance?: number;
+  active: boolean;
+  createdAt: string;
+  lastLoginAt: string;
+  language: string;
+  cashBalance: number;
+  lockedBalance: number;
+  showWelcome: boolean;
+  version: number;
+  admin: boolean;
 }
 
 interface AuthContextType {
@@ -23,12 +29,40 @@ interface AuthContextType {
   isAuthenticated: boolean;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | null>(null);
 
-const TOKEN_URL = process.env.NEXT_PUBLIC_API_BASE_URL!;
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL!;
 
-async function refreshTokenCall(refreshToken: string): Promise<{ token: string; refreshToken: string; user: User }> {
-  const res = await fetch(`${TOKEN_URL}/api/auth/refresh`, {
+// Async functions defined OUTSIDE component - no useCallback issues
+async function loginCall(email: string, password: string) {
+  const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.message || "Error al iniciar sesión");
+  }
+  return res.json();
+}
+
+async function logoutCall(userId: string) {
+  await fetch(`${API_BASE_URL}/api/auth/logout/${userId}`, { method: "POST" }).catch(() => {});
+}
+
+async function fetchUserMe(accessToken: string): Promise<User | null> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/users/me`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (res.ok) return res.json();
+  } catch {}
+  return null;
+}
+
+async function refreshTokenCall(refreshToken: string) {
+  const res = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ refreshToken }),
@@ -43,29 +77,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [refreshToken, setRefreshToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  
-  const { clearUserCache, refetchUserQueries } = useApolloCache();
 
-  const loadTokens = useCallback(() => {
-    if (typeof window !== "undefined") {
-      const access = localStorage.getItem("access_token");
-      const refresh = localStorage.getItem("refresh_token");
-      const userStr = localStorage.getItem("user");
-      if (access) setAccessToken(access);
-      if (refresh) setRefreshToken(refresh);
-      if (userStr) setUser(JSON.parse(userStr));
+  const userRef = useRef(user);
+  const accessTokenRef = useRef(accessToken);
+  const refreshTokenRef = useRef(refreshToken);
+  const refreshingRef = useRef(refreshing);
+  const logoutRef = useRef<() => void>(() => {});
+
+  userRef.current = user;
+  accessTokenRef.current = accessToken;
+  refreshTokenRef.current = refreshToken;
+  refreshingRef.current = refreshing;
+
+  // Initialize from localStorage on client
+  useEffect(() => {
+    const storedAccess = localStorage.getItem("access_token");
+    const storedRefresh = localStorage.getItem("refresh_token");
+    const storedUser = localStorage.getItem("user");
+
+    if (storedAccess && storedRefresh && storedUser) {
+      setAccessToken(storedAccess);
+      setRefreshToken(storedRefresh);
+      setUser(JSON.parse(storedUser));
     }
     setLoading(false);
   }, []);
 
-  useEffect(() => {
-    loadTokens();
-  }, [loadTokens]);
-
+  // Logout - sync, no async in useCallback
   const logout = useCallback(() => {
-    const currentUserId = user?.id;
-    if (currentUserId) {
-      fetch(`${TOKEN_URL}/api/auth/logout/${currentUserId}`, { method: "POST" }).catch(() => {});
+    if (userRef.current?.id) {
+      logoutCall(userRef.current.id);
     }
     setUser(null);
     setAccessToken(null);
@@ -73,17 +114,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
     localStorage.removeItem("user");
-  }, [user?.id]);
+  }, []);
 
+  logoutRef.current = logout;
+
+  // Refresh access token - sync trigger, async in useEffect
   const refreshAccessToken = useCallback(() => {
-    if (!refreshToken || refreshing) return;
-    
-    let isCancelled = false;
+    if (!refreshTokenRef.current || refreshingRef.current) return;
     setRefreshing(true);
+  }, []);
 
-    const runRefresh = async () => {
+  // Handle async refresh in useEffect
+  useEffect(() => {
+    if (!refreshing) return;
+
+    let isCancelled = false;
+
+    const doRefresh = async () => {
       try {
-        const data = await refreshTokenCall(refreshToken);
+        const rt = refreshTokenRef.current;
+        if (!rt) throw new Error("No refresh token");
+
+        const data = await refreshTokenCall(rt);
         if (!isCancelled) {
           setAccessToken(data.token);
           setRefreshToken(data.refreshToken);
@@ -95,7 +147,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch (e) {
         if (!isCancelled) {
           console.error("Token refresh failed:", e);
-          logout();
+          logoutRef.current?.();
         }
       } finally {
         if (!isCancelled) {
@@ -104,55 +156,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     };
 
-    runRefresh();
+    doRefresh();
 
     return () => {
       isCancelled = true;
     };
-  }, [refreshToken, refreshing, logout]);
+  }, [refreshing]);
 
-  const login = async (email: string, password: string) => {
-    const res = await fetch(`${TOKEN_URL}/api/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.message || "Error al iniciar sesión");
-    }
-    const data = await res.json();
-    setAccessToken(data.token);
-    setRefreshToken(data.refreshToken);
-    setUser(data.user);
-    localStorage.setItem("access_token", data.token);
-    localStorage.setItem("refresh_token", data.refreshToken);
-    localStorage.setItem("user", JSON.stringify(data.user));
+  // Login - plain function via useCallback that returns promise (no async keyword)
+  const login = useCallback((email: string, password: string) => {
+    // Returns a promise chain without async/await
+    return loginCall(email, password).then((data) => {
+      setAccessToken(data.token);
+      setRefreshToken(data.refreshToken);
+      setUser(data.user);
+      localStorage.setItem("access_token", data.token);
+      localStorage.setItem("refresh_token", data.refreshToken);
+      localStorage.setItem("user", JSON.stringify(data.user));
 
-    // Clear Apollo cache and refetch user data after login (only client-side)
-    try {
-      await clearUserCache();
-      // Small delay to ensure cache is cleared before refetch
-      await new Promise(r => setTimeout(r, 100));
-      await refetchUserQueries();
-    } catch (e) {
-      console.warn("Could not clear/refetch Apollo cache:", e);
-    }
-    
-    // Fetch fresh user data including cash balance after login
-    try {
-      const userRes = await fetch(`${TOKEN_URL}/api/users/me`, {
-        headers: { Authorization: `Bearer ${data.token}` },
+      // Chain the second call
+      return fetchUserMe(data.token).then((freshUser) => {
+        if (freshUser) {
+          setUser(freshUser);
+          localStorage.setItem("user", JSON.stringify(freshUser));
+        }
       });
-      if (userRes.ok) {
-        const freshUser = await userRes.json();
-        setUser(freshUser);
-        localStorage.setItem("user", JSON.stringify(freshUser));
-      }
-    } catch (e) {
-      console.warn("Could not fetch fresh user data after login:", e);
-    }
-  };
+    });
+  }, []);
 
   // Auto-refresh token 5 min before expiry
   useEffect(() => {
@@ -167,7 +197,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [accessToken, refreshAccessToken]);
 
   return (
-    <AuthContext.Provider value={{ user, accessToken, refreshToken, loading, login, logout, refreshAccessToken, isAuthenticated: !!accessToken && !!user }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        accessToken,
+        refreshToken,
+        loading,
+        login,
+        logout,
+        refreshAccessToken,
+        isAuthenticated: !!accessToken && !!user,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

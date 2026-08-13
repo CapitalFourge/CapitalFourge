@@ -8,7 +8,9 @@ type Query {
   portfolio(id: ID!): Portfolio
   portfolios(sort: String, limit: Int): [Portfolio!]!
   assetMovers(sort: String, limit: Int): [AssetMover!]!
+  assets: [Asset!]!
   assetsByCategory(category: String): [Asset!]!
+  assetCategories: [String!]!
   searchSymbols(query: String!, limit: Int!): [Asset!]!
   myFeedbacks: [Feedback!]!
   adminUsers: [User!]!
@@ -50,6 +52,10 @@ type Asset {
   beta: Float
   week52High: Float
   week52Low: Float
+  price: Float
+  change24h: Float
+  changePercent24h: Float
+  volume24h: Float
 }
 
 type Mutation {
@@ -95,11 +101,16 @@ type Portfolio {
   id: ID!
   name: String!
   description: String
+  totalValue: Float!
+  cashBalance: Float!
+  currency: String!
+  isDefault: Boolean!
   performance: Float!
   isPublic: Boolean!
   shareSlug: String
   positions: [Position!]!
   transactions: [Transaction!]!
+  createdAt: String!
 }
 
 type Transaction {
@@ -128,6 +139,14 @@ type AssetMover {
   changePercent: Float!
   changeValue: Float!
   volume: Float!
+  changePercent24h: Float!
+  volume24h: Float!
+}
+
+type AssetMovers {
+  topGainers: [AssetMover!]!
+  topLosers: [AssetMover!]!
+  mostTraded: [AssetMover!]!
 }
 
 # Base interface - fields common to ALL asset types

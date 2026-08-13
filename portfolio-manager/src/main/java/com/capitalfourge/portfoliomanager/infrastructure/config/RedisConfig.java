@@ -124,4 +124,14 @@ public class RedisConfig {
         template.afterPropertiesSet();
         return template;
     }
+    
+    @Bean
+    public RedisTemplate<String, Object> redisObjectTemplate(RedisConnectionFactory factory) {
+        RedisTemplate<String, Object> template = new RedisTemplate<>();
+        template.setConnectionFactory(factory);
+        template.setKeySerializer(new org.springframework.data.redis.serializer.StringRedisSerializer());
+        template.setValueSerializer(new org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer());
+        template.afterPropertiesSet();
+        return template;
+    }
 }

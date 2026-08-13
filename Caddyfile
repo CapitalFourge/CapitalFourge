@@ -7,7 +7,22 @@
     email admin@capitalfourge.com
 }
 
-# API Backend (Spring Boot)
+# Local Development - Frontend
+local.capitalfourge.com:3000 {
+    reverse_proxy capitalfourge-frontend-test:3000
+}
+
+# Local Development - API
+api.local.capitalfourge.com:10000 {
+    reverse_proxy cf-portfolio-manager:10000 {
+        header_up Host {host}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+    }
+}
+
+# API Backend (Spring Boot) - Production
 api.capitalfourge.com {
     reverse_proxy portfolio-manager:10000 {
         header_up Host {host}

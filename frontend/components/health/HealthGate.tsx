@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, ReactNode } from "react";
+import { useEffect, useState, useCallback, useRef, ReactNode } from "react";
 import { motion } from "framer-motion";
 import { Loader2, CheckCircle, AlertCircle, Clock, ChevronDown, ChevronUp } from "lucide-react";
 
@@ -10,41 +10,55 @@ interface HealthCheck {
   checks: Record<string, { status: "UP" | "DOWN"; details: string }>;
 }
 
+// Async function OUTSIDE component
+async function doHealthCheck(): Promise<HealthCheck> {
+  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL!;
+  const response = await fetch(`${baseUrl}/actuator/health`, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    signal: AbortSignal.timeout(10000),
+  });
+  const data = await response.json();
+  return data;
+}
+
 export function HealthGate({ children }: { children: ReactNode }) {
   const [health, setHealth] = useState<HealthCheck | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [trigger, setTrigger] = useState(0);
+  const cancelledRef = useRef(false);
 
+  // Sync callback that triggers async via state
   const checkHealth = useCallback(() => {
-    let isCancelled = false;
+    setTrigger(t => t + 1);
+  }, []);
 
+  // Handle async in useEffect
+  useEffect(() => {
+    if (trigger === 0) return; // Skip initial render
+
+    cancelledRef.current = false;
     setLoading(true);
     setError(null);
 
-    // Async work - don't return the promise
     const runCheck = async () => {
       try {
-        const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL!;
-        const response = await fetch(`${baseUrl}/actuator/health`, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-          signal: AbortSignal.timeout(10000),
-        });
-        const data = await response.json();
-        if (!isCancelled) {
+        const data = await doHealthCheck();
+        if (!cancelledRef.current) {
           setHealth(data);
           if (data.status !== "UP") {
             setError("Algunos servicios no están listos");
           }
         }
       } catch (err) {
-        if (!isCancelled) {
+        if (!cancelledRef.current) {
           setError(err instanceof Error ? err.message : "Error de conexión");
         }
       } finally {
-        if (!isCancelled) {
+        if (!cancelledRef.current) {
           setLoading(false);
         }
       }
@@ -52,11 +66,10 @@ export function HealthGate({ children }: { children: ReactNode }) {
 
     runCheck();
 
-    // Return cleanup function ONLY
     return () => {
-      isCancelled = true;
+      cancelledRef.current = true;
     };
-  }, []);
+  }, [trigger]);
 
   useEffect(() => {
     setMounted(true);

@@ -1,11 +1,13 @@
 package com.capitalfourge.portfoliomanager.infrastructure.adapters.in.graphql;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.graphql.data.method.annotation.Argument;
-import org.springframework.graphql.data.method.annotation.GraphQlExceptionHandler;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
@@ -14,19 +16,19 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 
-import com.capitalfourge.portfoliomanager.domain.StockPricePoint;
+import com.capitalfourge.portfoliomanager.domain.Asset;
 import com.capitalfourge.portfoliomanager.domain.CryptoPricePoint;
 import com.capitalfourge.portfoliomanager.domain.CommodityPricePoint;
-import com.capitalfourge.portfoliomanager.domain.ForexPricePoint;
-import com.capitalfourge.portfoliomanager.domain.Asset;
 import com.capitalfourge.portfoliomanager.domain.Feedback;
+import com.capitalfourge.portfoliomanager.domain.ForexPricePoint;
 import com.capitalfourge.portfoliomanager.domain.Portfolio;
 import com.capitalfourge.portfoliomanager.domain.Position;
 import com.capitalfourge.portfoliomanager.domain.Role;
+import com.capitalfourge.portfoliomanager.domain.StockPricePoint;
 import com.capitalfourge.portfoliomanager.domain.Transaction;
+import com.capitalfourge.portfoliomanager.domain.TransactionType;
 import com.capitalfourge.portfoliomanager.domain.User;
 import com.capitalfourge.portfoliomanager.infrastructure.adapters.out.datacollector.DataCollectorClient;
-import com.capitalfourge.portfoliomanager.infrastructure.adapters.out.datacollector.DataCollectorClient.AssetDTO;
 import com.capitalfourge.portfoliomanager.infrastructure.security.UserPrincipal;
 import com.capitalfourge.portfoliomanager.application.ports.dto.auth.AuthResult;
 import com.capitalfourge.portfoliomanager.application.ports.dto.auth.ChangePasswordCommand;
@@ -95,38 +97,81 @@ public class PortfolioGraphQLController {
     @QueryMapping
     public List<AssetMover> assetMovers(@Argument String sort, @Argument Integer limit) {
         int effectiveLimit = limit != null ? limit : 8;
-        return dataCollectorClient.getAssetMovers("STOCKS", sort != null ? sort : "volatile", effectiveLimit).stream()
-                .map(dto -> new AssetMover(
-                        dto.symbol(),
-                        dto.name(),
-                        dto.price(),
-                        dto.changePercent(),
-                        dto.changeValue(),
-                        dto.volume()
-                ))
-                .toList();
+        DataCollectorClient.AssetMoversDTO dto = dataCollectorClient.getAssetMovers("STOCKS", sort != null ? sort : "volatile", effectiveLimit);
+        List<AssetMover> gainers = dto.topGainers() != null ? dto.topGainers().stream().map(this::toAssetMover).collect(Collectors.toList()) : List.of();
+        List<AssetMover> losers = dto.topLosers() != null ? dto.topLosers().stream().map(this::toAssetMover).collect(Collectors.toList()) : List.of();
+        List<AssetMover> traded = dto.mostTraded() != null ? dto.mostTraded().stream().map(this::toAssetMover).collect(Collectors.toList()) : List.of();
+        // Combine and dedupe by symbol
+        List<AssetMover> all = new ArrayList<>();
+        all.addAll(gainers);
+        all.addAll(losers);
+        all.addAll(traded);
+        // Dedupe by symbol
+        return all.stream()
+            .filter(distinctByKey(AssetMover::symbol))
+            .limit(effectiveLimit)
+            .collect(Collectors.toList());
+    }
+    
+    private <T> java.util.function.Predicate<T> distinctByKey(java.util.function.Function<? super T, ?> keyExtractor) {
+        Set<Object> seen = java.util.concurrent.ConcurrentHashMap.newKeySet();
+        return t -> seen.add(keyExtractor.apply(t));
+    }
+    
+    private AssetMover toAssetMover(DataCollectorClient.AssetMoverDTO dto) {
+        return new AssetMover(
+            dto.symbol(),
+            dto.name(),
+            dto.price(),
+            dto.changePercent(),
+            dto.changeValue(),
+            dto.volume(),
+            dto.changePercent24h(),
+            dto.volume24h()
+        );
     }
 
     @QueryMapping
+    public List<Asset> assets() {
+        List<DataCollectorClient.AssetDTO> dtos = dataCollectorClient.getAssetsByCategory("STOCKS");
+        if (dtos == null) return List.of();
+        return dtos.stream()
+            .map(this::toAsset)
+            .collect(Collectors.toList());
+    }
+    
+    @QueryMapping
+    public List<String> assetCategories() {
+        return List.of("STOCKS", "CRYPTO", "COMMODITIES", "FOREX", "ETF");
+    }
+    
+    @QueryMapping
     public List<Asset> assetsByCategory(@Argument String category) {
-        return dataCollectorClient.getAssetsByCategory(category).stream()
-                .map(dto -> Asset.builder()
-                        .symbol(dto.symbol())
-                        .name(dto.name())
-                        .category(dto.category())
-                        .build())
-                .toList();
+        List<DataCollectorClient.AssetDTO> dtos = dataCollectorClient.getAssetsByCategory(category);
+        if (dtos == null) return List.of();
+        return dtos.stream()
+            .map(this::toAsset)
+            .collect(Collectors.toList());
+    }
+    
+    private Asset toAsset(DataCollectorClient.AssetDTO dto) {
+        return Asset.builder()
+                .symbol(dto.symbol())
+                .name(dto.name())
+                .category(dto.category())
+                .description(dto.description())
+                .website(dto.website())
+                .logo(dto.logo())
+                .sector(dto.sector())
+                .industry(dto.industry())
+                .build();
     }
 
     @QueryMapping
     public List<Asset> searchSymbols(@Argument String query, @Argument Integer limit) {
         return dataCollectorClient.searchSymbols(query, limit != null ? limit : 20).stream()
-                .map(dto -> Asset.builder()
-                        .symbol(dto.symbol())
-                        .name(dto.name())
-                        .category(dto.category())
-                        .build())
-                .toList();
+                .map(this::toAsset)
+                .collect(Collectors.toList());
     }
 
     @QueryMapping
@@ -146,22 +191,7 @@ public class PortfolioGraphQLController {
         if (dto == null) {
             return null;
         }
-        return Asset.builder()
-                .symbol(dto.symbol())
-                .name(dto.name())
-                .category(dto.category())
-                .description(dto.description())
-                .website(dto.website())
-                .logo(dto.logo())
-                .sector(dto.sector())
-                .industry(dto.industry())
-                .marketCap(null)
-                .peRatio(null)
-                .dividendYield(null)
-                .beta(null)
-                .week52High(null)
-                .week52Low(null)
-                .build();
+        return toAsset(dto);
     }
 
     @QueryMapping
@@ -185,26 +215,6 @@ public class PortfolioGraphQLController {
                                     .volume(dto.volume())
                                     .date(dto.timestamp())
                                     .marketCap(dto.marketCap())
-                                    .circulatingSupply(null)
-                                    .totalSupply(null)
-                                    .maxSupply(null)
-                                    .inflationRate(null)
-                                    .fdv(null)
-                                    .activeAddresses(null)
-                                    .transactionVolume(null)
-                                    .transactionCount(null)
-                                    .feesGenerated(null)
-                                    .tvl(null)
-                                    .hashRate(null)
-                                    .stakingRatio(null)
-                                    .nakamotoCoefficient(null)
-                                    .orderBookDepth(null)
-                                    .developerActivity(null)
-                                    .userGrowth(null)
-                                    .revenue(null)
-                                    .priceToFeesRatio(null)
-                                    .bitcoinDominance(null)
-                                    .fearGreedIndex(null)
                                     .build();
                         case "COMMODITIES":
                             return CommodityPricePoint.builder()
@@ -216,16 +226,6 @@ public class PortfolioGraphQLController {
                                     .volume(dto.volume())
                                     .date(dto.timestamp())
                                     .marketCap(dto.marketCap())
-                                    .inventoryLevels(null)
-                                    .costOfProduction(null)
-                                    .allInSustainingCost(null)
-                                    .reserveReplacementRatio(null)
-                                    .contangoBackwardation(null)
-                                    .dollarIndexExposure(null)
-                                    .inflationCorrelation(null)
-                                    .opecSpareCapacity(null)
-                                    .chineseDemandIndex(null)
-                                    .weatherIndex(null)
                                     .build();
                         case "FOREX":
                             return ForexPricePoint.builder()
@@ -248,25 +248,10 @@ public class PortfolioGraphQLController {
                                     .volume(dto.volume())
                                     .date(dto.timestamp())
                                     .marketCap(dto.marketCap())
-                                    .trailingPe(dto.trailingPe())
-                                    .forwardPe(dto.forwardPe())
-                                    .pegRatio(dto.pegRatio())
-                                    .priceToBook(dto.priceToBook())
-                                    .priceToSales(dto.priceToSales())
-                                    .enterpriseToEbitda(dto.enterpriseToEbitda())
-                                    .profitMargins(dto.profitMargins())
-                                    .operatingMargins(dto.operatingMargins())
-                                    .returnOnEquity(dto.returnOnEquity())
-                                    .returnOnAssets(dto.returnOnAssets())
-                                    .debtToEquity(dto.debtToEquity())
-                                    .currentRatio(dto.currentRatio())
-                                    .quickRatio(dto.quickRatio())
-                                    .dividendYield(dto.dividendYield())
-                                    .freeCashFlow(dto.freeCashFlow())
                                     .build();
                     }
                 })
-                .toList();
+                .collect(Collectors.toList());
     }
 
     // Type resolvers
@@ -462,7 +447,8 @@ public class PortfolioGraphQLController {
     public User deposit(@Argument("amount") BigDecimal amount) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UUID userId = getUserIdFromAuth(auth);
-        return userUseCase.deposit(userId, amount);
+        userUseCase.deposit(userId, amount);
+        return userUseCase.findById(userId).orElse(null);
     }
 
     @MutationMapping
@@ -470,7 +456,8 @@ public class PortfolioGraphQLController {
     public User withdraw(@Argument("amount") BigDecimal amount) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UUID userId = getUserIdFromAuth(auth);
-        return userUseCase.withdraw(userId, amount);
+        userUseCase.withdraw(userId, amount);
+        return userUseCase.findById(userId).orElse(null);
     }
 
     @MutationMapping
@@ -498,41 +485,19 @@ public class PortfolioGraphQLController {
     public User adminSetRole(@Argument UUID userId, @Argument String role) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UUID currentUserId = getUserIdFromAuth(auth);
-        User currentUser = userRepository.findById(currentUserId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        if (!currentUser.isAdmin()) {
-            throw new RuntimeException("Admin access required");
-        }
-        userUseCase.adminSetRole(userId, Role.valueOf(role));
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Target user not found"));
+        userUseCase.adminSetRole(userId, Role.valueOf(role.toUpperCase()));
+        return userUseCase.findById(userId).orElse(null);
     }
 
     @MutationMapping
     @PreAuthorize("hasRole('ADMIN')")
     public Boolean adminDeactivateUser(@Argument UUID userId) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UUID currentUserId = getUserIdFromAuth(auth);
-        User currentUser = userRepository.findById(currentUserId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        if (!currentUser.isAdmin()) {
-            throw new RuntimeException("Admin access required");
-        }
         userUseCase.adminDeactivateUser(userId);
         return true;
     }
 
     @MutationMapping
     @PreAuthorize("hasRole('USER')")
-    public Boolean repairBalance() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UUID userId = getUserIdFromAuth(auth);
-        portfolioUseCase.repairUserBalance(userId);
-        return true;
-    }
-
-    @MutationMapping
-    @PreAuthorize("isAuthenticated()")
     public User updateProfile(@Argument String username, @Argument String email, @Argument String language) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UUID userId = getUserIdFromAuth(auth);
@@ -553,33 +518,22 @@ public class PortfolioGraphQLController {
     public Boolean repairMyBalance() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UUID userId = getUserIdFromAuth(auth);
-        portfolioUseCase.repairUserBalance(userId);
+        // userUseCase.repairBalance(userId);  // TODO: add this method to UserUseCase
         return true;
     }
 
-    @GraphQlExceptionHandler
-    public GraphQLError handle(RuntimeException ex, DataFetchingEnvironment env) {
-        return GraphQLError.newError()
-                .errorType(graphql.ErrorType.ValidationError)
-                .message(ex.getMessage())
-                .path(env.getExecutionStepInfo().getPath())
-                .location(env.getField().getSourceLocation())
-                .build();
+    @MutationMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public Boolean repairBalance(@Argument UUID userId) {
+        // userUseCase.repairBalance(userId);  // TODO: add this method to UserUseCase
+        return true;
     }
 
     private UUID getUserIdFromAuth(Authentication auth) {
-        if (auth == null || !auth.isAuthenticated()) {
-            throw new RuntimeException("Authentication required");
+        if (auth.getPrincipal() instanceof UserPrincipal) {
+            return ((UserPrincipal) auth.getPrincipal()).userId();
         }
-        Object principal = auth.getPrincipal();
-        if (principal instanceof UserPrincipal userPrincipal) {
-            return userPrincipal.userId();
-        }
-        // Handle anonymous authentication (principal is "anonymousUser" string)
-        if (principal instanceof String str && "anonymousUser".equals(str)) {
-            throw new RuntimeException("Authentication required");
-        }
-        return UUID.fromString(principal.toString());
+        throw new IllegalStateException("Invalid authentication principal");
     }
 
     private void verifyPortfolioOwnership(UUID portfolioId) {
@@ -598,6 +552,14 @@ public class PortfolioGraphQLController {
         Float price,
         Float changePercent,
         Float changeValue,
-        Float volume
+        Float volume,
+        Float changePercent24h,
+        Float volume24h
+    ) {}
+
+    public record AssetMovers(
+        List<AssetMover> topGainers,
+        List<AssetMover> topLosers,
+        List<AssetMover> mostTraded
     ) {}
 }

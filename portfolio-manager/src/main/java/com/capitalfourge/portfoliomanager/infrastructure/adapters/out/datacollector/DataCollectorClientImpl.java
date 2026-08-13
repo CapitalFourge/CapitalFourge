@@ -3,19 +3,27 @@ package com.capitalfourge.portfoliomanager.infrastructure.adapters.out.datacolle
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Component
 public class DataCollectorClientImpl implements DataCollectorClient {
 
     private final RestClient dataCollectorClient;
+    private final RedisTemplate<String, Object> redisTemplate;
+    private static final String MOVERS_CACHE_KEY = "assetMovers:";
+    private static final long MOVERS_CACHE_TTL_SECONDS = 60;
 
     @Autowired
-    public DataCollectorClientImpl(@Qualifier("dataCollectorClient") RestClient dataCollectorClient) {
+    public DataCollectorClientImpl(@Qualifier("dataCollectorClient") RestClient dataCollectorClient,
+                                    RedisTemplate<String, Object> redisTemplate) {
         this.dataCollectorClient = dataCollectorClient;
+        this.redisTemplate = redisTemplate;
     }
 
     @Override
@@ -177,9 +185,23 @@ public class DataCollectorClientImpl implements DataCollectorClient {
     ) {}
 
     @Override
-    public List<AssetMoverDTO> getAssetMovers(String category, String sort, int limit) {
+    public AssetMoversDTO getAssetMovers(String category, String sort, int limit) {
+        String cacheKey = MOVERS_CACHE_KEY + category + ":" + sort + ":" + limit;
+        
+        // Try cache first
         try {
-            return dataCollectorClient.get()
+            @SuppressWarnings("unchecked")
+            AssetMoversDTO cached = (AssetMoversDTO) redisTemplate.opsForValue().get(cacheKey);
+            if (cached != null) {
+                return cached;
+            }
+        } catch (Exception e) {
+            // Cache miss or error, fall through to data collector
+        }
+        
+        try {
+            // Data collector returns flat list directly (array of AssetMoverDTO)
+            List<AssetMoverDTO> flat = dataCollectorClient.get()
                     .uri(uriBuilder -> uriBuilder
                             .path("/assets/movers")
                             .queryParam("category", category)
@@ -188,8 +210,43 @@ public class DataCollectorClientImpl implements DataCollectorClient {
                             .build())
                     .retrieve()
                     .body(new ParameterizedTypeReference<List<AssetMoverDTO>>() {});
+            
+            if (flat == null || flat.isEmpty()) {
+                return new AssetMoversDTO(List.of(), List.of(), List.of());
+            }
+            
+            // Sort by volatility descending and categorize
+            List<AssetMoverDTO> sorted = flat.stream()
+                    .sorted((a, b) -> Float.compare(
+                            b.volatility() != null ? b.volatility() : 0f,
+                            a.volatility() != null ? a.volatility() : 0f
+                    ))
+                    .limit(limit)
+                    .collect(Collectors.toList());
+            
+            // Split into gainers/losers/traded based on changePercent
+            List<AssetMoverDTO> gainers = sorted.stream()
+                    .filter(m -> m.changePercent() != null && m.changePercent() > 0)
+                    .collect(Collectors.toList());
+            List<AssetMoverDTO> losers = sorted.stream()
+                    .filter(m -> m.changePercent() != null && m.changePercent() < 0)
+                    .collect(Collectors.toList());
+            List<AssetMoverDTO> traded = sorted.stream()
+                    .filter(m -> m.changePercent() != null && m.changePercent() == 0)
+                    .collect(Collectors.toList());
+            
+            AssetMoversDTO result = new AssetMoversDTO(gainers, losers, traded);
+            
+            // Cache the result
+            try {
+                redisTemplate.opsForValue().set(cacheKey, result, MOVERS_CACHE_TTL_SECONDS, TimeUnit.SECONDS);
+            } catch (Exception e) {
+                // Cache write failed, continue anyway
+            }
+            
+            return result;
         } catch (Exception e) {
-            return List.of();
+            return new AssetMoversDTO(List.of(), List.of(), List.of());
         }
     }
 }

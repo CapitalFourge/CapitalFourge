@@ -26,12 +26,30 @@ const DASHBOARD_QUERY = gql`
       }
     }
     assetMovers(sort: $sort, limit: $limit) {
-      symbol
-      name
-      price
-      changePercent
-      changeValue
-      volume
+      topGainers {
+        symbol
+        name
+        price
+        changePercent
+        changeValue
+        volume
+      }
+      topLosers {
+        symbol
+        name
+        price
+        changePercent
+        changeValue
+        volume
+      }
+      mostTraded {
+        symbol
+        name
+        price
+        changePercent
+        changeValue
+        volume
+      }
     }
   }
 `;

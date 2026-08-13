@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.capitalfourge.portfoliomanager.application.ports.in.UserUseCase;
 import com.capitalfourge.portfoliomanager.domain.User;
+import com.capitalfourge.portfoliomanager.infrastructure.security.UserPrincipal;
 
 import lombok.RequiredArgsConstructor;
 
@@ -32,12 +33,12 @@ public class UserController {
             return ResponseEntity.status(401).build();
         }
 
-        // Principal is UUID (userId) from JWT subject
+        // Principal is UserPrincipal from JwtAuthenticationFilter
         UUID userId = null;
-        if (auth.getPrincipal() instanceof UUID) {
-            userId = (UUID) auth.getPrincipal();
+        if (auth.getPrincipal() instanceof UserPrincipal principal) {
+            userId = principal.userId();
         } else {
-            log.warn("GET /api/users/me - principal is not UUID: {}", auth.getPrincipal().getClass());
+            log.warn("GET /api/users/me - principal is not UserPrincipal: {}", auth.getPrincipal().getClass());
             return ResponseEntity.status(401).build();
         }
         

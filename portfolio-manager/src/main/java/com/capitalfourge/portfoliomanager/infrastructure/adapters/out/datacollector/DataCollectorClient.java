@@ -12,7 +12,7 @@ public interface DataCollectorClient {
     
     List<PricePointDTO> getPriceHistory(String symbol, String range);
     
-    List<AssetMoverDTO> getAssetMovers(String category, String sort, int limit);
+    AssetMoversDTO getAssetMovers(String category, String sort, int limit);
 
     record AssetDTO(
         String symbol, 
@@ -81,5 +81,14 @@ public interface DataCollectorClient {
         Float weatherIndex
     ) {}
     
-    record AssetMoverDTO(String symbol, String name, Float price, Float changePercent, Float changeValue, Float volume) {}
+    record AssetMoverDTO(String symbol, String name, Float price, Float changePercent, Float changeValue, Float volume, Float changePercent24h, Float volume24h, Float volatility) {}
+    
+    record AssetMoversDTO(
+        List<AssetMoverDTO> topGainers,
+        List<AssetMoverDTO> topLosers,
+        List<AssetMoverDTO> mostTraded
+    ) {}
+    
+    // New flat response from data collector - returns List directly
+    // (no wrapper object needed since data collector returns flat array)
 }

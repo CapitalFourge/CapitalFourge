@@ -193,10 +193,12 @@ public class DataCollectorClientImpl implements DataCollectorClient {
             @SuppressWarnings("unchecked")
             AssetMoversDTO cached = (AssetMoversDTO) redisTemplate.opsForValue().get(cacheKey);
             if (cached != null) {
+                System.out.println("CACHE HIT: " + cacheKey);
                 return cached;
             }
+            System.out.println("CACHE MISS: " + cacheKey);
         } catch (Exception e) {
-            // Cache miss or error, fall through to data collector
+            System.out.println("CACHE ERROR (read): " + e.getMessage());
         }
         
         try {
@@ -240,12 +242,14 @@ public class DataCollectorClientImpl implements DataCollectorClient {
             // Cache the result
             try {
                 redisTemplate.opsForValue().set(cacheKey, result, MOVERS_CACHE_TTL_SECONDS, TimeUnit.SECONDS);
+                System.out.println("CACHE WRITE: " + cacheKey);
             } catch (Exception e) {
-                // Cache write failed, continue anyway
+                System.out.println("CACHE ERROR (write): " + e.getMessage());
             }
             
             return result;
         } catch (Exception e) {
+            System.out.println("DATA COLLECTOR ERROR: " + e.getMessage());
             return new AssetMoversDTO(List.of(), List.of(), List.of());
         }
     }

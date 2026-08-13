@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import { Toaster } from "sonner";
-import { Analytics } from "@vercel/analytics/next";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 
 import { ApolloWrapper } from "@/components/providers/apollo-wrapper";
 import { Footer } from "@/components/footer";
@@ -33,8 +31,8 @@ export default function RootLayout({
         </div>
         <Footer />
         <Toaster position="top-right" richColors theme="dark" />
-        <Analytics />
-        <SpeedInsights />
+        
+        
       </body>
     </html>
   );

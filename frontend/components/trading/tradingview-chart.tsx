@@ -128,6 +128,20 @@ export function TradingViewChart({
        const tradingView = (window as any).TradingView;
        const tvSymbol = mapSymbolForTradingView(symbol);
        
+       // Map indicators to TradingView study names
+       const studyMap: Record<string, string> = {
+         'sma': 'MASimple@tv-basicstudies',
+         'ema': 'MAExp@tv-basicstudies',
+         'rsi': 'RSI@tv-basicstudies',
+         'wma': 'MAWeighted@tv-basicstudies',
+         'roc': 'ROC@tv-basicstudies',
+         'macd': 'MACD@tv-basicstudies',
+         'bb': 'BB@tv-basicstudies',
+         'stoch': 'Stochastic@tv-basicstudies',
+       };
+       
+       const studies = indicators.map(id => studyMap[id]).filter(Boolean);
+
        widgetInstanceRef.current = new tradingView.widget({
          container_id: containerId,
          width,
@@ -142,7 +156,7 @@ export function TradingViewChart({
          enable_publishing: false,
          hide_side_toolbar: false,
          allow_symbol_change: true,
-         studies: indicators,
+         studies,
        });
      };
 
@@ -161,8 +175,23 @@ export function TradingViewChart({
   useEffect(() => {
     if (widgetInstanceRef.current?.setStudies) {
       try {
-        widgetInstanceRef.current.setStudies(indicators);
-      } catch {}
+        // TradingView study names mapping
+        const studyMap: Record<string, string> = {
+          'sma': 'MASimple@tv-basicstudies',
+          'ema': 'MAExp@tv-basicstudies',
+          'rsi': 'RSI@tv-basicstudies',
+          'wma': 'MAWeighted@tv-basicstudies',
+          'roc': 'ROC@tv-basicstudies',
+          'macd': 'MACD@tv-basicstudies',
+          'bb': 'BB@tv-basicstudies',
+          'stoch': 'Stochastic@tv-basicstudies',
+        };
+        
+        const studies = indicators.map(id => studyMap[id]).filter(Boolean);
+        widgetInstanceRef.current.setStudies(studies);
+      } catch (e) {
+        console.warn('Failed to set studies on TradingView:', e);
+      }
     }
   }, [indicators]);
 

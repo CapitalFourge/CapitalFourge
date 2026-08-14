@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { gql, useQuery } from '@apollo/client';
 import { motion } from 'framer-motion';
@@ -116,12 +116,34 @@ const ASSET_DATA_QUERY = gql`
 export default function AssetDetailPage() {
   const { symbol } = useParams<{ symbol: string }>();
   const [showIndicators, setShowIndicators] = useState<boolean>(false);
-  const [activeIndicators, setActiveIndicators] = useState<string[]>([]);
+  const [activeIndicators, setActiveIndicators] = useState<string[]>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem(`asset-${symbol}-indicators`);
+      return stored ? JSON.parse(stored) : [];
+    }
+    return [];
+  });
   const [showFundamental, setShowFundamental] = useState<boolean>(false);
-  const [activeFundamentals, setActiveFundamentals] = useState<string[]>([]);
+  const [activeFundamentals, setActiveFundamentals] = useState<string[]>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem(`asset-${symbol}-fundamentals`);
+      return stored ? JSON.parse(stored) : [];
+    }
+    return [];
+  });
   const [showDrawingTools, setShowDrawingTools] = useState<boolean>(false);
   const [activeDrawingTools, setActiveDrawingTools] = useState<DrawingTool[]>([]);
   const [selectedInterval] = useState<string>('1D');
+
+  // Persist indicators selection
+  useEffect(() => {
+    localStorage.setItem(`asset-${symbol}-indicators`, JSON.stringify(activeIndicators));
+  }, [symbol, activeIndicators]);
+
+  // Persist fundamentals selection
+  useEffect(() => {
+    localStorage.setItem(`asset-${symbol}-fundamentals`, JSON.stringify(activeFundamentals));
+  }, [symbol, activeFundamentals]);
 
   const { data, loading, error } = useQuery(ASSET_DATA_QUERY, {
     variables: { symbol: symbol },

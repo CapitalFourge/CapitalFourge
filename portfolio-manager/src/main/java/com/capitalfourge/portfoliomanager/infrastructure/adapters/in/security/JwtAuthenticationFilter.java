@@ -27,7 +27,7 @@ import jakarta.servlet.http.HttpServletResponse;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    @Value("${jwt.secret}")
+    @Value("${spring.jwt.secret}")
     String jwtSecret;
 
     private SecretKey key;

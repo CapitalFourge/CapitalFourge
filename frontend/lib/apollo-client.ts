@@ -7,13 +7,11 @@ import { setAuthCookie } from "@/lib/auth-cookie";
 
 const getGraphQLUri = () => {
   if (typeof window !== "undefined") {
-    return process.env.NEXT_PUBLIC_API_BASE_URL
-      ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/graphql`
-      : "http://localhost:8080/graphql";
+    return "/api/graphql";
   }
   return process.env.NEXT_PUBLIC_API_BASE_URL
     ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/graphql`
-    : "http://localhost:8080/graphql";
+    : "http://localhost:10000/graphql";
 };
 
 const httpLink = createHttpLink({
@@ -45,7 +43,7 @@ export const typePolicies: TypePolicies = {
         },
       },
       assetMovers: {
-        merge(existing = [], incoming) {
+        merge(existing, incoming) {
           return incoming;
         },
       },

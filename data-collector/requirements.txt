@@ -11,3 +11,4 @@ redis
 grpcio
 grpcio-tools
 finnhub-python
+apscheduler

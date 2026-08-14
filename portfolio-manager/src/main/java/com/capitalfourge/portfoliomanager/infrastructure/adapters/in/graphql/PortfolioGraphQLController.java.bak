@@ -95,14 +95,22 @@ public class PortfolioGraphQLController {
     }
 
     @QueryMapping
-    public AssetMovers assetMovers(@Argument String sort, @Argument Integer limit) {
+    public List<AssetMover> assetMovers(@Argument String sort, @Argument Integer limit) {
         int effectiveLimit = limit != null ? limit : 8;
         DataCollectorClient.AssetMoversDTO dto = dataCollectorClient.getAssetMovers("STOCKS", sort != null ? sort : "volatile", effectiveLimit);
         List<AssetMover> gainers = dto.topGainers() != null ? dto.topGainers().stream().map(this::toAssetMover).collect(Collectors.toList()) : List.of();
         List<AssetMover> losers = dto.topLosers() != null ? dto.topLosers().stream().map(this::toAssetMover).collect(Collectors.toList()) : List.of();
         List<AssetMover> traded = dto.mostTraded() != null ? dto.mostTraded().stream().map(this::toAssetMover).collect(Collectors.toList()) : List.of();
-        
-        return new AssetMovers(gainers, losers, traded);
+        // Combine and dedupe by symbol
+        List<AssetMover> all = new ArrayList<>();
+        all.addAll(gainers);
+        all.addAll(losers);
+        all.addAll(traded);
+        // Dedupe by symbol
+        return all.stream()
+            .filter(distinctByKey(AssetMover::symbol))
+            .limit(effectiveLimit)
+            .collect(Collectors.toList());
     }
     
     private <T> java.util.function.Predicate<T> distinctByKey(java.util.function.Function<? super T, ?> keyExtractor) {
@@ -119,7 +127,6 @@ public class PortfolioGraphQLController {
             dto.changeValue(),
             dto.volume(),
             dto.changePercent24h(),
-            dto.changePercent24h(), // change24h alias for changePercent24h
             dto.volume24h()
         );
     }
@@ -547,7 +554,6 @@ public class PortfolioGraphQLController {
         Float changeValue,
         Float volume,
         Float changePercent24h,
-        Float change24h,
         Float volume24h
     ) {}
 

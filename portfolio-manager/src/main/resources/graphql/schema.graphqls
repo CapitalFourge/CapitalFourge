@@ -7,7 +7,7 @@ type Query {
   me: User
   portfolio(id: ID!): Portfolio
   portfolios(sort: String, limit: Int): [Portfolio!]!
-  assetMovers(sort: String, limit: Int): [AssetMover!]!
+  assetMovers(sort: String, limit: Int): AssetMovers
   assets: [Asset!]!
   assetsByCategory(category: String): [Asset!]!
   assetCategories: [String!]!
@@ -140,6 +140,7 @@ type AssetMover {
   changeValue: Float!
   volume: Float!
   changePercent24h: Float!
+  change24h: Float! @deprecated(reason: "Use changePercent24h")
   volume24h: Float!
 }
 

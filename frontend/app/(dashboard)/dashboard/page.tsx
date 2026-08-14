@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 const DASHBOARD_QUERY = gql`
-  query GetDashboardData($sort: String!, $limit: Int!) {
+  query GetDashboardData {
     me {
       id
       username
@@ -31,13 +31,36 @@ const DASHBOARD_QUERY = gql`
         currentPrice
       }
     }
+  }
+`;
+
+const ASSET_MOVERS_QUERY = gql`
+  query GetAssetMovers($sort: String!, $limit: Int!) {
     assetMovers(sort: $sort, limit: $limit) {
-      symbol
-      name
-      price
-      changePercent
-      changeValue
-      volume
+      topGainers {
+        symbol
+        name
+        price
+        changePercent
+        changeValue
+        volume
+      }
+      topLosers {
+        symbol
+        name
+        price
+        changePercent
+        changeValue
+        volume
+      }
+      mostTraded {
+        symbol
+        name
+        price
+        changePercent
+        changeValue
+        volume
+      }
     }
   }
 `;
@@ -98,13 +121,61 @@ export default function DashboardPage() {
   const [volatilitySort, setVolatilitySort] = useState<"volatile" | "gain" | "loss">("volatile");
 
   const { data, error, loading } = useQuery(DASHBOARD_QUERY, {
-    variables: { sort: volatilitySort, limit: 8 },
+    pollInterval: 60000,
+    fetchPolicy: "cache-and-network",
+  });
+
+  const { data: moversData, loading: moversLoading } = useQuery(ASSET_MOVERS_QUERY, {
+    variables: { sort: volatilitySort, limit: 20 },
     pollInterval: 60000,
     fetchPolicy: "cache-and-network",
   });
 
   const portfolios = useMemo(() => ((data?.portfolios as Portfolio[] | undefined) ?? []), [data?.portfolios]);
-  const volatileAssets = useMemo(() => ((data?.assetMovers as AssetMover[] | undefined) ?? []), [data?.assetMovers]);
+  
+  // Combine all movers into a flat array for filtering/sorting
+  const allMovers = useMemo(() => {
+    const movers = moversData?.assetMovers;
+    if (!movers) return [];
+    const combined = [
+      ...(movers.topGainers ?? []),
+      ...(movers.topLosers ?? []),
+      ...(movers.mostTraded ?? [])
+    ];
+    // Dedupe by symbol
+    const seen = new Set<string>();
+    return combined.filter(asset => {
+      if (seen.has(asset.symbol)) return false;
+      seen.add(asset.symbol);
+      return true;
+    });
+  }, [moversData?.assetMovers]);
+
+  const volatileAssets = useMemo(() => {
+    const baseAssets = allMovers;
+
+    switch (volatilitySort) {
+      case "gain":
+        return baseAssets
+          .filter(asset => asset.changePercent > 0)
+          .sort((a, b) => b.changePercent - a.changePercent) // Descending (highest gain first)
+          .slice(0, 20); // Limit to 20
+
+      case "loss":
+        return baseAssets
+          .filter(asset => asset.changePercent < 0)
+          .sort((a, b) => a.changePercent - b.changePercent) // Ascending (most negative first)
+          .slice(0, 20); // Limit to 20
+
+      case "volatile":
+      default:
+        // Sort by absolute changePercent (highest volatility = biggest move in either direction)
+        return baseAssets
+          .sort((a, b) => Math.abs(b.changePercent ?? 0) - Math.abs(a.changePercent ?? 0))
+          .slice(0, 20); // Limit to 20
+    }
+  }, [allMovers, volatilitySort]);
+  
   const leadPortfolio = portfolios[0];
   const userCashBalance = data?.me?.cashBalance ?? 0;
   const userLockedBalance = data?.me?.lockedBalance ?? 0;
@@ -312,7 +383,7 @@ export default function DashboardPage() {
                       </Link>
                     ))}
                   </div>
-                  
+
                   {/* Right: Leaderboard - Próximamente */}
                   <div className="flex min-h-[220px] flex-col items-center justify-center rounded-[1.6rem] border border-dashed border-white/10 bg-white/[0.03] px-5 py-6">
                     <div className="flex items-center gap-2 mb-4">
@@ -375,48 +446,63 @@ export default function DashboardPage() {
             ))}
           </div>
 
-          <div className="mt-6 grid gap-3 lg:grid-cols-2">
-            {volatileAssets.map((asset) => (
-              <Link
-                key={asset.symbol}
-                href={`/explorer/${asset.symbol}`}
-                className=""
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="text-base font-semibold text-white">{asset.symbol}</p>
-                    <p className="mt-1 truncate text-sm text-slate-500">{asset.name || "Activo monitoreado"}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-base font-semibold text-white">{formatCurrency(asset.price)}</p>
-                    <p
-                      className={
-                        asset.changePercent >= 0
-                          ? "mt-1 text-base font-semibold text-emerald-300"
-                          : "mt-1 text-base font-semibold text-rose-300"
-                      }
-                    >
-                      {formatSignedPercent(asset.changePercent)}
-                    </p>
-                    <p className="mt-1 text-sm text-slate-500">{formatSignedCurrency(asset.changeValue)}</p>
+          {moversLoading ? (
+            <div className="mt-6 grid gap-3 lg:grid-cols-2">
+              {[...Array(8)].map((_, i) => (
+                <div key={i} className="rounded-[1.25rem] border border-white/8 bg-slate-950/25 px-3 py-2 animate-pulse">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="h-5 w-20 bg-white/10 rounded" />
+                      <div className="mt-1 h-3 w-32 bg-white/5 rounded" />
+                    </div>
+                    <div className="text-right">
+                      <div className="h-5 w-24 bg-white/10 rounded" />
+                      <div className="mt-1 h-4 w-20 bg-white/5 rounded" />
+                    </div>
                   </div>
                 </div>
+              ))}
+            </div>
+          ) : (
+            <div className="mt-6 grid gap-3 lg:grid-cols-2 max-h-[500px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent">
+              {volatileAssets.map((asset) => (
+                <Link
+                  key={asset.symbol}
+                  href={`/explorer/${asset.symbol}`}
+                  className="rounded-[1.25rem] border border-white/8 bg-slate-950/25 px-3 py-2 transition hover:bg-white/[0.04] hover:border-emerald-300/30"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-base font-semibold text-white">{asset.symbol}</p>
+                      <p className="mt-1 truncate text-sm text-slate-500">{asset.name || "Activo monitoreado"}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-base font-semibold text-white">{formatCurrency(asset.price)}</p>
+                      <p
+                        className={
+                          asset.changePercent >= 0
+                            ? "mt-1 text-base font-semibold text-emerald-300"
+                            : "mt-1 text-base font-semibold text-rose-300"
+                        }
+                      >
+                        {formatSignedPercent(asset.changePercent)}
+                      </p>
+                      <p className="mt-1 text-sm text-slate-500">{formatSignedCurrency(asset.changeValue)}</p>
+                    </div>
+                  </div>
 
-                <div className="mt-2 text-[10px] uppercase tracking-[0.22em] text-slate-500">
-                  Volumen operado: {formatMetricVolume(asset.volume)}
+                  <div className="mt-3 flex items-center justify-end">
+                    <ExternalLink className="h-4 w-4 text-slate-500 hover:text-emerald-300 transition" />
+                  </div>
+                </Link>
+              ))}
+              {volatileAssets.length === 0 && (
+                <div className="rounded-[1.1rem] border border-dashed border-white/10 bg-slate-950/25 px-4 py-6 text-sm text-slate-400 lg:col-span-2">
+                  No hay suficientes datos de mercado para calcular volatilidad ahora mismo.
                 </div>
-                
-                <div className="mt-3 flex items-center justify-end">
-                  <ExternalLink className="h-4 w-4 text-slate-500 hover:text-emerald-300 transition" />
-                </div>
-              </Link>
-            ))}
-            {volatileAssets.length === 0 && (
-              <div className="rounded-[1.1rem] border border-dashed border-white/10 bg-slate-950/25 px-4 py-6 text-sm text-slate-400 lg:col-span-2">
-                No hay suficientes datos de mercado para calcular volatilidad ahora mismo.
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
         </motion.section>
       </div>
     </motion.div>

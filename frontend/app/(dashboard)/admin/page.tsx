@@ -44,12 +44,30 @@ const ADMIN_DEACTIVATE_MUTATION = gql`
 const SYSTEM_METRICS_QUERY = gql`
   query SystemMetrics {
     assetMovers(sort: "volatile", limit: 10) {
-      symbol
-      name
-      price
-      changePercent
-      changeValue
-      volume
+      topGainers {
+        symbol
+        name
+        price
+        changePercent
+        changeValue
+        volume
+      }
+      topLosers {
+        symbol
+        name
+        price
+        changePercent
+        changeValue
+        volume
+      }
+      mostTraded {
+        symbol
+        name
+        price
+        changePercent
+        changeValue
+        volume
+      }
     }
     assetsByCategory(category: "STOCKS") {
       symbol
@@ -119,7 +137,10 @@ export default function AdminPage() {
   };
 
   const users: User[] = usersData?.adminUsers || [];
-  const movers: AssetMover[] = metricsData?.assetMovers || [];
+  const assetMoversData = metricsData?.assetMovers;
+  const movers: AssetMover[] = assetMoversData 
+    ? [...(assetMoversData.topGainers ?? []), ...(assetMoversData.topLosers ?? []), ...(assetMoversData.mostTraded ?? [])]
+    : [];
   const stocks: Asset[] = metricsData?.assetsByCategory || [];
 
   const activeUsers = users.filter(u => u.active).length;

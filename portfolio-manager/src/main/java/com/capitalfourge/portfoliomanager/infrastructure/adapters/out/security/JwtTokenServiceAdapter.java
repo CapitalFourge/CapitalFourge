@@ -25,10 +25,10 @@ public class JwtTokenServiceAdapter implements TokenService {
     private final long refreshExpirationMs;
 
     public JwtTokenServiceAdapter(
-            @Value("${jwt.secret}") String secret,
-            @Value("${jwt.issuer}") String issuer,
-            @Value("${jwt.access-expiration-ms}") long accessExpirationMs,
-            @Value("${jwt.refresh-expiration-ms}") long refreshExpirationMs) {
+            @Value("${spring.jwt.secret}") String secret,
+            @Value("${spring.jwt.issuer}") String issuer,
+            @Value("${spring.jwt.access-expiration-ms}") long accessExpirationMs,
+            @Value("${spring.jwt.refresh-expiration-ms}") long refreshExpirationMs) {
 
         // P1-11: Fail fast if JWT secret < 256 bits (32 bytes)
         if (secret == null || secret.getBytes(StandardCharsets.UTF_8).length < 32) {

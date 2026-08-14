@@ -33,9 +33,19 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL!;
 
+// Use Next.js API routes as proxies to avoid CORS issues and undefined URLs
+const getApiUrl = (path: string) => {
+  if (typeof window !== "undefined") {
+    // Client-side: use relative paths to Next.js API routes
+    return `/api${path}`;
+  }
+  // Server-side: use full backend URL
+  return `${API_BASE_URL}${path}`;
+};
+
 // Async functions defined OUTSIDE component - no useCallback issues
 async function loginCall(email: string, password: string) {
-  const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
+  const res = await fetch(getApiUrl("/auth/login"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
@@ -48,12 +58,16 @@ async function loginCall(email: string, password: string) {
 }
 
 async function logoutCall(userId: string) {
-  await fetch(`${API_BASE_URL}/api/auth/logout/${userId}`, { method: "POST" }).catch(() => {});
+  await fetch(getApiUrl("/auth/logout"), { 
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId })
+  }).catch(() => {});
 }
 
 async function fetchUserMe(accessToken: string): Promise<User | null> {
   try {
-    const res = await fetch(`${API_BASE_URL}/api/users/me`, {
+    const res = await fetch(getApiUrl("/users/me"), {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
     if (res.ok) return res.json();
@@ -62,7 +76,7 @@ async function fetchUserMe(accessToken: string): Promise<User | null> {
 }
 
 async function refreshTokenCall(refreshToken: string) {
-  const res = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
+  const res = await fetch(getApiUrl("/auth/refresh"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ refreshToken }),

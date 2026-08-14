@@ -6,12 +6,14 @@ from fastapi import FastAPI, Depends, HTTPException, Security
 from fastapi.security import APIKeyHeader
 from dotenv import load_dotenv
 import threading
+from apscheduler.schedulers.background import BackgroundScheduler
 from src.infrastructure.grpc_server import serve
 from src.infrastructure.mongo_repository import MongoFinancialDataRepository
 from src.infrastructure.polars_processor import PolarsDataProcessor
 from src.application.services import FinancialDataService
 from src.application.price_oracle import PriceOracle
 from src.infrastructure.finnhub_client import get_news, get_sentiment, get_market_news
+from src.infrastructure.fmp_client import fetch_all_market_movers
 
 load_dotenv(dotenv_path="../.env")
 app = FastAPI(title="Capital Fourge Data Collector")
@@ -65,9 +67,35 @@ oracle = PriceOracle(
     connect_local=not is_render,  # Disable local Redis on Render
     allow_no_redis=allow_no_redis  # Allow running without Redis on Render
 )
-print("🛰️ Iniciando servidor gRPC en hilo secundario...")
+print("������� Iniciando servidor gRPC en hilo secundario...")
 grpc_thread = threading.Thread(target=serve, daemon=True)
 grpc_thread.start()
+
+# Scheduler for pre-computing market movers every 15 minutes
+def update_market_movers_job():
+    """Background job to fetch and save market movers from FMP."""
+    if repo is None:
+        print("������  MongoDB not available, skipping market movers update")
+        return
+    try:
+        print("���� Fetching market movers from FMP...")
+        movers = fetch_all_market_movers(limit_per_category=20)
+        total = sum(len(v) for v in movers.values())
+        if total > 0:
+            repo.save_market_movers(movers)
+            print(f"��� Saved {total} market movers (gainers: {len(movers['gainers'])}, losers: {len(movers['losers'])}, most_active: {len(movers['most_active'])})")
+        else:
+            print("������  No market movers fetched from FMP")
+    except Exception as e:
+        print(f"��� Error updating market movers: {e}")
+
+scheduler = BackgroundScheduler(daemon=True)
+scheduler.add_job(update_market_movers_job, "interval", minutes=20, id="market_movers", max_instances=1)
+scheduler.start()
+print("��� Market movers scheduler started (every 20 minutes)")
+
+# Run once on startup
+update_market_movers_job()
 
 @app.get("/")
 def root():
@@ -342,57 +370,31 @@ def get_asset_name(symbol: str):
 
 @app.get("/assets/movers", dependencies=[Depends(require_api_key)])
 def get_asset_movers(category: str = "STOCKS", sort: str = "volatile", limit: int = 8):
-    """Get top movers by volatility or volume for a category."""
-    assets = get_categorized_assets(category)
-    if not assets:
-        return []
+    """Get top movers from pre-computed MongoDB data (fast, no yfinance calls)."""
+    if repo is None:
+        return {"error": "MongoDB not available", "gainers": [], "losers": [], "most_active": []}
     
-    results = []
-    for asset in assets:
-        try:
-            import yfinance as yf
-            yf_symbol = resolve_yfinance_symbol(asset["symbol"])
-            ticker = yf.Ticker(yf_symbol)
-            hist = ticker.history(period="5d")
-            
-            if len(hist) >= 2:
-                current_price = float(hist['Close'].iloc[-1])
-                prev_price = float(hist['Close'].iloc[-2])
-                change_value = current_price - prev_price
-                change_percent = (change_value / prev_price) * 100 if prev_price > 0 else 0
-                volume = float(hist['Volume'].iloc[-1]) if 'Volume' in hist.columns else 0
-                
-                # Calculate volatility (std dev of daily returns over 5 days)
-                if len(hist) >= 3:
-                    returns = hist['Close'].pct_change().dropna()
-                    volatility = float(returns.std() * 100) if len(returns) > 1 else 0
-                else:
-                    volatility = abs(change_percent)
-                
-                results.append({
-                    "symbol": asset["symbol"],
-                    "name": asset["name"],
-                    "price": current_price,
-                    "changePercent": round(change_percent, 2),
-                    "changeValue": round(change_value, 2),
-                    "volume": volume,
-                    "volatility": round(volatility, 2)
-                })
-        except Exception as e:
-            print(f"Error calculating movers for {asset['symbol']}: {e}")
-            continue
+    movers_data = repo.get_market_movers()
+    if not movers_data:
+        return {"gainers": [], "losers": [], "most_active": [], "updated_at": None}
     
-    # Sort by requested criteria
-    if sort == "volatile":
-        results.sort(key=lambda x: x["volatility"], reverse=True)
-    elif sort == "gainers":
-        results.sort(key=lambda x: x["changePercent"], reverse=True)
-    elif sort == "losers":
-        results.sort(key=lambda x: x["changePercent"])
-    elif sort == "volume":
-        results.sort(key=lambda x: x["volume"], reverse=True)
+    # Select the right list based on sort parameter
+    if sort == "gain" or sort == "gainers":
+        results = movers_data.get("gainers", [])
+    elif sort == "loss" or sort == "losers":
+        results = movers_data.get("losers", [])
+    elif sort == "volume" or sort == "most_active":
+        results = movers_data.get("most_active", [])
+    else:
+        # "volatile" - use most_active as proxy, or combine all
+        results = movers_data.get("most_active", [])
     
-    return results[:limit]
+    return {
+        "gainers": movers_data.get("gainers", [])[:limit],
+        "losers": movers_data.get("losers", [])[:limit],
+        "most_active": movers_data.get("most_active", [])[:limit],
+        "updated_at": movers_data.get("updated_at")
+    }
 
 
 if __name__ == "__main__":

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -202,8 +203,8 @@ public class DataCollectorClientImpl implements DataCollectorClient {
         }
         
         try {
-            // Data collector returns flat list directly (array of AssetMoverDTO)
-            List<AssetMoverDTO> flat = dataCollectorClient.get()
+            // Data collector now returns structured response: {gainers: [], losers: [], most_active: [], updated_at: "..."}
+            Map<String, Object> response = dataCollectorClient.get()
                     .uri(uriBuilder -> uriBuilder
                             .path("/assets/movers")
                             .queryParam("category", category)
@@ -211,33 +212,54 @@ public class DataCollectorClientImpl implements DataCollectorClient {
                             .queryParam("limit", limit)
                             .build())
                     .retrieve()
-                    .body(new ParameterizedTypeReference<List<AssetMoverDTO>>() {});
+                    .body(new ParameterizedTypeReference<Map<String, Object>>() {});
             
-            if (flat == null || flat.isEmpty()) {
+            if (response == null || response.isEmpty()) {
                 return new AssetMoversDTO(List.of(), List.of(), List.of());
             }
             
-            // Sort by volatility descending and categorize
-            List<AssetMoverDTO> sorted = flat.stream()
-                    .sorted((a, b) -> Float.compare(
-                            b.volatility() != null ? b.volatility() : 0f,
-                            a.volatility() != null ? a.volatility() : 0f
-                    ))
-                    .limit(limit)
-                    .collect(Collectors.toList());
+            // Extract the three lists from the structured response
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> gainersRaw = (List<Map<String, Object>>) response.get("gainers");
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> losersRaw = (List<Map<String, Object>>) response.get("losers");
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> mostActiveRaw = (List<Map<String, Object>>) response.get("most_active");
             
-            // Split into gainers/losers/traded based on changePercent
-            List<AssetMoverDTO> gainers = sorted.stream()
-                    .filter(m -> m.changePercent() != null && m.changePercent() > 0)
-                    .collect(Collectors.toList());
-            List<AssetMoverDTO> losers = sorted.stream()
-                    .filter(m -> m.changePercent() != null && m.changePercent() < 0)
-                    .collect(Collectors.toList());
-            List<AssetMoverDTO> traded = sorted.stream()
-                    .filter(m -> m.changePercent() != null && m.changePercent() == 0)
-                    .collect(Collectors.toList());
+            // Convert raw maps to AssetMoverDTO
+            List<AssetMoverDTO> gainers = convertToAssetMoverDTO(gainersRaw);
+            List<AssetMoverDTO> losers = convertToAssetMoverDTO(losersRaw);
+            List<AssetMoverDTO> traded = convertToAssetMoverDTO(mostActiveRaw);
             
-            AssetMoversDTO result = new AssetMoversDTO(gainers, losers, traded);
+            // If sort is "volatile" or "gain"/"loss", use the appropriate list
+            // The data collector already returns them pre-sorted by FMP
+            List<AssetMoverDTO> resultGainers, resultLosers, resultTraded;
+            
+            if ("gain".equals(sort) || "gainers".equals(sort)) {
+                resultGainers = gainers;
+                resultLosers = losers;
+                resultTraded = traded;
+            } else if ("loss".equals(sort) || "losers".equals(sort)) {
+                resultGainers = gainers;
+                resultLosers = losers;
+                resultTraded = traded;
+            } else if ("volume".equals(sort) || "most_active".equals(sort)) {
+                resultGainers = gainers;
+                resultLosers = losers;
+                resultTraded = traded;
+            } else {
+                // "volatile" - use most_active as the primary, but include all
+                resultGainers = gainers;
+                resultLosers = losers;
+                resultTraded = traded;
+            }
+            
+            // Limit each list
+            if (resultGainers.size() > limit) resultGainers = resultGainers.subList(0, limit);
+            if (resultLosers.size() > limit) resultLosers = resultLosers.subList(0, limit);
+            if (resultTraded.size() > limit) resultTraded = resultTraded.subList(0, limit);
+            
+            AssetMoversDTO result = new AssetMoversDTO(resultGainers, resultLosers, resultTraded);
             
             // Cache the result
             try {
@@ -250,7 +272,25 @@ public class DataCollectorClientImpl implements DataCollectorClient {
             return result;
         } catch (Exception e) {
             System.out.println("DATA COLLECTOR ERROR: " + e.getMessage());
+            e.printStackTrace();
             return new AssetMoversDTO(List.of(), List.of(), List.of());
         }
+    }
+    
+    private List<AssetMoverDTO> convertToAssetMoverDTO(List<Map<String, Object>> rawList) {
+        if (rawList == null) return List.of();
+        return rawList.stream()
+                .map(map -> new AssetMoverDTO(
+                        (String) map.get("symbol"),
+                        (String) map.get("name"),
+                        map.get("price") != null ? ((Number) map.get("price")).floatValue() : 0f,
+                        map.get("changePercent") != null ? ((Number) map.get("changePercent")).floatValue() : 0f,
+                        map.get("changeValue") != null ? ((Number) map.get("changeValue")).floatValue() : 0f,
+                        map.get("volume") != null ? ((Number) map.get("volume")).floatValue() : 0f,
+                        map.get("changePercent24h") != null ? ((Number) map.get("changePercent24h")).floatValue() : 0f,
+                        map.get("volume24h") != null ? ((Number) map.get("volume24h")).floatValue() : 0f,
+                        map.get("volatility") != null ? ((Number) map.get("volatility")).floatValue() : 0f
+                ))
+                .collect(Collectors.toList());
     }
 }

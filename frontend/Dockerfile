@@ -1,5 +1,8 @@
 FROM node:20-alpine
 
+ARG NEXT_PUBLIC_API_BASE_URL
+ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
+
 WORKDIR /app
 
 # Install dependencies based on the preferred package manager
@@ -14,13 +17,13 @@ RUN \
 # Copy the rest of the application code
 COPY . .
 
-# Expose port and start development server
+# Build for production
+RUN npm run build
+
+# Expose port and start production server
 EXPOSE 3000
 
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# Set Next.js to use polling if on Windows (uncomment if hot-reload doesn't work)
-# ENV WATCHPACK_POLLING=true
-
-CMD ["npm", "run", "dev"]
+CMD ["npm", "start"]

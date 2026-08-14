@@ -72,6 +72,29 @@ services:
           memory: 1G
 
   # ─────────────────────────────────────────────────────────────
+  # MONGODB 7 (for market movers cache)
+  # ─────────────────────────────────────────────────────────────
+  mongodb:
+    image: mongo:7
+    container_name: cf-mongodb
+    restart: unless-stopped
+    volumes:
+      - mongodb_data:/data/db
+    ports:
+      - "27017:27017"
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+
+  # ─────────────────────────────────────────────────────────────
   # SPRING BOOT - Portfolio Manager
   # ─────────────────────────────────────────────────────────────
   portfolio-manager:
@@ -137,13 +160,15 @@ services:
     environment:
       # API Key for internal services
       SERVICE_API_KEY: ${DATA_COLLECTOR_API_KEY}
-      # MongoDB (optional - for historical data)
-      DB_MONGO_HOST: ${DB_MONGO_HOST:-}
+      # MongoDB (local container via docker network)
+      DB_MONGO_HOST: mongodb://mongodb:27017
       DB_MONGO_ROOT_PASSWORD: ${DB_MONGO_ROOT_PASSWORD:-}
       # Redis
       SPRING_REDIS_URL: redis://redis:6379
       DB_REDIS_HOST: redis
       DB_REDIS_PASSWORD: ""
+      # FMP API Key for market movers
+      FMP_API_KEY: ${FMP_API_KEY:-}
       # Port
       PORT: "8000"
       RENDER: "false"
@@ -151,6 +176,8 @@ services:
       - "8000:8000"
     depends_on:
       redis:
+        condition: service_healthy
+      mongodb:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
@@ -254,6 +281,7 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  mongodb_data:
   caddy_data:
   caddy_config:
   prometheus_data:

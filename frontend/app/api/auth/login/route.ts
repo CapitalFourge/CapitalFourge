@@ -1,15 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL!;
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     console.log("[Login Proxy] Request body:", JSON.stringify(body));
     console.log("[Login Proxy] API_BASE_URL:", API_BASE_URL);
+    console.log("[Login Proxy] Env vars available:", Object.keys(process.env).filter(k => k.includes('API') || k.includes('NEXT')));
+
+    if (!API_BASE_URL) {
+      console.error("[Login Proxy] API_BASE_URL is undefined!");
+      return NextResponse.json(
+        { message: "Configuración del servidor inválida" },
+        { status: 500 }
+      );
+    }
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000);
+    const timeoutId = setTimeout(() => controller.abort(), 25000);
 
     let response: Response;
     try {

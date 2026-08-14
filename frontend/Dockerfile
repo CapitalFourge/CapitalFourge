@@ -1,29 +1,38 @@
-FROM node:20-alpine
+# Multi-stage build for smaller production image
+FROM node:20-alpine AS base
 
+# Install pnpm
+RUN npm install -g pnpm
+
+FROM base AS deps
+WORKDIR /app
+COPY package.json pnpm-lock.yaml* ./
+RUN pnpm install --frozen-lockfile
+
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
 ARG NEXT_PUBLIC_API_BASE_URL
 ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
+RUN pnpm build
 
+FROM base AS runner
 WORKDIR /app
-
-# Install dependencies based on the preferred package manager
-COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
-
-RUN \
-  if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
-  elif [ -f pnpm-lock.yaml ]; then npm install -g pnpm && pnpm i --no-frozen-lockfile; \
-  else npm ci; \
-  fi
-
-# Copy the rest of the application code
-COPY . .
-
-# Build for production
-RUN npm run build
-
-# Expose port and start production server
-EXPOSE 3000
-
+ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-CMD ["npm", "start"]
+# Create non-root user
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+USER nextjs
+
+EXPOSE 3000
+
+CMD ["node", "server.js"]

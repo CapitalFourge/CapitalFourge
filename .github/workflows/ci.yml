@@ -219,7 +219,7 @@ jobs:
       - name: Build frontend
         working-directory: ./frontend
         env:
-          NEXT_PUBLIC_API_BASE_URL: http://localhost:10000
+          NEXT_PUBLIC_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
         run: pnpm build
 
   # ──────────────────────────────────────────────────────────────────
@@ -288,7 +288,7 @@ jobs:
       - name: Build frontend
         working-directory: ./frontend
         env:
-          NEXT_PUBLIC_API_BASE_URL: http://localhost:10000
+          NEXT_PUBLIC_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
         run: pnpm build
 
       # Start data-collector mock (port 8000)
@@ -567,7 +567,7 @@ jobs:
     name: Docker Build & Push
     needs: [backend-test, data-collector-test, frontend-unit-test]
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
     if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
     permissions:
       contents: read
@@ -629,6 +629,29 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Extract metadata for frontend
+        id: meta-fe
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}/frontend
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix=
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta-fe.outputs.tags }}
+          labels: ${{ steps.meta-fe.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            NEXT_PUBLIC_API_BASE_URL=${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
+
   # ──────────────────────────────────────────────────────────────────
   # DEPLOY - VPS (on merge to main)
   # ──────────────────────────────────────────────────────────────────
@@ -664,7 +687,7 @@ jobs:
   # ──────────────────────────────────────────────────────────────────
   deploy-vercel:
     name: Deploy Frontend to Vercel
-    needs: frontend-build
+    needs: docker-build
     runs-on: ubuntu-latest
     timeout-minutes: 10
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -679,6 +702,8 @@ jobs:
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Build Project Artifacts
+        env:
+          NEXT_PUBLIC_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
         run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Deploy Project Artifacts to Vercel

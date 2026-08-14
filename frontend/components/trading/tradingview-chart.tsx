@@ -136,8 +136,9 @@ export function TradingViewChart({
          'wma': 'MAWeighted@tv-basicstudies',
          'roc': 'ROC@tv-basicstudies',
          'macd': 'MACD@tv-basicstudies',
-         'bb': 'BB@tv-basicstudies',
-         'stoch': 'Stochastic@tv-basicstudies',
+         'bollinger': 'BB@tv-basicstudies',
+         'stochastic': 'Stochastic@tv-basicstudies',
+         'obv': 'OBV@tv-basicstudies',
        };
        
        const studies = indicators.map(id => studyMap[id]).filter(Boolean);
@@ -183,8 +184,9 @@ export function TradingViewChart({
           'wma': 'MAWeighted@tv-basicstudies',
           'roc': 'ROC@tv-basicstudies',
           'macd': 'MACD@tv-basicstudies',
-          'bb': 'BB@tv-basicstudies',
-          'stoch': 'Stochastic@tv-basicstudies',
+          'bollinger': 'BB@tv-basicstudies',
+          'stochastic': 'Stochastic@tv-basicstudies',
+          'obv': 'OBV@tv-basicstudies',
         };
         
         const studies = indicators.map(id => studyMap[id]).filter(Boolean);

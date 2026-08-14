@@ -86,35 +86,68 @@ async function refreshTokenCall(refreshToken: string) {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [refreshToken, setRefreshToken] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Lazy initializers to avoid setState in effect for initial load
+  const [user, setUser] = useState<User | null>(() => {
+    if (typeof window !== "undefined") {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        try {
+          return JSON.parse(storedUser);
+        } catch {
+          return null;
+        }
+      }
+    }
+    return null;
+  });
+
+  const [accessToken, setAccessToken] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("access_token");
+    }
+    return null;
+  });
+
+  const [refreshToken, setRefreshToken] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("refresh_token");
+    }
+    return null;
+  });
+
+  const [loading] = useState(() => {
+    // On server: true (we need to wait for client init)
+    // On client: false (we'll use lazy initializers for user/token)
+    return typeof window === "undefined";
+  });
   const [refreshing, setRefreshing] = useState(false);
 
-  const userRef = useRef(user);
-  const accessTokenRef = useRef(accessToken);
-  const refreshTokenRef = useRef(refreshToken);
-  const refreshingRef = useRef(refreshing);
+  const userRef = useRef<User | null>(null);
+  const accessTokenRef = useRef<string | null>(null);
+  const refreshTokenRef = useRef<string | null>(null);
+  const refreshingRef = useRef(false);
   const logoutRef = useRef<() => void>(() => {});
 
-  userRef.current = user;
-  accessTokenRef.current = accessToken;
-  refreshTokenRef.current = refreshToken;
-  refreshingRef.current = refreshing;
-
-  // Initialize from localStorage on client
+  // Sync refs with state
   useEffect(() => {
-    const storedAccess = localStorage.getItem("access_token");
-    const storedRefresh = localStorage.getItem("refresh_token");
-    const storedUser = localStorage.getItem("user");
+    userRef.current = user;
+  }, [user]);
 
-    if (storedAccess && storedRefresh && storedUser) {
-      setAccessToken(storedAccess);
-      setRefreshToken(storedRefresh);
-      setUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
+  useEffect(() => {
+    accessTokenRef.current = accessToken;
+  }, [accessToken]);
+
+  useEffect(() => {
+    refreshTokenRef.current = refreshToken;
+  }, [refreshToken]);
+
+  useEffect(() => {
+    refreshingRef.current = refreshing;
+  }, [refreshing]);
+
+  // Initialize loading state on client
+  useEffect(() => {
+    // Only runs on client, loading already initialized to false via lazy initializer
   }, []);
 
   // Logout - sync, no async in useCallback
@@ -130,7 +163,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem("user");
   }, []);
 
-  logoutRef.current = logout;
+  // Sync logout ref
+  useEffect(() => {
+    logoutRef.current = logout;
+  }, [logout]);
 
   // Refresh access token - sync trigger, async in useEffect
   const refreshAccessToken = useCallback(() => {

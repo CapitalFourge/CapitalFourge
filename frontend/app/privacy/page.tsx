@@ -3,7 +3,6 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowLeft, Shield } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 export default function PrivacyPage() {
   return (
@@ -33,7 +32,7 @@ export default function PrivacyPage() {
           <section>
             <h2 className="text-xl font-semibold text-white mb-4">1. Responsable del tratamiento</h2>
             <p className="text-slate-300 leading-7">
-              Capital Fourge (en adelante, "la Plataforma"), con domicilio en Buenos Aires, Argentina,
+              Capital Fourge (en adelante, &ldquo;la Plataforma&rdquo;), con domicilio en Buenos Aires, Argentina,
               correo de contacto: <a href="mailto:hola@capitalfourge.com" className="text-emerald-200 hover:underline">hola@capitalfourge.com</a>.
             </p>
           </section>
@@ -86,7 +85,7 @@ export default function PrivacyPage() {
               <li>Retirar consentimiento (analítica) en cualquier momento.</li>
               <li>Reclamación ante autoridad de control (AAIP en Argentina, AEPD en España).</li>
             </ul>
-            <p className="mt-3 text-slate-300">Ejercicio: escribe a <a href="mailto:hola@capitalfourge.com" className="text-emerald-200 hover:underline">hola@capitalfourge.com</a> con asunto "Derechos ARCO / GDPR".</p>
+            <p className="mt-3 text-slate-300">Ejercicio: escribe a <a href="mailto:hola@capitalfourge.com" className="text-emerald-200 hover:underline">hola@capitalfourge.com</a> con asunto &ldquo;Derechos ARCO / GDPR&rdquo;.</p>
           </section>
 
           <section>

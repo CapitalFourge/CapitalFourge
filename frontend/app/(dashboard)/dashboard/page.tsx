@@ -79,15 +79,6 @@ interface Portfolio {
   positions: Position[];
 }
 
-interface AssetMover {
-  symbol: string;
-  name?: string | null;
-  price: number;
-  changePercent: number;
-  changeValue: number;
-  volume: number;
-}
-
 const container = {
   hidden: { opacity: 0 },
   show: {
@@ -111,11 +102,6 @@ const formatCurrency = (value: number) =>
 
 const formatSignedPercent = (value: number) => `${value >= 0 ? "+" : ""}${value.toFixed(2)}%`;
 const formatSignedCurrency = (value: number) => `${value >= 0 ? "+" : "-"}${formatCurrency(Math.abs(value))}`;
-const formatMetricVolume = (value: number) =>
-  value.toLocaleString("en-US", {
-    minimumFractionDigits: value >= 100 ? 0 : 2,
-    maximumFractionDigits: value >= 100 ? 0 : 2,
-  });
 
 export default function DashboardPage() {
   const [volatilitySort, setVolatilitySort] = useState<"volatile" | "gain" | "loss">("volatile");

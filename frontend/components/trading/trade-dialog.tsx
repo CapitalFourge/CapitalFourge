@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { ShoppingCart, TrendingDown } from "lucide-react";
 import { toast } from "sonner";
@@ -203,11 +203,12 @@ export function TradeDialog({
   onOpenChange,
 }: TradeDialogProps) {
   const [internalOpen, setInternalOpen] = useState(false);
+  // Lazy initializers - avoid setState in effects
   const [type, setType] = useState<"buy" | "sell">(defaultType);
   const [orderType, setOrderType] = useState<"market" | "limit">("market");
   const [tradingMode, setTradingMode] = useState<"quantity" | "usd">("quantity");
-  const [portfolioId, setPortfolioId] = useState(portfolios[0]?.id ?? "");
-  const [symbol, setSymbol] = useState(initialSymbol);
+  const [portfolioId, setPortfolioId] = useState(() => portfolios[0]?.id ?? "");
+  const [symbol, setSymbol] = useState(() => initialSymbol.toUpperCase());
   const [quantity, setQuantity] = useState("");
   const [usdAmount, setUsdAmount] = useState("");
   const [price, setPrice] = useState("");
@@ -224,20 +225,6 @@ export function TradeDialog({
       onClose?.();
     }
   };
-
-  useEffect(() => {
-    if (!portfolioId && portfolios[0]?.id) {
-      setPortfolioId(portfolios[0].id);
-    }
-  }, [portfolioId, portfolios]);
-
-  useEffect(() => {
-    setType(defaultType);
-  }, [defaultType]);
-
-  useEffect(() => {
-    setSymbol(initialSymbol);
-  }, [initialSymbol]);
 
   const currentPortfolioPositions = useMemo(
     () => portfolioPositions?.get(portfolioId) ?? portfolios.find((portfolio) => portfolio.id === portfolioId)?.positions ?? [],

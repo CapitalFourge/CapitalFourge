@@ -32,7 +32,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-xl font-semibold text-white mb-4">1. Aceptación de los términos</h2>
             <p className="text-slate-300 leading-7">
-              Al crear una cuenta o usar Capital Fourge ("la Plataforma"), aceptas estos Términos y la
+              Al crear una cuenta o usar Capital Fourge (&ldquo;la Plataforma&rdquo;), aceptas estos Términos y la
               <Link href="/privacy" className="text-emerald-200 hover:underline">Política de Privacidad</Link>.
               Si no estás de acuerdo, no uses el servicio.
             </p>
@@ -60,7 +60,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-xl font-semibold text-white mb-4">4. Propiedad intelectual</h2>
             <p className="text-slate-300 leading-7 mb-3">
-              La Plataforma, su código, diseño, contenidos educativos, estrategias de ejemplo y marca "Capital Fourge" son propiedad nuestra o licenciada.
+              La Plataforma, su código, diseño, contenidos educativos, estrategias de ejemplo y marca &ldquo;Capital Fourge&rdquo; son propiedad nuestra o licenciada.
             </p>
             <ul className="space-y-2 text-slate-300 leading-7 list-disc list-inside">
               <li>Puedes usar la plataforma para tu aprendizaje personal.</li>
@@ -83,7 +83,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-xl font-semibold text-white mb-4">6. Descargo de responsabilidad</h2>
             <p className="text-slate-300 leading-7 mb-3">
-              <strong>LA PLATAFORMA SE PROPORCIONA "TAL CUAL" SIN GARANTÍAS DE NINGÚN TIPO.</strong>
+              <strong>LA PLATAFORMA SE PROPORCIONA &ldquo;TAL CUAL&rdquo; SIN GARANTÍAS DE NINGÚN TIPO.</strong>
             </p>
             <ul className="space-y-2 text-slate-300 leading-7 list-disc list-inside">
               <li>No garantizamos disponibilidad ininterrumpida, ausencia de errores, ni exactitud de datos de mercado.</li>

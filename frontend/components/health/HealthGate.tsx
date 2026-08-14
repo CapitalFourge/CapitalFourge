@@ -24,12 +24,16 @@ async function doHealthCheck(): Promise<HealthCheck> {
 
 export function HealthGate({ children }: { children: ReactNode }) {
   const [health, setHealth] = useState<HealthCheck | null>(null);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  const [trigger, setTrigger] = useState(0);
+  const [trigger, setTrigger] = useState(() => (typeof window !== "undefined" ? 1 : 0));
   const cancelledRef = useRef(false);
+
+  // Lazy initializers - avoid setState in effects
+  const [mounted, setMounted] = useState(() => typeof window !== "undefined");
+
+  // Loading is derived from trigger state (0 = initial, >0 = checking or done)
+  const loading = trigger > 0 && !health;
 
   // Sync callback that triggers async via state
   const checkHealth = useCallback(() => {
@@ -41,8 +45,6 @@ export function HealthGate({ children }: { children: ReactNode }) {
     if (trigger === 0) return; // Skip initial render
 
     cancelledRef.current = false;
-    setLoading(true);
-    setError(null);
 
     const runCheck = async () => {
       try {
@@ -51,15 +53,13 @@ export function HealthGate({ children }: { children: ReactNode }) {
           setHealth(data);
           if (data.status !== "UP") {
             setError("Algunos servicios no están listos");
+          } else {
+            setError(null);
           }
         }
       } catch (err) {
         if (!cancelledRef.current) {
           setError(err instanceof Error ? err.message : "Error de conexión");
-        }
-      } finally {
-        if (!cancelledRef.current) {
-          setLoading(false);
         }
       }
     };
@@ -72,11 +72,9 @@ export function HealthGate({ children }: { children: ReactNode }) {
   }, [trigger]);
 
   useEffect(() => {
-    setMounted(true);
-    checkHealth();
-    const interval = setInterval(checkHealth, 30000);
+    const interval = setInterval(() => setTrigger(t => t + 1), 30000);
     return () => clearInterval(interval);
-  }, [checkHealth]);
+  }, []);
 
   const allUp = health?.status === "UP";
 

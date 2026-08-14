@@ -157,9 +157,10 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<TabKey>("profile");
   const { data, loading, error, refetch } = useQuery(ME_QUERY);
 
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [language, setLanguage] = useState("ES");
+  // Local form state initialized from query data
+  const [username, setUsername] = useState(data?.me?.username ?? "");
+  const [email, setEmail] = useState(data?.me?.email ?? "");
+  const [language, setLanguage] = useState(data?.me?.language ?? "ES");
 
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -200,14 +201,6 @@ export default function SettingsPage() {
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const feedbacks = data?.myFeedbacks || [];
-
-  React.useEffect(() => {
-    if (data?.me) {
-      setUsername(data.me.username);
-      setEmail(data.me.email);
-      setLanguage(data.me.language || "ES");
-    }
-  }, [data]);
 
   const handleUpdateProfile = async (event: React.FormEvent) => {
     event.preventDefault();

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 
 interface HealthStatus {
   status: 'UP' | 'DOWN' | 'UNKNOWN';
@@ -12,9 +12,11 @@ interface HealthStatus {
 
 export function useHealthCheck() {
   const [health, setHealth] = useState<HealthStatus | null>(null);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [trigger, setTrigger] = useState(0);
+  const [trigger, setTrigger] = useState(() => (typeof window !== "undefined" ? 1 : 0));
+
+  // Lazy initializers - avoid setState in effects
+  const loading = trigger > 0 && !health;
 
   // Async function OUTSIDE useCallback
   async function doHealthCheck() {
@@ -47,11 +49,14 @@ export function useHealthCheck() {
 
     const runCheck = async () => {
       try {
-        setLoading(true);
-        setError(null);
         const data = await doHealthCheck();
         if (!isCancelled) {
           setHealth(data);
+          if (data.status !== 'UP') {
+            setError('Health check failed');
+          } else {
+            setError(null);
+          }
         }
       } catch (err) {
         if (!isCancelled) {
@@ -61,10 +66,6 @@ export function useHealthCheck() {
             checks: {},
             timestamp: new Date().toISOString(),
           });
-        }
-      } finally {
-        if (!isCancelled) {
-          setLoading(false);
         }
       }
     };
@@ -78,10 +79,9 @@ export function useHealthCheck() {
 
   // Poll health every 30 seconds
   useEffect(() => {
-    checkHealth();
-    const interval = setInterval(checkHealth, 30000);
+    const interval = setInterval(() => setTrigger(t => t + 1), 30000);
     return () => clearInterval(interval);
-  }, [checkHealth]);
+  }, []);
 
   const isReady = health?.status === 'UP' &&
     health.checks?.database?.status === 'UP' &&

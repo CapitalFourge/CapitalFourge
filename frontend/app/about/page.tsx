@@ -2,8 +2,7 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import Image from "next/image";
-import { ArrowLeft, ArrowRight, BookOpen, CheckCircle2, Globe, Shield, Sparkles, Target, Users } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, Globe, Shield, Sparkles, Target, Users } from "lucide-react";
 
 const values = [
   { icon: Target, title: "Enfoque realista", desc: "Simulamos condiciones reales: spreads, slippage, comisiones, horarios de mercado. Nada de datos perfectos." },
@@ -184,17 +183,17 @@ export default function AboutPage() {
             <div className="relative max-w-3xl">
               <p className="eyebrow mb-4">Filosofía</p>
               <h2 className="text-3xl font-semibold tracking-[-0.03em] text-white mb-6 md:text-4xl">
-                "El mercado no premia la suerte. Premia el proceso."
+                &ldquo;El mercado no premia la suerte. Premia el proceso.&rdquo;
               </h2>
               <div className="space-y-4 text-slate-300 leading-8">
                 <p>
-                  La mayoría de plataformas te venden el sueño: señales mágicas, copy-trading, "pasivo" que no lo es.
+                  La mayoría de plataformas te venden el sueño: señales mágicas, copy-trading, &ldquo;pasivo&rdquo; que no lo es.
                   Capital Fourge va en dirección opuesta: te damos las herramientas para que <strong className="text-white">tú construyas tu propio proceso</strong>.
                 </p>
                 <p>
                   Datos limpios. Backtesting honesto (sin look-ahead bias, sin survivorship bias).
                   Métricas de riesgo reales (VaR, CVaR, drawdown path-dependent).
-                  Y una comunidad que pregunta "¿cuál es tu thesis?" en vez de "¿qué compro?".
+                  Y una comunidad que pregunta &ldquo;¿cuál es tu thesis?&rdquo; en vez de &ldquo;¿qué compro?&rdquo;.
                 </p>
                 <p className="pt-4 border-t border-white/10">
                   <span className="font-medium text-emerald-200">Sin datos falsos.</span> Sin backtests de marketing.

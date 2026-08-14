@@ -8,11 +8,20 @@ export async function POST(request: NextRequest) {
     console.log("[Login Proxy] Request body:", JSON.stringify(body));
     console.log("[Login Proxy] API_BASE_URL:", API_BASE_URL);
 
-    const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+    let response: Response;
+    try {
+      response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
 
     console.log("[Login Proxy] Response status:", response.status);
     console.log("[Login Proxy] Response headers:", Object.fromEntries(response.headers.entries()));
@@ -38,6 +47,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(data);
   } catch (error) {
     console.error("Login proxy error:", error);
+    if (error instanceof Error && error.name === "AbortError") {
+      return NextResponse.json(
+        { message: "Timeout conectando con el servidor" },
+        { status: 504 }
+      );
+    }
     return NextResponse.json(
       { message: "Error al iniciar sesión" },
       { status: 500 }

@@ -59,9 +59,13 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of(
+        configuration.setAllowedOriginPatterns(List.of(
                 "https://www.capitalfourge.com",
                 "https://capitalfourge.com",
+                "https://capital-fourge-indol.vercel.app",
+                "https://capitalfourge-git-main.vercel.app",
+                "https://capitalfourge-git-main-*.vercel.app",
+                "https://capitalfourge-*.vercel.app",
                 "http://localhost:3000",
                 "http://localhost:3001",
                 "http://132.145.205.0:3000",

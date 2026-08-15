@@ -9,8 +9,33 @@ import { Button } from '@/components/ui/button';
 import { IndicatorSelector } from '@/components/trading/indicator-selector';
 import { TradingViewChart } from '@/components/trading/tradingview-chart';
 import { FundamentalMetricSelector } from '@/components/trading/fundamental-metric-selector';
+import { TradeDialog } from '@/components/trading/trade-dialog';
 import { FundamentalPricePoint } from '@/lib/types/fundamental-price-point';
 import { useIndicators } from '@/app/(dashboard)/explorer/[symbol]/components/useIndicators';
+
+interface Position {
+  symbol: string;
+  quantity: number;
+  averagePurchasePrice: number;
+  currentPrice?: number;
+}
+
+const PORTFOLIOS_QUERY = gql`
+  query GetPortfolios {
+    portfolios {
+      id
+      name
+      performance
+      positions {
+        id
+        symbol
+        quantity
+        averagePurchasePrice
+        currentPrice
+      }
+    }
+  }
+`;
 
 const ASSET_DATA_QUERY = gql`
   query GetAssetData($symbol: String!) {
@@ -131,6 +156,19 @@ export default function AssetDetailPage() {
   });
   const [selectedInterval] = useState<string>('1D');
 
+  // Fetch portfolios for trade dialog
+  const { data: portfoliosData } = useQuery(PORTFOLIOS_QUERY);
+  const portfolios = portfoliosData?.portfolios || [];
+
+  // Build portfolio positions map for trade dialog
+  const portfolioPositions = useMemo(() => {
+    const map = new Map<string, Position[]>();
+    portfolios.forEach((portfolio: { id: string; positions: Position[] }) => {
+      map.set(portfolio.id, portfolio.positions || []);
+    });
+    return map;
+  }, [portfolios]);
+
   // Persist indicators selection
   useEffect(() => {
     localStorage.setItem(`asset-${symbol}-indicators`, JSON.stringify(activeIndicators));
@@ -206,8 +244,22 @@ export default function AssetDetailPage() {
           Volver al explorador
         </Button>
         <div className="flex items-center gap-4">
-          <Button variant="default" className="text-sm px-4 py-2">Comprar</Button>
-          <Button variant="destructive" className="text-sm px-4 py-2">Vender</Button>
+          <TradeDialog
+            portfolios={portfolios}
+            defaultType="buy"
+            portfolioPositions={portfolioPositions}
+            initialSymbol={symbol}
+          >
+            <Button variant="default" className="text-sm px-4 py-2">Comprar</Button>
+          </TradeDialog>
+          <TradeDialog
+            portfolios={portfolios}
+            defaultType="sell"
+            portfolioPositions={portfolioPositions}
+            initialSymbol={symbol}
+          >
+            <Button variant="destructive" className="text-sm px-4 py-2">Vender</Button>
+          </TradeDialog>
         </div>
       </div>
 

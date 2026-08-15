@@ -7,7 +7,7 @@ import { setAuthCookie } from "@/lib/auth-cookie";
 
 const getGraphQLUri = () => {
   if (typeof window !== "undefined") {
-    return "/api/graphql";
+    return "https://api.capitalfourge.com/graphql";
   }
   return process.env.NEXT_PUBLIC_API_BASE_URL
     ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/graphql`

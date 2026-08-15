@@ -9,9 +9,7 @@ import { Button } from '@/components/ui/button';
 import { IndicatorSelector } from '@/components/trading/indicator-selector';
 import { TradingViewChart } from '@/components/trading/tradingview-chart';
 import { FundamentalMetricSelector } from '@/components/trading/fundamental-metric-selector';
-import { DrawingToolSelector } from '@/components/trading/drawing-tool-selector';
 import { FundamentalPricePoint } from '@/lib/types/fundamental-price-point';
-import { DrawingTool } from '@/lib/chart-drawing-catalog';
 import { useIndicators } from '@/app/(dashboard)/explorer/[symbol]/components/useIndicators';
 
 const ASSET_DATA_QUERY = gql`
@@ -131,8 +129,6 @@ export default function AssetDetailPage() {
     }
     return [];
   });
-  const [showDrawingTools, setShowDrawingTools] = useState<boolean>(false);
-  const [activeDrawingTools, setActiveDrawingTools] = useState<DrawingTool[]>([]);
   const [selectedInterval] = useState<string>('1D');
 
   // Persist indicators selection
@@ -266,14 +262,6 @@ export default function AssetDetailPage() {
               <FundamentalIcon className="h-4 w-4" />
               Fundamentales ({activeFundamentals.length})
             </Button>
-            <Button
-              variant={showDrawingTools ? 'default' : 'outline'}
-              onClick={() => setShowDrawingTools(!showDrawingTools)}
-              className="flex items-center gap-2"
-            >
-              <DrawingIcon className="h-4 w-4" />
-              Dibujar ({activeDrawingTools.length})
-            </Button>
           </div>
 
           <TradingViewChart
@@ -293,13 +281,6 @@ export default function AssetDetailPage() {
             <FundamentalMetricSelector
               selectedMetrics={activeFundamentals}
               onChange={setActiveFundamentals}
-            />
-          )}
-
-          {showDrawingTools && (
-            <DrawingToolSelector
-              selectedTools={activeDrawingTools}
-              onChange={setActiveDrawingTools}
             />
           )}
 
@@ -384,14 +365,5 @@ function FundamentalIcon({ className }: { className: string }) {
   return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
     <path d="M12 2a4 4 0 0 1 0 8 4 4 0 0 1 0-8Z" />
-  </svg>;
-}
-
-function DrawingIcon({ className }: { className: string }) {
-  return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M12 19l7-7 3 3-7 7-3-3Z" />
-    <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5Z" />
-    <path d="M2 2l7.586 7.586" />
-    <circle cx="11" cy="11" r="2" />
   </svg>;
 }

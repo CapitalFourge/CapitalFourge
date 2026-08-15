@@ -66,11 +66,10 @@ const CREATE_LIMIT_ORDER_MUTATION = gql`
 `;
 
 const STOCK_PRICE_QUERY = gql`
-  query StockPrice($symbol: String!) {
-    stockPrice(symbol: $symbol) {
+  query AssetPrice($symbol: String!) {
+    asset(symbol: $symbol) {
       symbol
       price
-      cachedAt
     }
   }
 `;
@@ -238,11 +237,11 @@ export function TradeDialog({
   });
 
   const effectivePrice = useMemo(() => {
-    if (orderType === "market" && priceData?.stockPrice?.price) {
-      return String(priceData.stockPrice.price);
+    if (orderType === "market" && priceData?.asset?.price) {
+      return String(priceData.asset.price);
     }
     return price;
-  }, [orderType, price, priceData?.stockPrice?.price]);
+  }, [orderType, price, priceData?.asset?.price]);
 
   const calculatedQuantity = useMemo(() => {
     if (tradingMode === "usd" && effectivePrice && usdAmount) {
@@ -592,7 +591,7 @@ export function TradeDialog({
             />
             {orderType === "market" && (
               <p className="text-[11px] text-slate-500">
-                {priceLoading && symbol ? "Consultando ultimo precio..." : priceData?.stockPrice?.price ? `Ultimo precio: $${priceData.stockPrice.price.toLocaleString()}${priceData.stockPrice?.cachedAt ? ` (cached: ${new Date(priceData.stockPrice.cachedAt).toLocaleTimeString()})` : ''}` : "Selecciona un simbolo para cargar el precio."}
+                {priceLoading && symbol ? "Consultando ultimo precio..." : priceData?.asset?.price ? `Ultimo precio: $${priceData.asset.price.toLocaleString()}` : "Selecciona un simbolo para cargar el precio."}
               </p>
             )}
           </div>

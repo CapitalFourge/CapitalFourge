@@ -21,9 +21,9 @@ public interface JpaOrderRepository extends JpaRepository<OrderEntity, UUID> {
     @EntityGraph(attributePaths = {"portfolio"}, type = EntityGraph.EntityGraphType.FETCH)
     Page<OrderEntity> findByUserId(UUID userId, Pageable pageable);
 
-    Page<OrderEntity> findByStatus(String status, Pageable pageable);
+    Page<OrderEntity> findByStatus(OrderStatus status, Pageable pageable);
 
     List<OrderEntity> findBySymbol(String symbol);
 
-    List<OrderEntity> findByStatusAndSymbol(String status, String symbol);
+    List<OrderEntity> findByStatusAndSymbol(OrderStatus status, String symbol);
 }

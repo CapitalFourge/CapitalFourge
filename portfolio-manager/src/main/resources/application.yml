@@ -59,6 +59,9 @@ spring:
     access-expiration-ms: ${JWT_ACCESS_EXPIRATION_MS:86400000}
     refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:604800000}
 
+service:
+  api-key: ${SERVICE_API_KEY:internal-service-key}
+
 # gRPC disabled - we use REST to data-collector now
 grpc:
   server:

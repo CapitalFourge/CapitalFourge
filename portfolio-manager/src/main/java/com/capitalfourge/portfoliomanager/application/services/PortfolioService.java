@@ -611,4 +611,148 @@ public class PortfolioService implements PortfolioUseCase {
         order.setStatus(OrderStatus.CANCELLED);
         return orderRepository.save(order);
     }
+
+    @Override
+    @Transactional
+    public Order fillLimitOrder(UUID orderId, UUID userId, BigDecimal fillPrice) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        // Skip ownership check for internal service (userId = all zeros)
+        UUID internalServiceId = UUID.fromString("00000000-0000-0000-0000-000000000000");
+        boolean isInternalService = userId.equals(internalServiceId);
+        
+        if (!isInternalService && !order.getUserId().equals(userId)) {
+            throw new RuntimeException("Order not found or access denied");
+        }
+
+        if (order.getStatus() != OrderStatus.PENDING) {
+            throw new RuntimeException("Only PENDING orders can be filled");
+        }
+
+        if (order.getType() != OrderType.BUY_LIMIT) {
+            throw new RuntimeException("Only BUY_LIMIT orders can be filled by worker");
+        }
+
+        // Release locked balance (targetPrice * quantity)
+        BigDecimal lockAmount = order.getTargetPrice().multiply(order.getQuantity());
+        User user = null;
+        if (!isInternalService) {
+            user = userRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            BigDecimal userLockedBalance = user.getLockedBalance() != null ? user.getLockedBalance() : BigDecimal.ZERO;
+            user.setLockedBalance(userLockedBalance.subtract(lockAmount));
+            userRepository.save(user);
+        }
+
+        // Execute the buy at fillPrice (use cash balance)
+        BigDecimal totalCost = fillPrice.multiply(order.getQuantity());
+        if (!isInternalService) {
+            BigDecimal userCashBalance = user.getCashBalance() != null ? user.getCashBalance() : BigDecimal.ZERO;
+            if (userCashBalance.compareTo(totalCost) < 0) {
+                throw new RuntimeException("Insufficient cash balance to fill order");
+            }
+            user.setCashBalance(userCashBalance.subtract(totalCost));
+            userRepository.save(user);
+        }
+
+        // Create/update position
+        Portfolio portfolio = portfolioRepository.findById(order.getPortfolioId())
+                .orElseThrow(() -> new RuntimeException("Portfolio not found"));
+        
+        boolean positionExists = false;
+        if (portfolio.getPositions() != null) {
+            for (Position pos : portfolio.getPositions()) {
+                if (pos.getSymbol().equals(order.getSymbol())) {
+                    // Update existing position - recalculate average price
+                    BigDecimal totalQty = pos.getQuantity().add(order.getQuantity());
+                    BigDecimal totalValue = pos.getQuantity().multiply(pos.getAveragePurchasePrice())
+                            .add(order.getQuantity().multiply(fillPrice));
+                    pos.setQuantity(totalQty);
+                    pos.setAveragePurchasePrice(totalValue.divide(totalQty, 8, RoundingMode.HALF_UP));
+                    pos.setCurrentPrice(fillPrice);
+                    positionExists = true;
+                    break;
+                }
+            }
+        }
+        
+        if (!positionExists) {
+            Position newPos = new Position(
+                    UUID.randomUUID(),
+                    order.getPortfolioId(),
+                    order.getSymbol(),
+                    order.getQuantity(),
+                    fillPrice,
+                    fillPrice,
+                    BigDecimal.ZERO
+            );
+            portfolio.addPosition(newPos);
+        }
+
+        // Create transaction record
+        Transaction transaction = new Transaction(
+                UUID.randomUUID(),
+                order.getPortfolioId(),
+                TransactionType.BUY,
+                order.getSymbol(),
+                order.getQuantity(),
+                fillPrice,
+                totalCost,
+                LocalDateTime.now(),
+                totalCost.negate()
+        );
+        portfolio.addTransaction(transaction);
+
+        portfolioRepository.save(portfolio);
+
+        // Update order status to FILLED
+        order.setStatus(OrderStatus.FILLED);
+        order.setFilledAt(LocalDateTime.now());
+        order.setFilledPrice(fillPrice);
+        order.setFilledQuantity(order.getQuantity());
+
+        return orderRepository.save(order);
+    }
+
+    @Override
+    @Transactional
+    public Order expireLimitOrder(UUID orderId, UUID userId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        // Skip ownership check for internal service (userId = all zeros)
+        UUID internalServiceId = UUID.fromString("00000000-0000-0000-0000-000000000000");
+        boolean isInternalService = userId.equals(internalServiceId);
+        
+        if (!isInternalService && !order.getUserId().equals(userId)) {
+            throw new RuntimeException("Order not found or access denied");
+        }
+
+        if (order.getStatus() != OrderStatus.PENDING) {
+            throw new RuntimeException("Only PENDING orders can be expired");
+        }
+
+        // Release locked balance (for BUY_LIMIT)
+        if (order.getType() == OrderType.BUY_LIMIT) {
+            BigDecimal lockAmount = order.getTargetPrice().multiply(order.getQuantity());
+            if (!isInternalService) {
+                User user = userRepository.findById(userId)
+                        .orElseThrow(() -> new RuntimeException("User not found"));
+                BigDecimal userLockedBalance = user.getLockedBalance() != null ? user.getLockedBalance() : BigDecimal.ZERO;
+                user.setLockedBalance(userLockedBalance.subtract(lockAmount));
+                userRepository.save(user);
+            }
+        }
+
+        // Update order status
+        order.setStatus(OrderStatus.EXPIRED);
+        return orderRepository.save(order);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Order> getPendingLimitOrders() {
+        return orderRepository.findByStatus(OrderStatus.PENDING);
+    }
 }

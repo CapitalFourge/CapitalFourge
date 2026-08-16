@@ -660,11 +660,18 @@ public class PortfolioGraphQLController {
     }
 
     @QueryMapping
-    @PreAuthorize("hasRole('USER')")
     public List<Order> ordersByPortfolio(@Argument UUID portfolioId) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UUID userId = getUserIdFromAuth(auth);
-        verifyPortfolioOwnership(portfolioId);
+        
+        // Skip ownership check for internal service (userId = all zeros)
+        UUID internalServiceId = UUID.fromString("00000000-0000-0000-0000-000000000000");
+        boolean isInternalService = userId.equals(internalServiceId);
+        
+        if (!isInternalService) {
+            verifyPortfolioOwnership(portfolioId);
+        }
+        
         return portfolioUseCase.getOrdersByPortfolio(portfolioId);
     }
 
@@ -677,17 +684,53 @@ public class PortfolioGraphQLController {
     }
 
     @MutationMapping
+    public Order fillLimitOrder(@Argument UUID orderId, @Argument BigDecimal fillPrice) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UUID userId = getUserIdFromAuth(auth);
+        return portfolioUseCase.fillLimitOrder(orderId, userId, fillPrice);
+    }
+
+    @MutationMapping
+    public Order expireLimitOrder(@Argument UUID orderId) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UUID userId = getUserIdFromAuth(auth);
+        return portfolioUseCase.expireLimitOrder(orderId, userId);
+    }
+
+    @MutationMapping
     @PreAuthorize("hasRole('ADMIN')")
     public Boolean repairBalance(@Argument UUID userId) {
         // userUseCase.repairBalance(userId);  // TODO: add this method to UserUseCase
         return true;
     }
 
+    @QueryMapping
+    public List<Order> pendingLimitOrders() {
+        return portfolioUseCase.getPendingLimitOrders();
+    }
+
     private UUID getUserIdFromAuth(Authentication auth) {
-        if (auth.getPrincipal() instanceof UserPrincipal) {
-            return ((UserPrincipal) auth.getPrincipal()).userId();
+        Object principal = auth.getPrincipal();
+        if (principal instanceof UserPrincipal) {
+            return ((UserPrincipal) principal).userId();
         }
-        throw new IllegalStateException("Invalid authentication principal");
+        // Handle internal service case - principal might be UUID string or auth name
+        if (principal instanceof String) {
+            try {
+                return UUID.fromString((String) principal);
+            } catch (Exception e) {
+                // ignore
+            }
+        }
+        // Check if authentication has internal service authority
+        if (auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_USER"))) {
+            String name = auth.getName();
+            if ("internal-service".equals(name) || "00000000-0000-0000-0000-000000000000".equals(name)) {
+                return UUID.fromString("00000000-0000-0000-0000-000000000000");
+            }
+        }
+        throw new IllegalStateException("Invalid authentication principal: " + principal);
     }
 
     private void verifyPortfolioOwnership(UUID portfolioId) {

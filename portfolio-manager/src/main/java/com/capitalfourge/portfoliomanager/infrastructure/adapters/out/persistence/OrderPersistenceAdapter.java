@@ -49,7 +49,7 @@ public class OrderPersistenceAdapter implements OrderRepository {
 
     @Override
     public Page<Order> findByStatus(OrderStatus status, Pageable pageable) {
-        return jpaRepository.findByStatus(status.name(), pageable).map(this::toDomain);
+        return jpaRepository.findByStatus(status, pageable).map(this::toDomain);
     }
 
     @Override
@@ -68,14 +68,14 @@ public class OrderPersistenceAdapter implements OrderRepository {
 
     @Override
     public List<Order> findByStatus(OrderStatus status) {
-        return jpaRepository.findByStatus(status.name(), org.springframework.data.domain.Pageable.unpaged()).stream()
+        return jpaRepository.findByStatus(status, org.springframework.data.domain.Pageable.unpaged()).stream()
                 .map(this::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<Order> findPendingOrdersBySymbol(String symbol) {
-        return jpaRepository.findByStatusAndSymbol("PENDING", symbol).stream()
+        return jpaRepository.findByStatusAndSymbol(OrderStatus.PENDING, symbol).stream()
                 .map(this::toDomain)
                 .collect(Collectors.toList());
     }

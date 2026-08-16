@@ -20,6 +20,8 @@ type Query {
   asset(symbol: String!): Asset
   priceHistory(symbol: String!, range: String, days: Int): [PricePointUnion!]!
   ordersByPortfolio(portfolioId: ID!): [Order!]!
+  # Internal query for order worker - returns all PENDING limit orders
+  pendingLimitOrders: [Order!]!
 }
 
 type Feedback {
@@ -82,6 +84,8 @@ type Mutation {
   dismissWelcome: User
   createLimitOrder(portfolioId: ID!, type: OrderType!, symbol: String!, targetPrice: Float!, quantity: Float, usdAmount: Float): Order
   cancelOrder(orderId: ID!): Order
+  fillLimitOrder(orderId: ID!, fillPrice: Float!): Order
+  expireLimitOrder(orderId: ID!): Order
 }
 
 type AuthResult {
@@ -148,6 +152,9 @@ type Order {
   status: String!
   createdAt: String!
   expiresAt: String
+  filledPrice: Float
+  filledQuantity: Float
+  filledAt: String
 }
 
 type Position {

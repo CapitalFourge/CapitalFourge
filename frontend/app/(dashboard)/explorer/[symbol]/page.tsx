@@ -21,6 +21,13 @@ interface Position {
   currentPrice?: number;
 }
 
+interface PortfolioData {
+  id: string;
+  name: string;
+  performance: number;
+  positions: Position[];
+}
+
 interface Order {
   id: string;
   type: string;
@@ -192,7 +199,7 @@ export default function AssetDetailPage() {
 
   // Fetch portfolios for trade dialog
   const { data: portfoliosData } = useQuery(PORTFOLIOS_QUERY);
-  const portfolios = portfoliosData?.portfolios || [];
+  const portfolios: PortfolioData[] = portfoliosData?.portfolios || [];
 
   // Fetch orders for each portfolio to show active limit orders for this symbol
   const ids = portfolios.map(p => p.id);

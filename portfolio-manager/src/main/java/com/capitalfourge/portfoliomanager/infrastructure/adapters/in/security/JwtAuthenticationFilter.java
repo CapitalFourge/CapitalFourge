@@ -30,6 +30,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Value("${spring.jwt.secret}")
     String jwtSecret;
 
+    @Value("${service.api.key:internal-service-key}")
+    String serviceApiKey;
+
     private SecretKey key;
 
     public JwtAuthenticationFilter() {
@@ -54,6 +57,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 throw new IllegalStateException("JWT secret must be at least 256 bits (32 characters) for HS256");
             }
             this.key = Keys.hmacShaKeyFor(secretBytes);
+        }
+
+        // Check for X-API-Key header (for internal service-to-service calls)
+        String apiKey = request.getHeader("X-API-Key");
+        if (apiKey != null && apiKey.equals(serviceApiKey)) {
+            // Create a service principal for internal calls
+            UserPrincipal principal = new UserPrincipal(
+                UUID.fromString("00000000-0000-0000-0000-000000000000"),
+                "internal-service",
+                "internal@capitalfourge.com"
+            );
+            
+            var auth = new UsernamePasswordAuthenticationToken(
+                principal,
+                null,
+                List.of(new SimpleGrantedAuthority("ROLE_USER"))
+            );
+            
+            SecurityContextHolder.getContext().setAuthentication(auth);
+            filterChain.doFilter(request, response);
+            return;
         }
 
         String header = request.getHeader("Authorization");

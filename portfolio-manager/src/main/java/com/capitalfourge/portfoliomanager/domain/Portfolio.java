@@ -54,8 +54,23 @@ public class Portfolio {
     public boolean isPublic() { return isPublic; }
     public String getShareSlug() { return shareSlug; }
     public void setShareSlug(String shareSlug) { this.shareSlug = shareSlug; }
-    
-    // Explicit all-args constructor for Lombok compatibility
+
+        // Helper methods for adding positions/transactions
+        public void addPosition(Position position) {
+            if (this.positions == null) {
+                this.positions = new java.util.ArrayList<>();
+            }
+            this.positions.add(position);
+        }
+
+        public void addTransaction(Transaction transaction) {
+            if (this.transactions == null) {
+                this.transactions = new java.util.ArrayList<>();
+            }
+            this.transactions.add(transaction);
+        }
+
+        // Explicit all-args constructor for Lombok compatibility
     public Portfolio(UUID id, String name, String description, UUID userId, 
                      List<Position> positions, List<Transaction> transactions,
                      BigDecimal cumulativeDeposits, BigDecimal cumulativeWithdrawals,

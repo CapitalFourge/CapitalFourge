@@ -45,4 +45,10 @@ public interface PortfolioUseCase {
     List<Order> getOrdersByPortfolio(UUID portfolioId);
 
     Order cancelOrder(UUID orderId, UUID userId);
+
+    Order fillLimitOrder(UUID orderId, UUID userId, BigDecimal fillPrice);
+
+    Order expireLimitOrder(UUID orderId, UUID userId);
+
+    List<Order> getPendingLimitOrders();
 }

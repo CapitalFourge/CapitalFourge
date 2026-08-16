@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import { parse, visit, Kind, DocumentNode } from 'graphql';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { TypePolicies } from '@apollo/client';
 
 /**
  * GraphQL Validation Tests
@@ -119,7 +120,7 @@ describe('GraphQL Mutation Response Validation (FU-GQL-01)', () => {
 
 describe('Apollo TypePolicy keyFields Validation (FU-GQL-02)', () => {
   // Import using vitest's module resolution (uses @ alias from vitest.config.ts)
-  let typePolicies: any;
+  let typePolicies: TypePolicies;
   
   beforeAll(async () => {
     const apolloClient = await import('@/lib/apollo-client');
@@ -127,15 +128,15 @@ describe('Apollo TypePolicy keyFields Validation (FU-GQL-02)', () => {
   });
   
   it('should validate User typePolicy has keyFields: ["id"]', () => {
-    expect(typePolicies.User.keyFields).toEqual(['id']);
+    expect(typePolicies.User?.keyFields).toEqual(['id']);
   });
   
   it('should validate Portfolio typePolicy has keyFields: ["id"]', () => {
-    expect(typePolicies.Portfolio.keyFields).toEqual(['id']);
+    expect(typePolicies.Portfolio?.keyFields).toEqual(['id']);
   });
   
   it('should validate Position typePolicy has keyFields: ["id", "symbol"]', () => {
-    expect(typePolicies.Position.keyFields).toEqual(['id', 'symbol']);
+    expect(typePolicies.Position?.keyFields).toEqual(['id', 'symbol']);
   });
 });
 

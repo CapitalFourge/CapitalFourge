@@ -1,5 +1,13 @@
 import '@testing-library/jest-dom';
-import { vi } from 'vitest';
+import { vi, beforeAll, afterAll } from 'vitest';
+
+// Type augmentation for @testing-library/jest-dom matchers
+declare module 'vitest' {
+  interface Assertion<T = any> {
+    toBeInTheDocument(): T;
+    toHaveTextContent(text: string | RegExp): T;
+  }
+}
 
 // Mock next/navigation
 vi.mock('next/navigation', () => ({
@@ -22,19 +30,17 @@ vi.mock('sonner', () => ({
   },
 }));
 
-// Mock lucide-react icons - use importOriginal to get all actual exports
+// Mock lucide-react icons
 vi.mock('lucide-react', async (importOriginal) => {
-  const actual = await importOriginal<any>();
-  const icons: Record<string, any> = {};
+  const actual = await importOriginal<Record<string, unknown>>();
+  const icons: Record<string, React.ComponentType> = {};
   
-  // Create mock components for all icons
   for (const key of Object.keys(actual)) {
     if (key !== 'default' && typeof actual[key] === 'function') {
       icons[key] = () => <svg data-testid={key} />;
     }
   }
   
-  // Ensure X is included (used in Dialog)
   if (!icons.X) {
     icons.X = () => <svg data-testid="X" />;
   }
@@ -48,48 +54,48 @@ vi.mock('lucide-react', async (importOriginal) => {
 // Mock framer-motion
 vi.mock('framer-motion', () => ({
   motion: {
-    div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
-    section: ({ children, ...props }: any) => <section {...props}>{children}</section>,
+    div: ({ children, ...props }: React.HTMLAttributes<HTMLDivElement>) => <div {...props}>{children}</div>,
+    section: ({ children, ...props }: React.HTMLAttributes<HTMLSectionElement>) => <section {...props}>{children}</section>,
   },
-  AnimatePresence: ({ children }: any) => <>{children}</>,
+  AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
 // Mock @radix-ui/react-dialog
 vi.mock('@radix-ui/react-dialog', () => ({
-  Root: ({ children, ...props }: any) => <div {...props}>{children}</div>,
-  Trigger: ({ children, ...props }: any) => <>{children}</>,
-  Portal: ({ children, ...props }: any) => <div {...props}>{children}</div>,
-  Close: ({ ...props }: any) => <button {...props} />,
-  Overlay: ({ ...props }: any) => <div {...props} />,
-  Content: ({ children, ...props }: any) => <div {...props}>{children}</div>,
-  Header: ({ children, ...props }: any) => <div {...props}>{children}</div>,
-  Footer: ({ children, ...props }: any) => <div {...props}>{children}</div>,
-  Title: ({ children, ...props }: any) => <h2 {...props}>{children}</h2>,
-  Description: ({ children, ...props }: any) => <p {...props}>{children}</p>,
+  Root: ({ children, ...props }: React.HTMLAttributes<HTMLDivElement>) => <div {...props}>{children}</div>,
+  Trigger: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  Portal: ({ children, ...props }: React.HTMLAttributes<HTMLDivElement>) => <div {...props}>{children}</div>,
+  Close: ({ ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) => <button {...props} />,
+  Overlay: ({ ...props }: React.HTMLAttributes<HTMLDivElement>) => <div {...props} />,
+  Content: ({ children, ...props }: React.HTMLAttributes<HTMLDivElement>) => <div {...props}>{children}</div>,
+  Header: ({ children, ...props }: React.HTMLAttributes<HTMLDivElement>) => <div {...props}>{children}</div>,
+  Footer: ({ children, ...props }: React.HTMLAttributes<HTMLDivElement>) => <div {...props}>{children}</div>,
+  Title: ({ children, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => <h2 {...props}>{children}</h2>,
+  Description: ({ children, ...props }: React.HTMLAttributes<HTMLParagraphElement>) => <p {...props}>{children}</p>,
 }));
 
 vi.mock('@radix-ui/react-dropdown-menu', () => ({
-  DropdownMenu: ({ children }: any) => <>{children}</>,
-  DropdownMenuTrigger: ({ children }: any) => <>{children}</>,
-  DropdownMenuContent: ({ children }: any) => <div>{children}</div>,
-  DropdownMenuItem: ({ children, ...props }: any) => <button {...props}>{children}</button>,
+  DropdownMenu: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  DropdownMenuTrigger: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  DropdownMenuContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  DropdownMenuItem: ({ children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) => <button {...props}>{children}</button>,
   DropdownMenuSeparator: () => <hr />,
-  DropdownMenuLabel: ({ children }: any) => <span>{children}</span>,
+  DropdownMenuLabel: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
 }));
 
 vi.mock('@radix-ui/react-select', () => ({
-  Select: ({ children }: any) => <>{children}</>,
-  SelectTrigger: ({ children, ...props }: any) => <button {...props}>{children}</button>,
-  SelectContent: ({ children }: any) => <div>{children}</div>,
-  SelectItem: ({ children, value, ...props }: any) => <button value={value} {...props}>{children}</button>,
-  SelectValue: ({ placeholder }: any) => <span>{placeholder}</span>,
+  Select: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  SelectTrigger: ({ children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) => <button {...props}>{children}</button>,
+  SelectContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  SelectItem: ({ children, value, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement> & { value: string }) => <button value={value} {...props}>{children}</button>,
+  SelectValue: ({ placeholder }: { placeholder: string }) => <span>{placeholder}</span>,
 }));
 
 vi.mock('@radix-ui/react-tabs', () => ({
-  Tabs: ({ children, defaultValue, onValueChange }: any) => <div>{children}</div>,
-  TabsList: ({ children }: any) => <div>{children}</div>,
-  TabsTrigger: ({ children, value, ...props }: any) => <button value={value} {...props}>{children}</button>,
-  TabsContent: ({ children, value, ...props }: any) => <div {...props}>{children}</div>,
+  Tabs: ({ children, defaultValue, onValueChange }: { children: React.ReactNode; defaultValue?: string; onValueChange?: (value: string) => void }) => <div>{children}</div>,
+  TabsList: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  TabsTrigger: ({ children, value, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement> & { value: string }) => <button value={value} {...props}>{children}</button>,
+  TabsContent: ({ children, value, ...props }: React.HTMLAttributes<HTMLDivElement> & { value: string }) => <div {...props}>{children}</div>,
 }));
 
 // Mock localStorage

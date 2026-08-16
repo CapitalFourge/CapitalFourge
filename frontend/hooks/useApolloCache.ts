@@ -10,8 +10,7 @@ export function useApolloCache() {
     if (typeof window === 'undefined') return null;
     if (!clientRef.current) {
       // This will only be called during client-side rendering
-      const client = require('@apollo/client').useApolloClient();
-      clientRef.current = client;
+      clientRef.current = useApolloClient();
     }
     return clientRef.current;
   }, []);

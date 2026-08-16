@@ -71,7 +71,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   // If auth error (401), redirect to login
   if (!isSSR && error) {
     const isAuthError = 
-      (error.networkError && typeof error.networkError === 'object' && 'statusCode' in error.networkError && (error.networkError as any).statusCode === 401) ||
+      (error.networkError && typeof error.networkError === 'object' && 'statusCode' in error.networkError && (error.networkError as { statusCode?: number }).statusCode === 401) ||
       error.message?.includes("Unauthorized") ||
       error.message?.includes("401");
     if (isAuthError) {

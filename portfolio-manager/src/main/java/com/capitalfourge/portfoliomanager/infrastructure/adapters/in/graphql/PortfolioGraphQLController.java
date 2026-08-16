@@ -417,6 +417,11 @@ public class PortfolioGraphQLController {
         return user.getCreatedAt() != null ? user.getCreatedAt().toString() : "";
     }
 
+    @SchemaMapping(typeName = "User")
+    public Boolean showWelcome(User user) {
+        return user.isShowWelcome();
+    }
+
     @SchemaMapping(typeName = "Feedback")
     public String userId(Feedback feedback) {
         return feedback.getUserId() != null ? feedback.getUserId().toString() : "";

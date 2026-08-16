@@ -95,6 +95,7 @@ type User {
   role: String!
   active: Boolean!
   createdAt: String
+  showWelcome: Boolean!
 }
 
 type Portfolio {

@@ -4,12 +4,9 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 import jakarta.persistence.*;
-import lombok.*;
 
 @Entity
 @Table(name = "positions")
-@Getter
-@Setter
 public class PositionEntity {
     @Id
     private UUID id;
@@ -27,8 +24,8 @@ public class PositionEntity {
 
     @Column(precision = 20, scale = 8)
     private BigDecimal currentPrice;
-    
-    // Explicit getters/setters for Lombok compatibility
+
+    // Explicit getters/setters
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
     public PortfolioEntity getPortfolio() { return portfolio; }
@@ -41,8 +38,11 @@ public class PositionEntity {
     public void setAveragePurchasePrice(BigDecimal averagePurchasePrice) { this.averagePurchasePrice = averagePurchasePrice; }
     public BigDecimal getCurrentPrice() { return currentPrice; }
     public void setCurrentPrice(BigDecimal currentPrice) { this.currentPrice = currentPrice; }
-    
-    // Explicit all-args constructor for Lombok compatibility
+
+    // Explicit no-args constructor for JPA/Hibernate
+    public PositionEntity() {}
+
+    // Explicit all-args constructor
     public PositionEntity(UUID id, PortfolioEntity portfolio, String symbol,
                           BigDecimal quantity, BigDecimal averagePurchasePrice,
                           BigDecimal currentPrice) {

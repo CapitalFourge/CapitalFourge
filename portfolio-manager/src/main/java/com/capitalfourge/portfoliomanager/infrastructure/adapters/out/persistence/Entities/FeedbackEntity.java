@@ -1,6 +1,5 @@
 package com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistence.Entities;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -10,16 +9,9 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
 @Table(name = "feedbacks")
-@Getter
-@Setter
 public class FeedbackEntity {
 
     public enum Category {
@@ -49,9 +41,9 @@ public class FeedbackEntity {
     private LocalDateTime createdAt;
 
     @Column(nullable = false)
-        private boolean read = false;
-    
-    // Explicit getters/setters for Lombok compatibility
+    private boolean read = false;
+
+    // Explicit getters/setters
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
     public UUID getUserId() { return userId; }
@@ -66,8 +58,11 @@ public class FeedbackEntity {
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public boolean isRead() { return read; }
     public void setRead(boolean read) { this.read = read; }
-    
-    // Explicit all-args constructor for Lombok compatibility
+
+    // Explicit no-args constructor for JPA/Hibernate
+    public FeedbackEntity() {}
+
+    // Explicit all-args constructor
     public FeedbackEntity(UUID id, UUID userId, String username, Category category,
                           String message, LocalDateTime createdAt, boolean read) {
         this.id = id;

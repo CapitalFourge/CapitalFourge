@@ -81,6 +81,9 @@ public class TransactionEntity {
     public BigDecimal getBalanceTransaction() { return balanceTransaction; }
     public void setBalanceTransaction(BigDecimal balanceTransaction) { this.balanceTransaction = balanceTransaction; }
     
+    // Explicit no-args constructor for JPA/Hibernate
+    public TransactionEntity() {}
+
     // Explicit all-args constructor for Lombok compatibility
     public TransactionEntity(UUID id, PortfolioEntity portfolio, TransactionType type,
                              String symbol, BigDecimal quantity, BigDecimal price,

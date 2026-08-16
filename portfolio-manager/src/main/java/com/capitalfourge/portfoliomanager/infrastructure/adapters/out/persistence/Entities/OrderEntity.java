@@ -10,11 +10,8 @@ import java.util.UUID;
 import com.capitalfourge.portfoliomanager.domain.OrderStatus;
 import com.capitalfourge.portfoliomanager.domain.OrderType;
 
-import lombok.*;
-
 @Entity
 @Table(name = "orders")
-@Data
 public class OrderEntity {
 
     @Id
@@ -68,8 +65,8 @@ public class OrderEntity {
 
     @Column(name = "rejection_reason", length = 500)
     private String rejectionReason;
-    
-    // Explicit getters/setters for Lombok compatibility
+
+    // Explicit getters/setters
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
     public PortfolioEntity getPortfolio() { return portfolio; }
@@ -102,8 +99,11 @@ public class OrderEntity {
     public void setFilledQuantity(BigDecimal filledQuantity) { this.filledQuantity = filledQuantity; }
     public String getRejectionReason() { return rejectionReason; }
     public void setRejectionReason(String rejectionReason) { this.rejectionReason = rejectionReason; }
-    
-    // Explicit all-args constructor for Lombok compatibility
+
+    // Explicit no-args constructor for JPA/Hibernate
+    public OrderEntity() {}
+
+    // Explicit all-args constructor
     public OrderEntity(UUID id, PortfolioEntity portfolio, UUID portfolioId, UUID userId, OrderType type,
                        String symbol, BigDecimal targetPrice, BigDecimal quantity, BigDecimal usdAmount,
                        OrderStatus status, LocalDateTime createdAt, LocalDateTime filledAt,

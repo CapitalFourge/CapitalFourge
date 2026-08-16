@@ -319,6 +319,9 @@ export default function PortfolioDetailPage() {
                       <p className="mt-1 text-xs uppercase tracking-[0.22em] text-slate-500">
                         {position.quantity} unidades
                       </p>
+                      <p className="mt-1 text-xs text-slate-400 font-mono">
+                        ${(position.currentPrice || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </p>
                     </div>
                     <div className="text-right">
                       <p className="font-mono text-sm text-white">

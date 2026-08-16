@@ -39,4 +39,6 @@ public interface PortfolioUseCase {
     Portfolio getPortfolioBySlug(String slug);
 
     Order createLimitOrder(UUID portfolioId, UUID userId, OrderType type, String symbol, BigDecimal targetPrice, BigDecimal quantity, BigDecimal usdAmount);
+
+    List<Order> getOrdersByPortfolio(UUID portfolioId);
 }

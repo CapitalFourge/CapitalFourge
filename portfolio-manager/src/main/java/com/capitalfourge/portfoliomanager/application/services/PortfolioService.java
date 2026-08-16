@@ -508,6 +508,27 @@ public class PortfolioService implements PortfolioUseCase {
             throw new RuntimeException("USD amount must be positive");
         }
 
+        // Calculate total amount to lock (for BUY_LIMIT)
+        BigDecimal lockAmount = BigDecimal.ZERO;
+        if (type == OrderType.BUY_LIMIT) {
+            lockAmount = targetPrice.multiply(finalQuantity);
+        }
+
+        // Verify user has enough cash balance to lock
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        BigDecimal userCashBalance = user.getCashBalance() != null ? user.getCashBalance() : BigDecimal.ZERO;
+        BigDecimal userLockedBalance = user.getLockedBalance() != null ? user.getLockedBalance() : BigDecimal.ZERO;
+        BigDecimal availableBalance = userCashBalance.subtract(userLockedBalance);
+
+        if (availableBalance.compareTo(lockAmount) < 0) {
+            throw new RuntimeException("Insufficient available balance for limit order");
+        }
+
+        // Lock the balance
+        user.setLockedBalance(userLockedBalance.add(lockAmount));
+        userRepository.save(user);
+
         // Calculate quantity from USD if needed
         if (finalQuantity == null) {
             // Fetch current price to calculate quantity
@@ -539,5 +560,10 @@ public class PortfolioService implements PortfolioUseCase {
         );
 
         return orderRepository.save(order);
+    }
+
+    @Override
+    public List<Order> getOrdersByPortfolio(UUID portfolioId) {
+        return orderRepository.findByPortfolioId(portfolioId);
     }
 }

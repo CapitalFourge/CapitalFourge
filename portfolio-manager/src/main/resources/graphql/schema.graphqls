@@ -18,6 +18,7 @@ type Query {
   # NUEVOS - para frontend Explorer y charts
   asset(symbol: String!): Asset
   priceHistory(symbol: String!, range: String, days: Int): [PricePointUnion!]!
+  ordersByPortfolio(portfolioId: ID!): [Order!]!
 }
 
 type Feedback {

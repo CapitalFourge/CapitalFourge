@@ -636,7 +636,17 @@ public class PortfolioGraphQLController {
             @Argument BigDecimal usdAmount) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UUID userId = getUserIdFromAuth(auth);
+        verifyPortfolioOwnership(portfolioId);
         return portfolioUseCase.createLimitOrder(portfolioId, userId, type, symbol, targetPrice, quantity, usdAmount);
+    }
+
+    @QueryMapping
+    @PreAuthorize("hasRole('USER')")
+    public List<Order> ordersByPortfolio(@Argument UUID portfolioId) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UUID userId = getUserIdFromAuth(auth);
+        verifyPortfolioOwnership(portfolioId);
+        return portfolioUseCase.getOrdersByPortfolio(portfolioId);
     }
 
     @MutationMapping

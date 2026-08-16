@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
+import com.capitalfourge.portfoliomanager.domain.Order;
+import com.capitalfourge.portfoliomanager.domain.OrderType;
 import com.capitalfourge.portfoliomanager.domain.Portfolio;
 
 public interface PortfolioUseCase {
@@ -35,4 +37,6 @@ public interface PortfolioUseCase {
     List<Portfolio> getPublicLeaderboard();
 
     Portfolio getPortfolioBySlug(String slug);
+
+    Order createLimitOrder(UUID portfolioId, UUID userId, OrderType type, String symbol, BigDecimal targetPrice, BigDecimal quantity, BigDecimal usdAmount);
 }

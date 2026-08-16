@@ -1,5 +1,6 @@
 package com.capitalfourge.portfoliomanager.domain;
 
+import jakarta.persistence.Column;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,7 +24,10 @@ public class Order {
     private OrderStatus status;
     private LocalDateTime createdAt;
     private LocalDateTime filledAt;
+    
+    @Column(nullable = true)
     private LocalDateTime expiresAt;
+    
     private BigDecimal filledPrice;
     private BigDecimal filledQuantity;
     private String rejectionReason;

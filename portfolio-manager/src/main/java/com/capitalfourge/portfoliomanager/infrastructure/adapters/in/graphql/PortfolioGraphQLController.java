@@ -21,6 +21,8 @@ import com.capitalfourge.portfoliomanager.domain.CryptoPricePoint;
 import com.capitalfourge.portfoliomanager.domain.CommodityPricePoint;
 import com.capitalfourge.portfoliomanager.domain.Feedback;
 import com.capitalfourge.portfoliomanager.domain.ForexPricePoint;
+import com.capitalfourge.portfoliomanager.domain.Order;
+import com.capitalfourge.portfoliomanager.domain.OrderType;
 import com.capitalfourge.portfoliomanager.domain.Portfolio;
 import com.capitalfourge.portfoliomanager.domain.Position;
 import com.capitalfourge.portfoliomanager.domain.Role;
@@ -36,6 +38,7 @@ import com.capitalfourge.portfoliomanager.application.ports.dto.auth.LoginComman
 import com.capitalfourge.portfoliomanager.application.ports.in.PortfolioUseCase;
 import com.capitalfourge.portfoliomanager.application.ports.in.UserUseCase;
 import com.capitalfourge.portfoliomanager.application.ports.out.UserRepository;
+import com.capitalfourge.portfoliomanager.application.ports.out.OrderRepository;
 import graphql.GraphQLError;
 import graphql.schema.DataFetchingEnvironment;
 
@@ -48,6 +51,7 @@ public class PortfolioGraphQLController {
     private final UserUseCase userUseCase;
     private final PortfolioUseCase portfolioUseCase;
     private final UserRepository userRepository;
+    private final OrderRepository orderRepository;
     private final DataCollectorClient dataCollectorClient;
 
     // Helper to determine asset type from symbol
@@ -453,6 +457,16 @@ public class PortfolioGraphQLController {
         return position.getAveragePurchasePrice().floatValue();
     }
 
+    @SchemaMapping(typeName = "Order")
+    public String createdAt(Order order) {
+        return order.getCreatedAt() != null ? order.getCreatedAt().toString() : "";
+    }
+
+    @SchemaMapping(typeName = "Order")
+    public String expiresAt(Order order) {
+        return order.getExpiresAt() != null ? order.getExpiresAt().toString() : "";
+    }
+
     // Mutations
     @MutationMapping
     public AuthResult login(@Argument String email, @Argument String password) {
@@ -609,6 +623,20 @@ public class PortfolioGraphQLController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UUID userId = getUserIdFromAuth(auth);
         return userUseCase.dismissWelcome(userId);
+    }
+
+    @MutationMapping
+    @PreAuthorize("hasRole('USER')")
+    public Order createLimitOrder(
+            @Argument UUID portfolioId,
+            @Argument OrderType type,
+            @Argument String symbol,
+            @Argument BigDecimal targetPrice,
+            @Argument BigDecimal quantity,
+            @Argument BigDecimal usdAmount) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UUID userId = getUserIdFromAuth(auth);
+        return portfolioUseCase.createLimitOrder(portfolioId, userId, type, symbol, targetPrice, quantity, usdAmount);
     }
 
     @MutationMapping

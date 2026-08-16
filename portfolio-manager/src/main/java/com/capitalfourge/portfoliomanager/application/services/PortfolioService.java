@@ -123,7 +123,7 @@ public class PortfolioService implements PortfolioUseCase {
     private Map<String, Double> getBatchPrices(List<String> symbols) {
         try {
             String symbolsParam = String.join(",", symbols);
-            String url = "/api/v1/prices/batch?symbols=" + symbolsParam;
+            String url = "/prices/batch?symbols=" + symbolsParam;
             return dataCollectorClient.get()
                     .uri(url)
                     .retrieve()
@@ -473,5 +473,71 @@ public class PortfolioService implements PortfolioUseCase {
         refreshPortfolioPrices(portfolio);
         updatePerformance(portfolio);
         return portfolio;
+    }
+
+    @Override
+    @Transactional
+    public Order createLimitOrder(UUID portfolioId, UUID userId, OrderType type, String symbol, BigDecimal targetPrice, BigDecimal quantity, BigDecimal usdAmount) {
+        // Verify portfolio exists and belongs to user
+        Portfolio portfolio = getPortfolio(portfolioId);
+        if (!portfolio.getUserId().equals(userId)) {
+            throw new RuntimeException("Portfolio not found or access denied");
+        }
+
+        // Validate inputs
+        if (targetPrice == null || targetPrice.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new RuntimeException("Target price must be positive");
+        }
+        
+        BigDecimal finalQuantity = quantity;
+        BigDecimal finalUsdAmount = usdAmount;
+        
+        if (finalQuantity == null && finalUsdAmount == null) {
+            throw new RuntimeException("Either quantity or usdAmount must be provided");
+        }
+        
+        if (finalQuantity != null && finalUsdAmount != null) {
+            throw new RuntimeException("Provide either quantity or usdAmount, not both");
+        }
+        
+        if (finalQuantity != null && finalQuantity.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new RuntimeException("Quantity must be positive");
+        }
+        
+        if (finalUsdAmount != null && finalUsdAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new RuntimeException("USD amount must be positive");
+        }
+
+        // Calculate quantity from USD if needed
+        if (finalQuantity == null) {
+            // Fetch current price to calculate quantity
+            Map<String, Double> prices = getBatchPrices(List.of(symbol));
+            Double currentPrice = prices.get(symbol);
+            if (currentPrice == null) {
+                throw new RuntimeException("Could not fetch current price for " + symbol);
+            }
+            finalQuantity = finalUsdAmount.divide(BigDecimal.valueOf(currentPrice), 8, RoundingMode.HALF_UP);
+        }
+
+        // Create order entity
+        Order order = new Order(
+            UUID.randomUUID(),
+            portfolioId,
+            userId,
+            type,
+            symbol,
+            targetPrice,
+            finalQuantity,
+            finalUsdAmount,
+            OrderStatus.PENDING,
+            LocalDateTime.now(),
+            null, // filledAt
+            LocalDateTime.now().plusDays(30), // expiresAt - default 30 days
+            null, // filledPrice
+            null, // filledQuantity
+            null  // rejectionReason
+        );
+
+        return orderRepository.save(order);
     }
 }

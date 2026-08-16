@@ -78,6 +78,7 @@ type Mutation {
   adminSetRole(userId: ID!, role: String!): User
   adminDeactivateUser(userId: ID!): Boolean
   dismissWelcome: User
+  createLimitOrder(portfolioId: ID!, type: OrderType!, symbol: String!, targetPrice: Float!, quantity: Float, usdAmount: Float): Order
 }
 
 type AuthResult {
@@ -124,6 +125,25 @@ type Transaction {
   totalAmount: Float!
   timestamp: String!
   balanceTransaction: Float!
+}
+
+enum OrderType {
+  BUY_LIMIT
+  SELL_LIMIT
+}
+
+type Order {
+  id: ID!
+  portfolioId: ID!
+  userId: ID!
+  type: OrderType!
+  symbol: String!
+  targetPrice: Float!
+  quantity: Float
+  usdAmount: Float
+  status: String!
+  createdAt: String!
+  expiresAt: String
 }
 
 type Position {

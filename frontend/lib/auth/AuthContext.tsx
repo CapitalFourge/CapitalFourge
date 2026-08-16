@@ -109,6 +109,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return typeof window === "undefined";
   });
   const [refreshing, setRefreshing] = useState(false);
+  const [validating, setValidating] = useState(true);
 
   const userRef = useRef<User | null>(null);
   const accessTokenRef = useRef<string | null>(null);
@@ -227,17 +228,61 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => clearTimeout(timer);
   }, [accessToken, refreshAccessToken]);
 
+  // Validate token on initial load
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      setValidating(false);
+      return;
+    }
+
+    let isCancelled = false;
+
+    const validate = async () => {
+      if (!accessTokenRef.current || !userRef.current) {
+        setValidating(false);
+        return;
+      }
+
+      try {
+        const freshUser = await fetchUserMe(accessTokenRef.current);
+        if (!isCancelled) {
+          if (freshUser) {
+            setUser(freshUser);
+            localStorage.setItem("user", JSON.stringify(freshUser));
+          } else {
+            // Token invalid/expired - clear auth
+            logoutRef.current?.();
+          }
+        }
+      } catch {
+        if (!isCancelled) {
+          logoutRef.current?.();
+        }
+      } finally {
+        if (!isCancelled) {
+          setValidating(false);
+        }
+      }
+    };
+
+    validate();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
         user,
         accessToken,
         refreshToken,
-        loading,
+        loading: loading || validating,
         login,
         logout,
         refreshAccessToken,
-        isAuthenticated: !!accessToken && !!user,
+        isAuthenticated: !!accessToken && !!user && !validating,
       }}
     >
       {children}

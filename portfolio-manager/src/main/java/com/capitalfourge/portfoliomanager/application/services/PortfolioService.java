@@ -704,6 +704,9 @@ public class PortfolioService implements PortfolioUseCase {
         );
         portfolio.addTransaction(transaction);
 
+        // Update cumulative deposits for performance tracking (same as buyAsset)
+        portfolio.setCumulativeDeposits(portfolio.getCumulativeDeposits().add(totalCost));
+
         portfolioRepository.save(portfolio);
 
         // Update order status to FILLED

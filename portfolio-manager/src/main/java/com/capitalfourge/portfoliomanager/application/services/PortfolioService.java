@@ -98,7 +98,7 @@ public class PortfolioService implements PortfolioUseCase {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public Portfolio getPortfolio(UUID id) {
         Portfolio portfolio = portfolioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Portfolio not found"));
@@ -107,7 +107,7 @@ public class PortfolioService implements PortfolioUseCase {
         refreshPortfolioPrices(portfolio);
         updatePerformance(portfolio);
 
-        return portfolio;
+        return portfolioRepository.save(portfolio);
     }
 
     private void refreshPortfolioPrices(Portfolio portfolio) {
@@ -135,10 +135,14 @@ public class PortfolioService implements PortfolioUseCase {
         try {
             String symbolsParam = String.join(",", symbols);
             String url = "/prices/batch?symbols=" + symbolsParam;
-            return dataCollectorClient.get()
+            Map<String, Object> response = dataCollectorClient.get()
                     .uri(url)
                     .retrieve()
-                    .body(new org.springframework.core.ParameterizedTypeReference<Map<String, Double>>() {});
+                    .body(new org.springframework.core.ParameterizedTypeReference<Map<String, Object>>() {});
+            
+            @SuppressWarnings("unchecked")
+            Map<String, Double> prices = (Map<String, Double>) response.get("prices");
+            return prices != null ? prices : Map.of();
         } catch (Exception e) {
             log.warn("Failed to fetch prices from data-collector: {}", e.getMessage());
             return Map.of();

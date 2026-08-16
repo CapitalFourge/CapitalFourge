@@ -95,6 +95,7 @@ const PORTFOLIO_DETAIL_QUERY = gql`
       isPublic
       shareSlug
       positions {
+        id
         symbol
         quantity
         currentPrice

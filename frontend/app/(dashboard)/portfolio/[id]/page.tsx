@@ -194,14 +194,8 @@ export default function PortfolioDetailPage() {
     }, 0) || 0;
 
   const totalPortfolioValue = userCashBalance + userLockedBalance + positionsUsdValue;
-  const totalCostBasis =
-    portfolio?.positions?.reduce((total: number, position: Position) => {
-      return total + (position.averagePurchasePrice || 0) * position.quantity;
-    }, 0) || 0;
-
-  const hasActivePositions = (portfolio?.positions?.length ?? 0) > 0 && totalCostBasis > 0;
-  const livePerformance = hasActivePositions ? ((positionsUsdValue - totalCostBasis) / totalCostBasis) * 100 : null;
-  const totalPerformance = livePerformance ?? (portfolio?.performance ?? 0);
+  // Use backend performance (based on deposits/withdrawals) consistently
+  const totalPerformance = portfolio?.performance ?? 0;
   return (
     <div className="space-y-6">
       <section className="panel flex flex-col gap-6 p-6 sm:p-7 xl:flex-row xl:items-end xl:justify-between">

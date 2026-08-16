@@ -262,7 +262,7 @@ class PortfolioPersistenceAdapterTest {
         PortfolioEntity e2 = new PortfolioEntity(id2, "P2", null, userId,
             BigDecimal.ZERO, BigDecimal.ZERO, 0.0, false, null);
 
-        when(jpaRepository.findByIdIn(List.of(id1, id2))).thenReturn(List.of(e1, e2));
+        when(jpaRepository.findByIds(List.of(id1, id2))).thenReturn(List.of(e1, e2));
 
         // When
         List<Portfolio> result = adapter.findByIds(List.of(id1, id2));

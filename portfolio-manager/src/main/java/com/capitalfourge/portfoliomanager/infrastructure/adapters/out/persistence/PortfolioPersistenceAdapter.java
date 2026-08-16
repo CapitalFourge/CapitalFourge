@@ -84,7 +84,7 @@ public class PortfolioPersistenceAdapter implements PortfolioRepository {
         if (ids == null || ids.isEmpty()) {
             return List.of();
         }
-        return jpaRepository.findByIdIn(ids).stream().map(this::toDomain).toList();
+        return jpaRepository.findByIds(ids).stream().map(this::toDomain).toList();
     }
 
     private PortfolioEntity toEntity(Portfolio domain) {

@@ -7,6 +7,7 @@ type Query {
   me: User
   portfolio(id: ID!): Portfolio
   portfolios(sort: String, limit: Int): [Portfolio!]!
+  portfoliosByIds(ids: [ID!]!): [Portfolio!]!
   assetMovers(sort: String, limit: Int): AssetMovers
   assets: [Asset!]!
   assetsByCategory(category: String): [Asset!]!
@@ -115,6 +116,7 @@ type Portfolio {
   shareSlug: String
   positions: [Position!]!
   transactions: [Transaction!]!
+  ordersByPortfolio: [Order!]!
   createdAt: String!
 }
 

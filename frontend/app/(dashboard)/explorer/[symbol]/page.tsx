@@ -6,6 +6,7 @@ import { gql, useQuery } from '@apollo/client';
 import { motion } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { IndicatorSelector } from '@/components/trading/indicator-selector';
 import { TradingViewChart } from '@/components/trading/tradingview-chart';
 import { FundamentalMetricSelector } from '@/components/trading/fundamental-metric-selector';
@@ -20,6 +21,17 @@ interface Position {
   currentPrice?: number;
 }
 
+interface Order {
+  id: string;
+  type: string;
+  symbol: string;
+  targetPrice: number;
+  quantity: number;
+  status: string;
+  createdAt: string;
+  expiresAt: string;
+}
+
 const PORTFOLIOS_QUERY = gql`
   query GetPortfolios {
     portfolios {
@@ -32,6 +44,24 @@ const PORTFOLIOS_QUERY = gql`
         quantity
         averagePurchasePrice
         currentPrice
+      }
+    }
+  }
+`;
+
+const GET_ORDERS_QUERY = gql`
+  query GetOrders($ids: [ID!]!) {
+    portfoliosByIds(ids: $ids) {
+      id
+      ordersByPortfolio {
+        id
+        type
+        symbol
+        targetPrice
+        quantity
+        status
+        createdAt
+        expiresAt
       }
     }
   }
@@ -164,6 +194,13 @@ export default function AssetDetailPage() {
   const { data: portfoliosData } = useQuery(PORTFOLIOS_QUERY);
   const portfolios = portfoliosData?.portfolios || [];
 
+  // Fetch orders for each portfolio to show active limit orders for this symbol
+  const ids = portfolios.map(p => p.id);
+  const { data: ordersData } = useQuery(GET_ORDERS_QUERY, {
+    variables: { ids },
+    skip: ids.length === 0
+  });
+
   // Build portfolio positions map for trade dialog
   const portfolioPositions = useMemo(() => {
     const map = new Map<string, Position[]>();
@@ -172,6 +209,20 @@ export default function AssetDetailPage() {
     });
     return map;
   }, [portfolios]);
+
+  // Check if user has positions or limit orders for this symbol
+  const hasPosition = useMemo(() => {
+    return portfolios.some(p => 
+      p.positions?.some(pos => pos.symbol === symbol)
+    );
+  }, [portfolios, symbol]);
+
+  const hasLimitOrders = useMemo(() => {
+    if (!ordersData) return false;
+    return ordersData.portfolios?.some((p: { id: string; ordersByPortfolio: Order[] }) => 
+      p.ordersByPortfolio?.some((o: Order) => o.symbol === symbol && o.status === 'PENDING')
+    );
+  }, [ordersData, symbol]);
 
   // Persist indicators selection
   useEffect(() => {
@@ -305,6 +356,25 @@ export default function AssetDetailPage() {
               <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Market Cap</p>
               <p className="mt-1 text-lg font-semibold text-white">{marketCap}</p>
             </div>
+          </div>
+
+          {/* Position & Limit Order Status */}
+          <div className="flex flex-wrap gap-3">
+            {hasPosition && (
+              <Badge variant="default" className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
+                Tienes posición en {symbol}
+              </Badge>
+            )}
+            {hasLimitOrders && (
+              <Badge variant="default" className="bg-amber-500/20 text-amber-400 border-amber-500/30">
+                Órdenes límite activas
+              </Badge>
+            )}
+            {!hasPosition && !hasLimitOrders && (
+              <Badge variant="outline" className="border-slate-500/30 text-slate-400">
+                Sin posición ni órdenes activas
+              </Badge>
+            )}
           </div>
         </div>
 

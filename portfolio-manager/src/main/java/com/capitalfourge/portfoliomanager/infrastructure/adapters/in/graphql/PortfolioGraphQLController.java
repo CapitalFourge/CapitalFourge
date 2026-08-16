@@ -89,6 +89,20 @@ public class PortfolioGraphQLController {
     }
 
     @QueryMapping
+    public List<Portfolio> portfoliosByIds(@Argument List<UUID> ids) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return List.of();
+        }
+        UUID userId = getUserIdFromAuth(auth);
+        List<Portfolio> portfolios = portfolioUseCase.getPortfoliosByIds(ids);
+        // Filter to only return portfolios owned by the authenticated user
+        return portfolios.stream()
+                .filter(p -> p.getUserId().equals(userId))
+                .toList();
+    }
+
+    @QueryMapping
     public Portfolio portfolio(@Argument UUID id) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
@@ -353,6 +367,11 @@ public class PortfolioGraphQLController {
     @SchemaMapping(typeName = "Portfolio")
     public List<Transaction> transactions(Portfolio portfolio) {
         return portfolio.getTransactions();
+    }
+
+    @SchemaMapping(typeName = "Portfolio")
+    public List<Order> ordersByPortfolio(Portfolio portfolio) {
+        return portfolioUseCase.getOrdersByPortfolio(portfolio.getId());
     }
 
     @SchemaMapping(typeName = "Transaction")

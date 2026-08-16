@@ -16,6 +16,8 @@ public interface PortfolioUseCase {
 
     List<Portfolio> getPortfoliosByUser(UUID userId);
 
+    List<Portfolio> getPortfoliosByIds(List<UUID> ids);
+
     Portfolio buyAsset(UUID portfolioId, String symbol, BigDecimal quantity, BigDecimal price);
 
     Portfolio sellAsset(UUID portfolioId, String symbol, BigDecimal quantity, BigDecimal price);

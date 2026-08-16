@@ -60,6 +60,17 @@ public class PortfolioService implements PortfolioUseCase {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<Portfolio> getPortfoliosByIds(List<UUID> ids) {
+        List<Portfolio> portfolios = portfolioRepository.findByIds(ids);
+        portfolios.forEach(portfolio -> {
+            refreshPortfolioPrices(portfolio);
+            updatePerformance(portfolio);
+        });
+        return portfolios;
+    }
+
+    @Override
     @Transactional
     public Portfolio createPortfolio(Portfolio portfolio) {
         if (portfolio.getId() == null) {

@@ -29,5 +29,6 @@ public interface JpaPortfolioRepository extends JpaRepository<PortfolioEntity, U
     @EntityGraph(attributePaths = {"positions"}, type = EntityGraph.EntityGraphType.FETCH)
     Optional<PortfolioEntity> findById(UUID id);
 
-    List<PortfolioEntity> findByIdIn(List<UUID> ids);
+    @Query("SELECT p FROM PortfolioEntity p LEFT JOIN FETCH p.positions WHERE p.id IN :ids")
+    List<PortfolioEntity> findByIds(@Param("ids") List<UUID> ids);
 }

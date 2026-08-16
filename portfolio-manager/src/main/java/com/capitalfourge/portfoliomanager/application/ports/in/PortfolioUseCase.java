@@ -41,4 +41,6 @@ public interface PortfolioUseCase {
     Order createLimitOrder(UUID portfolioId, UUID userId, OrderType type, String symbol, BigDecimal targetPrice, BigDecimal quantity, BigDecimal usdAmount);
 
     List<Order> getOrdersByPortfolio(UUID portfolioId);
+
+    Order cancelOrder(UUID orderId, UUID userId);
 }

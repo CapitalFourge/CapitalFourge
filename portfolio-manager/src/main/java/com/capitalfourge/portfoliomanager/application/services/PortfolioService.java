@@ -566,4 +566,38 @@ public class PortfolioService implements PortfolioUseCase {
     public List<Order> getOrdersByPortfolio(UUID portfolioId) {
         return orderRepository.findByPortfolioId(portfolioId);
     }
+
+    @Override
+    @Transactional
+    public Order cancelOrder(UUID orderId, UUID userId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        if (!order.getUserId().equals(userId)) {
+            throw new RuntimeException("Order not found or access denied");
+        }
+
+        if (order.getStatus() != OrderStatus.PENDING) {
+            throw new RuntimeException("Only PENDING orders can be cancelled");
+        }
+
+        // Calculate locked amount to release (for BUY_LIMIT)
+        BigDecimal lockAmount = BigDecimal.ZERO;
+        if (order.getType() == OrderType.BUY_LIMIT) {
+            lockAmount = order.getTargetPrice().multiply(order.getQuantity());
+        }
+
+        // Release locked balance
+        if (lockAmount.compareTo(BigDecimal.ZERO) > 0) {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            BigDecimal userLockedBalance = user.getLockedBalance() != null ? user.getLockedBalance() : BigDecimal.ZERO;
+            user.setLockedBalance(userLockedBalance.subtract(lockAmount));
+            userRepository.save(user);
+        }
+
+        // Update order status
+        order.setStatus(OrderStatus.CANCELLED);
+        return orderRepository.save(order);
+    }
 }

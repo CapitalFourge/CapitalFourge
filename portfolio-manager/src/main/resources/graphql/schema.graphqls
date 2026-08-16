@@ -80,6 +80,7 @@ type Mutation {
   adminDeactivateUser(userId: ID!): Boolean
   dismissWelcome: User
   createLimitOrder(portfolioId: ID!, type: OrderType!, symbol: String!, targetPrice: Float!, quantity: Float, usdAmount: Float): Order
+  cancelOrder(orderId: ID!): Order
 }
 
 type AuthResult {

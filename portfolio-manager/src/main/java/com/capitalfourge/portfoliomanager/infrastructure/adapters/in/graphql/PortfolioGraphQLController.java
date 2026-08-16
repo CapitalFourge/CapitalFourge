@@ -650,6 +650,14 @@ public class PortfolioGraphQLController {
     }
 
     @MutationMapping
+    @PreAuthorize("hasRole('USER')")
+    public Order cancelOrder(@Argument UUID orderId) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UUID userId = getUserIdFromAuth(auth);
+        return portfolioUseCase.cancelOrder(orderId, userId);
+    }
+
+    @MutationMapping
     @PreAuthorize("hasRole('ADMIN')")
     public Boolean repairBalance(@Argument UUID userId) {
         // userUseCase.repairBalance(userId);  // TODO: add this method to UserUseCase

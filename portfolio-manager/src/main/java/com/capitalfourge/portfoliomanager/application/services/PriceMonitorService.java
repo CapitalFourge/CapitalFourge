@@ -3,6 +3,8 @@ package com.capitalfourge.portfoliomanager.application.services;
 import java.math.BigDecimal;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.stereotype.Service;
@@ -11,11 +13,11 @@ import com.capitalfourge.portfoliomanager.application.ports.out.OrderRepository;
 import com.capitalfourge.portfoliomanager.domain.Order;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
 
 @Service
-@Slf4j
 public class PriceMonitorService implements MessageListener {
+
+    private static final Logger log = LoggerFactory.getLogger(PriceMonitorService.class);
 
     private final OrderRepository orderRepository;
     private final OrderService orderService;

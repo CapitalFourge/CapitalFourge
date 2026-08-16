@@ -20,9 +20,6 @@ import lombok.Setter;
 @Table(name = "feedbacks")
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class FeedbackEntity {
 
     public enum Category {
@@ -52,6 +49,33 @@ public class FeedbackEntity {
     private LocalDateTime createdAt;
 
     @Column(nullable = false)
-    @Builder.Default
-    private boolean read = false;
+        private boolean read = false;
+    
+    // Explicit getters/setters for Lombok compatibility
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
+    public UUID getUserId() { return userId; }
+    public void setUserId(UUID userId) { this.userId = userId; }
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
+    public Category getCategory() { return category; }
+    public void setCategory(Category category) { this.category = category; }
+    public String getMessage() { return message; }
+    public void setMessage(String message) { this.message = message; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public boolean isRead() { return read; }
+    public void setRead(boolean read) { this.read = read; }
+    
+    // Explicit all-args constructor for Lombok compatibility
+    public FeedbackEntity(UUID id, UUID userId, String username, Category category,
+                          String message, LocalDateTime createdAt, boolean read) {
+        this.id = id;
+        this.userId = userId;
+        this.username = username;
+        this.category = category;
+        this.message = message;
+        this.createdAt = createdAt;
+        this.read = read;
+    }
 }

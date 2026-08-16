@@ -78,11 +78,7 @@ public class UserService implements UserUseCase {
         refreshTokenRepository.save(saved.getId(), refresh, REFRESH_TTL_SECONDS);
 
         log.info("Register successful for email: {}", command.getEmail());
-        return AuthResult.builder()
-                .token(access)
-                .refreshToken(refresh)
-                .user(saved)
-                .build();
+        return new AuthResult(access, refresh, saved);
     }
 
     @Override
@@ -124,11 +120,7 @@ public class UserService implements UserUseCase {
         refreshTokenRepository.save(saved.getId(), refresh, REFRESH_TTL_SECONDS);
 
         log.info("Login successful for email: {}", command.getEmail());
-        return AuthResult.builder()
-                .token(access)
-                .refreshToken(refresh)
-                .user(saved)
-                .build();
+        return new AuthResult(access, refresh, saved);
     }
 
     private <T> T retryWithOptimisticLock(java.util.function.Supplier<T> operation) {
@@ -182,11 +174,7 @@ public class UserService implements UserUseCase {
 
         refreshTokenRepository.save(user.getId(), newRefresh, REFRESH_TTL_SECONDS);
 
-        return AuthResult.builder()
-                .token(newAccess)
-                .refreshToken(newRefresh)
-                .user(user)
-                .build();
+        return new AuthResult(newAccess, newRefresh, user);
     }
 
     @Override

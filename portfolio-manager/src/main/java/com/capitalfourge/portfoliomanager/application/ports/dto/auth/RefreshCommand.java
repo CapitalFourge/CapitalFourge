@@ -2,13 +2,23 @@ package com.capitalfourge.portfoliomanager.application.ports.dto.auth;
 
 import jakarta.validation.constraints.*;
 import java.util.UUID;
-import lombok.Value;
 
-@Value
 public class RefreshCommand {
 
-    UUID userId;
+    private UUID userId;
 
     @NotBlank(message = "Refresh token is required")
-    String refreshToken;
+    private String refreshToken;
+
+    public RefreshCommand() {}
+
+    public RefreshCommand(UUID userId, String refreshToken) {
+        this.userId = userId;
+        this.refreshToken = refreshToken;
+    }
+
+    public UUID getUserId() { return userId; }
+    public void setUserId(UUID userId) { this.userId = userId; }
+    public String getRefreshToken() { return refreshToken; }
+    public void setRefreshToken(String refreshToken) { this.refreshToken = refreshToken; }
 }

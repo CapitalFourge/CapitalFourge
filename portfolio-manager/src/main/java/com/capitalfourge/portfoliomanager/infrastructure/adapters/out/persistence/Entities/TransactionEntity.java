@@ -25,9 +25,6 @@ import lombok.Setter;
 @Table(name = "transactions")
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class TransactionEntity {
 
     @Id
@@ -64,5 +61,37 @@ public class TransactionEntity {
         if (balanceTransaction == null) {
             balanceTransaction = price.multiply(quantity);
         }
+    }
+    
+    // Explicit getters/setters for Lombok compatibility
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
+    public PortfolioEntity getPortfolio() { return portfolio; }
+    public void setPortfolio(PortfolioEntity portfolio) { this.portfolio = portfolio; }
+    public TransactionType getType() { return type; }
+    public void setType(TransactionType type) { this.type = type; }
+    public String getSymbol() { return symbol; }
+    public void setSymbol(String symbol) { this.symbol = symbol; }
+    public BigDecimal getQuantity() { return quantity; }
+    public void setQuantity(BigDecimal quantity) { this.quantity = quantity; }
+    public BigDecimal getPrice() { return price; }
+    public void setPrice(BigDecimal price) { this.price = price; }
+    public LocalDateTime getTimestamp() { return timestamp; }
+    public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
+    public BigDecimal getBalanceTransaction() { return balanceTransaction; }
+    public void setBalanceTransaction(BigDecimal balanceTransaction) { this.balanceTransaction = balanceTransaction; }
+    
+    // Explicit all-args constructor for Lombok compatibility
+    public TransactionEntity(UUID id, PortfolioEntity portfolio, TransactionType type,
+                             String symbol, BigDecimal quantity, BigDecimal price,
+                             LocalDateTime timestamp, BigDecimal balanceTransaction) {
+        this.id = id;
+        this.portfolio = portfolio;
+        this.type = type;
+        this.symbol = symbol;
+        this.quantity = quantity;
+        this.price = price;
+        this.timestamp = timestamp;
+        this.balanceTransaction = balanceTransaction;
     }
 }

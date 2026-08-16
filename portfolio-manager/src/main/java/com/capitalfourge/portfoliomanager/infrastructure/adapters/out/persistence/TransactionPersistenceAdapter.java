@@ -45,32 +45,33 @@ public class TransactionPersistenceAdapter implements TransactionRepository {
     }
 
     private TransactionEntity toEntity(Transaction transaction) {
-        return TransactionEntity.builder()
-                .id(transaction.getId())
-                .portfolio(PortfolioEntity.builder().id(transaction.getPortfolioId()).build())
-                .type(transaction.getType())
-                .symbol(transaction.getSymbol())
-                .quantity(transaction.getQuantity())
-                .price(transaction.getPrice())
-                .timestamp(transaction.getTimestamp())
-                .balanceTransaction(transaction.getBalanceTransaction())
-                .build();
+        return new TransactionEntity(
+                transaction.getId(),
+                new PortfolioEntity(transaction.getPortfolioId(), null, null, null, null, null, null, false, null),
+                transaction.getType(),
+                transaction.getSymbol(),
+                transaction.getQuantity(),
+                transaction.getPrice(),
+                transaction.getTimestamp(),
+                transaction.getBalanceTransaction()
+        );
     }
 
     private Transaction toDomain(TransactionEntity entity) {
         if (entity == null) {
             return null;
         }
-        return Transaction.builder()
-                .id(entity.getId())
-                .portfolioId(entity.getPortfolio().getId())
-                .type(entity.getType())
-                .symbol(entity.getSymbol())
-                .quantity(entity.getQuantity())
-                .price(entity.getPrice())
-                .timestamp(entity.getTimestamp())
-                .balanceTransaction(entity.getBalanceTransaction())
-                .build();
+        return new Transaction(
+                entity.getId(),
+                entity.getPortfolio().getId(),
+                entity.getType(),
+                entity.getSymbol(),
+                entity.getQuantity(),
+                entity.getPrice(),
+                entity.getPrice().multiply(entity.getQuantity()),
+                entity.getTimestamp(),
+                entity.getBalanceTransaction()
+        );
     }
 
 }

@@ -88,37 +88,42 @@ public class PortfolioPersistenceAdapter implements PortfolioRepository {
     }
 
     private PortfolioEntity toEntity(Portfolio domain) {
-        PortfolioEntity entity = PortfolioEntity.builder()
-                .id(domain.getId())
-                .name(domain.getName())
-                .description(domain.getDescription())
-                .userId(domain.getUserId())
-                .cumulativeDeposits(domain.getCumulativeDeposits())
-                .cumulativeWithdrawals(domain.getCumulativeWithdrawals())
-                .performance(domain.getPerformance())
-                .isPublic(domain.isPublic())
-                .shareSlug(domain.getShareSlug())
-                .build();
+        PortfolioEntity entity = new PortfolioEntity(
+            domain.getId(),
+            domain.getName(),
+            domain.getDescription(),
+            domain.getUserId(),
+            domain.getCumulativeDeposits(),
+            domain.getCumulativeWithdrawals(),
+            domain.getPerformance(),
+            domain.getIsPublic(),
+            domain.getShareSlug()
+        );
         if (domain.getPositions() != null) {
             List<PositionEntity> positions = domain.getPositions()
-                    .stream().map(p -> PositionEntity.builder()
-                            .id(p.getId())
-                            .portfolio(entity)
-                            .symbol(p.getSymbol())
-                            .quantity(p.getQuantity())
-                            .averagePurchasePrice(p.getAveragePurchasePrice())
-                            .currentPrice(p.getCurrentPrice())
-                            .build())
+                    .stream().map(p -> new PositionEntity(
+                            p.getId(),
+                            entity,
+                            p.getSymbol(),
+                            p.getQuantity(),
+                            p.getAveragePurchasePrice(),
+                            p.getCurrentPrice()
+                    ))
                     .collect(Collectors.toList());
             entity.setPositions(positions);
         }
         if (domain.getTransactions() != null) {
             entity.setTransactions(domain.getTransactions().stream()
-                    .map(t -> TransactionEntity.builder()
-                            .id(t.getId()).portfolio(entity).type(t.getType())
-                            .symbol(t.getSymbol()).quantity(t.getQuantity())
-                            .price(t.getPrice()).timestamp(t.getTimestamp())
-                            .balanceTransaction(t.getBalanceTransaction()).build())
+                    .map(t -> new TransactionEntity(
+                            t.getId(),
+                            entity,
+                            t.getType(),
+                            t.getSymbol(),
+                            t.getQuantity(),
+                            t.getPrice(),
+                            t.getTimestamp(),
+                            t.getBalanceTransaction()
+                    ))
                     .collect(Collectors.toList()));
         }
         return entity;
@@ -129,39 +134,42 @@ public class PortfolioPersistenceAdapter implements PortfolioRepository {
             return null;
         }
         List<Position> domainPositions = entity.getPositions() == null ? null
-                : entity.getPositions().stream().map(p -> Position.builder()
-                        .id(p.getId())
-                        .portfolioId(entity.getId())
-                        .symbol(p.getSymbol())
-                        .quantity(p.getQuantity())
-                        .averagePurchasePrice(p.getAveragePurchasePrice())
-                        .currentPrice(p.getCurrentPrice())
-                        .build()).collect(Collectors.toList());
+                : entity.getPositions().stream().map(p -> new Position(
+                        p.getId(),
+                        entity.getId(),
+                        p.getSymbol(),
+                        p.getQuantity(),
+                        p.getAveragePurchasePrice(),
+                        p.getCurrentPrice(),
+                        null
+                )).collect(Collectors.toList());
 
         List<Transaction> domainTransactions = entity.getTransactions() == null ? new java.util.ArrayList<>()
-                : entity.getTransactions().stream().map(t -> Transaction.builder()
-                        .id(t.getId())
-                        .portfolioId(entity.getId())
-                        .type(t.getType())
-                        .symbol(t.getSymbol())
-                        .quantity(t.getQuantity())
-                        .price(t.getPrice())
-                        .timestamp(t.getTimestamp())
-                        .balanceTransaction(t.getBalanceTransaction()).build()).collect(Collectors.toList());
+                : entity.getTransactions().stream().map(t -> new Transaction(
+                        t.getId(),
+                        entity.getId(),
+                        t.getType(),
+                        t.getSymbol(),
+                        t.getQuantity(),
+                        t.getPrice(),
+                        t.getPrice().multiply(t.getQuantity()),
+                        t.getTimestamp(),
+                        t.getBalanceTransaction()
+                )).collect(Collectors.toList());
 
-        return Portfolio.builder()
-                .id(entity.getId())
-                .name(entity.getName())
-                .description(entity.getDescription())
-                .userId(entity.getUserId())
-                .positions(domainPositions)
-                .transactions(domainTransactions)
-                .cumulativeDeposits(entity.getCumulativeDeposits())
-                .cumulativeWithdrawals(entity.getCumulativeWithdrawals())
-                .performance(entity.getPerformance() != null ? entity.getPerformance() : 0.0)
-                .isPublic(entity.isPublic())
-                .shareSlug(entity.getShareSlug())
-                .build();
+        return new Portfolio(
+            entity.getId(),
+            entity.getName(),
+            entity.getDescription(),
+            entity.getUserId(),
+            domainPositions,
+            domainTransactions,
+            entity.getCumulativeDeposits(),
+            entity.getCumulativeWithdrawals(),
+            entity.getPerformance() != null ? entity.getPerformance() : 0.0,
+            entity.isPublic(),
+            entity.getShareSlug()
+        );
     }
 
 }

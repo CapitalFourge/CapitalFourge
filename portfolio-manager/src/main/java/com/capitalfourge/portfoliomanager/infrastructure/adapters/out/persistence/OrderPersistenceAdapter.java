@@ -98,45 +98,46 @@ public class OrderPersistenceAdapter implements OrderRepository {
     }
 
     private OrderEntity toEntity(Order order) {
-        return OrderEntity.builder()
-                .id(order.getId())
-                .portfolioId(order.getPortfolioId())
-                .userId(order.getUserId())
-                .type(order.getType())
-                .symbol(order.getSymbol())
-                .targetPrice(order.getTargetPrice())
-                .quantity(order.getQuantity())
-                .usdAmount(order.getUsdAmount())
-                .status(order.getStatus())
-                .createdAt(order.getCreatedAt())
-                .filledAt(order.getFilledAt())
-                .expiresAt(order.getExpiresAt())
-                .filledPrice(order.getFilledPrice())
-                .filledQuantity(order.getFilledQuantity())
-                .rejectionReason(order.getRejectionReason())
-                .build();
+        return new OrderEntity(
+            order.getId(),
+            null,
+            order.getPortfolioId(),
+            order.getUserId(),
+            order.getType(),
+            order.getSymbol(),
+            order.getTargetPrice(),
+            order.getQuantity(),
+            order.getUsdAmount(),
+            order.getStatus(),
+            order.getCreatedAt(),
+            order.getFilledAt(),
+            order.getExpiresAt(),
+            order.getFilledPrice(),
+            order.getFilledQuantity(),
+            order.getRejectionReason()
+        );
     }
 
     private Order toDomain(OrderEntity entity) {
         if (entity == null) {
             return null;
         }
-        return Order.builder()
-                .id(entity.getId())
-                .portfolioId(entity.getPortfolioId())
-                .userId(entity.getUserId())
-                .type(entity.getType())
-                .symbol(entity.getSymbol())
-                .targetPrice(entity.getTargetPrice())
-                .quantity(entity.getQuantity())
-                .usdAmount(entity.getUsdAmount())
-                .status(entity.getStatus())
-                .createdAt(entity.getCreatedAt())
-                .filledAt(entity.getFilledAt())
-                .expiresAt(entity.getExpiresAt())
-                .filledPrice(entity.getFilledPrice())
-                .filledQuantity(entity.getFilledQuantity())
-                .rejectionReason(entity.getRejectionReason())
-                .build();
+        return new Order(
+            entity.getId(),
+            entity.getPortfolioId(),
+            entity.getUserId(),
+            entity.getType(),
+            entity.getSymbol(),
+            entity.getTargetPrice(),
+            entity.getQuantity(),
+            entity.getUsdAmount(),
+            entity.getStatus(),
+            entity.getCreatedAt(),
+            entity.getFilledAt(),
+            entity.getExpiresAt(),
+            entity.getFilledPrice(),
+            entity.getFilledQuantity(),
+            entity.getRejectionReason()
+        );
     }
 }

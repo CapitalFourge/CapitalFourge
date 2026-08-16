@@ -45,6 +45,10 @@ const ASSET_DATA_QUERY = gql`
       category
       description
       website
+      price
+      change24h
+      changePercent24h
+      volume24h
     }
     priceHistory(symbol: $symbol, days: 365) {
       ... on StockPricePoint {
@@ -223,15 +227,21 @@ export default function AssetDetailPage() {
     return <div className="flex min-h-[60vh] items-center justify-center text-slate-400">Activo no encontrado.</div>;
   }
 
-  const latestPrice = latestDailyPoint
-    ? `$${latestDailyPoint.close.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-    : '$0.00';
+  const latestPrice = asset?.price
+    ? `$${asset.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+    : (latestDailyPoint
+        ? `$${latestDailyPoint.close.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+        : '$0.00');
 
-  const change24h = latestDailyPoint && previousDailyPoint
-    ? `${(((latestDailyPoint.close - previousDailyPoint.close) / previousDailyPoint.close) * 100).toFixed(2)}%`
-    : '0.00%';
+  const change24h = asset?.changePercent24h
+    ? `${asset.changePercent24h >= 0 ? '+' : ''}${asset.changePercent24h.toFixed(2)}%`
+    : (latestDailyPoint && previousDailyPoint
+        ? `${(((latestDailyPoint.close - previousDailyPoint.close) / previousDailyPoint.close) * 100).toFixed(2)}%`
+        : '0.00%');
 
-  const volume24h = latestDailyPoint ? latestDailyPoint.volume.toLocaleString(undefined) : '0';
+  const volume24h = asset?.volume24h
+    ? asset.volume24h.toLocaleString(undefined)
+    : (latestDailyPoint ? latestDailyPoint.volume.toLocaleString(undefined) : '0');
   const marketCap = latestFundamental?.marketCap
       ? `$${latestFundamental.marketCap.toLocaleString(undefined)}`
       : 'N/A';
@@ -273,7 +283,7 @@ export default function AssetDetailPage() {
             <span className="text-sm text-slate-400">{asset.category}</span>
           </div>
 
-          <div className="flex flex-wrap items-center gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
             <div className="flex flex-col items-center p-4 bg-white/[0.03] rounded-xl">
               <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Precio actual</p>
               <p className="mt-1 text-xl font-semibold text-white">{latestPrice}</p>
@@ -281,7 +291,9 @@ export default function AssetDetailPage() {
 
             <div className="flex flex-col items-center p-4 bg-white/[0.03] rounded-xl">
               <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Cambio 24h</p>
-              <p className="mt-1 text-lg font-semibold {latestDailyPoint && previousDailyPoint && latestDailyPoint.close > previousDailyPoint.close ? 'text-emerald-400' : 'text-rose-400'}">{change24h}</p>
+              <p className="mt-1 text-lg font-semibold {asset?.change24h !== undefined && asset.change24h !== null ? (asset.change24h >= 0 ? 'text-emerald-400' : 'text-rose-400') : (latestDailyPoint && previousDailyPoint && latestDailyPoint.close > previousDailyPoint.close ? 'text-emerald-400' : 'text-rose-400')}">
+                {change24h}
+              </p>
             </div>
 
             <div className="flex flex-col items-center p-4 bg-white/[0.03] rounded-xl">

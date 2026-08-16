@@ -1,16 +1,26 @@
 package com.capitalfourge.portfoliomanager.application.ports.dto.auth;
 
 import jakarta.validation.constraints.*;
-import lombok.Value;
 
-@Value
 public class LoginCommand {
 
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
-    String email;
+    private String email;
 
     @NotBlank(message = "Password is required")
     @Size(min = 8, max = 128, message = "Password must be between 8 and 128 characters")
-    String password;
+    private String password;
+
+    public LoginCommand() {}
+
+    public LoginCommand(String email, String password) {
+        this.email = email;
+        this.password = password;
+    }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
 }

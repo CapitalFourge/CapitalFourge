@@ -10,6 +10,8 @@ import java.util.UUID;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,12 +33,12 @@ import com.capitalfourge.portfoliomanager.domain.OrderStatus;
 import com.capitalfourge.portfoliomanager.domain.OrderType;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class PortfolioService implements PortfolioUseCase {
+
+    private static final Logger log = LoggerFactory.getLogger(PortfolioService.class);
 
     private final PortfolioRepository portfolioRepository;
     private final MetricRepository metricRepository;
@@ -162,21 +164,22 @@ public class PortfolioService implements PortfolioUseCase {
             pos.setAveragePurchasePrice(totalSpent.divide(newQty, 8, RoundingMode.HALF_UP));
             pos.setQuantity(newQty);
         } else {
-            portfolio.getPositions().add(Position.builder()
-                    .id(UUID.randomUUID())
-                    .portfolioId(portfolioId)
-                    .symbol(symbol)
-                    .quantity(quantity)
-                    .averagePurchasePrice(price)
-                    .currentPrice(price)
-                    .build());
+            portfolio.getPositions().add(new Position(
+                    UUID.randomUUID(),
+                    portfolioId,
+                    symbol,
+                    quantity,
+                    price,
+                    price,
+                    null
+            ));
         }
 
-        Transaction transaction = Transaction.builder()
-                .id(UUID.randomUUID()).portfolioId(portfolioId).type(TransactionType.BUY)
-                .symbol(symbol).quantity(quantity).price(price)
-                .totalAmount(totalCost).timestamp(LocalDateTime.now())
-                .balanceTransaction(user.getCashBalance()).build();
+        Transaction transaction = new Transaction(
+                UUID.randomUUID(), portfolioId, TransactionType.BUY,
+                symbol, quantity, price, totalCost, LocalDateTime.now(),
+                user.getCashBalance()
+        );
 
         transactionRepository.save(transaction);
         portfolio.getTransactions().add(transaction);
@@ -215,11 +218,11 @@ public class PortfolioService implements PortfolioUseCase {
             portfolio.getPositions().remove(pos);
         }
 
-        Transaction transaction = Transaction.builder()
-                .id(UUID.randomUUID()).portfolioId(portfolioId).type(TransactionType.SELL)
-                .symbol(symbol).quantity(quantity).price(price)
-                .totalAmount(totalAmount).timestamp(LocalDateTime.now())
-                .balanceTransaction(user.getCashBalance()).build();
+        Transaction transaction = new Transaction(
+                UUID.randomUUID(), portfolioId, TransactionType.SELL,
+                symbol, quantity, price, totalAmount, LocalDateTime.now(),
+                user.getCashBalance()
+        );
 
         transactionRepository.save(transaction);
         portfolio.getTransactions().add(transaction);
@@ -254,11 +257,11 @@ public class PortfolioService implements PortfolioUseCase {
         // Update portfolio cumulative deposits
         portfolio.setCumulativeDeposits(portfolio.getCumulativeDeposits().add(amount));
 
-        Transaction transaction = Transaction.builder()
-                .id(UUID.randomUUID()).portfolioId(portfolioId).type(TransactionType.DEPOSIT).symbol("USD")
-                .quantity(BigDecimal.ONE).price(amount)
-                .totalAmount(amount).timestamp(LocalDateTime.now())
-                .balanceTransaction(user.getCashBalance()).build();
+        Transaction transaction = new Transaction(
+                UUID.randomUUID(), portfolioId, TransactionType.DEPOSIT, "USD",
+                BigDecimal.ONE, amount, amount, LocalDateTime.now(),
+                user.getCashBalance()
+        );
 
         transactionRepository.save(transaction);
         portfolio.getTransactions().add(transaction);
@@ -288,12 +291,11 @@ public class PortfolioService implements PortfolioUseCase {
         // Update portfolio cumulative withdrawals
         portfolio.setCumulativeWithdrawals(portfolio.getCumulativeWithdrawals().add(amount));
 
-        Transaction transaction = Transaction.builder()
-                .id(UUID.randomUUID()).portfolioId(portfolioId).type(TransactionType.WITHDRAWAL).symbol("USD")
-                .quantity(BigDecimal.ONE).price(amount)
-                .totalAmount(amount).timestamp(LocalDateTime.now())
-                .balanceTransaction(user.getCashBalance()).build();
-
+        Transaction transaction = new Transaction(
+                UUID.randomUUID(), portfolioId, TransactionType.WITHDRAWAL, "USD",
+                BigDecimal.ONE, amount, amount, LocalDateTime.now(),
+                user.getCashBalance()
+        );
         transactionRepository.save(transaction);
         portfolio.getTransactions().add(transaction);
         return portfolioRepository.save(portfolio);

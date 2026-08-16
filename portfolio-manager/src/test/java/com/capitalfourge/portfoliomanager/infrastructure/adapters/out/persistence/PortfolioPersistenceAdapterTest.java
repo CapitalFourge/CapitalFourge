@@ -56,78 +56,71 @@ class PortfolioPersistenceAdapterTest {
         positionId = UUID.randomUUID();
         transactionId = UUID.randomUUID();
 
-        Position position = Position.builder()
-                .id(positionId)
-                .portfolioId(portfolioId)
-                .symbol("AAPL")
-                .quantity(new BigDecimal("10"))
-                .averagePurchasePrice(new BigDecimal("150"))
-                .currentPrice(new BigDecimal("165"))
-                .build();
+        Position position = new Position(
+            positionId,
+            portfolioId,
+            "AAPL",
+            new BigDecimal("10"),
+            new BigDecimal("150"),
+            new BigDecimal("165"),
+            null
+        );
 
-        Transaction transaction = Transaction.builder()
-                .id(transactionId)
-                .portfolioId(portfolioId)
-                .type(TransactionType.BUY)
-                .symbol("AAPL")
-                .quantity(new BigDecimal("10"))
-                .price(new BigDecimal("150"))
-                .timestamp(LocalDateTime.now())
-                .balanceTransaction(new BigDecimal("10000"))
-                .build();
+        Transaction transaction = new Transaction(
+            transactionId,
+            portfolioId,
+            TransactionType.BUY,
+            "AAPL",
+            new BigDecimal("10"),
+            new BigDecimal("150"),
+            new BigDecimal("1500"),
+            LocalDateTime.now(),
+            new BigDecimal("10000")
+        );
 
-        portfolio = Portfolio.builder()
-                .id(portfolioId)
-                .name("Test Portfolio")
-                .description("Test Description")
-                .userId(userId)
-                .positions(List.of(position))
-                .transactions(List.of(transaction))
-                .cumulativeDeposits(new BigDecimal("1500"))
-                .cumulativeWithdrawals(BigDecimal.ZERO)
-                .performance(10.0)
-                .isPublic(false)
-                .shareSlug("test-portfolio-abc123")
-                .build();
+        portfolio = new Portfolio(
+            portfolioId,
+            "Test Portfolio",
+            "Test Description",
+            userId,
+            List.of(position),
+            List.of(transaction),
+            new BigDecimal("1500"),
+            BigDecimal.ZERO,
+            10.0,
+            false,
+            "test-portfolio-abc123"
+        );
     }
 
     // ==================== BU-12: Roundtrip save -> findById ====================
     @Test
     void save_AndFindById_ShouldMaintainAllFields() {
         // Given
-        PortfolioEntity entity = PortfolioEntity.builder()
-                .id(portfolioId)
-                .name("Test Portfolio")
-                .description("Test Description")
-                .userId(userId)
-                .cumulativeDeposits(new BigDecimal("1500"))
-                .cumulativeWithdrawals(BigDecimal.ZERO)
-                .performance(10.0)
-                .isPublic(false)
-                .shareSlug("test-portfolio-abc123")
-                .build();
+        PortfolioEntity entity = new PortfolioEntity(portfolioId, "Test Portfolio", "Test Description", userId,
+            new BigDecimal("1500"), BigDecimal.ZERO, 10.0, false, "test-portfolio-abc123");
 
-        PositionEntity positionEntity = PositionEntity.builder()
-                .id(positionId)
-                .portfolio(entity)
-                .symbol("AAPL")
-                .quantity(new BigDecimal("10"))
-                .averagePurchasePrice(new BigDecimal("150"))
-                .currentPrice(new BigDecimal("165"))
-                .build();
+        PositionEntity positionEntity = new PositionEntity(
+            positionId,
+            entity,
+            "AAPL",
+            new BigDecimal("10"),
+            new BigDecimal("150"),
+            new BigDecimal("165")
+        );
 
         entity.setPositions(List.of(positionEntity));
 
-        TransactionEntity transactionEntity = TransactionEntity.builder()
-                .id(transactionId)
-                .portfolio(entity)
-                .type(TransactionType.BUY)
-                .symbol("AAPL")
-                .quantity(new BigDecimal("10"))
-                .price(new BigDecimal("150"))
-                .timestamp(LocalDateTime.now())
-                .balanceTransaction(new BigDecimal("10000"))
-                .build();
+        TransactionEntity transactionEntity = new TransactionEntity(
+            transactionId,
+            entity,
+            TransactionType.BUY,
+            "AAPL",
+            new BigDecimal("10"),
+            new BigDecimal("150"),
+            LocalDateTime.now(),
+            new BigDecimal("10000")
+        );
 
         entity.setTransactions(List.of(transactionEntity));
 
@@ -196,15 +189,8 @@ class PortfolioPersistenceAdapterTest {
     @Test
     void findByUserId_ShouldReturnUserPortfolios() {
         // Given
-        PortfolioEntity entity = PortfolioEntity.builder()
-                .id(portfolioId)
-                .name("Test Portfolio")
-                .userId(userId)
-                .cumulativeDeposits(BigDecimal.ZERO)
-                .cumulativeWithdrawals(BigDecimal.ZERO)
-                .performance(0.0)
-                .isPublic(false)
-                .build();
+        PortfolioEntity entity = new PortfolioEntity(portfolioId, "Test Portfolio", null, userId,
+            BigDecimal.ZERO, BigDecimal.ZERO, 0.0, false, null);
 
         Page<PortfolioEntity> page = new PageImpl<>(List.of(entity));
         when(jpaRepository.findByUserId(eq(userId), any(Pageable.class))).thenReturn(page);
@@ -222,12 +208,8 @@ class PortfolioPersistenceAdapterTest {
     void findByShareSlug_ShouldReturnPortfolio_WhenFound() {
         // Given
         String slug = "test-portfolio-abc123";
-        PortfolioEntity entity = PortfolioEntity.builder()
-                .id(portfolioId)
-                .name("Test Portfolio")
-                .userId(userId)
-                .shareSlug(slug)
-                .build();
+        PortfolioEntity entity = new PortfolioEntity(portfolioId, "Test Portfolio", null, userId,
+            BigDecimal.ZERO, BigDecimal.ZERO, 0.0, false, slug);
 
         when(jpaRepository.findByShareSlug(slug)).thenReturn(Optional.of(entity));
 
@@ -242,21 +224,11 @@ class PortfolioPersistenceAdapterTest {
     @Test
     void findPublicPortfolios_ShouldReturnSortedByPerformance() {
         // Given
-        PortfolioEntity p1 = PortfolioEntity.builder()
-                .id(UUID.randomUUID())
-                .name("Portfolio 1")
-                .userId(userId)
-                .performance(15.0)
-                .isPublic(true)
-                .build();
+        PortfolioEntity p1 = new PortfolioEntity(UUID.randomUUID(), "Portfolio 1", null, userId,
+            BigDecimal.ZERO, BigDecimal.ZERO, 15.0, true, null);
 
-        PortfolioEntity p2 = PortfolioEntity.builder()
-                .id(UUID.randomUUID())
-                .name("Portfolio 2")
-                .userId(userId)
-                .performance(10.0)
-                .isPublic(true)
-                .build();
+        PortfolioEntity p2 = new PortfolioEntity(UUID.randomUUID(), "Portfolio 2", null, userId,
+            BigDecimal.ZERO, BigDecimal.ZERO, 10.0, true, null);
 
         Page<PortfolioEntity> page = new PageImpl<>(List.of(p1, p2));
         when(jpaRepository.findByIsPublicTrueOrderByPerformanceDesc(any(Pageable.class))).thenReturn(page);
@@ -285,8 +257,10 @@ class PortfolioPersistenceAdapterTest {
         UUID id1 = UUID.randomUUID();
         UUID id2 = UUID.randomUUID();
         
-        PortfolioEntity e1 = PortfolioEntity.builder().id(id1).name("P1").userId(userId).build();
-        PortfolioEntity e2 = PortfolioEntity.builder().id(id2).name("P2").userId(userId).build();
+        PortfolioEntity e1 = new PortfolioEntity(id1, "P1", null, userId,
+            BigDecimal.ZERO, BigDecimal.ZERO, 0.0, false, null);
+        PortfolioEntity e2 = new PortfolioEntity(id2, "P2", null, userId,
+            BigDecimal.ZERO, BigDecimal.ZERO, 0.0, false, null);
 
         when(jpaRepository.findByIdIn(List.of(id1, id2))).thenReturn(List.of(e1, e2));
 

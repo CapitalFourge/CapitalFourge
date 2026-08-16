@@ -2,17 +2,30 @@ package com.capitalfourge.portfoliomanager.application.ports.dto.auth;
 
 import jakarta.validation.constraints.*;
 import java.util.UUID;
-import lombok.Value;
 
-@Value
 public class ChangePasswordCommand {
 
-    UUID userId;
+    private UUID userId;
 
     @NotBlank(message = "Current password is required")
-    String currentPassword;
+    private String currentPassword;
 
     @NotBlank(message = "New password is required")
     @Size(min = 8, max = 128, message = "Password must be between 8 and 128 characters")
-    String newPassword;
+    private String newPassword;
+
+    public ChangePasswordCommand() {}
+
+    public ChangePasswordCommand(UUID userId, String currentPassword, String newPassword) {
+        this.userId = userId;
+        this.currentPassword = currentPassword;
+        this.newPassword = newPassword;
+    }
+
+    public UUID getUserId() { return userId; }
+    public void setUserId(UUID userId) { this.userId = userId; }
+    public String getCurrentPassword() { return currentPassword; }
+    public void setCurrentPassword(String currentPassword) { this.currentPassword = currentPassword; }
+    public String getNewPassword() { return newPassword; }
+    public void setNewPassword(String newPassword) { this.newPassword = newPassword; }
 }

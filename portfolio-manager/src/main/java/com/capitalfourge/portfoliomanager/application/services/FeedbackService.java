@@ -23,15 +23,15 @@ public class FeedbackService implements FeedbackUseCase {
 
     @Override
     public Feedback submit(UUID userId, String username, Feedback.Category category, String message) {
-        Feedback feedback = Feedback.builder()
-                .id(UUID.randomUUID())
-                .userId(userId)
-                .username(username)
-                .category(category)
-                .message(message)
-                .createdAt(LocalDateTime.now())
-                .read(false)
-                .build();
+        Feedback feedback = new Feedback(
+                UUID.randomUUID(),
+                userId,
+                username,
+                category,
+                message,
+                LocalDateTime.now(),
+                false
+        );
 
         return feedbackRepository.save(feedback);
     }

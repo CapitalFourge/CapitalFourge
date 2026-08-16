@@ -148,16 +148,17 @@ public class PortfolioGraphQLController {
     }
     
     private Asset toAsset(DataCollectorClient.AssetDTO dto) {
-        return Asset.builder()
-                .symbol(dto.symbol())
-                .name(dto.name())
-                .category(dto.category())
-                .description(dto.description())
-                .website(dto.website())
-                .logo(dto.logo())
-                .sector(dto.sector())
-                .industry(dto.industry())
-                .build();
+        return new Asset(
+            dto.symbol(),
+            dto.name(),
+            dto.category(),
+            dto.description(),
+            dto.website(),
+            dto.logo(),
+            dto.sector(),
+            dto.industry(),
+            null, null, null, null, null, null
+        );
     }
 
     @QueryMapping
@@ -184,7 +185,38 @@ public class PortfolioGraphQLController {
         if (dto == null) {
             return null;
         }
-        return toAsset(dto);
+
+        // Fetch latest price from price history
+        Float price = null;
+        try {
+            List<DataCollectorClient.PricePointDTO> priceHistory = dataCollectorClient.getPriceHistory(symbol, "1d");
+            if (!priceHistory.isEmpty()) {
+                // Get the most recent price point (last in list)
+                DataCollectorClient.PricePointDTO latest = priceHistory.get(priceHistory.size() - 1);
+                price = latest.close();
+            }
+        } catch (Exception e) {
+            // Log but don't fail - asset info without price is better than nothing
+            System.out.println("Warning: Could not fetch price for " + symbol + ": " + e.getMessage());
+        }
+
+        return toAsset(dto, price);
+    }
+
+    private Asset toAsset(DataCollectorClient.AssetDTO dto, Float price) {
+        Asset asset = new Asset(
+            dto.symbol(),
+            dto.name(),
+            dto.category(),
+            dto.description(),
+            dto.website(),
+            dto.logo(),
+            dto.sector(),
+            dto.industry(),
+            null, null, null, null, null, null,
+            price, null, null, null
+        );
+        return asset;
     }
 
     @QueryMapping
@@ -199,64 +231,94 @@ public class PortfolioGraphQLController {
                 .map(dto -> {
                     switch (assetType) {
                         case "CRYPTO":
-                            return CryptoPricePoint.builder()
-                                    .timestamp(dto.timestamp())
-                                    .open(dto.open())
-                                    .high(dto.high())
-                                    .low(dto.low())
-                                    .close(dto.close())
-                                    .volume(dto.volume())
-                                    .date(dto.timestamp())
-                                    .marketCap(dto.marketCap())
-                                    .build();
+                            return new CryptoPricePoint(
+                                dto.timestamp(),
+                                dto.open(),
+                                dto.high(),
+                                dto.low(),
+                                dto.close(),
+                                dto.volume(),
+                                dto.timestamp(),
+                                dto.marketCap(),
+                                dto.circulatingSupply(),
+                                dto.totalSupply(),
+                                dto.maxSupply(),
+                                dto.inflationRate(),
+                                dto.fdv(),
+                                dto.activeAddresses(),
+                                dto.transactionVolume(),
+                                dto.transactionCount(),
+                                dto.feesGenerated(),
+                                dto.tvl(),
+                                dto.hashRate(),
+                                dto.stakingRatio(),
+                                dto.nakamotoCoefficient(),
+                                dto.orderBookDepth(),
+                                dto.developerActivity(),
+                                dto.userGrowth(),
+                                dto.revenue(),
+                                dto.priceToFeesRatio(),
+                                dto.bitcoinDominance(),
+                                dto.fearGreedIndex()
+                            );
                         case "COMMODITIES":
-                            return CommodityPricePoint.builder()
-                                    .timestamp(dto.timestamp())
-                                    .open(dto.open())
-                                    .high(dto.high())
-                                    .low(dto.low())
-                                    .close(dto.close())
-                                    .volume(dto.volume())
-                                    .date(dto.timestamp())
-                                    .marketCap(dto.marketCap())
-                                    .build();
+                            return new CommodityPricePoint(
+                                dto.timestamp(),
+                                dto.open(),
+                                dto.high(),
+                                dto.low(),
+                                dto.close(),
+                                dto.volume(),
+                                dto.timestamp(),
+                                dto.marketCap(),
+                                dto.inventoryLevels(),
+                                dto.costOfProduction(),
+                                dto.allInSustainingCost(),
+                                dto.reserveReplacementRatio(),
+                                dto.contangoBackwardation(),
+                                dto.dollarIndexExposure(),
+                                dto.inflationCorrelation(),
+                                dto.opecSpareCapacity(),
+                                dto.chineseDemandIndex(),
+                                dto.weatherIndex()
+                            );
                         case "FOREX":
-                            return ForexPricePoint.builder()
-                                    .timestamp(dto.timestamp())
-                                    .open(dto.open())
-                                    .high(dto.high())
-                                    .low(dto.low())
-                                    .close(dto.close())
-                                    .volume(dto.volume())
-                                    .date(dto.timestamp())
-                                    .marketCap(dto.marketCap())
-                                    .build();
+                            return new ForexPricePoint(
+                                dto.timestamp(),
+                                dto.open(),
+                                dto.high(),
+                                dto.low(),
+                                dto.close(),
+                                dto.volume(),
+                                dto.timestamp(),
+                                dto.marketCap()
+                            );
                         default: // STOCKS
-                            return StockPricePoint.builder()
-                                    .timestamp(dto.timestamp())
-                                    .open(dto.open())
-                                    .high(dto.high())
-                                    .low(dto.low())
-                                    .close(dto.close())
-                                    .volume(dto.volume())
-                                    .date(dto.timestamp())
-                                    .marketCap(dto.marketCap())
-                                    .trailingPe(dto.trailingPe())
-                                    .forwardPe(dto.forwardPe())
-                                    .pegRatio(dto.pegRatio())
-                                    .priceToBook(dto.priceToBook())
-                                    .priceToSales(dto.priceToSales())
-                                    .enterpriseToEbitda(dto.enterpriseToEbitda())
-                                    .profitMargins(dto.profitMargins())
-                                    .operatingMargins(dto.operatingMargins())
-                                    .returnOnEquity(dto.returnOnEquity())
-                                    .returnOnAssets(dto.returnOnAssets())
-                                    .debtToEquity(dto.debtToEquity())
-                                    .currentRatio(dto.currentRatio())
-                                    .quickRatio(dto.quickRatio())
-                                    .dividendYield(dto.dividendYield())
-                                    .freeCashFlow(dto.freeCashFlow())
-                                    .build();
+                            return new StockPricePoint(
+                                dto.timestamp(),
+                                dto.open(),
+                                dto.high(),
+                                dto.low(),
+                                dto.close(),
+                                dto.volume(),
+                                dto.timestamp(),
+                                dto.marketCap(),
+                                dto.trailingPe(),
+                                dto.forwardPe(),
+                                dto.pegRatio(),
+                                dto.priceToBook(),
+                                dto.priceToSales(),
+                                dto.enterpriseToEbitda(),
+                                dto.profitMargins(),
+                                dto.operatingMargins(),
+                                dto.returnOnEquity(),
+                                dto.returnOnAssets(),
+                                dto.debtToEquity(),
+                                dto.currentRatio(),
+                                dto.quickRatio(),
+                                dto.dividendYield(),
+                                dto.freeCashFlow()
+                            );
                     }
                 })
                 .collect(Collectors.toList());
@@ -276,7 +338,7 @@ public class PortfolioGraphQLController {
 
     @SchemaMapping(typeName = "Portfolio")
     public Boolean isPublic(Portfolio portfolio) {
-        return portfolio.isPublic();
+        return portfolio.getIsPublic();
     }
 
     @SchemaMapping(typeName = "Portfolio")
@@ -397,11 +459,17 @@ public class PortfolioGraphQLController {
     public Portfolio createPortfolio(@Argument("name") String name, @Argument("description") String description) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UUID userId = getUserIdFromAuth(auth);
-        return portfolioUseCase.createPortfolio(Portfolio.builder()
-                .name(name)
-                .description(description)
-                .userId(userId)
-                .build());
+        return portfolioUseCase.createPortfolio(new Portfolio(
+            null,
+            name,
+            description,
+            userId,
+            null, null,
+            null, null,
+            0.0,
+            false,
+            null
+        ));
     }
 
     @MutationMapping

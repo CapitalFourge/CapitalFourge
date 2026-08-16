@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,12 +28,12 @@ import com.capitalfourge.portfoliomanager.domain.TransactionType;
 import com.capitalfourge.portfoliomanager.domain.User;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class OrderService {
+
+    private static final Logger log = LoggerFactory.getLogger(OrderService.class);
 
     private final OrderRepository orderRepository;
     private final PortfolioUseCase portfolioUseCase;
@@ -170,12 +172,13 @@ public class OrderService {
             user.setLockedBalance(userLockedBalance.subtract(orderAmount));
             userRepository.save(user);
 
-            Transaction transaction = Transaction.builder()
-                    .id(UUID.randomUUID()).portfolioId(portfolio.getId()).type(TransactionType.CANCELLED)
-                    .symbol(order.getSymbol())
-                    .quantity(order.getQuantity() != null ? order.getQuantity() : BigDecimal.ONE)
-                    .price(order.getTargetPrice()).totalAmount(orderAmount).timestamp(LocalDateTime.now())
-                    .balanceTransaction(user.getCashBalance()).build();
+            Transaction transaction = new Transaction(
+                    UUID.randomUUID(), portfolio.getId(), TransactionType.CANCELLED,
+                    order.getSymbol(),
+                    order.getQuantity() != null ? order.getQuantity() : BigDecimal.ONE,
+                    order.getTargetPrice(), orderAmount, LocalDateTime.now(),
+                    user.getCashBalance()
+            );
             transactionRepository.save(transaction);
 
             log.info("Returned {} from locked to cash balance for user {}", orderAmount, portfolio.getUserId());
@@ -199,11 +202,12 @@ public class OrderService {
                 User user = userRepository.findById(portfolio.getUserId())
                         .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-                Transaction transaction = Transaction.builder()
-                        .id(UUID.randomUUID()).portfolioId(portfolio.getId()).type(TransactionType.CANCELLED)
-                        .symbol(order.getSymbol()).quantity(quantityToUnlock).price(order.getTargetPrice())
-                        .totalAmount(BigDecimal.ZERO).timestamp(LocalDateTime.now())
-                        .balanceTransaction(user.getCashBalance()).build();
+                Transaction transaction = new Transaction(
+                        UUID.randomUUID(), portfolio.getId(), TransactionType.CANCELLED,
+                        order.getSymbol(), quantityToUnlock, order.getTargetPrice(),
+                        BigDecimal.ZERO, LocalDateTime.now(),
+                        user.getCashBalance()
+                );
                 transactionRepository.save(transaction);
 
                 log.info("Unlocked {} of {} in portfolio {} for cancelled sell order", quantityToUnlock,
@@ -341,12 +345,13 @@ public class OrderService {
 
             userRepository.save(user);
 
-            Transaction transaction = Transaction.builder()
-                    .id(UUID.randomUUID()).portfolioId(portfolio.getId()).type(TransactionType.EXPIRED)
-                    .symbol(order.getSymbol())
-                    .quantity(order.getQuantity() != null ? order.getQuantity() : BigDecimal.ONE)
-                    .price(order.getTargetPrice()).totalAmount(orderAmount).timestamp(LocalDateTime.now())
-                    .balanceTransaction(user.getCashBalance()).build();
+            Transaction transaction = new Transaction(
+                    UUID.randomUUID(), portfolio.getId(), TransactionType.EXPIRED,
+                    order.getSymbol(),
+                    order.getQuantity() != null ? order.getQuantity() : BigDecimal.ONE,
+                    order.getTargetPrice(), orderAmount, LocalDateTime.now(),
+                    user.getCashBalance()
+            );
             transactionRepository.save(transaction);
 
             log.info("Returned {} from locked to cash for user {} on expired/rejected order", orderAmount,

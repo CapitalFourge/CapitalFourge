@@ -81,16 +81,19 @@ class PortfolioIntegrationTest {
         user.setLockedBalance(BigDecimal.ZERO);
         userRepository.save(user);
 
-        Portfolio portfolio = Portfolio.builder()
-                .id(UUID.randomUUID())
-                .name("Test Portfolio")
-                .description("Integration test portfolio")
-                .userId(user.getId())
-                .cumulativeDeposits(BigDecimal.ZERO)
-                .cumulativeWithdrawals(BigDecimal.ZERO)
-                .performance(0.0)
-                .isPublic(false)
-                .build();
+        Portfolio portfolio = new Portfolio(
+            UUID.randomUUID(),
+            "Test Portfolio",
+            "Integration test portfolio",
+            user.getId(),
+            java.util.List.of(),
+            java.util.List.of(),
+            BigDecimal.ZERO,
+            BigDecimal.ZERO,
+            0.0,
+            false,
+            null
+        );
 
         // When
         Portfolio saved = portfolioRepository.save(portfolio);
@@ -120,35 +123,41 @@ class PortfolioIntegrationTest {
         userRepository.save(user);
 
         UUID portfolioId = UUID.randomUUID();
-        Portfolio portfolio = Portfolio.builder()
-                .id(portfolioId)
-                .name("Portfolio with Positions")
-                .userId(user.getId())
-                .cumulativeDeposits(BigDecimal.ZERO)
-                .cumulativeWithdrawals(BigDecimal.ZERO)
-                .performance(0.0)
-                .isPublic(false)
-                .positions(java.util.List.of(
-                        Position.builder()
-                                .id(UUID.randomUUID())
-                                .portfolioId(portfolioId)
-                                .symbol("AAPL")
-                                .quantity(new BigDecimal("10"))
-                                .averagePurchasePrice(new BigDecimal("150"))
-                                .currentPrice(new BigDecimal("155"))
-                                .build()))
-                .transactions(java.util.List.of(
-                        Transaction.builder()
-                                .id(UUID.randomUUID())
-                                .portfolioId(portfolioId)
-                                .type(TransactionType.BUY)
-                                .symbol("AAPL")
-                                .quantity(new BigDecimal("10"))
-                                .price(new BigDecimal("150"))
-                                .totalAmount(new BigDecimal("1500"))
-                                .timestamp(java.time.LocalDateTime.now())
-                                .build()))
-                .build();
+        Portfolio portfolio = new Portfolio(
+            portfolioId,
+            "Portfolio with Positions",
+            null,
+            user.getId(),
+            java.util.List.of(
+                new Position(
+                    UUID.randomUUID(),
+                    portfolioId,
+                    "AAPL",
+                    new BigDecimal("10"),
+                    new BigDecimal("150"),
+                    new BigDecimal("155"),
+                    null
+                )
+            ),
+            java.util.List.of(
+                new Transaction(
+                    UUID.randomUUID(),
+                    portfolioId,
+                    TransactionType.BUY,
+                    "AAPL",
+                    new BigDecimal("10"),
+                    new BigDecimal("150"),
+                    new BigDecimal("1500"),
+                    java.time.LocalDateTime.now(),
+                    new BigDecimal("1500")
+                )
+            ),
+            BigDecimal.ZERO,
+            BigDecimal.ZERO,
+            0.0,
+            false,
+            null
+        );
 
         // When
         Portfolio saved = portfolioRepository.save(portfolio);

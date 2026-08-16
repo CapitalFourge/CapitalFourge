@@ -59,21 +59,37 @@ class OrderServiceTest {
                 user.setId(userId);
                 user.setCashBalance(new BigDecimal("1000"));
 
-                portfolio = Portfolio.builder()
-                                .id(portfolioId)
-                                .userId(userId)
-                                .build();
+                portfolio = new Portfolio(
+                    portfolioId,
+                    "Test Portfolio",
+                    "Integration test portfolio",
+                    userId,
+                    java.util.List.of(),
+                    java.util.List.of(),
+                    new BigDecimal("0"),
+                    new BigDecimal("0"),
+                    0.0,
+                    false,
+                    null
+                );
 
-                order = Order.builder()
-                                .id(UUID.randomUUID())
-                                .portfolioId(portfolioId)
-                                .symbol("AAPL")
-                                .type(OrderType.BUY_LIMIT)
-                                .targetPrice(new BigDecimal("150"))
-                                .quantity(new BigDecimal("1"))
-                                .status(com.capitalfourge.portfoliomanager.domain.OrderStatus.PENDING)
-                                .expiresAt(java.time.LocalDateTime.now().plusDays(1))
-                                .build();
+                order = new Order(
+                    UUID.randomUUID(),
+                    portfolioId,
+                    userId,
+                    OrderType.BUY_LIMIT,
+                    "AAPL",
+                    new BigDecimal("150"),
+                    new BigDecimal("1"),
+                    new BigDecimal("150"),
+                    com.capitalfourge.portfoliomanager.domain.OrderStatus.PENDING,
+                    java.time.LocalDateTime.now(),
+                    null,
+                    java.time.LocalDateTime.now().plusDays(1),
+                    null,
+                    null,
+                    null
+                );
         }
 
         @Test

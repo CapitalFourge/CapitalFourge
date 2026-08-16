@@ -85,29 +85,29 @@ public class FeedbackPersistenceAdapter implements FeedbackRepository {
     }
 
     private FeedbackEntity toEntity(Feedback domain) {
-        return FeedbackEntity.builder()
-                .id(domain.getId())
-                .userId(domain.getUserId())
-                .username(domain.getUsername())
-                .category(FeedbackEntity.Category.valueOf(domain.getCategory().name()))
-                .message(domain.getMessage())
-                .createdAt(domain.getCreatedAt())
-                .read(domain.isRead())
-                .build();
+        return new FeedbackEntity(
+                domain.getId(),
+                domain.getUserId(),
+                domain.getUsername(),
+                FeedbackEntity.Category.valueOf(domain.getCategory().name()),
+                domain.getMessage(),
+                domain.getCreatedAt(),
+                domain.isRead()
+        );
     }
 
     private Feedback toDomain(FeedbackEntity entity) {
         if (entity == null) {
             return null;
         }
-        return Feedback.builder()
-                .id(entity.getId())
-                .userId(entity.getUserId())
-                .username(entity.getUsername())
-                .category(Feedback.Category.valueOf(entity.getCategory().name()))
-                .message(entity.getMessage())
-                .createdAt(entity.getCreatedAt())
-                .read(entity.isRead())
-                .build();
+        return new Feedback(
+                entity.getId(),
+                entity.getUserId(),
+                entity.getUsername(),
+                Feedback.Category.valueOf(entity.getCategory().name()),
+                entity.getMessage(),
+                entity.getCreatedAt(),
+                entity.isRead()
+        );
     }
 }

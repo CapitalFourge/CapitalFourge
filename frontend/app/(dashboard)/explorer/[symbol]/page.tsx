@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { gql, useQuery } from '@apollo/client';
+import { gql, useQuery, useMutation } from '@apollo/client';
 import { motion } from 'framer-motion';
 import { ArrowLeft, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -69,6 +69,15 @@ const PENDING_LIMIT_ORDERS_QUERY = gql`
       status
       createdAt
       expiresAt
+    }
+  }
+`;
+
+const CANCEL_ORDER_MUTATION = gql`
+  mutation CancelOrder($orderId: ID!) {
+    cancelOrder(orderId: $orderId) {
+      id
+      status
     }
   }
 `;
@@ -183,6 +192,11 @@ function LimitOrdersDialog({ symbol, orders, open, onOpenChange }: {
   open: boolean; 
   onOpenChange: (open: boolean) => void; 
 }) {
+  const [cancelOrder] = useMutation(CANCEL_ORDER_MUTATION, {
+    refetchQueries: [{ query: PENDING_LIMIT_ORDERS_QUERY }],
+    awaitRefetchQueries: true,
+  });
+
   const symbolOrders = orders.filter(o => o.symbol === symbol && o.status === 'PENDING');
   
   if (symbolOrders.length === 0) return null;
@@ -235,6 +249,14 @@ function LimitOrdersDialog({ symbol, orders, open, onOpenChange }: {
                     <span className="ml-2">{new Date(order.expiresAt).toLocaleDateString()}</span>
                   </div>
                 </div>
+                <Button
+                  onClick={() => cancelOrder({ variables: { orderId: order.id } })}
+                  variant="outline"
+                  className="mt-3 w-full border-red-500/50 text-red-400 hover:bg-red-500/10"
+                  size="sm"
+                >
+                  Cancelar Orden
+                </Button>
               </div>
             ))}
           </div>

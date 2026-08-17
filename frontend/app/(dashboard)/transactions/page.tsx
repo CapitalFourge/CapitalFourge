@@ -2,7 +2,7 @@
 
 import { gql, useQuery } from "@apollo/client";
 import { motion } from "framer-motion";
-import { History } from "lucide-react";
+import { History, AlertCircle } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,6 +28,21 @@ const TRANSACTIONS_QUERY = gql`
   }
 `;
 
+const PENDING_LIMIT_ORDERS_QUERY = gql`
+  query GetPendingLimitOrders {
+    pendingLimitOrders {
+      id
+      type
+      symbol
+      targetPrice
+      quantity
+      status
+      createdAt
+      expiresAt
+    }
+  }
+`;
+
 interface Transaction {
   id: string;
   symbol: string;
@@ -40,6 +55,17 @@ interface Transaction {
   portfolioName?: string;
 }
 
+interface Order {
+  id: string;
+  type: string;
+  symbol: string;
+  targetPrice: number;
+  quantity: number;
+  status: string;
+  createdAt: string;
+  expiresAt: string;
+}
+
 interface Portfolio {
   id: string;
   name: string;
@@ -48,8 +74,9 @@ interface Portfolio {
 
 export default function TransactionsPage() {
   const { data, loading, error } = useQuery(TRANSACTIONS_QUERY);
+  const { data: ordersData, loading: ordersLoading } = useQuery(PENDING_LIMIT_ORDERS_QUERY);
 
-  if (loading) {
+  if (loading || ordersLoading) {
     return <div className="p-8 text-sm uppercase tracking-[0.26em] text-slate-400">Cargando movimientos...</div>;
   }
 
@@ -72,15 +99,37 @@ export default function TransactionsPage() {
       )
       .sort((a: Transaction, b: Transaction) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()) || [];
 
+  // Add pending limit orders as "pending transactions"
+  const pendingOrders = ordersData?.pendingLimitOrders
+    ?.filter((o: Order) => o.status === 'PENDING')
+    ?.map((o: Order) => ({
+      id: o.id,
+      symbol: o.symbol,
+      type: o.type === 'BUY_LIMIT' ? 'BUY_LIMIT' : 'SELL_LIMIT',
+      quantity: o.quantity,
+      price: o.targetPrice,
+      totalAmount: o.targetPrice * o.quantity,
+      timestamp: o.createdAt,
+      portfolioName: 'Orden límite',
+      isPending: true,
+    })) || [];
+
+  const allItems = [...allTransactions, ...pendingOrders]
+    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
   const badgeClass = (type: string) => {
     if (type === "BUY") return "bg-red-500/10 text-red-200 border-red-400/20";
     if (type === "SELL") return "bg-emerald-300/10 text-emerald-100 border-emerald-300/20";
+    if (type === "BUY_LIMIT") return "bg-amber-500/10 text-amber-200 border-amber-400/20";
+    if (type === "SELL_LIMIT") return "bg-orange-500/10 text-orange-200 border-orange-400/20";
     return "bg-sky-300/10 text-sky-100 border-sky-300/20";
   };
 
   const label = (type: string) => {
     if (type === "BUY") return "Compra";
     if (type === "SELL") return "Venta";
+    if (type === "BUY_LIMIT") return "Compra límite";
+    if (type === "SELL_LIMIT") return "Venta límite";
     return "Efectivo";
   };
 
@@ -92,12 +141,12 @@ export default function TransactionsPage() {
             <p className="eyebrow">Registro operativo</p>
             <InfoTooltip
               title="Movimientos"
-              description="Aquí se registran todas tus compras, ventas y movimientos de efectivo (recargas y retiros). Cada entrada tiene fecha, tipo, activo, cantidad, precio y total."
+              description="Aquí se registran todas tus compras, ventas, movimientos de efectivo y órdenes límite pendientes. Cada entrada tiene fecha, tipo, activo, cantidad, precio y total."
             />
           </div>
           <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] text-white sm:text-5xl">Transacciones.</h1>
           <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
-            Consolida compras, ventas y movimientos de efectivo en una sola tabla operativa.
+            Consolida compras, ventas, movimientos de efectivo y órdenes pendientes en una sola tabla operativa.
           </p>
         </div>
       </div>
@@ -109,7 +158,7 @@ export default function TransactionsPage() {
             Historial reciente
           </CardTitle>
           <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs uppercase tracking-[0.22em] text-slate-400">
-            {allTransactions.length} registros
+            {allItems.length} registros
           </span>
         </CardHeader>
         <CardContent className="px-0 pb-4 pt-2">
@@ -127,42 +176,43 @@ export default function TransactionsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {allTransactions.length === 0 ? (
+                {allItems.length === 0 ? (
                   <TableRow className="border-white/10">
                     <TableCell colSpan={7} className="px-6 py-16 text-center text-sm text-slate-400">
                       Todavía no hay movimientos registrados.
                     </TableCell>
                   </TableRow>
                 ) : (
-                  allTransactions.map((transaction: Transaction) => (
-                    <TableRow key={transaction.id} className="border-white/10 hover:bg-white/[0.03]">
+                  allItems.map((item: Transaction & { isPending?: boolean }) => (
+                    <TableRow key={item.id} className={`border-white/10 hover:bg-white/[0.03] ${item.isPending ? 'bg-amber-500/5' : ''}`}>
                       <TableCell className="px-6 font-mono text-xs text-slate-400">
-                        {new Date(transaction.timestamp).toLocaleString("es-ES")}
+                        {new Date(item.timestamp).toLocaleString("es-ES")}
                       </TableCell>
                       <TableCell>
-                        <Badge className={`${badgeClass(transaction.type)} rounded-full px-3 py-1 text-xs font-medium`}>
-                          {label(transaction.type)}
+                        <Badge className={`${badgeClass(item.type)} rounded-full px-3 py-1 text-xs font-medium ${item.isPending ? 'animate-pulse' : ''}`}>
+                          {label(item.type)}
+                          {item.isPending && <AlertCircle className="ml-1 h-3 w-3" />}
                         </Badge>
                       </TableCell>
-                      <TableCell className="font-medium text-white">{transaction.symbol || "--"}</TableCell>
+                      <TableCell className="font-medium text-white">{item.symbol || "--"}</TableCell>
                       <TableCell className="font-mono text-sm text-slate-300">
-                        {transaction.quantity?.toFixed(4) || "--"}
+                        {item.quantity?.toFixed(4) || "--"}
                       </TableCell>
                       <TableCell className="font-mono text-sm text-slate-300">
-                        ${transaction.price?.toLocaleString() || transaction.balanceTransaction?.toLocaleString()}
+                        ${item.price?.toLocaleString() || item.balanceTransaction?.toLocaleString()}
                       </TableCell>
                       <TableCell className="font-mono text-sm font-semibold text-white">
-                        ${transaction.totalAmount?.toLocaleString() || "--"}
+                        ${item.totalAmount?.toLocaleString() || "--"}
                       </TableCell>
-                      <TableCell className="pr-6 text-sm text-slate-400">{transaction.portfolioName}</TableCell>
+                      <TableCell className="pr-6 text-sm text-slate-400">{item.portfolioName}</TableCell>
                     </TableRow>
                   ))
                 )}
               </TableBody>
-</Table>
-           </div>
-         </CardContent>
-       </Card>
-     </motion.div>
-   );
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
 }

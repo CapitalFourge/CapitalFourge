@@ -4,7 +4,7 @@ import { useMemo, useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { gql, useQuery } from '@apollo/client';
 import { motion } from 'framer-motion';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { IndicatorSelector } from '@/components/trading/indicator-selector';
@@ -13,6 +13,7 @@ import { FundamentalMetricSelector } from '@/components/trading/fundamental-metr
 import { TradeDialog } from '@/components/trading/trade-dialog';
 import { FundamentalPricePoint } from '@/lib/types/fundamental-price-point';
 import { useIndicators } from '@/app/(dashboard)/explorer/[symbol]/components/useIndicators';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 interface Position {
   symbol: string;
@@ -175,31 +176,113 @@ const ASSET_DATA_QUERY = gql`
   }
 `;
 
+// Limit Orders Dialog Component
+function LimitOrdersDialog({ symbol, orders, open, onOpenChange }: { 
+  symbol: string; 
+  orders: Order[]; 
+  open: boolean; 
+  onOpenChange: (open: boolean) => void; 
+}) {
+  const symbolOrders = orders.filter(o => o.symbol === symbol && o.status === 'PENDING');
+  
+  if (symbolOrders.length === 0) return null;
+  
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogTrigger asChild>
+        <Badge variant="default" className="bg-amber-500/20 text-amber-400 border-amber-500/30 cursor-pointer">
+          {symbolOrders.length} orden{symbolOrders.length !== 1 ? 'es' : ''} l\u00EDmite activ{symbolOrders.length !== 1 ? 'as' : 'a'}
+        </Badge>
+      </DialogTrigger>
+      <DialogContent className="glass border-none text-white sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-bold tracking-tighter uppercase italic flex items-center gap-2">
+            <AlertCircle className="text-amber-400" size={20} />
+            Órdenes Límite Pendientes
+          </DialogTitle>
+        </DialogHeader>
+        <div className="py-6 space-y-4">
+          <p className="text-sm text-slate-300">
+            Tienes {symbolOrders.length} orden{symbolOrders.length !== 1 ? 'es' : ''} l\u00EDmite pendiente{symbolOrders.length !== 1 ? 's' : ''} para {symbol}:
+          </p>
+          <div className="space-y-3">
+            {symbolOrders.map((order) => (
+              <div key={order.id} className="bg-black/40 border border-white/10 rounded-lg p-4">
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <span className={`text-xs font-bold px-2 py-1 rounded ${order.type === "BUY_LIMIT" ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"}`}>
+                      {order.type === "BUY_LIMIT" ? "COMPRA" : "VENTA"}
+                    </span>
+                    <span className="ml-2 font-bold">{order.symbol}</span>
+                  </div>
+                  <Badge className="bg-yellow-500">{order.status}</Badge>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <span className="text-slate-500">Precio objetivo:</span>
+                    <span className="ml-2">${order.targetPrice?.toLocaleString()}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500">Cantidad:</span>
+                    <span className="ml-2">{order.quantity}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500">Creada:</span>
+                    <span className="ml-2">{new Date(order.createdAt).toLocaleDateString()}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500">Expira:</span>
+                    <span className="ml-2">{new Date(order.expiresAt).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function AssetDetailPage() {
   const { symbol } = useParams<{ symbol: string }>();
   const [showIndicators, setShowIndicators] = useState<boolean>(false);
-  const [activeIndicators, setActiveIndicators] = useState<string[]>(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem(`asset-${symbol}-indicators`);
-      return stored ? JSON.parse(stored) : [];
-    }
-    return [];
-  });
+  const [activeIndicators, setActiveIndicators] = useState<string[]>([]);
   const [showFundamental, setShowFundamental] = useState<boolean>(false);
-  const [activeFundamentals, setActiveFundamentals] = useState<string[]>(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem(`asset-${symbol}-fundamentals`);
-      return stored ? JSON.parse(stored) : [];
-    }
-    return [];
-  });
+  const [activeFundamentals, setActiveFundamentals] = useState<string[]>([]);
   const [selectedInterval] = useState<string>('1D');
+  const [limitOrdersOpen, setLimitOrdersOpen] = useState(false);
+
+  // Initialize localStorage values after mount (avoid hydration mismatch)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storedIndicators = localStorage.getItem(`asset-${symbol}-indicators`);
+      if (storedIndicators) setActiveIndicators(JSON.parse(storedIndicators));
+      
+      const storedFundamentals = localStorage.getItem(`asset-${symbol}-fundamentals`);
+      if (storedFundamentals) setActiveFundamentals(JSON.parse(storedFundamentals));
+    }
+  }, [symbol]);
+
+  // Persist indicators selection
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(`asset-${symbol}-indicators`, JSON.stringify(activeIndicators));
+    }
+  }, [symbol, activeIndicators]);
+
+  // Persist fundamentals selection
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(`asset-${symbol}-fundamentals`, JSON.stringify(activeFundamentals));
+    }
+  }, [symbol, activeFundamentals]);
 
   // Fetch portfolios for trade dialog
   const { data: portfoliosData } = useQuery(PORTFOLIOS_QUERY);
   const portfolios: PortfolioData[] = portfoliosData?.portfolios || [];
 
-  // Fetch pending limit orders for current user (simpler than per-portfolio)
+  // Fetch pending limit orders for current user
   const { data: pendingOrdersData } = useQuery(PENDING_LIMIT_ORDERS_QUERY);
 
   // Build portfolio positions map for trade dialog
@@ -236,15 +319,7 @@ export default function AssetDetailPage() {
     return pendingOrdersData.pendingLimitOrders?.some((o: Order) => o.symbol === symbol && o.status === 'PENDING');
   }, [pendingOrdersData, symbol]);
 
-  // Persist indicators selection
-  useEffect(() => {
-    localStorage.setItem(`asset-${symbol}-indicators`, JSON.stringify(activeIndicators));
-  }, [symbol, activeIndicators]);
-
-  // Persist fundamentals selection
-  useEffect(() => {
-    localStorage.setItem(`asset-${symbol}-fundamentals`, JSON.stringify(activeFundamentals));
-  }, [symbol, activeFundamentals]);
+  const pendingOrders = pendingOrdersData?.pendingLimitOrders || [];
 
   const { data, loading, error } = useQuery(ASSET_DATA_QUERY, {
     variables: { symbol: symbol },
@@ -309,7 +384,7 @@ export default function AssetDetailPage() {
       ? `$${latestFundamental.marketCap.toLocaleString(undefined)}`
       : 'N/A';
 
-    return (
+  return (
     <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="min-h-screen bg-black/50">
       <div className="flex items-center justify-between p-6 border-b border-white/10">
         <Button variant="outline" onClick={() => { window.history.back(); }}>
@@ -378,9 +453,12 @@ export default function AssetDetailPage() {
               </Badge>
             )}
             {hasLimitOrders && (
-              <Badge variant="default" className="bg-amber-500/20 text-amber-400 border-amber-500/30">
-                Órdenes límite activas
-              </Badge>
+              <LimitOrdersDialog
+                symbol={symbol}
+                orders={pendingOrders}
+                open={limitOrdersOpen}
+                onOpenChange={setLimitOrdersOpen}
+              />
             )}
             {!hasPosition && !hasLimitOrders && (
               <Badge variant="outline" className="border-slate-500/30 text-slate-400">
@@ -444,7 +522,7 @@ export default function AssetDetailPage() {
                             {activeFundamentals.map((metricId) => {
                               const metric = latestFundamental[metricId as keyof typeof latestFundamental];
                               const isAvailable = metric !== undefined && metric !== null && metric !== 0;
-                  
+                 
                               // Format based on metric type
                               let displayValue: string;
                               if (!isAvailable) {

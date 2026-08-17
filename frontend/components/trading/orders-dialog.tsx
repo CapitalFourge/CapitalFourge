@@ -161,6 +161,9 @@ export function OrdersDialog({ portfolioId, open, onOpenChange }: OrdersDialogPr
         }
     };
 
+    const pendingOrders = data?.ordersByPortfolio?.filter((o: Order) => o.status === "PENDING") || [];
+    const hasOrders = data?.ordersByPortfolio?.length > 0;
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="glass border-none text-white sm:max-w-2xl max-h-[80vh] overflow-y-auto">
@@ -171,12 +174,16 @@ export function OrdersDialog({ portfolioId, open, onOpenChange }: OrdersDialogPr
                 </DialogHeader>
 
                 <div className="space-y-4">
-                    {data?.ordersByPortfolio?.length === 0 ? (
+                    {!hasOrders ? (
                         <p className="text-center text-slate-400 py-8">
-                            No hay órdenes activas
+                            No hay órdenes en este portafolio
+                        </p>
+                    ) : pendingOrders.length === 0 ? (
+                        <p className="text-center text-slate-400 py-8">
+                            No hay órdenes activas (pendientes)
                         </p>
                     ) : (
-                        data?.ordersByPortfolio?.filter((o: Order) => o.status === "PENDING").map((order: Order) => (
+                        pendingOrders.map((order: Order) => (
                             <div key={order.id} className="bg-black/40 border border-white/10 rounded-lg p-4">
                                 <div className="flex justify-between items-start mb-2">
                                     <div>

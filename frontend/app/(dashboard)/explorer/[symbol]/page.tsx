@@ -56,20 +56,18 @@ const PORTFOLIOS_QUERY = gql`
   }
 `;
 
-const GET_ORDERS_QUERY = gql`
-  query GetOrders($ids: [ID!]!) {
-    portfoliosByIds(ids: $ids) {
+// Use existing backend query that returns all pending limit orders for current user
+const PENDING_LIMIT_ORDERS_QUERY = gql`
+  query GetPendingLimitOrders {
+    pendingLimitOrders {
       id
-      ordersByPortfolio {
-        id
-        type
-        symbol
-        targetPrice
-        quantity
-        status
-        createdAt
-        expiresAt
-      }
+      type
+      symbol
+      targetPrice
+      quantity
+      status
+      createdAt
+      expiresAt
     }
   }
 `;
@@ -201,12 +199,8 @@ export default function AssetDetailPage() {
   const { data: portfoliosData } = useQuery(PORTFOLIOS_QUERY);
   const portfolios: PortfolioData[] = portfoliosData?.portfolios || [];
 
-  // Fetch orders for each portfolio to show active limit orders for this symbol
-  const ids = portfolios.map(p => p.id);
-  const { data: ordersData } = useQuery(GET_ORDERS_QUERY, {
-    variables: { ids },
-    skip: ids.length === 0
-  });
+  // Fetch pending limit orders for current user (simpler than per-portfolio)
+  const { data: pendingOrdersData } = useQuery(PENDING_LIMIT_ORDERS_QUERY);
 
   // Build portfolio positions map for trade dialog
   const portfolioPositions = useMemo(() => {
@@ -217,19 +211,30 @@ export default function AssetDetailPage() {
     return map;
   }, [portfolios]);
 
-  // Check if user has positions or limit orders for this symbol
-  const hasPosition = useMemo(() => {
-    return portfolios.some(p => 
-      p.positions?.some(pos => pos.symbol === symbol)
-    );
+  // Check if user has positions for this symbol - build detailed info
+  const positionDetails = useMemo(() => {
+    const details: { portfolioId: string; portfolioName: string; quantity: number }[] = [];
+    portfolios.forEach(p => {
+      p.positions?.forEach(pos => {
+        if (pos.symbol === symbol) {
+          details.push({
+            portfolioId: p.id,
+            portfolioName: p.name,
+            quantity: pos.quantity
+          });
+        }
+      });
+    });
+    return details;
   }, [portfolios, symbol]);
 
+  const hasPosition = positionDetails.length > 0;
+
+  // Check for limit orders for this symbol
   const hasLimitOrders = useMemo(() => {
-    if (!ordersData) return false;
-    return ordersData.portfolios?.some((p: { id: string; ordersByPortfolio: Order[] }) => 
-      p.ordersByPortfolio?.some((o: Order) => o.symbol === symbol && o.status === 'PENDING')
-    );
-  }, [ordersData, symbol]);
+    if (!pendingOrdersData) return false;
+    return pendingOrdersData.pendingLimitOrders?.some((o: Order) => o.symbol === symbol && o.status === 'PENDING');
+  }, [pendingOrdersData, symbol]);
 
   // Persist indicators selection
   useEffect(() => {
@@ -369,7 +374,7 @@ export default function AssetDetailPage() {
           <div className="flex flex-wrap gap-3">
             {hasPosition && (
               <Badge variant="default" className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
-                Tienes posición en {symbol}
+                {positionDetails.map(d => `${d.quantity} ${symbol} en ${d.portfolioName}`).join(', ')}
               </Badge>
             )}
             {hasLimitOrders && (

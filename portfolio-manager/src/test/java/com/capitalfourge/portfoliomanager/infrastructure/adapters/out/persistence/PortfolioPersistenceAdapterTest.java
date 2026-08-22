@@ -85,6 +85,7 @@ class PortfolioPersistenceAdapterTest {
             userId,
             List.of(position),
             List.of(transaction),
+            List.of(),
             new BigDecimal("1500"),
             BigDecimal.ZERO,
             10.0,

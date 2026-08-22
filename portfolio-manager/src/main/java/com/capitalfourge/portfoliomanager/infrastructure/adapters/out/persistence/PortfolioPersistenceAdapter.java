@@ -12,8 +12,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.capitalfourge.portfoliomanager.application.ports.out.PortfolioRepository;
 import com.capitalfourge.portfoliomanager.domain.Portfolio;
+import com.capitalfourge.portfoliomanager.domain.Order;
 import com.capitalfourge.portfoliomanager.domain.Position;
 import com.capitalfourge.portfoliomanager.domain.Transaction;
+import com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistence.Entities.OrderEntity;
 import com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistence.Entities.PortfolioEntity;
 import com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistence.Entities.PositionEntity;
 import com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistence.Entities.TransactionEntity;
@@ -126,6 +128,30 @@ public class PortfolioPersistenceAdapter implements PortfolioRepository {
                     ))
                     .collect(Collectors.toList()));
         }
+        // Copy orders to maintain relationship (prevents orphanRemoval deleting them)
+        if (domain.getOrders() != null) {
+            List<OrderEntity> orderEntities = domain.getOrders().stream()
+                    .map(o -> new OrderEntity(
+                            o.getId(),
+                            entity,
+                            o.getPortfolioId(),
+                            o.getUserId(),
+                            o.getType(),
+                            o.getSymbol(),
+                            o.getTargetPrice(),
+                            o.getQuantity(),
+                            o.getUsdAmount(),
+                            o.getStatus(),
+                            o.getCreatedAt(),
+                            o.getFilledAt(),
+                            o.getExpiresAt(),
+                            o.getFilledPrice(),
+                            o.getFilledQuantity(),
+                            o.getRejectionReason()
+                    ))
+                    .collect(Collectors.toList());
+            entity.setOrders(orderEntities);
+        }
         return entity;
     }
 
@@ -157,6 +183,25 @@ public class PortfolioPersistenceAdapter implements PortfolioRepository {
                         t.getBalanceTransaction()
                 )).collect(Collectors.toList());
 
+        List<Order> domainOrders = entity.getOrders() == null ? new java.util.ArrayList<>()
+                : entity.getOrders().stream().map(o -> new Order(
+                        o.getId(),
+                        entity.getId(),
+                        o.getUserId(),
+                        o.getType(),
+                        o.getSymbol(),
+                        o.getTargetPrice(),
+                        o.getQuantity(),
+                        o.getUsdAmount(),
+                        o.getStatus(),
+                        o.getCreatedAt(),
+                        o.getFilledAt(),
+                        o.getExpiresAt(),
+                        o.getFilledPrice(),
+                        o.getFilledQuantity(),
+                        o.getRejectionReason()
+                )).collect(Collectors.toList());
+
         return new Portfolio(
             entity.getId(),
             entity.getName(),
@@ -164,6 +209,7 @@ public class PortfolioPersistenceAdapter implements PortfolioRepository {
             entity.getUserId(),
             domainPositions,
             domainTransactions,
+            domainOrders,
             entity.getCumulativeDeposits(),
             entity.getCumulativeWithdrawals(),
             entity.getPerformance() != null ? entity.getPerformance() : 0.0,

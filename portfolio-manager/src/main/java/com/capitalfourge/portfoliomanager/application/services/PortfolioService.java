@@ -578,6 +578,7 @@ public class PortfolioService implements PortfolioUseCase {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Order> getOrdersByPortfolio(UUID portfolioId) {
         return orderRepository.findByPortfolioId(portfolioId);
     }

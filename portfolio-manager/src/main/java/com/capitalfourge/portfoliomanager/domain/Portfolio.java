@@ -9,6 +9,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import com.capitalfourge.portfoliomanager.domain.Order;
+
 @Data
 public class Portfolio {
     private UUID id;
@@ -17,6 +19,7 @@ public class Portfolio {
     private UUID userId;
     private List<Position> positions;
     private List<Transaction> transactions;
+    private List<Order> orders;
     private BigDecimal cumulativeDeposits;
     private BigDecimal cumulativeWithdrawals;
         private Double performance = 0.0;
@@ -42,6 +45,8 @@ public class Portfolio {
     public void setPositions(List<Position> positions) { this.positions = positions; }
     public List<Transaction> getTransactions() { return transactions; }
     public void setTransactions(List<Transaction> transactions) { this.transactions = transactions; }
+    public List<Order> getOrders() { return orders; }
+    public void setOrders(List<Order> orders) { this.orders = orders; }
     public BigDecimal getCumulativeDeposits() { return cumulativeDeposits; }
     public void setCumulativeDeposits(BigDecimal cumulativeDeposits) { this.cumulativeDeposits = cumulativeDeposits; }
     public BigDecimal getCumulativeWithdrawals() { return cumulativeWithdrawals; }
@@ -71,20 +76,22 @@ public class Portfolio {
         }
 
         // Explicit all-args constructor for Lombok compatibility
-    public Portfolio(UUID id, String name, String description, UUID userId, 
-                     List<Position> positions, List<Transaction> transactions,
-                     BigDecimal cumulativeDeposits, BigDecimal cumulativeWithdrawals,
-                     Double performance, boolean isPublic, String shareSlug) {
-        this.id = id;
-        this.name = name;
-        this.description = description;
-        this.userId = userId;
-        this.positions = positions;
-        this.transactions = transactions;
-        this.cumulativeDeposits = cumulativeDeposits;
-        this.cumulativeWithdrawals = cumulativeWithdrawals;
-        this.performance = performance;
-        this.isPublic = isPublic;
-        this.shareSlug = shareSlug;
+    public Portfolio(UUID id, String name, String description, UUID userId,
+                         List<Position> positions, List<Transaction> transactions,
+                         List<Order> orders,
+                         BigDecimal cumulativeDeposits, BigDecimal cumulativeWithdrawals,
+                         Double performance, boolean isPublic, String shareSlug) {
+            this.id = id;
+            this.name = name;
+            this.description = description;
+            this.userId = userId;
+            this.positions = positions;
+            this.transactions = transactions;
+            this.orders = orders;
+            this.cumulativeDeposits = cumulativeDeposits;
+            this.cumulativeWithdrawals = cumulativeWithdrawals;
+            this.performance = performance;
+            this.isPublic = isPublic;
+            this.shareSlug = shareSlug;
+        }
     }
-}

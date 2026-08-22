@@ -15,7 +15,6 @@ import com.capitalfourge.portfoliomanager.domain.OrderStatus;
 @Repository
 public interface JpaOrderRepository extends JpaRepository<OrderEntity, UUID> {
 
-    @EntityGraph(attributePaths = {"portfolio"}, type = EntityGraph.EntityGraphType.FETCH)
     Page<OrderEntity> findByPortfolioId(UUID portfolioId, Pageable pageable);
 
     @EntityGraph(attributePaths = {"portfolio"}, type = EntityGraph.EntityGraphType.FETCH)

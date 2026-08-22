@@ -502,7 +502,7 @@ public class PortfolioGraphQLController {
             name,
             description,
             userId,
-            null, null,
+            null, null, null,
             null, null,
             0.0,
             false,

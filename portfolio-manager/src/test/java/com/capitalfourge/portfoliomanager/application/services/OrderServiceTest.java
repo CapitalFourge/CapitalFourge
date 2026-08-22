@@ -66,6 +66,7 @@ class OrderServiceTest {
                     userId,
                     java.util.List.of(),
                     java.util.List.of(),
+                    java.util.List.of(),
                     new BigDecimal("0"),
                     new BigDecimal("0"),
                     0.0,

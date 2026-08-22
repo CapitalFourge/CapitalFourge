@@ -88,6 +88,7 @@ class PortfolioIntegrationTest {
             user.getId(),
             java.util.List.of(),
             java.util.List.of(),
+            java.util.List.of(),
             BigDecimal.ZERO,
             BigDecimal.ZERO,
             0.0,
@@ -152,6 +153,7 @@ class PortfolioIntegrationTest {
                     new BigDecimal("1500")
                 )
             ),
+            java.util.List.of(),
             BigDecimal.ZERO,
             BigDecimal.ZERO,
             0.0,

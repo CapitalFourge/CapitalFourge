@@ -3,7 +3,7 @@ import { vi, beforeAll, afterAll } from 'vitest';
 
 // Type augmentation for @testing-library/jest-dom matchers
 declare module 'vitest' {
-  interface Assertion<T = any> {
+  interface Assertion<T = unknown> {
     toBeInTheDocument(): T;
     toHaveTextContent(text: string | RegExp): T;
   }
@@ -43,6 +43,7 @@ vi.mock('lucide-react', async (importOriginal) => {
   
   if (!icons.X) {
     icons.X = () => <svg data-testid="X" />;
+    icons.X.displayName = 'X';
   }
   
   return {

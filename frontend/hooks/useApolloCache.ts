@@ -4,33 +4,20 @@ import { useRef, useCallback } from 'react';
 import { useApolloClient } from '@apollo/client';
 
 export function useApolloCache() {
-  const clientRef = useRef<ReturnType<typeof useApolloClient> | null>(null);
-  
-  const getClient = useCallback(() => {
-    if (typeof window === 'undefined') return null;
-    if (!clientRef.current) {
-      // This will only be called during client-side rendering
-      clientRef.current = useApolloClient();
-    }
-    return clientRef.current;
-  }, []);
+  const client = useApolloClient();
 
   const clearUserCache = async () => {
-    const client = getClient();
-    if (client) {
-      await client.clearStore();
-    }
+    if (typeof window === 'undefined') return;
+    await client.clearStore();
   };
-  
+
   const refetchUserQueries = async () => {
-    const client = getClient();
-    if (client) {
-      await client.refetchQueries({
-        include: ['GetDashboardData', 'me', 'portfolios']
-      });
-    }
+    if (typeof window === 'undefined') return;
+    await client.refetchQueries({
+      include: ['GetDashboardData', 'me', 'portfolios']
+    });
   };
-  
+
   return { clearUserCache, refetchUserQueries };
 }
 

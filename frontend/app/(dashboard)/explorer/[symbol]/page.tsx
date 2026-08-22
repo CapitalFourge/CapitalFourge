@@ -205,7 +205,7 @@ function LimitOrdersDialog({ symbol, orders, open, onOpenChange }: {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
         <Badge variant="default" className="bg-amber-500/20 text-amber-400 border-amber-500/30 cursor-pointer">
-          {symbolOrders.length} orden{symbolOrders.length !== 1 ? 'es' : ''} l\u00EDmite activ{symbolOrders.length !== 1 ? 'as' : 'a'}
+          {symbolOrders.length} orden{symbolOrders.length !== 1 ? 'es' : ''} l\u00EDmite pendiente{symbolOrders.length !== 1 ? 's' : 'e'}
         </Badge>
       </DialogTrigger>
       <DialogContent className="glass border-none text-white sm:max-w-md">
@@ -468,7 +468,7 @@ export default function AssetDetailPage() {
           </div>
 
           {/* Position & Limit Order Status */}
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             {hasPosition && (
               <Badge variant="default" className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
                 {positionDetails.map(d => `${d.quantity} ${symbol} en ${d.portfolioName}`).join(', ')}
@@ -484,7 +484,7 @@ export default function AssetDetailPage() {
             )}
             {!hasPosition && !hasLimitOrders && (
               <Badge variant="outline" className="border-slate-500/30 text-slate-400">
-                Sin posición ni órdenes activas
+                Sin posición ni órdenes pendientes
               </Badge>
             )}
           </div>

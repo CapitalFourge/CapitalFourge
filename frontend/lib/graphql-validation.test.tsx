@@ -48,7 +48,7 @@ function extractGraphQLDocuments(content: string): DocumentNode[] {
 }
 
 // Check if a selection set includes 'id' field
-function hasIdField(selectionSet: any): boolean {
+function hasIdField(selectionSet: { selections?: readonly any[] } | null | undefined): boolean {
   if (!selectionSet || !selectionSet.selections) return false;
   
   for (const selection of selectionSet.selections) {

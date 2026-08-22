@@ -750,7 +750,10 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
-          sarif_file: '*.sarif'
+          sarif_file: |
+            trivy-java.sarif
+            trivy-python.sarif
+            trivy-docker.sarif
 
   # ──────────────────────────────────────────────────────────────────
   # SUMMARY / GATE

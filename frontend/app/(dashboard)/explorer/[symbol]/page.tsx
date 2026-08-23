@@ -205,7 +205,7 @@ function LimitOrdersDialog({ symbol, orders, open, onOpenChange }: {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
         <Badge variant="default" className="bg-amber-500/20 text-amber-400 border-amber-500/30 cursor-pointer">
-          {symbolOrders.length} orden{symbolOrders.length !== 1 ? 'es' : ''} l\u00EDmite pendiente{symbolOrders.length !== 1 ? 's' : 'e'}
+          {symbolOrders.length} orden{symbolOrders.length !== 1 ? 'es' : ''} límite pendiente{symbolOrders.length !== 1 ? 's' : 'e'}
         </Badge>
       </DialogTrigger>
       <DialogContent className="glass border-none text-white sm:max-w-md">
@@ -217,7 +217,7 @@ function LimitOrdersDialog({ symbol, orders, open, onOpenChange }: {
         </DialogHeader>
         <div className="py-6 space-y-4">
           <p className="text-sm text-slate-300">
-            Tienes {symbolOrders.length} orden{symbolOrders.length !== 1 ? 'es' : ''} l\u00EDmite pendiente{symbolOrders.length !== 1 ? 's' : ''} para {symbol}:
+            Tienes {symbolOrders.length} orden{symbolOrders.length !== 1 ? 'es' : ''} límite pendiente{symbolOrders.length !== 1 ? 's' : ''} para {symbol}:
           </p>
           <div className="space-y-3">
             {symbolOrders.map((order) => (

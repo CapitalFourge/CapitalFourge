@@ -203,7 +203,8 @@ class OrderFillEngine:
             # BUY_LIMIT fills when market price <= target price (price dropped to target)
             if current_price <= order.target_price:
                 logger.info(f"   🎯 TRIGGER: {order.symbol} @ ${current_price:.2f} <= ${order.target_price:.2f}")
-                self.fill_order(order, current_price)
+                # Paper trading: execute at exact limit price (target_price), not market price
+                self.fill_order(order, order.target_price)
             else:
                 logger.info(f"   ⏳ Waiting: {order.symbol} @ ${current_price:.2f} > ${order.target_price:.2f}")
 

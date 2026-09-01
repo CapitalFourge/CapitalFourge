@@ -95,10 +95,12 @@ const item = {
 };
 
 const formatCurrency = (value: number) =>
-  `$${value.toLocaleString("en-US", {
+  new Intl.NumberFormat("es-ES", {
+    style: "currency",
+    currency: "USD",
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  })}`;
+  }).format(value);
 
 const formatSignedPercent = (value: number) => `${value >= 0 ? "+" : ""}${value.toFixed(2)}%`;
 const formatSignedCurrency = (value: number) => `${value >= 0 ? "+" : "-"}${formatCurrency(Math.abs(value))}`;
@@ -345,7 +347,7 @@ export default function DashboardPage() {
                     {portfolios.map((portfolio) => (
                       <Link
                         key={portfolio.id}
-                        href={`/portfolio/${portfolio.id}`}
+                        href={`/portfolio/${portfolio.name}`}
                         className="flex items-center justify-between rounded-[1.2rem] border border-white/6 bg-slate-950/35 px-4 py-3 transition hover:bg-white/[0.04] hover:border-emerald-300/30"
                       >
                         <div>

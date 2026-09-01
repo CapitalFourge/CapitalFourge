@@ -111,6 +111,14 @@ export default function AdminPage() {
     fetchPolicy: "network-only",
   });
 
+  const formatCurrency = (val: number) =>
+    new Intl.NumberFormat("es-ES", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(val);
+
   const [setRoleMutation, { loading: settingRole }] = useMutation(ADMIN_SET_ROLE_MUTATION);
   const [deactivateMutation, { loading: deactivating }] = useMutation(ADMIN_DEACTIVATE_MUTATION);
 
@@ -246,7 +254,7 @@ export default function AdminPage() {
               </div>
               <div>
                 <p className="text-sm font-medium text-slate-300">Balance total</p>
-                <p className="text-2xl font-semibold text-white">${totalBalance.toLocaleString()}</p>
+                <p className="text-2xl font-semibold text-white">{formatCurrency(totalBalance)}</p>
               </div>
             </div>
           </CardContent>
@@ -335,7 +343,7 @@ export default function AdminPage() {
                             {user.createdAt ? new Date(user.createdAt).toLocaleDateString("es-ES") : "—"}
                           </TableCell>
                           <TableCell className="pr-6 text-right font-mono text-sm text-slate-300">
-                            ${((user.cashBalance || 0) + (user.lockedBalance || 0)).toLocaleString()}
+                            {formatCurrency((user.cashBalance || 0) + (user.lockedBalance || 0))}
                           </TableCell>
                           <TableCell className="pr-6 text-right">
                             <div className="flex justify-end gap-2">

@@ -53,6 +53,7 @@ interface Transaction {
   timestamp: string;
   balanceTransaction?: number;
   portfolioName?: string;
+  isPending?: boolean;
 }
 
 interface Order {
@@ -124,6 +125,14 @@ export default function TransactionsPage() {
     if (type === "SELL_LIMIT") return "bg-orange-500/10 text-orange-200 border-orange-400/20";
     return "bg-sky-300/10 text-sky-100 border-sky-300/20";
   };
+
+  const formatCurrency = (val: number) =>
+    new Intl.NumberFormat("es-ES", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(val);
 
   const label = (type: string) => {
     if (type === "BUY") return "Compra";
@@ -199,10 +208,10 @@ export default function TransactionsPage() {
                         {item.quantity?.toFixed(4) || "--"}
                       </TableCell>
                       <TableCell className="font-mono text-sm text-slate-300">
-                        ${item.price?.toLocaleString() || item.balanceTransaction?.toLocaleString()}
+                        {formatCurrency(item.price)}
                       </TableCell>
                       <TableCell className="font-mono text-sm font-semibold text-white">
-                        ${item.totalAmount?.toLocaleString() || "--"}
+                        {formatCurrency(item.totalAmount)}
                       </TableCell>
                       <TableCell className="pr-6 text-sm text-slate-400">{item.portfolioName}</TableCell>
                     </TableRow>

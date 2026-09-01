@@ -44,6 +44,14 @@ interface Portfolio {
 export default function PortfoliosPage() {
   const { data, loading, error } = useQuery(PORTFOLIOS_QUERY);
 
+  const formatCurrency = (val: number) =>
+    new Intl.NumberFormat("es-ES", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(val);
+
   if (loading) {
     return <div className="p-8 text-sm uppercase tracking-[0.26em] text-slate-400">Cargando portafolios...</div>;
   }
@@ -99,7 +107,7 @@ export default function PortfoliosPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.38, delay: index * 0.05 }}
             >
-              <Link href={`/portfolio/${portfolio.id}`} className="block h-full">
+              <Link href={`/portfolio/${portfolio.name}`} className="block h-full">
                 <Card className="panel h-full border-white/10 py-0 transition duration-300 hover:-translate-y-1 hover:bg-white/[0.06]">
                   <CardHeader className="flex flex-row items-start justify-between px-6 pt-6">
                     <div>
@@ -121,7 +129,7 @@ export default function PortfoliosPage() {
                     <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-4">
                       <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Capital invertido</p>
                       <p className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-white">
-                        ${invested.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        {formatCurrency(invested)}
                       </p>
                     </div>
 

@@ -82,15 +82,16 @@ const DASHBOARD_QUERY = gql`
 `;
 
 const PORTFOLIO_DETAIL_QUERY = gql`
-  query GetPortfolioDetail($id: ID!) {
+  query GetPortfolioDetail($name: String!) {
     me {
       id
       cashBalance
       lockedBalance
     }
-    portfolio(id: $id) {
+    portfolioByName(name: $name) {
       id
       name
+      description
       performance
       isPublic
       shareSlug
@@ -144,6 +145,7 @@ interface Transaction {
 interface Portfolio {
   id: string;
   name: string;
+  description?: string;
   performance: number;
   isPublic: boolean;
   shareSlug?: string;
@@ -152,19 +154,27 @@ interface Portfolio {
 }
 
 export default function PortfolioDetailPage() {
-  const { id } = useParams();
+  const { slug } = useParams();
   const [ordersDialogOpen, setOrdersDialogOpen] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState<Position | null>(null);
   const [positionActionDialogOpen, setPositionActionDialogOpen] = useState(false);
 
-  const portfolioId = Array.isArray(id) ? id[0] : id;
+  const portfolioSlug = Array.isArray(slug) ? slug[0] : slug;
   const { data, loading, error } = useQuery(PORTFOLIO_DETAIL_QUERY, {
-    variables: { id: portfolioId },
+    variables: { name: portfolioSlug },
   });
+
+  const formatCurrency = (val: number) =>
+    new Intl.NumberFormat("es-ES", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(val);
 
   const [toggleVisibility] = useMutation(TOGGLE_VISIBILITY, {
     refetchQueries: [
-      { query: PORTFOLIO_DETAIL_QUERY, variables: { id: portfolioId } },
+      { query: PORTFOLIO_DETAIL_QUERY, variables: { name: portfolioSlug } },
       { query: PORTFOLIOS_QUERY },
       { query: DASHBOARD_QUERY, variables: { sort: "volatile", limit: 8 } },
     ],
@@ -175,11 +185,11 @@ export default function PortfolioDetailPage() {
     return <div className="p-8 text-sm uppercase tracking-[0.26em] text-slate-400">Cargando portafolio...</div>;
   }
 
-  if (error || !portfolioId) {
+  if (error || !portfolioSlug) {
     return (
       <div className="rounded-[1.75rem] border border-red-400/20 bg-red-500/10 p-8 text-red-200">
         <h2 className="text-lg font-semibold">No fue posible cargar el portafolio</h2>
-        <p className="mt-2 text-sm text-red-100/80">{error?.message || "ID de portafolio no encontrado"}</p>
+        <p className="mt-2 text-sm text-red-100/80">{error?.message || "Slug de portafolio no encontrado"}</p>
       </div>
     );
   }
@@ -202,7 +212,7 @@ export default function PortfolioDetailPage() {
         <div>
           <p className="eyebrow">Detalle de cartera</p>
           <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] text-white sm:text-5xl">{portfolio.name}</h1>
-          <p className="mt-3 text-sm uppercase tracking-[0.22em] text-slate-400">ID {portfolio.id.slice(0, 8)}</p>
+          <p className="mt-3 text-sm uppercase tracking-[0.22em] text-slate-400">{portfolio.description || "Sin descripción"}</p>
         </div>
 
         <div className="flex flex-wrap gap-3">
@@ -260,7 +270,7 @@ export default function PortfolioDetailPage() {
         <div className="metric-tile">
           <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Valor total</p>
           <p className="mt-4 text-3xl font-semibold text-white">
-            ${totalPortfolioValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            {formatCurrency(totalPortfolioValue)}
           </p>
         </div>
         <div className="metric-tile">
@@ -273,13 +283,13 @@ export default function PortfolioDetailPage() {
         <div className="metric-tile">
           <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Caja</p>
           <p className="mt-4 text-3xl font-semibold text-white">
-            ${userCashBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            {formatCurrency(userCashBalance)}
           </p>
         </div>
         <div className="metric-tile">
           <p className="text-xs uppercase tracking-[0.24em] text-slate-400">En activos</p>
           <p className="mt-4 text-3xl font-semibold text-white">
-            ${positionsUsdValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            {formatCurrency(positionsUsdValue)}
           </p>
         </div>
       </section>
@@ -320,12 +330,12 @@ export default function PortfolioDetailPage() {
                         {position.quantity} unidades
                       </p>
                       <p className="mt-1 text-xs text-slate-400 font-mono">
-                        ${(position.currentPrice || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        {formatCurrency(position.currentPrice || 0)}
                       </p>
                     </div>
                     <div className="text-right">
                       <p className="font-mono text-sm text-white">
-                        ${usdValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        {formatCurrency(usdValue)}
                       </p>
                       <p className={`mt-1 text-xs ${performance >= 0 ? "text-emerald-300" : "text-red-300"}`}>
                         {performance >= 0 ? "+" : ""}
@@ -378,9 +388,9 @@ export default function PortfolioDetailPage() {
                       </TableCell>
                       <TableCell className="font-medium text-white">{transaction.symbol}</TableCell>
                       <TableCell className="font-mono text-sm text-slate-300">{transaction.quantity}</TableCell>
-                      <TableCell className="font-mono text-sm text-slate-300">${transaction.price?.toLocaleString()}</TableCell>
+                      <TableCell className="font-mono text-sm text-slate-300">{formatCurrency(transaction.price)}</TableCell>
                       <TableCell className="pr-6 font-mono text-sm font-semibold text-white">
-                        ${transaction.totalAmount?.toLocaleString() || "--"}
+                        {formatCurrency(transaction.totalAmount)}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -391,7 +401,7 @@ export default function PortfolioDetailPage() {
         </Card>
       </div>
 
-      <OrdersDialog portfolioId={portfolioId} open={ordersDialogOpen} onOpenChange={setOrdersDialogOpen} />
+      <OrdersDialog portfolioId={portfolio.id} open={ordersDialogOpen} onOpenChange={setOrdersDialogOpen} />
 
       <PositionActionDialog
         position={selectedPosition}

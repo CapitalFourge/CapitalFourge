@@ -70,6 +70,9 @@ public class PortfolioGraphQLController {
             return null;
         }
         UUID userId = getUserIdFromAuth(auth);
+        if (userId == null) {
+            return null;
+        }
         User user = userUseCase.findById(userId).orElse(null);
         if (user != null) {
             if (user.getCashBalance() == null) user.setCashBalance(BigDecimal.ZERO);
@@ -85,6 +88,9 @@ public class PortfolioGraphQLController {
             return List.of();
         }
         UUID userId = getUserIdFromAuth(auth);
+        if (userId == null) {
+            return List.of();
+        }
         return portfolioUseCase.getPortfoliosByUser(userId);
     }
 
@@ -95,6 +101,9 @@ public class PortfolioGraphQLController {
             return List.of();
         }
         UUID userId = getUserIdFromAuth(auth);
+        if (userId == null) {
+            return List.of();
+        }
         List<Portfolio> portfolios = portfolioUseCase.getPortfoliosByIds(ids);
         // Filter to only return portfolios owned by the authenticated user
         return portfolios.stream()
@@ -109,7 +118,31 @@ public class PortfolioGraphQLController {
             return null;
         }
         UUID userId = getUserIdFromAuth(auth);
+        if (userId == null) {
+            return null;
+        }
         return portfolioUseCase.getPortfolio(id);
+    }
+
+    @QueryMapping
+    public Portfolio portfolioByName(@Argument String name) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UUID userId = null;
+        if (auth != null && auth.isAuthenticated()) {
+            userId = getUserIdFromAuth(auth);
+        }
+        // First find by name globally (works for public portfolios or when user owns it)
+        Portfolio portfolio = portfolioUseCase.getPortfolioByName(name);
+        if (portfolio == null) {
+            return null;
+        }
+        // Check if public or user owns it
+        if (!portfolio.getIsPublic()) {
+            if (userId == null || !portfolio.getUserId().equals(userId)) {
+                return null; // Not authorized to view private portfolio
+            }
+        }
+        return portfolio;
     }
 
     @QueryMapping
@@ -561,6 +594,9 @@ public class PortfolioGraphQLController {
     public User deposit(@Argument("amount") BigDecimal amount) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UUID userId = getUserIdFromAuth(auth);
+        if (userId == null) {
+            return null;
+        }
         userUseCase.deposit(userId, amount);
         return userUseCase.findById(userId).orElse(null);
     }
@@ -570,6 +606,9 @@ public class PortfolioGraphQLController {
     public User withdraw(@Argument("amount") BigDecimal amount) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UUID userId = getUserIdFromAuth(auth);
+        if (userId == null) {
+            return null;
+        }
         userUseCase.withdraw(userId, amount);
         return userUseCase.findById(userId).orElse(null);
     }
@@ -579,6 +618,9 @@ public class PortfolioGraphQLController {
     public Boolean deletePortfolio(@Argument("id") UUID id) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UUID userId = getUserIdFromAuth(auth);
+        if (userId == null) {
+            return false;
+        }
         Portfolio portfolio = portfolioUseCase.getPortfolio(id);
         if (!portfolio.getUserId().equals(userId)) {
             throw new RuntimeException("Portfolio not found or access denied");
@@ -615,6 +657,9 @@ public class PortfolioGraphQLController {
     public User updateProfile(@Argument String username, @Argument String email, @Argument String language) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UUID userId = getUserIdFromAuth(auth);
+        if (userId == null) {
+            return null;
+        }
         return userUseCase.updateProfile(userId, username, email, language);
     }
 
@@ -710,6 +755,9 @@ public class PortfolioGraphQLController {
     }
 
     private UUID getUserIdFromAuth(Authentication auth) {
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            return null;
+        }
         Object principal = auth.getPrincipal();
         if (principal instanceof UserPrincipal) {
             return ((UserPrincipal) principal).userId();
@@ -736,6 +784,9 @@ public class PortfolioGraphQLController {
     private void verifyPortfolioOwnership(UUID portfolioId) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UUID userId = getUserIdFromAuth(auth);
+        if (userId == null) {
+            throw new RuntimeException("Unauthorized: authentication required");
+        }
         Portfolio portfolio = portfolioUseCase.getPortfolio(portfolioId);
         if (!portfolio.getUserId().equals(userId)) {
             throw new RuntimeException("Portfolio not found or access denied");

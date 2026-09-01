@@ -58,9 +58,8 @@ public class TransactionEntity {
         if (timestamp == null) {
             timestamp = LocalDateTime.now();
         }
-        if (balanceTransaction == null) {
-            balanceTransaction = price.multiply(quantity);
-        }
+        // balanceTransaction is set by the service layer (user's cash balance after transaction)
+        // Do NOT overwrite it here with price * quantity
     }
     
     // Explicit getters/setters for Lombok compatibility

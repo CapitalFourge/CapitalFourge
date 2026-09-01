@@ -491,6 +491,30 @@ public class PortfolioService implements PortfolioUseCase {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Portfolio getPortfolioByName(String name) {
+        return portfolioRepository.findByName(name)
+                .map(portfolio -> {
+                    refreshPortfolioPrices(portfolio);
+                    updatePerformance(portfolio);
+                    return portfolio;
+                })
+                .orElse(null);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Portfolio getPortfolioByName(UUID userId, String name) {
+        return portfolioRepository.findByUserIdAndName(userId, name)
+                .map(portfolio -> {
+                    refreshPortfolioPrices(portfolio);
+                    updatePerformance(portfolio);
+                    return portfolio;
+                })
+                .orElse(null);
+    }
+
+    @Override
     @Transactional
     public Order createLimitOrder(UUID portfolioId, UUID userId, OrderType type, String symbol, BigDecimal targetPrice, BigDecimal quantity, BigDecimal usdAmount) {
         // Verify portfolio exists and belongs to user

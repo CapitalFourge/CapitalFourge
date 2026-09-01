@@ -6,6 +6,7 @@ schema {
 type Query {
   me: User
   portfolio(id: ID!): Portfolio
+  portfolioByName(name: String!): Portfolio
   portfolios(sort: String, limit: Int): [Portfolio!]!
   portfoliosByIds(ids: [ID!]!): [Portfolio!]!
   assetMovers(sort: String, limit: Int): AssetMovers

@@ -40,6 +40,17 @@ interface Order {
   expiresAt: string;
 }
 
+const formatCurrency = (value: number) =>
+  new Intl.NumberFormat("es-ES", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
+
+const formatNumber = (value: number) =>
+  new Intl.NumberFormat("es-ES").format(value);
+
 const PORTFOLIOS_QUERY = gql`
   query GetPortfolios {
     portfolios {
@@ -234,7 +245,7 @@ function LimitOrdersDialog({ symbol, orders, open, onOpenChange }: {
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div>
                     <span className="text-slate-500">Precio objetivo:</span>
-                    <span className="ml-2">${order.targetPrice?.toLocaleString()}</span>
+                    <span className="ml-2">{formatCurrency(order.targetPrice)}</span>
                   </div>
                   <div>
                     <span className="text-slate-500">Cantidad:</span>
@@ -388,10 +399,10 @@ export default function AssetDetailPage() {
   }
 
   const latestPrice = asset?.price
-    ? `$${asset.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+    ? formatCurrency(asset.price)
     : (latestDailyPoint
-        ? `$${latestDailyPoint.close.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-        : '$0.00');
+        ? formatCurrency(latestDailyPoint.close)
+        : formatCurrency(0));
 
   const change24h = asset?.changePercent24h
     ? `${asset.changePercent24h >= 0 ? '+' : ''}${asset.changePercent24h.toFixed(2)}%`
@@ -400,10 +411,10 @@ export default function AssetDetailPage() {
         : '0.00%');
 
   const volume24h = asset?.volume24h
-    ? asset.volume24h.toLocaleString(undefined)
-    : (latestDailyPoint ? latestDailyPoint.volume.toLocaleString(undefined) : '0');
+    ? formatNumber(asset.volume24h)
+    : (latestDailyPoint ? formatNumber(latestDailyPoint.volume) : '0');
   const marketCap = latestFundamental?.marketCap
-      ? `$${latestFundamental.marketCap.toLocaleString(undefined)}`
+      ? formatCurrency(latestFundamental.marketCap)
       : 'N/A';
 
   return (

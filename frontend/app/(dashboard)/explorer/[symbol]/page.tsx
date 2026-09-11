@@ -53,7 +53,6 @@ const formatCompactCurrency = (value: number) => {
   if (abs >= 1e12) return `${(value / 1e12).toFixed(2)} T $`;
   if (abs >= 1e9) return `${(value / 1e9).toFixed(2)} B $`;
   if (abs >= 1e6) return `${(value / 1e6).toFixed(2)} M $`;
-  if (abs >= 1e3) return `${(value / 1e3).toFixed(2)} K $`;
   return formatCurrency(value);
 };
 
@@ -420,8 +419,8 @@ export default function AssetDetailPage() {
         : '0.00%');
 
   const volume24h = asset?.volume24h
-    ? formatNumber(asset.volume24h)
-    : (latestDailyPoint ? formatNumber(latestDailyPoint.volume) : '0');
+    ? formatCompactCurrency(asset.volume24h)
+    : (latestDailyPoint ? formatCompactCurrency(latestDailyPoint.volume) : '0');
   const marketCap = latestFundamental?.marketCap
       ? formatCompactCurrency(latestFundamental.marketCap)
       : 'N/A';
@@ -572,7 +571,7 @@ export default function AssetDetailPage() {
                               } else if (['profitMargins', 'operatingMargins', 'returnOnEquity', 'returnOnAssets', 'dividendYield'].includes(metricId)) {
                                 displayValue = `${(metric * 100).toFixed(2)}%`;
                               } else if (['marketCap', 'freeCashFlow', 'revenue'].includes(metricId)) {
-                                displayValue = `$${metric.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+                                displayValue = formatCompactCurrency(metric);
                               } else {
                                 displayValue = metric.toFixed(2);
                               }

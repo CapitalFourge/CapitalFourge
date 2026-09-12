@@ -21,7 +21,6 @@ interface User {
 interface AuthContextType {
   user: User | null;
   accessToken: string | null;
-  refreshToken: string | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
@@ -39,6 +38,7 @@ async function loginCall(email: string, password: string) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
+    credentials: "include", // Include cookies
   });
   if (!res.ok) {
     const err = await res.json();
@@ -48,10 +48,10 @@ async function loginCall(email: string, password: string) {
 }
 
 async function logoutCall(userId: string) {
-  await fetch(`${API_BASE_URL}/api/auth/logout`, { 
+  await fetch(`${API_BASE_URL}/api/auth/logout/${userId}`, { 
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId })
+    credentials: "include", // Include cookies to clear refresh token
   }).catch(() => {});
 }
 
@@ -59,17 +59,19 @@ async function fetchUserMe(accessToken: string): Promise<User | null> {
   try {
     const res = await fetch(`${API_BASE_URL}/api/users/me`, {
       headers: { Authorization: `Bearer ${accessToken}` },
+      credentials: "include",
     });
     if (res.ok) return res.json();
   } catch {}
   return null;
 }
 
-async function refreshTokenCall(refreshToken: string) {
+async function refreshTokenCall() {
   const res = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ refreshToken }),
+    credentials: "include", // Cookie sent automatically
+    // No body needed - refresh token comes from httpOnly cookie
   });
   if (!res.ok) throw new Error("Token refresh failed");
   return res.json();
@@ -98,13 +100,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return null;
   });
 
-  const [refreshToken, setRefreshToken] = useState<string | null>(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("refresh_token");
-    }
-    return null;
-  });
-
   const [loading] = useState(() => {
     return typeof window === "undefined";
   });
@@ -113,7 +108,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const userRef = useRef<User | null>(null);
   const accessTokenRef = useRef<string | null>(null);
-  const refreshTokenRef = useRef<string | null>(null);
   const refreshingRef = useRef(false);
   const logoutRef = useRef<() => void>(() => {});
 
@@ -127,10 +121,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [accessToken]);
 
   useEffect(() => {
-    refreshTokenRef.current = refreshToken;
-  }, [refreshToken]);
-
-  useEffect(() => {
     refreshingRef.current = refreshing;
   }, [refreshing]);
 
@@ -141,9 +131,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     setUser(null);
     setAccessToken(null);
-    setRefreshToken(null);
     localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
     localStorage.removeItem("user");
   }, []);
 
@@ -154,7 +142,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Refresh access token - sync trigger, async in useEffect
   const refreshAccessToken = useCallback(() => {
-    if (!refreshTokenRef.current || refreshingRef.current) return;
+    if (refreshingRef.current) return;
     setRefreshing(true);
   }, []);
 
@@ -166,16 +154,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const doRefresh = async () => {
       try {
-        const rt = refreshTokenRef.current;
-        if (!rt) throw new Error("No refresh token");
-
-        const data = await refreshTokenCall(rt);
+        const data = await refreshTokenCall();
         if (!isCancelled) {
           setAccessToken(data.token);
-          setRefreshToken(data.refreshToken);
           setUser(data.user);
           localStorage.setItem("access_token", data.token);
-          localStorage.setItem("refresh_token", data.refreshToken);
           localStorage.setItem("user", JSON.stringify(data.user));
         }
       } catch (e) {
@@ -201,11 +184,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = useCallback((email: string, password: string) => {
     return loginCall(email, password).then((data) => {
       setAccessToken(data.token);
-      setRefreshToken(data.refreshToken);
       setUser(data.user);
       localStorage.setItem("access_token", data.token);
-      localStorage.setItem("refresh_token", data.refreshToken);
       localStorage.setItem("user", JSON.stringify(data.user));
+      // refreshToken is in httpOnly cookie, not in localStorage
 
       return fetchUserMe(data.token).then((freshUser) => {
         if (freshUser) {
@@ -277,7 +259,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         user,
         accessToken,
-        refreshToken,
         loading: loading || validating,
         login,
         logout,

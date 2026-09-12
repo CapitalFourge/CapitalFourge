@@ -2,12 +2,14 @@ package com.capitalfourge.portfoliomanager.infrastructure.adapters.in.rest;
 
 import io.github.bucket4j.Bucket;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -34,6 +36,9 @@ public class AuthController {
     private final UserUseCase userUseCase;
     private final Bucket loginBucket;
 
+    private static final String REFRESH_COOKIE_NAME = "refresh_token";
+    private static final int REFRESH_COOKIE_MAX_AGE = 60 * 60 * 24 * 7; // 7 days in seconds
+
     @PostMapping("/register")
     public AuthResult register(@Valid @RequestBody RegisterCommand command) {
         log.info("POST /api/auth/register - email: {}", command.getEmail());
@@ -41,7 +46,9 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResult> login(@Valid @RequestBody LoginCommand command, HttpServletRequest request) {
+    public ResponseEntity<AuthResult> login(@Valid @RequestBody LoginCommand command, 
+                                             HttpServletRequest request,
+                                             HttpServletResponse response) {
         String clientIp = getClientIp(request);
         
         // Rate limit: 5 requests per minute per IP
@@ -53,19 +60,49 @@ public class AuthController {
         log.info("POST /api/auth/login - email: {}, ip: {}", command.getEmail(), clientIp);
         AuthResult result = userUseCase.login(command);
         log.info("POST /api/auth/login - success: {}", result != null);
-        return ResponseEntity.ok(result);
+        
+        // Set refresh token as httpOnly cookie
+        if (result != null && result.getRefreshToken() != null) {
+            setRefreshTokenCookie(response, result.getRefreshToken());
+        }
+        
+        // Return auth result without refresh token in body (it's in cookie)
+        return ResponseEntity.ok(new AuthResult(result.getToken(), null, result.getUser()));
     }
 
     @PostMapping("/refresh")
-    public AuthResult refresh(@Valid @RequestBody RefreshCommand command) {
+    public AuthResult refresh(HttpServletRequest request,
+                               HttpServletResponse response,
+                               @RequestBody(required = false) RefreshCommand command) {
         log.info("POST /api/auth/refresh");
-        return userUseCase.refresh(command);
+        
+        // Try to get refresh token from cookie first, then from body (backward compatibility)
+        String refreshToken = getRefreshTokenFromCookie(request);
+        if (refreshToken == null && command != null) {
+            refreshToken = command.getRefreshToken();
+        }
+        
+        if (refreshToken == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Refresh token not found");
+        }
+        
+        AuthResult result = userUseCase.refresh(new RefreshCommand(null, refreshToken));
+        
+        // Set new refresh token as httpOnly cookie
+        if (result != null && result.getRefreshToken() != null) {
+            setRefreshTokenCookie(response, result.getRefreshToken());
+        }
+        
+        // Return auth result without refresh token in body
+        return new AuthResult(result.getToken(), null, result.getUser());
     }
 
     @PostMapping("/logout/{userId}")
-    public void logout(@PathVariable UUID userId) {
+    public void logout(@PathVariable UUID userId, HttpServletResponse response) {
         log.info("POST /api/auth/logout - userId: {}", userId);
         userUseCase.logout(userId);
+        // Clear refresh token cookie
+        clearRefreshTokenCookie(response);
     }
 
     private String getClientIp(HttpServletRequest request) {
@@ -78,5 +115,37 @@ public class AuthController {
             return xRealIp;
         }
         return request.getRemoteAddr();
+    }
+
+    private void setRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
+        ResponseCookie cookie = ResponseCookie.from(REFRESH_COOKIE_NAME, refreshToken)
+                .httpOnly(true)
+                .secure(true) // Only over HTTPS in production
+                .sameSite("Lax")
+                .path("/")
+                .maxAge(REFRESH_COOKIE_MAX_AGE)
+                .build();
+        response.addHeader("Set-Cookie", cookie.toString());
+    }
+
+    private void clearRefreshTokenCookie(HttpServletResponse response) {
+        ResponseCookie cookie = ResponseCookie.from(REFRESH_COOKIE_NAME, "")
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Lax")
+                .path("/")
+                .maxAge(0)
+                .build();
+        response.addHeader("Set-Cookie", cookie.toString());
+    }
+
+    private String getRefreshTokenFromCookie(HttpServletRequest request) {
+        if (request.getCookies() == null) return null;
+        for (jakarta.servlet.http.Cookie cookie : request.getCookies()) {
+            if (REFRESH_COOKIE_NAME.equals(cookie.getName())) {
+                return cookie.getValue();
+            }
+        }
+        return null;
     }
 }

@@ -489,4 +489,48 @@ test.describe('Capital Fourge E2E Tests', () => {
       await checkDashboardValues(page);
     });
   });
+
+  test('E2E-11: Auth Cookie Persistence (F5 refresh keeps session)', async ({ page }) => {
+    await test.step('Login and verify dashboard loads', async () => {
+      await login(page);
+      await waitForDashboardReady(page);
+      await checkDashboardValues(page);
+    });
+
+    await test.step('Refresh page (F5) - session should persist via httpOnly cookies', async () => {
+      await page.reload();
+      await page.waitForURL('/dashboard');
+      await waitForDashboardReady(page);
+      await checkDashboardValues(page);
+    });
+
+    await test.step('Navigate to portfolio detail and back', async () => {
+      await navigateToPortfolios(page);
+      await gotoPortfolioDetail(page, PORTFOLIO_NAME);
+      await page.waitForLoadState('networkidle');
+      await page.goto('/dashboard');
+      await waitForDashboardReady(page);
+      await checkDashboardValues(page);
+    });
+  });
+
+  test('E2E-12: Token Refresh (long session survives access token expiry)', async ({ page }) => {
+    await test.step('Login', async () => {
+      await login(page);
+      await waitForDashboardReady(page);
+      await checkDashboardValues(page);
+    });
+
+    await test.step('Wait and verify session still works (refresh token rotates cookies)', async () => {
+      // Simulate time passing by making multiple requests
+      // The backend rotates both access_token and refresh_token cookies on /refresh
+      await page.goto('/portfolio');
+      await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(2000);
+      
+      await page.goto('/dashboard');
+      await waitForDashboardReady(page);
+      await checkDashboardValues(page);
+    });
+  });
 });

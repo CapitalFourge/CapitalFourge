@@ -243,8 +243,8 @@ public class OrderService {
             return;
         }
 
-        // Check if order is expired
-        if (LocalDateTime.now().isAfter(order.getExpiresAt())) {
+        // Check if order is expired (null expiresAt = never expires)
+        if (order.getExpiresAt() != null && LocalDateTime.now().isAfter(order.getExpiresAt())) {
             order.setStatus(OrderStatus.EXPIRED);
             orderRepository.save(order);
 

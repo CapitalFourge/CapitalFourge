@@ -54,7 +54,7 @@ public class OrderEntity {
     @Column(name = "filled_at")
     private LocalDateTime filledAt;
 
-    @Column(name = "expires_at", nullable = false)
+    @Column(name = "expires_at")
     private LocalDateTime expiresAt;
 
     @Column(name = "filled_price", precision = 20, scale = 8)

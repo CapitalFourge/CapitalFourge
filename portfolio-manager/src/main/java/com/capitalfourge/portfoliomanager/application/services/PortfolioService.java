@@ -601,7 +601,7 @@ public class PortfolioService implements PortfolioUseCase {
             OrderStatus.PENDING,
             LocalDateTime.now(),
             null, // filledAt
-            parsedExpiresAt != null ? parsedExpiresAt : LocalDateTime.now().plusDays(30), // expiresAt - default 30 days if not provided
+            parsedExpiresAt != null ? parsedExpiresAt : null, // expiresAt - null means never expires
             null, // filledPrice
             null, // filledQuantity
             null  // rejectionReason

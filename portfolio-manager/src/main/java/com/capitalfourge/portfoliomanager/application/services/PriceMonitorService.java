@@ -67,8 +67,8 @@ public class PriceMonitorService implements MessageListener {
     }
 
     private boolean shouldExecute(Order order, BigDecimal currentPrice) {
-        // Check if order is expired
-        if (java.time.LocalDateTime.now().isAfter(order.getExpiresAt())) {
+        // Check if order is expired (null expiresAt = never expires)
+        if (order.getExpiresAt() != null && java.time.LocalDateTime.now().isAfter(order.getExpiresAt())) {
             log.debug("Order {} is expired", order.getId());
             return false;
         }

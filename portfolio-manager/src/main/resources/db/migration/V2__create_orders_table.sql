@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS orders (
     status VARCHAR(20) NOT NULL,
     created_at TIMESTAMP NOT NULL,
     filled_at TIMESTAMP,
-    expires_at TIMESTAMP NOT NULL,
+    expires_at TIMESTAMP,
     filled_price DECIMAL(20, 8),
     filled_quantity DECIMAL(20, 8),
     rejection_reason VARCHAR(500),

@@ -38,6 +38,7 @@ public class AuthController {
 
     private static final String REFRESH_COOKIE_NAME = "refresh_token";
     private static final String ACCESS_COOKIE_NAME = "access_token";
+    private static final String COOKIE_DOMAIN = ".capitalfourge.com";
     private static final int REFRESH_COOKIE_MAX_AGE = 60 * 60 * 24 * 7; // 7 days in seconds
     private static final int ACCESS_COOKIE_MAX_AGE = 60 * 60 * 24; // 24 hours in seconds
 
@@ -136,6 +137,7 @@ public class AuthController {
                 .httpOnly(true)
                 .secure(true) // Only over HTTPS in production
                 .sameSite("Lax")
+                .domain(COOKIE_DOMAIN)
                 .path("/")
                 .maxAge(REFRESH_COOKIE_MAX_AGE)
                 .build();
@@ -147,6 +149,7 @@ public class AuthController {
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("Lax")
+                .domain(COOKIE_DOMAIN)
                 .path("/")
                 .maxAge(0)
                 .build();
@@ -158,6 +161,7 @@ public class AuthController {
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("Lax")
+                .domain(COOKIE_DOMAIN)
                 .path("/")
                 .maxAge(ACCESS_COOKIE_MAX_AGE)
                 .build();
@@ -169,6 +173,7 @@ public class AuthController {
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("Lax")
+                .domain(COOKIE_DOMAIN)
                 .path("/")
                 .maxAge(0)
                 .build();

@@ -194,7 +194,16 @@ export default function PortfolioDetailPage() {
     );
   }
 
-  const portfolio = data?.portfolio as Portfolio;
+  if (!data?.portfolio) {
+    return (
+      <div className="rounded-[1.75rem] border border-red-400/20 bg-red-500/10 p-8 text-red-200">
+        <h2 className="text-lg font-semibold">Portafolio no encontrado</h2>
+        <p className="mt-2 text-sm text-red-100/80">El portafolio no existe o no tienes permisos para verlo</p>
+      </div>
+    );
+  }
+
+  const portfolio = data.portfolio as Portfolio;
   const userCashBalance = data?.me?.cashBalance || 0;
   const userLockedBalance = data?.me?.lockedBalance || 0;
 

@@ -3,6 +3,7 @@ package com.capitalfourge.portfoliomanager.application.services;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Optional;
@@ -516,7 +517,7 @@ public class PortfolioService implements PortfolioUseCase {
 
     @Override
     @Transactional
-    public Order createLimitOrder(UUID portfolioId, UUID userId, OrderType type, String symbol, BigDecimal targetPrice, BigDecimal quantity, BigDecimal usdAmount) {
+    public Order createLimitOrder(UUID portfolioId, UUID userId, OrderType type, String symbol, BigDecimal targetPrice, BigDecimal quantity, BigDecimal usdAmount, String expiresAt) {
         // Verify portfolio exists and belongs to user
         Portfolio portfolio = getPortfolio(portfolioId);
         if (!portfolio.getUserId().equals(userId)) {
@@ -580,6 +581,14 @@ public class PortfolioService implements PortfolioUseCase {
         }
 
         // Create order entity
+        LocalDateTime parsedExpiresAt = null;
+        if (expiresAt != null && !expiresAt.isEmpty()) {
+            try {
+                parsedExpiresAt = LocalDateTime.parse(expiresAt, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            } catch (Exception e) {
+                throw new RuntimeException("Formato de fecha inválido. Use ISO 8601 (ej: 2024-12-31T23:59:59)");
+            }
+        }
         Order order = new Order(
             UUID.randomUUID(),
             portfolioId,
@@ -592,7 +601,7 @@ public class PortfolioService implements PortfolioUseCase {
             OrderStatus.PENDING,
             LocalDateTime.now(),
             null, // filledAt
-            LocalDateTime.now().plusDays(30), // expiresAt - default 30 days
+            parsedExpiresAt != null ? parsedExpiresAt : LocalDateTime.now().plusDays(30), // expiresAt - default 30 days if not provided
             null, // filledPrice
             null, // filledQuantity
             null  // rejectionReason

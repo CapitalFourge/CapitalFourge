@@ -50,6 +50,7 @@ const CREATE_LIMIT_ORDER_MUTATION = gql`
     $targetPrice: Float!
     $quantity: Float
     $usdAmount: Float
+    $expiresAt: DateTime
   ) {
     createLimitOrder(
       portfolioId: $portfolioId
@@ -58,6 +59,7 @@ const CREATE_LIMIT_ORDER_MUTATION = gql`
       targetPrice: $targetPrice
       quantity: $quantity
       usdAmount: $usdAmount
+      expiresAt: $expiresAt
     ) {
       id
       status
@@ -174,6 +176,7 @@ interface TradeVariables {
   usdAmount?: number;
   targetPrice?: number;
   type?: string;
+  expiresAt?: string;
 }
 
 interface TradeDialogProps {
@@ -211,6 +214,7 @@ export function TradeDialog({
   const [quantity, setQuantity] = useState("");
   const [usdAmount, setUsdAmount] = useState("");
   const [price, setPrice] = useState("");
+  const [expiresAt, setExpiresAt] = useState("");
 
   const controlledOpen = isOpen ?? open;
   const dialogOpen = controlledOpen ?? internalOpen;
@@ -260,6 +264,7 @@ export function TradeDialog({
   const resetForm = () => {
     setQuantity("");
     setUsdAmount("");
+    setExpiresAt("");
     if (orderType === "limit") {
       setPrice("");
     }
@@ -375,6 +380,7 @@ export function TradeDialog({
     if (orderType === "limit") {
       variables.type = type === "buy" ? "BUY_LIMIT" : "SELL_LIMIT";
       variables.targetPrice = parsedPrice;
+      variables.expiresAt = expiresAt || undefined;
       await createLimitOrder({ variables });
       return;
     }
@@ -589,6 +595,22 @@ export function TradeDialog({
               placeholder={orderType === "market" ? "Cargando precio..." : "0.00"}
               className="border-white/10 bg-black/40 text-white disabled:opacity-70"
             />
+            {orderType === "limit" && (
+              <div className="space-y-2">
+                <label className="text-xs uppercase tracking-[0.2em] text-slate-500">
+                  Fecha de expiración (opcional)
+                </label>
+                <Input
+                  type="datetime-local"
+                  value={expiresAt}
+                  onChange={(event) => setExpiresAt(event.target.value)}
+                  className="border-white/10 bg-black/40 text-white"
+                />
+                <p className="text-[11px] text-slate-500">
+                  Si no se especifica, la orden expira en 30 días. Deja vacío para que nunca expire.
+                </p>
+              </div>
+            )}
             {orderType === "market" && (
               <p className="text-[11px] text-slate-500">
                 {priceLoading && symbol ? "Consultando ultimo precio..." : priceData?.asset?.price ? `Ultimo precio: $${priceData.asset.price.toLocaleString()}` : "Selecciona un simbolo para cargar el precio."}

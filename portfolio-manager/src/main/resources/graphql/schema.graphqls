@@ -83,7 +83,7 @@ type Mutation {
   adminSetRole(userId: ID!, role: String!): User
   adminDeactivateUser(userId: ID!): Boolean
   dismissWelcome: User
-  createLimitOrder(portfolioId: ID!, type: OrderType!, symbol: String!, targetPrice: Float!, quantity: Float, usdAmount: Float): Order
+  createLimitOrder(portfolioId: ID!, type: OrderType!, symbol: String!, targetPrice: Float!, quantity: Float, usdAmount: Float, expiresAt: String): Order
   cancelOrder(orderId: ID!): Order
   fillLimitOrder(orderId: ID!, fillPrice: Float!): Order
   expireLimitOrder(orderId: ID!): Order

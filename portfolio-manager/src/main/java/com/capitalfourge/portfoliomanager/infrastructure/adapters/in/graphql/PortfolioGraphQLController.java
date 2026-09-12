@@ -1,6 +1,7 @@
 package com.capitalfourge.portfoliomanager.infrastructure.adapters.in.graphql;
 
 import java.math.BigDecimal;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -697,11 +698,12 @@ public class PortfolioGraphQLController {
             @Argument String symbol,
             @Argument BigDecimal targetPrice,
             @Argument BigDecimal quantity,
-            @Argument BigDecimal usdAmount) {
+            @Argument BigDecimal usdAmount,
+            @Argument String expiresAt) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UUID userId = getUserIdFromAuth(auth);
         verifyPortfolioOwnership(portfolioId);
-        return portfolioUseCase.createLimitOrder(portfolioId, userId, type, symbol, targetPrice, quantity, usdAmount);
+        return portfolioUseCase.createLimitOrder(portfolioId, userId, type, symbol, targetPrice, quantity, usdAmount, expiresAt);
     }
 
     @QueryMapping

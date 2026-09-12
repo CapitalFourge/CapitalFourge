@@ -162,6 +162,7 @@ export default function PortfolioDetailPage() {
   const portfolioSlug = Array.isArray(slug) ? slug[0] : slug;
   const { data, loading, error } = useQuery(PORTFOLIO_DETAIL_QUERY, {
     variables: { name: portfolioSlug },
+    fetchPolicy: "network-only",
   });
 
   const formatCurrency = (val: number) =>

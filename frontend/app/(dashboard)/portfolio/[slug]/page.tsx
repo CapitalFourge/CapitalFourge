@@ -89,7 +89,7 @@ const PORTFOLIO_DETAIL_QUERY = gql`
       cashBalance
       lockedBalance
     }
-    portfolioBySlug(slug: $slug) {
+    portfolioByName(name: $slug) {
       id
       name
       description

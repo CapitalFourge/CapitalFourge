@@ -37,7 +37,9 @@ public class AuthController {
     private final Bucket loginBucket;
 
     private static final String REFRESH_COOKIE_NAME = "refresh_token";
+    private static final String ACCESS_COOKIE_NAME = "access_token";
     private static final int REFRESH_COOKIE_MAX_AGE = 60 * 60 * 24 * 7; // 7 days in seconds
+    private static final int ACCESS_COOKIE_MAX_AGE = 60 * 60 * 24; // 24 hours in seconds
 
     @PostMapping("/register")
     public AuthResult register(@Valid @RequestBody RegisterCommand command) {
@@ -62,40 +64,50 @@ public class AuthController {
         log.info("POST /api/auth/login - success: {}", result != null);
         
         // Set refresh token as httpOnly cookie
-        if (result != null && result.getRefreshToken() != null) {
-            setRefreshTokenCookie(response, result.getRefreshToken());
-        }
+                if (result != null && result.getRefreshToken() != null) {
+                    setRefreshTokenCookie(response, result.getRefreshToken());
+                }
         
-        // Return auth result without refresh token in body (it's in cookie)
-        return ResponseEntity.ok(new AuthResult(result.getToken(), null, result.getUser()));
+                // Set access token as httpOnly cookie (for GraphQL cross-origin auth)
+                if (result != null && result.getToken() != null) {
+                    setAccessTokenCookie(response, result.getToken());
+                }
+
+                // Return auth result without refresh token in body (it's in cookie)
+                return ResponseEntity.ok(new AuthResult(result.getToken(), null, result.getUser()));
     }
 
     @PostMapping("/refresh")
-    public AuthResult refresh(HttpServletRequest request,
-                               HttpServletResponse response,
-                               @RequestBody(required = false) RefreshCommand command) {
-        log.info("POST /api/auth/refresh");
+        public AuthResult refresh(HttpServletRequest request,
+                                   HttpServletResponse response,
+                                   @RequestBody(required = false) RefreshCommand command) {
+            log.info("POST /api/auth/refresh");
+
+            // Try to get refresh token from cookie first, then from body (backward compatibility)
+            String refreshToken = getRefreshTokenFromCookie(request);
+            if (refreshToken == null && command != null) {
+                refreshToken = command.getRefreshToken();
+            }
+
+            if (refreshToken == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Refresh token not found");
+            }
+
+            AuthResult result = userUseCase.refresh(new RefreshCommand(null, refreshToken));
+
+            // Set new refresh token as httpOnly cookie
+            if (result != null && result.getRefreshToken() != null) {
+                setRefreshTokenCookie(response, result.getRefreshToken());
+            }
         
-        // Try to get refresh token from cookie first, then from body (backward compatibility)
-        String refreshToken = getRefreshTokenFromCookie(request);
-        if (refreshToken == null && command != null) {
-            refreshToken = command.getRefreshToken();
+            // Set new access token as httpOnly cookie
+            if (result != null && result.getToken() != null) {
+                setAccessTokenCookie(response, result.getToken());
+            }
+
+            // Return auth result without refresh token in body
+            return new AuthResult(result.getToken(), null, result.getUser());
         }
-        
-        if (refreshToken == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Refresh token not found");
-        }
-        
-        AuthResult result = userUseCase.refresh(new RefreshCommand(null, refreshToken));
-        
-        // Set new refresh token as httpOnly cookie
-        if (result != null && result.getRefreshToken() != null) {
-            setRefreshTokenCookie(response, result.getRefreshToken());
-        }
-        
-        // Return auth result without refresh token in body
-        return new AuthResult(result.getToken(), null, result.getUser());
-    }
 
     @PostMapping("/logout/{userId}")
     public void logout(@PathVariable UUID userId, HttpServletResponse response) {
@@ -103,6 +115,8 @@ public class AuthController {
         userUseCase.logout(userId);
         // Clear refresh token cookie
         clearRefreshTokenCookie(response);
+        // Clear access token cookie
+        clearAccessTokenCookie(response);
     }
 
     private String getClientIp(HttpServletRequest request) {
@@ -130,6 +144,28 @@ public class AuthController {
 
     private void clearRefreshTokenCookie(HttpServletResponse response) {
         ResponseCookie cookie = ResponseCookie.from(REFRESH_COOKIE_NAME, "")
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Lax")
+                .path("/")
+                .maxAge(0)
+                .build();
+        response.addHeader("Set-Cookie", cookie.toString());
+    }
+
+    private void setAccessTokenCookie(HttpServletResponse response, String accessToken) {
+        ResponseCookie cookie = ResponseCookie.from(ACCESS_COOKIE_NAME, accessToken)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Lax")
+                .path("/")
+                .maxAge(ACCESS_COOKIE_MAX_AGE)
+                .build();
+        response.addHeader("Set-Cookie", cookie.toString());
+    }
+
+    private void clearAccessTokenCookie(HttpServletResponse response) {
+        ResponseCookie cookie = ResponseCookie.from(ACCESS_COOKIE_NAME, "")
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("Lax")

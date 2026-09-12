@@ -16,6 +16,7 @@ const getGraphQLUri = () => {
 
 const httpLink = createHttpLink({
   uri: getGraphQLUri(),
+  credentials: "include",
 });
 
 const authLink = setContext((_, { headers }) => {

@@ -2,6 +2,7 @@ package com.capitalfourge.portfoliomanager.application.ports.in;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import com.capitalfourge.portfoliomanager.domain.Order;
@@ -39,6 +40,8 @@ public interface PortfolioUseCase {
     List<Portfolio> getPublicLeaderboard();
 
     Portfolio getPortfolioBySlug(String slug);
+
+    Optional<Portfolio> findPortfolioBySlug(String slug);
 
     Portfolio getPortfolioByName(String name);
 

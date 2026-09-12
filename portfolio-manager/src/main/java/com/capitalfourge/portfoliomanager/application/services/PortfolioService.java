@@ -89,6 +89,13 @@ public class PortfolioService implements PortfolioUseCase {
         portfolio.setPerformance(0.0);
         portfolio.setPublic(false);
 
+        // Generate shareSlug for future sharing
+        if (portfolio.getShareSlug() == null || portfolio.getShareSlug().isEmpty()) {
+            String base = portfolio.getName().toLowerCase().replaceAll("[^a-z0-9]", "-");
+            String slug = base + "-" + UUID.randomUUID().toString().substring(0, 8);
+            portfolio.setShareSlug(slug);
+        }
+
         if (portfolio.getUserId() != null) {
             metricRepository.recordUserActivity(portfolio.getUserId().toString());
         }
@@ -489,6 +496,16 @@ public class PortfolioService implements PortfolioUseCase {
         refreshPortfolioPrices(portfolio);
         updatePerformance(portfolio);
         return portfolio;
+    }
+
+    @Override
+    public Optional<Portfolio> findPortfolioBySlug(String slug) {
+        return portfolioRepository.findByShareSlug(slug)
+                .map(portfolio -> {
+                    refreshPortfolioPrices(portfolio);
+                    updatePerformance(portfolio);
+                    return portfolio;
+                });
     }
 
     @Override

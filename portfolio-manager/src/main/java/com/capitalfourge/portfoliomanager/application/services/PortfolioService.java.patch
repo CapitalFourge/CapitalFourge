@@ -1,0 +1,27 @@
+@Override
+    public Portfolio getPortfolioBySlug(String slug) {
+        Portfolio portfolio = portfolioRepository.findByShareSlug(slug)
+                .orElseThrow(() -> new RuntimeException("Portfolio shared correctly not found or link expired"));
+
+        if (!portfolio.isPublic()) {
+            throw new RuntimeException("This portfolio is no longer public.");
+        }
+
+        refreshPortfolioPrices(portfolio);
+        updatePerformance(portfolio);
+        return portfolio;
+    }
+
+    @Override
+    public Optional<Portfolio> findPortfolioBySlug(String slug) {
+        return portfolioRepository.findByShareSlug(slug)
+                .map(portfolio -> {
+                    refreshPortfolioPrices(portfolio);
+                    updatePerformance(portfolio);
+                    return portfolio;
+                });
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Portfolio getPortfolioByName(String name) {

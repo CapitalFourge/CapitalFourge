@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -154,10 +155,11 @@ public class PortfolioGraphQLController {
             userId = getUserIdFromAuth(auth);
         }
         // Find by shareSlug (works for public portfolios or when user owns it)
-        Portfolio portfolio = portfolioUseCase.getPortfolioBySlug(slug);
-        if (portfolio == null) {
+        Optional<Portfolio> portfolioOpt = portfolioUseCase.findPortfolioBySlug(slug);
+        if (portfolioOpt.isEmpty()) {
             return null;
         }
+        Portfolio portfolio = portfolioOpt.get();
         // Check if public or user owns it
         if (!portfolio.getIsPublic()) {
             if (userId == null || !portfolio.getUserId().equals(userId)) {

@@ -82,13 +82,14 @@ const DASHBOARD_QUERY = gql`
 `;
 
 const PORTFOLIO_DETAIL_QUERY = gql`
-  query GetPortfolioDetail($name: String!) {
+  query GetPortfolioDetail($slug: String!) {
     me {
       id
+      username
       cashBalance
       lockedBalance
     }
-    portfolioByName(name: $name) {
+    portfolioBySlug(slug: $slug) {
       id
       name
       description
@@ -161,7 +162,7 @@ export default function PortfolioDetailPage() {
 
   const portfolioSlug = Array.isArray(slug) ? slug[0] : slug;
   const { data, loading, error } = useQuery(PORTFOLIO_DETAIL_QUERY, {
-    variables: { name: portfolioSlug },
+    variables: { slug: portfolioSlug },
     fetchPolicy: "network-only",
   });
 
@@ -175,7 +176,7 @@ export default function PortfolioDetailPage() {
 
   const [toggleVisibility] = useMutation(TOGGLE_VISIBILITY, {
     refetchQueries: [
-      { query: PORTFOLIO_DETAIL_QUERY, variables: { name: portfolioSlug } },
+      { query: PORTFOLIO_DETAIL_QUERY, variables: { slug: portfolioSlug } },
       { query: PORTFOLIOS_QUERY },
       { query: DASHBOARD_QUERY, variables: { sort: "volatile", limit: 8 } },
     ],

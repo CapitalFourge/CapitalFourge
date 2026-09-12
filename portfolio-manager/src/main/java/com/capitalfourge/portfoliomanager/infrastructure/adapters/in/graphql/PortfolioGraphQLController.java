@@ -147,6 +147,27 @@ public class PortfolioGraphQLController {
     }
 
     @QueryMapping
+    public Portfolio portfolioBySlug(@Argument String slug) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UUID userId = null;
+        if (auth != null && auth.isAuthenticated()) {
+            userId = getUserIdFromAuth(auth);
+        }
+        // Find by shareSlug (works for public portfolios or when user owns it)
+        Portfolio portfolio = portfolioUseCase.getPortfolioBySlug(slug);
+        if (portfolio == null) {
+            return null;
+        }
+        // Check if public or user owns it
+        if (!portfolio.getIsPublic()) {
+            if (userId == null || !portfolio.getUserId().equals(userId)) {
+                return null; // Not authorized to view private portfolio
+            }
+        }
+        return portfolio;
+    }
+
+    @QueryMapping
     public AssetMovers assetMovers(@Argument String sort, @Argument Integer limit) {
         int effectiveLimit = limit != null ? limit : 8;
         DataCollectorClient.AssetMoversDTO dto = dataCollectorClient.getAssetMovers("STOCKS", sort != null ? sort : "volatile", effectiveLimit);
@@ -754,6 +775,19 @@ public class PortfolioGraphQLController {
     @QueryMapping
     public List<Order> pendingLimitOrders() {
         return portfolioUseCase.getPendingLimitOrders();
+    }
+
+    @QueryMapping
+    public Portfolio sharedPortfolio(@Argument String slug) {
+        Portfolio portfolio = portfolioUseCase.getPortfolioBySlug(slug);
+        if (portfolio == null) {
+            return null;
+        }
+        // Only return if portfolio is public
+        if (!portfolio.getIsPublic()) {
+            return null;
+        }
+        return portfolio;
     }
 
     private UUID getUserIdFromAuth(Authentication auth) {

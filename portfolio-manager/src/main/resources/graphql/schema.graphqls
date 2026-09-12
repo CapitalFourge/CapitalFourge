@@ -7,6 +7,7 @@ type Query {
   me: User
   portfolio(id: ID!): Portfolio
   portfolioByName(name: String!): Portfolio
+  portfolioBySlug(slug: String!): Portfolio
   portfolios(sort: String, limit: Int): [Portfolio!]!
   portfoliosByIds(ids: [ID!]!): [Portfolio!]!
   assetMovers(sort: String, limit: Int): AssetMovers
@@ -23,6 +24,8 @@ type Query {
   ordersByPortfolio(portfolioId: ID!): [Order!]!
   # Internal query for order worker - returns all PENDING limit orders
   pendingLimitOrders: [Order!]!
+  # Public shared portfolio
+  sharedPortfolio(slug: String!): Portfolio
 }
 
 type Feedback {

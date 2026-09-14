@@ -82,14 +82,14 @@ const DASHBOARD_QUERY = gql`
 `;
 
 const PORTFOLIO_DETAIL_QUERY = gql`
-  query GetPortfolioDetail($slug: String!) {
+  query GetPortfolioDetail($name: String!) {
     me {
       id
       username
       cashBalance
       lockedBalance
     }
-    portfolioBySlug(slug: $slug) {
+    portfolioByName(name: $name) {
       id
       name
       description
@@ -160,9 +160,9 @@ export default function PortfolioDetailPage() {
   const [selectedPosition, setSelectedPosition] = useState<Position | null>(null);
   const [positionActionDialogOpen, setPositionActionDialogOpen] = useState(false);
 
-  const portfolioSlug = Array.isArray(slug) ? slug[0] : slug;
+  const portfolioName = Array.isArray(slug) ? slug[0] : slug;
   const { data, loading, error } = useQuery(PORTFOLIO_DETAIL_QUERY, {
-    variables: { slug: portfolioSlug },
+    variables: { name: portfolioName },
     fetchPolicy: "network-only",
   });
 
@@ -176,7 +176,7 @@ export default function PortfolioDetailPage() {
 
   const [toggleVisibility] = useMutation(TOGGLE_VISIBILITY, {
     refetchQueries: [
-      { query: PORTFOLIO_DETAIL_QUERY, variables: { slug: portfolioSlug } },
+      { query: PORTFOLIO_DETAIL_QUERY, variables: { name: portfolioName } },
       { query: PORTFOLIOS_QUERY },
       { query: DASHBOARD_QUERY, variables: { sort: "volatile", limit: 8 } },
     ],
@@ -187,11 +187,11 @@ export default function PortfolioDetailPage() {
     return <div className="p-8 text-sm uppercase tracking-[0.26em] text-slate-400">Cargando portafolio...</div>;
   }
 
-  if (error || !portfolioSlug) {
+  if (error || !portfolioName) {
     return (
       <div className="rounded-[1.75rem] border border-red-400/20 bg-red-500/10 p-8 text-red-200">
         <h2 className="text-lg font-semibold">No fue posible cargar el portafolio</h2>
-        <p className="mt-2 text-sm text-red-100/80">{error?.message || "Slug de portafolio no encontrado"}</p>
+        <p className="mt-2 text-sm text-red-100/80">{error?.message || "Nombre de portafolio no encontrado"}</p>
       </div>
     );
   }

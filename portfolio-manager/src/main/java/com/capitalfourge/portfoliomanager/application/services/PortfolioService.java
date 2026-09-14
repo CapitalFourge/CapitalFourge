@@ -528,6 +528,12 @@ public class PortfolioService implements PortfolioUseCase {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Long countPublicByName(String name) {
+        return portfolioRepository.countPublicByName(name);
+    }
+
+    @Override
     @Transactional
     public Order createLimitOrder(UUID portfolioId, UUID userId, OrderType type, String symbol, BigDecimal targetPrice, BigDecimal quantity, BigDecimal usdAmount, String expiresAt) {
         // Verify portfolio exists and belongs to user

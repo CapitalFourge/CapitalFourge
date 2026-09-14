@@ -425,6 +425,11 @@ public class PortfolioGraphQLController {
     }
 
     @SchemaMapping(typeName = "Portfolio")
+    public String userId(Portfolio portfolio) {
+        return portfolio.getUserId() != null ? portfolio.getUserId().toString() : "";
+    }
+
+    @SchemaMapping(typeName = "Portfolio")
     public List<Transaction> transactions(Portfolio portfolio) {
         return portfolio.getTransactions();
     }
@@ -793,6 +798,12 @@ public class PortfolioGraphQLController {
             return null;
         }
         return portfolio;
+    }
+
+    @QueryMapping
+    public Integer publicPortfolioCountByName(@Argument String name) {
+        Long count = portfolioUseCase.countPublicByName(name);
+        return count != null ? count.intValue() : 0;
     }
 
     private UUID getUserIdFromAuth(Authentication auth) {

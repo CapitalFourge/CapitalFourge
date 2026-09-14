@@ -78,6 +78,11 @@ public class PortfolioPersistenceAdapter implements PortfolioRepository {
     }
 
     @Override
+    public Long countPublicByName(String name) {
+        return jpaRepository.countPublicByName(name);
+    }
+
+    @Override
     public Page<Portfolio> findPublicPortfolios(Pageable pageable) {
         return jpaRepository.findByIsPublicTrueOrderByPerformanceDesc(pageable).map(this::toDomain);
     }

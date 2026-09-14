@@ -24,6 +24,8 @@ public interface PortfolioRepository {
 
     Optional<Portfolio> findPublicByName(String name);
 
+    Long countPublicByName(String name);
+
     Page<Portfolio> findPublicPortfolios(Pageable pageable);
 
     void deleteById(UUID id);

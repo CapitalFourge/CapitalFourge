@@ -26,7 +26,6 @@ interface Position {
 interface PortfolioData {
   id: string;
   name: string;
-  shareSlug: string;
   performance: number;
   positions: Position[];
 }
@@ -66,7 +65,6 @@ const PORTFOLIOS_QUERY = gql`
     portfolios {
       id
       name
-      shareSlug
       performance
       positions {
         id
@@ -340,14 +338,13 @@ export default function AssetDetailPage() {
 
   // Check if user has positions for this symbol - build detailed info
   const positionDetails = useMemo(() => {
-    const details: { portfolioId: string; portfolioName: string; portfolioShareSlug: string; quantity: number }[] = [];
+    const details: { portfolioId: string; portfolioName: string; quantity: number }[] = [];
     portfolios.forEach(p => {
       p.positions?.forEach(pos => {
         if (pos.symbol === symbol) {
           details.push({
             portfolioId: p.id,
             portfolioName: p.name,
-            portfolioShareSlug: p.shareSlug,
             quantity: pos.quantity
           });
         }
@@ -493,7 +490,7 @@ export default function AssetDetailPage() {
           {/* Position & Limit Order Status */}
           <div className="flex flex-wrap items-center gap-3">
             {hasPosition && (
-              <Link href={`/portfolio/${positionDetails[0].portfolioShareSlug}`} className="inline-block">
+              <Link href={`/portfolio/${positionDetails[0].portfolioName}`} className="inline-block">
                 <Badge variant="default" className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 cursor-pointer hover:bg-emerald-500/30 transition">
                   {positionDetails.map(d => `${d.quantity} ${symbol} en ${d.portfolioName}`).join(', ')}
                 </Badge>

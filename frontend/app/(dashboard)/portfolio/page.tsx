@@ -15,7 +15,6 @@ const PORTFOLIOS_QUERY = gql`
     portfolios {
       id
       name
-      shareSlug
       performance
       positions {
         id
@@ -38,7 +37,6 @@ interface Position {
 interface Portfolio {
   id: string;
   name: string;
-  shareSlug: string;
   performance: number;
   positions: Position[];
 }
@@ -109,7 +107,7 @@ export default function PortfoliosPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.38, delay: index * 0.05 }}
             >
-              <Link href={`/portfolio/${portfolio.shareSlug}`} className="block h-full">
+              <Link href={`/portfolio/${portfolio.name}`} className="block h-full">
                 <Card className="panel h-full border-white/10 py-0 transition duration-300 hover:-translate-y-1 hover:bg-white/[0.06]">
                   <CardHeader className="flex flex-row items-start justify-between px-6 pt-6">
                     <div>

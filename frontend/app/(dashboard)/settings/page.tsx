@@ -30,7 +30,6 @@ const ME_QUERY = gql`
     portfolios {
       id
       name
-      shareSlug
     }
     myFeedbacks {
       id

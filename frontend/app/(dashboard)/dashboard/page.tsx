@@ -22,7 +22,6 @@ const DASHBOARD_QUERY = gql`
     portfolios {
       id
       name
-      shareSlug
       performance
       positions {
         id
@@ -76,7 +75,6 @@ interface Position {
 interface Portfolio {
   id: string;
   name: string;
-  shareSlug: string;
   performance: number;
   positions: Position[];
 }
@@ -349,7 +347,7 @@ export default function DashboardPage() {
                     {portfolios.map((portfolio) => (
                       <Link
                         key={portfolio.id}
-                        href={`/portfolio/${portfolio.shareSlug}`}
+                        href={`/portfolio/${portfolio.name}`}
                         className="flex items-center justify-between rounded-[1.2rem] border border-white/6 bg-slate-950/35 px-4 py-3 transition hover:bg-white/[0.04] hover:border-emerald-300/30"
                       >
                         <div>

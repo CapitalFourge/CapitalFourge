@@ -89,7 +89,7 @@ const PORTFOLIO_DETAIL_QUERY = gql`
       cashBalance
       lockedBalance
     }
-    portfolioByName(name: $slug) {
+    portfolioBySlug(slug: $slug) {
       id
       name
       description
@@ -155,14 +155,14 @@ interface Portfolio {
 }
 
 export default function PortfolioDetailPage() {
-  const { shareSlug } = useParams();
+  const { slug } = useParams();
   const [ordersDialogOpen, setOrdersDialogOpen] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState<Position | null>(null);
   const [positionActionDialogOpen, setPositionActionDialogOpen] = useState(false);
 
-  const portfolioShareSlug = Array.isArray(shareSlug) ? shareSlug[0] : shareSlug;
+  const portfolioSlug = Array.isArray(slug) ? slug[0] : slug;
   const { data, loading, error } = useQuery(PORTFOLIO_DETAIL_QUERY, {
-    variables: { slug: portfolioShareSlug },
+    variables: { slug: portfolioSlug },
     fetchPolicy: "network-only",
   });
 
@@ -176,7 +176,7 @@ export default function PortfolioDetailPage() {
 
   const [toggleVisibility] = useMutation(TOGGLE_VISIBILITY, {
     refetchQueries: [
-      { query: PORTFOLIO_DETAIL_QUERY, variables: { slug: portfolioShareSlug } },
+      { query: PORTFOLIO_DETAIL_QUERY, variables: { slug: portfolioSlug } },
       { query: PORTFOLIOS_QUERY },
       { query: DASHBOARD_QUERY, variables: { sort: "volatile", limit: 8 } },
     ],
@@ -187,7 +187,7 @@ export default function PortfolioDetailPage() {
     return <div className="p-8 text-sm uppercase tracking-[0.26em] text-slate-400">Cargando portafolio...</div>;
   }
 
-  if (error || !portfolioShareSlug) {
+  if (error || !portfolioSlug) {
     return (
       <div className="rounded-[1.75rem] border border-red-400/20 bg-red-500/10 p-8 text-red-200">
         <h2 className="text-lg font-semibold">No fue posible cargar el portafolio</h2>

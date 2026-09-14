@@ -132,18 +132,23 @@ public class PortfolioGraphQLController {
         if (auth != null && auth.isAuthenticated()) {
             userId = getUserIdFromAuth(auth);
         }
-        // First find by name globally (works for public portfolios or when user owns it)
-        Portfolio portfolio = portfolioUseCase.getPortfolioByName(name);
-        if (portfolio == null) {
-            return null;
-        }
-        // Check if public or user owns it
-        if (!portfolio.getIsPublic()) {
-            if (userId == null || !portfolio.getUserId().equals(userId)) {
-                return null; // Not authorized to view private portfolio
+
+        // 1. If authenticated, first try to find user's own portfolio by name
+        if (userId != null) {
+            Portfolio portfolio = portfolioUseCase.getPortfolioByName(userId, name);
+            if (portfolio != null) {
+                return portfolio; // User owns this portfolio (private or public)
             }
         }
-        return portfolio;
+
+        // 2. If not found (or not authenticated), try to find a PUBLIC portfolio with this name
+        Portfolio publicPortfolio = portfolioUseCase.findPublicByName(name);
+        if (publicPortfolio != null) {
+            return publicPortfolio; // Public portfolio visible to anyone
+        }
+
+        // 3. Not found or not authorized
+        return null;
     }
 
     @QueryMapping

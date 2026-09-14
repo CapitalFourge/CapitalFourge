@@ -22,6 +22,9 @@ public interface JpaPortfolioRepository extends JpaRepository<PortfolioEntity, U
     @Query("SELECT p FROM PortfolioEntity p WHERE p.userId = :userId AND p.name = :name")
     Optional<PortfolioEntity> findByUserIdAndName(@Param("userId") UUID userId, @Param("name") String name);
 
+    @Query("SELECT p FROM PortfolioEntity p WHERE p.isPublic = true AND p.name = :name")
+    Optional<PortfolioEntity> findPublicByName(@Param("name") String name);
+
     @Query("SELECT p FROM PortfolioEntity p LEFT JOIN FETCH p.positions WHERE p.id = :id")
     Optional<PortfolioEntity> findByIdWithPositionsAndTransactions(@Param("id") UUID id);
 

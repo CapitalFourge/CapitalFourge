@@ -44,6 +44,8 @@ public interface PortfolioUseCase {
 
     Portfolio getPortfolioByName(UUID userId, String name);
 
+    Portfolio findPublicByName(String name);
+
     Order createLimitOrder(UUID portfolioId, UUID userId, OrderType type, String symbol, BigDecimal targetPrice, BigDecimal quantity, BigDecimal usdAmount, String expiresAt);
 
     List<Order> getOrdersByPortfolio(UUID portfolioId);

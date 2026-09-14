@@ -133,7 +133,8 @@ public class PortfolioGraphQLController {
             userId = getUserIdFromAuth(auth);
         }
 
-        // 1. If authenticated, first try to find user's own portfolio by name
+        // Only authenticated users can access their own portfolios by name
+        // Public portfolios are accessed via sharedPortfolio(slug) using shareSlug
         if (userId != null) {
             Portfolio portfolio = portfolioUseCase.getPortfolioByName(userId, name);
             if (portfolio != null) {
@@ -141,13 +142,7 @@ public class PortfolioGraphQLController {
             }
         }
 
-        // 2. If not found (or not authenticated), try to find a PUBLIC portfolio with this name
-        Portfolio publicPortfolio = portfolioUseCase.findPublicByName(name);
-        if (publicPortfolio != null) {
-            return publicPortfolio; // Public portfolio visible to anyone
-        }
-
-        // 3. Not found or not authorized
+        // Not found or not authorized
         return null;
     }
 
@@ -801,11 +796,6 @@ public class PortfolioGraphQLController {
     }
 
     @QueryMapping
-    public Integer publicPortfolioCountByName(@Argument String name) {
-        Long count = portfolioUseCase.countPublicByName(name);
-        return count != null ? count.intValue() : 0;
-    }
-
     private UUID getUserIdFromAuth(Authentication auth) {
         if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
             return null;

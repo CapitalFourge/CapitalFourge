@@ -114,7 +114,6 @@ const PORTFOLIO_DETAIL_QUERY = gql`
         timestamp
       }
     }
-    publicPortfolioCountByName(name: $name)
   }
 `;
 
@@ -209,14 +208,10 @@ export default function PortfolioDetailPage() {
   }
 
   const portfolio = data.portfolio as Portfolio;
-  const publicCount = data?.publicPortfolioCountByName || 0;
   const userCashBalance = data?.me?.cashBalance || 0;
   const userLockedBalance = data?.me?.lockedBalance || 0;
 
-  // If multiple public portfolios with same name AND this is not user's portfolio,
-  // redirect to share page for precise identification
-  const isOwner = data?.me?.id && portfolio.userId === data.me.id;
-  const showShareNotice = !isOwner && publicCount > 1 && portfolio.isPublic && portfolio.shareSlug;
+  const isOwner = data?.me?.id === portfolio.userId;
 
   const positionsUsdValue =
     portfolio?.positions?.reduce((total: number, position: Position) => {
@@ -228,30 +223,6 @@ export default function PortfolioDetailPage() {
   const totalPerformance = portfolio?.performance ?? 0;
   return (
     <div className="space-y-6">
-      {showShareNotice && (
-        <div className="rounded-[1.5rem] border border-amber-300/30 bg-amber-300/10 p-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-amber-300">⚠</span>
-            <span className="text-sm text-amber-100">
-              Existen <strong>{publicCount}</strong> portafolios públicos con este nombre.
-              Para ver el portafolio exacto, usa el enlace único:
-            </span>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              const url = `${window.location.origin}/share/${portfolio.shareSlug}`;
-              navigator.clipboard.writeText(url);
-              toast.success("Link preciso copiado");
-            }}
-            className="border-amber-300/50 text-amber-300 hover:bg-amber-300/10"
-          >
-            Copiar link exacto (/share/...)
-          </Button>
-        </div>
-      )}
-
       <section className="panel flex flex-col gap-6 p-6 sm:p-7 xl:flex-row xl:items-end xl:justify-between">
         <div>
           <p className="eyebrow">Detalle de cartera</p>

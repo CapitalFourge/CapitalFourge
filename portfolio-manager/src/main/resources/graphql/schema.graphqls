@@ -122,6 +122,7 @@ type Portfolio {
   performance: Float!
   isPublic: Boolean!
   shareSlug: String
+  userId: ID!
   positions: [Position!]!
   transactions: [Transaction!]!
   ordersByPortfolio: [Order!]!

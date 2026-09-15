@@ -482,9 +482,10 @@ public class PortfolioService implements PortfolioUseCase {
         Portfolio portfolio = portfolioRepository.findByShareSlug(slug)
                 .orElseThrow(() -> new RuntimeException("Portfolio shared correctly not found or link expired"));
 
-        if (!portfolio.isPublic()) {
-            throw new RuntimeException("This portfolio is no longer public.");
-        }
+        // Don't throw for private portfolios - let the controller check ownership
+        // if (!portfolio.isPublic()) {
+        //     throw new RuntimeException("This portfolio is no longer public.");
+        // }
 
         refreshPortfolioPrices(portfolio);
         updatePerformance(portfolio);

@@ -38,6 +38,8 @@ public interface PortfolioUseCase {
 
     List<Portfolio> getPublicLeaderboard();
 
+    Integer countPublicByName(String name);
+
     Portfolio getPortfolioBySlug(String slug);
 
     Portfolio getPortfolioByName(String name);

@@ -15,7 +15,11 @@ import org.springframework.test.context.ActiveProfiles;
 @SpringBootTest(properties = {
     "spring.data.redis.enabled=false",
     "spring.redis.enabled=false",
-    "spring.redis.url="
+    "spring.redis.url=",
+    "spring.jwt.secret=test-secret-key-for-testing-only-minimum-256-bits-length-required",
+    "spring.jwt.issuer=capital-fourge-test",
+    "spring.jwt.access-expiration-ms=86400000",
+    "spring.jwt.refresh-expiration-ms=604800000"
 })
 @EnableAutoConfiguration(exclude = {
     RedisAutoConfiguration.class,

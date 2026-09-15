@@ -40,6 +40,9 @@ class PortfolioPersistenceAdapterTest {
     @Mock
     private JpaPortfolioRepository jpaRepository;
 
+    @Mock
+    private com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistence.Mappers.PortfolioMapper mapper;
+
     @InjectMocks
     private PortfolioPersistenceAdapter adapter;
 
@@ -92,6 +95,21 @@ class PortfolioPersistenceAdapterTest {
             false,
             "test-portfolio-abc123"
         );
+        
+        // Mock mapper behavior
+        when(mapper.toEntity(any(Portfolio.class))).thenAnswer(invocation -> {
+            Portfolio p = invocation.getArgument(0);
+            PortfolioEntity e = new PortfolioEntity(p.getId(), p.getName(), p.getDescription(), p.getUserId(),
+                p.getCumulativeDeposits(), p.getCumulativeWithdrawals(), p.getPerformance(), p.isPublic(), p.getShareSlug());
+            return e;
+        });
+        when(mapper.toDomain(any(PortfolioEntity.class))).thenAnswer(invocation -> {
+            PortfolioEntity e = invocation.getArgument(0);
+            Portfolio p = new Portfolio(e.getId(), e.getName(), e.getDescription(), e.getUserId(),
+                List.of(), List.of(), List.of(),
+                e.getCumulativeDeposits(), e.getCumulativeWithdrawals(), e.getPerformance(), e.isPublic(), e.getShareSlug());
+            return p;
+        });
     }
 
     // ==================== BU-12: Roundtrip save -> findById ====================

@@ -12,14 +12,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.capitalfourge.portfoliomanager.application.ports.out.PortfolioRepository;
 import com.capitalfourge.portfoliomanager.domain.Portfolio;
-import com.capitalfourge.portfoliomanager.domain.Order;
-import com.capitalfourge.portfoliomanager.domain.Position;
-import com.capitalfourge.portfoliomanager.domain.Transaction;
-import com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistence.Entities.OrderEntity;
 import com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistence.Entities.PortfolioEntity;
-import com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistence.Entities.PositionEntity;
-import com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistence.Entities.TransactionEntity;
+import com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistence.Mappers.PortfolioMapper;
 import com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistence.Repositories.JpaPortfolioRepository;
+import com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistence.Repositories.JpaTransactionRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -28,33 +24,24 @@ import lombok.RequiredArgsConstructor;
 public class PortfolioPersistenceAdapter implements PortfolioRepository {
 
     private final JpaPortfolioRepository jpaRepository;
+    private final JpaTransactionRepository transactionRepository;
+    private final PortfolioMapper mapper;
 
     @Override
-    @Transactional
     public Portfolio save(Portfolio portfolio) {
-        PortfolioEntity entity = toEntity(portfolio);
-        PortfolioEntity savedEntity = jpaRepository.save(entity);
-
-        return toDomain(savedEntity);
+        PortfolioEntity entity = mapper.toEntity(portfolio);
+        entity = jpaRepository.save(entity);
+        return mapper.toDomain(entity);
     }
 
     @Override
-    @Transactional
     public Optional<Portfolio> findById(UUID id) {
-        return jpaRepository.findByIdWithPositionsAndTransactions(id).map(this::toDomain);
+        return jpaRepository.findById(id).map(this::toDomain);
     }
 
     @Override
     public Page<Portfolio> findByUserId(UUID userId, Pageable pageable) {
         return jpaRepository.findByUserId(userId, pageable).map(this::toDomain);
-    }
-
-    @Override
-    public List<Portfolio> findByUserId(UUID userId) {
-        return jpaRepository.findByUserId(userId, org.springframework.data.domain.Pageable.unpaged())
-                .stream()
-                .map(this::toDomain)
-                .toList();
     }
 
     @Override
@@ -86,6 +73,11 @@ public class PortfolioPersistenceAdapter implements PortfolioRepository {
     }
 
     @Override
+    public Integer countPublicByName(String name) {
+        return jpaRepository.countPublicByName(name);
+    }
+
+    @Override
     @Transactional
     public void deleteById(UUID id) {
         jpaRepository.deleteById(id);
@@ -93,139 +85,19 @@ public class PortfolioPersistenceAdapter implements PortfolioRepository {
 
     @Override
     public List<Portfolio> findByIds(List<UUID> ids) {
-        if (ids == null || ids.isEmpty()) {
-            return List.of();
-        }
-        return jpaRepository.findByIds(ids).stream().map(this::toDomain).toList();
+        return jpaRepository.findByIds(ids).stream().map(this::toDomain).collect(Collectors.toList());
     }
 
-    private PortfolioEntity toEntity(Portfolio domain) {
-        PortfolioEntity entity = new PortfolioEntity(
-            domain.getId(),
-            domain.getName(),
-            domain.getDescription(),
-            domain.getUserId(),
-            domain.getCumulativeDeposits(),
-            domain.getCumulativeWithdrawals(),
-            domain.getPerformance(),
-            domain.getIsPublic(),
-            domain.getShareSlug()
-        );
-        if (domain.getPositions() != null) {
-            List<PositionEntity> positions = domain.getPositions()
-                    .stream().map(p -> new PositionEntity(
-                            p.getId(),
-                            entity,
-                            p.getSymbol(),
-                            p.getQuantity(),
-                            p.getAveragePurchasePrice(),
-                            p.getCurrentPrice()
-                    ))
-                    .collect(Collectors.toList());
-            entity.setPositions(positions);
-        }
-        if (domain.getTransactions() != null) {
-            entity.setTransactions(domain.getTransactions().stream()
-                    .map(t -> new TransactionEntity(
-                            t.getId(),
-                            entity,
-                            t.getType(),
-                            t.getSymbol(),
-                            t.getQuantity(),
-                            t.getPrice(),
-                            t.getTimestamp(),
-                            t.getBalanceTransaction()
-                    ))
-                    .collect(Collectors.toList()));
-        }
-        // Copy orders to maintain relationship (prevents orphanRemoval deleting them)
-        if (domain.getOrders() != null) {
-            List<OrderEntity> orderEntities = domain.getOrders().stream()
-                    .map(o -> new OrderEntity(
-                            o.getId(),
-                            entity,
-                            o.getPortfolioId(),
-                            o.getUserId(),
-                            o.getType(),
-                            o.getSymbol(),
-                            o.getTargetPrice(),
-                            o.getQuantity(),
-                            o.getUsdAmount(),
-                            o.getStatus(),
-                            o.getCreatedAt(),
-                            o.getFilledAt(),
-                            o.getExpiresAt(),
-                            o.getFilledPrice(),
-                            o.getFilledQuantity(),
-                            o.getRejectionReason()
-                    ))
-                    .collect(Collectors.toList());
-            entity.setOrders(orderEntities);
-        }
-        return entity;
+    // Legacy methods (for backward compatibility)
+    @Override
+    public List<Portfolio> findByUserId(UUID userId) {
+        return jpaRepository.findByUserId(userId, org.springframework.data.domain.Pageable.unpaged())
+                .stream()
+                .map(this::toDomain)
+                .collect(Collectors.toList());
     }
 
     private Portfolio toDomain(PortfolioEntity entity) {
-        if (entity == null) {
-            return null;
-        }
-        List<Position> domainPositions = entity.getPositions() == null ? null
-                : entity.getPositions().stream().map(p -> new Position(
-                        p.getId(),
-                        entity.getId(),
-                        p.getSymbol(),
-                        p.getQuantity(),
-                        p.getAveragePurchasePrice(),
-                        p.getCurrentPrice(),
-                        null
-                )).collect(Collectors.toList());
-
-        List<Transaction> domainTransactions = entity.getTransactions() == null ? new java.util.ArrayList<>()
-                : entity.getTransactions().stream().map(t -> new Transaction(
-                        t.getId(),
-                        entity.getId(),
-                        t.getType(),
-                        t.getSymbol(),
-                        t.getQuantity(),
-                        t.getPrice(),
-                        t.getPrice().multiply(t.getQuantity()),
-                        t.getTimestamp(),
-                        t.getBalanceTransaction()
-                )).collect(Collectors.toList());
-
-        List<Order> domainOrders = entity.getOrders() == null ? new java.util.ArrayList<>()
-                : entity.getOrders().stream().map(o -> new Order(
-                        o.getId(),
-                        entity.getId(),
-                        o.getUserId(),
-                        o.getType(),
-                        o.getSymbol(),
-                        o.getTargetPrice(),
-                        o.getQuantity(),
-                        o.getUsdAmount(),
-                        o.getStatus(),
-                        o.getCreatedAt(),
-                        o.getFilledAt(),
-                        o.getExpiresAt(),
-                        o.getFilledPrice(),
-                        o.getFilledQuantity(),
-                        o.getRejectionReason()
-                )).collect(Collectors.toList());
-
-        return new Portfolio(
-            entity.getId(),
-            entity.getName(),
-            entity.getDescription(),
-            entity.getUserId(),
-            domainPositions,
-            domainTransactions,
-            domainOrders,
-            entity.getCumulativeDeposits(),
-            entity.getCumulativeWithdrawals(),
-            entity.getPerformance() != null ? entity.getPerformance() : 0.0,
-            entity.isPublic(),
-            entity.getShareSlug()
-        );
+        return mapper.toDomain(entity);
     }
-
 }

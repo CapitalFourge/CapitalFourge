@@ -28,6 +28,8 @@ public interface PortfolioRepository {
 
     List<Portfolio> findByIds(List<UUID> ids);
 
+    Integer countPublicByName(String name);
+
     // Legacy methods (for backward compatibility)
     List<Portfolio> findByUserId(UUID userId);
 

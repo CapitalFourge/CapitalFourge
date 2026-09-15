@@ -32,23 +32,26 @@ public class Position {
     }
     
     // Explicit getters/setters for Lombok compatibility
-    public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
-    public UUID getPortfolioId() { return portfolioId; }
-    public void setPortfolioId(UUID portfolioId) { this.portfolioId = portfolioId; }
-    public String getSymbol() { return symbol; }
-    public void setSymbol(String symbol) { this.symbol = symbol; }
-    public BigDecimal getQuantity() { return quantity; }
-    public void setQuantity(BigDecimal quantity) { this.quantity = quantity; }
-    public BigDecimal getAveragePurchasePrice() { return averagePurchasePrice; }
-    public void setAveragePurchasePrice(BigDecimal averagePurchasePrice) { this.averagePurchasePrice = averagePurchasePrice; }
-    public BigDecimal getCurrentPrice() { return currentPrice; }
-    public void setCurrentPrice(BigDecimal currentPrice) { this.currentPrice = currentPrice; }
-    public BigDecimal getLockedQuantity() { return lockedQuantity; }
-    public void setLockedQuantity(BigDecimal lockedQuantity) { this.lockedQuantity = lockedQuantity; }
-    
-    // Explicit all-args constructor for Lombok compatibility
-    public Position(UUID id, UUID portfolioId, String symbol, BigDecimal quantity,
+        public UUID getId() { return id; }
+        public void setId(UUID id) { this.id = id; }
+        public UUID getPortfolioId() { return portfolioId; }
+        public void setPortfolioId(UUID portfolioId) { this.portfolioId = portfolioId; }
+        public String getSymbol() { return symbol; }
+        public void setSymbol(String symbol) { this.symbol = symbol; }
+        public BigDecimal getQuantity() { return quantity; }
+        public void setQuantity(BigDecimal quantity) { this.quantity = quantity; }
+        public BigDecimal getAveragePurchasePrice() { return averagePurchasePrice; }
+        public void setAveragePurchasePrice(BigDecimal averagePurchasePrice) { this.averagePurchasePrice = averagePurchasePrice; }
+        public BigDecimal getCurrentPrice() { return currentPrice; }
+        public void setCurrentPrice(BigDecimal currentPrice) { this.currentPrice = currentPrice; }
+        public BigDecimal getLockedQuantity() { return lockedQuantity; }
+        public void setLockedQuantity(BigDecimal lockedQuantity) { this.lockedQuantity = lockedQuantity; }
+
+        // Explicit no-args constructor for mapping
+        public Position() {}
+
+        // Explicit all-args constructor for Lombok compatibility
+        public Position(UUID id, UUID portfolioId, String symbol, BigDecimal quantity,
                     BigDecimal averagePurchasePrice, BigDecimal currentPrice, BigDecimal lockedQuantity) {
         this.id = id;
         this.portfolioId = portfolioId;

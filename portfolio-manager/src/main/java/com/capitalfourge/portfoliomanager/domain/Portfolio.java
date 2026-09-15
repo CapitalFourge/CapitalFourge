@@ -75,6 +75,13 @@ public class Portfolio {
             this.transactions.add(transaction);
         }
 
+        // Explicit no-args constructor for mapping
+        public Portfolio() {
+            this.positions = new java.util.ArrayList<>();
+            this.transactions = new java.util.ArrayList<>();
+            this.orders = new java.util.ArrayList<>();
+        }
+
         // Explicit all-args constructor for Lombok compatibility
     public Portfolio(UUID id, String name, String description, UUID userId,
                          List<Position> positions, List<Transaction> transactions,

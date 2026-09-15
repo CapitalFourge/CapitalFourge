@@ -516,99 +516,98 @@ public class PortfolioService implements PortfolioUseCase {
     }
 
     @Override
-    @Transactional
-    public Order createLimitOrder(UUID portfolioId, UUID userId, OrderType type, String symbol, BigDecimal targetPrice, BigDecimal quantity, BigDecimal usdAmount, String expiresAt) {
-        // Verify portfolio exists and belongs to user
-        Portfolio portfolio = getPortfolio(portfolioId);
-        if (!portfolio.getUserId().equals(userId)) {
-            throw new RuntimeException("Portfolio not found or access denied");
-        }
-
-        // Validate inputs
-        if (targetPrice == null || targetPrice.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new RuntimeException("Target price must be positive");
-        }
-        
-        BigDecimal finalQuantity = quantity;
-        BigDecimal finalUsdAmount = usdAmount;
-        
-        if (finalQuantity == null && finalUsdAmount == null) {
-            throw new RuntimeException("Either quantity or usdAmount must be provided");
-        }
-        
-        if (finalQuantity != null && finalUsdAmount != null) {
-            throw new RuntimeException("Provide either quantity or usdAmount, not both");
-        }
-        
-        if (finalQuantity != null && finalQuantity.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new RuntimeException("Quantity must be positive");
-        }
-        
-        if (finalUsdAmount != null && finalUsdAmount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new RuntimeException("USD amount must be positive");
-        }
-
-        // Calculate total amount to lock (for BUY_LIMIT)
-        BigDecimal lockAmount = BigDecimal.ZERO;
-        if (type == OrderType.BUY_LIMIT) {
-            lockAmount = targetPrice.multiply(finalQuantity);
-        }
-
-        // Verify user has enough cash balance to lock
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        BigDecimal userCashBalance = user.getCashBalance() != null ? user.getCashBalance() : BigDecimal.ZERO;
-        BigDecimal userLockedBalance = user.getLockedBalance() != null ? user.getLockedBalance() : BigDecimal.ZERO;
-        BigDecimal availableBalance = userCashBalance.subtract(userLockedBalance);
-
-        if (availableBalance.compareTo(lockAmount) < 0) {
-            throw new RuntimeException("Insufficient available balance for limit order");
-        }
-
-        // Lock the balance
-        user.setLockedBalance(userLockedBalance.add(lockAmount));
-        userRepository.save(user);
-
-        // Calculate quantity from USD if needed
-        if (finalQuantity == null) {
-            // Fetch current price to calculate quantity
-            Map<String, Double> prices = getBatchPrices(List.of(symbol));
-            Double currentPrice = prices.get(symbol);
-            if (currentPrice == null) {
-                throw new RuntimeException("Could not fetch current price for " + symbol);
-            }
-            finalQuantity = finalUsdAmount.divide(BigDecimal.valueOf(currentPrice), 8, RoundingMode.HALF_UP);
-        }
-
-        // Create order entity
-        LocalDateTime parsedExpiresAt = null;
-        if (expiresAt != null && !expiresAt.isEmpty()) {
-            try {
-                parsedExpiresAt = LocalDateTime.parse(expiresAt, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-            } catch (Exception e) {
-                throw new RuntimeException("Formato de fecha inválido. Use ISO 8601 (ej: 2024-12-31T23:59:59)");
-            }
-        }
-        Order order = new Order(
-            UUID.randomUUID(),
-            portfolioId,
-            userId,
-            type,
-            symbol,
-            targetPrice,
-            finalQuantity,
-            finalUsdAmount,
-            OrderStatus.PENDING,
-            LocalDateTime.now(),
-            null, // filledAt
-            parsedExpiresAt != null ? parsedExpiresAt : null, // expiresAt - null means never expires
-            null, // filledPrice
-            null, // filledQuantity
-            null  // rejectionReason
-        );
-
-        return orderRepository.save(order);
+    @Transactional(readOnly = true)
+    public Integer countPublicByName(String name) {
+        return portfolioRepository.countPublicByName(name);
     }
+
+    @Override
+    public Order createLimitOrder(UUID portfolioId, UUID userId, OrderType type, String symbol, BigDecimal targetPrice, BigDecimal quantity, BigDecimal usdAmount, String expiresAt) {
+            // Validate inputs
+            if (targetPrice == null || targetPrice.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new RuntimeException("Target price must be positive");
+            }
+
+            BigDecimal finalQuantity = quantity;
+            BigDecimal finalUsdAmount = usdAmount;
+
+            if (finalQuantity == null && finalUsdAmount == null) {
+                throw new RuntimeException("Either quantity or usdAmount must be provided");
+            }
+
+            if (finalQuantity != null && finalUsdAmount != null) {
+                throw new RuntimeException("Provide either quantity or usdAmount, not both");
+            }
+
+            if (finalQuantity != null && finalQuantity.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new RuntimeException("Quantity must be positive");
+            }
+
+            if (finalUsdAmount != null && finalUsdAmount.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new RuntimeException("USD amount must be positive");
+            }
+
+            // Calculate total amount to lock (for BUY_LIMIT)
+            BigDecimal lockAmount = BigDecimal.ZERO;
+            if (type == OrderType.BUY_LIMIT) {
+                lockAmount = targetPrice.multiply(finalQuantity);
+            }
+
+            // Verify user has enough cash balance to lock
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            BigDecimal userCashBalance = user.getCashBalance() != null ? user.getCashBalance() : BigDecimal.ZERO;
+            BigDecimal userLockedBalance = user.getLockedBalance() != null ? user.getLockedBalance() : BigDecimal.ZERO;
+            BigDecimal availableBalance = userCashBalance.subtract(userLockedBalance);
+
+            if (availableBalance.compareTo(lockAmount) < 0) {
+                throw new RuntimeException("Insufficient available balance for limit order");
+            }
+
+            // Lock the balance
+            user.setLockedBalance(userLockedBalance.add(lockAmount));
+            userRepository.save(user);
+
+            // Calculate quantity from USD if needed
+            if (finalQuantity == null) {
+                // Fetch current price to calculate quantity
+                Map<String, Double> prices = getBatchPrices(List.of(symbol));
+                Double currentPrice = prices.get(symbol);
+                if (currentPrice == null) {
+                    throw new RuntimeException("Could not fetch current price for " + symbol);
+                }
+                finalQuantity = finalUsdAmount.divide(BigDecimal.valueOf(currentPrice), 8, RoundingMode.HALF_UP);
+            }
+
+            // Create order entity
+            LocalDateTime parsedExpiresAt = null;
+            if (expiresAt != null && !expiresAt.isEmpty()) {
+                try {
+                    parsedExpiresAt = LocalDateTime.parse(expiresAt, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                } catch (Exception e) {
+                    throw new RuntimeException("Formato de fecha inválido. Use ISO 8601 (ej: 2024-12-31T23:59:59)");
+                }
+            }
+            Order order = new Order(
+                UUID.randomUUID(),
+                portfolioId,
+                userId,
+                type,
+                symbol,
+                targetPrice,
+                finalQuantity,
+                finalUsdAmount,
+                OrderStatus.PENDING,
+                LocalDateTime.now(),
+                null, // filledAt
+                parsedExpiresAt != null ? parsedExpiresAt : null, // expiresAt - null means never expires
+                null, // filledPrice
+                null, // filledQuantity
+                null  // rejectionReason
+            );
+
+            return orderRepository.save(order);
+        }
 
     @Override
     @Transactional(readOnly = true)

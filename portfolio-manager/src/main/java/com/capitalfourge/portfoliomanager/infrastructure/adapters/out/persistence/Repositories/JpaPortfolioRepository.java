@@ -22,7 +22,8 @@ public interface JpaPortfolioRepository extends JpaRepository<PortfolioEntity, U
     @Query("SELECT p FROM PortfolioEntity p WHERE p.userId = :userId AND p.name = :name")
     Optional<PortfolioEntity> findByUserIdAndName(@Param("userId") UUID userId, @Param("name") String name);
 
-    @Query("SELECT p FROM PortfolioEntity p LEFT JOIN FETCH p.positions WHERE p.id = :id")
+    @Query("SELECT p FROM PortfolioEntity p WHERE p.id = :id")
+    @EntityGraph(value = "Portfolio.withPositions", type = EntityGraph.EntityGraphType.FETCH)
     Optional<PortfolioEntity> findByIdWithPositionsAndTransactions(@Param("id") UUID id);
 
     @EntityGraph(attributePaths = {"positions"}, type = EntityGraph.EntityGraphType.FETCH)
@@ -36,4 +37,7 @@ public interface JpaPortfolioRepository extends JpaRepository<PortfolioEntity, U
 
     @Query("SELECT p FROM PortfolioEntity p LEFT JOIN FETCH p.positions WHERE p.id IN :ids")
     List<PortfolioEntity> findByIds(@Param("ids") List<UUID> ids);
+
+    @Query("SELECT COUNT(p) FROM PortfolioEntity p WHERE p.name = :name AND p.isPublic = true")
+    Integer countPublicByName(@Param("name") String name);
 }

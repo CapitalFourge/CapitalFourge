@@ -32,10 +32,10 @@ import com.capitalfourge.portfoliomanager.domain.User;
 @Testcontainers
 @SpringBootTest
 @TestPropertySource(properties = {
-    "jwt.secret=test-secret-key-for-testing-only-minimum-256-bits-length-required",
-    "jwt.issuer=capital-fourge-test",
-    "jwt.access-expiration-ms=86400000",
-    "jwt.refresh-expiration-ms=604800000",
+    "spring.jwt.secret=test-secret-key-for-testing-only-minimum-256-bits-length-required",
+    "spring.jwt.issuer=capital-fourge-test",
+    "spring.jwt.access-expiration-ms=86400000",
+    "spring.jwt.refresh-expiration-ms=604800000",
     "spring.profiles.active=test",
     "spring.datasource.driver-class-name=org.postgresql.Driver",
     "spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect",

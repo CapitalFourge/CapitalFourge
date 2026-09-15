@@ -14,6 +14,7 @@ const TRANSACTIONS_QUERY = gql`
     portfolios {
       id
       name
+      shareSlug
       transactions {
         id
         symbol

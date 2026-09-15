@@ -95,6 +95,7 @@ const PORTFOLIOS_QUERY = gql`
       id
       name
       performance
+      shareSlug
       positions {
         id
         symbol
@@ -118,6 +119,7 @@ const DASHBOARD_QUERY = gql`
       id
       name
       performance
+      shareSlug
       positions {
         id
         symbol

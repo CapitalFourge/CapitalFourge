@@ -493,7 +493,7 @@ export default function AssetDetailPage() {
           {/* Position & Limit Order Status */}
           <div className="flex flex-wrap items-center gap-3">
             {hasPosition && (
-              <Link href={`/portfolio/${positionDetails[0].portfolioShareSlug}`} className="inline-block">
+              <Link href={`/portfolio/${positionDetails[0].portfolioName}`} className="inline-block">
                 <Badge variant="default" className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 cursor-pointer hover:bg-emerald-500/30 transition">
                   {positionDetails.map(d => `${d.quantity} ${symbol} en ${d.portfolioName}`).join(', ')}
                 </Badge>

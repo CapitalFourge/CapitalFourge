@@ -11,10 +11,16 @@ import lombok.*;
 @Entity
 @Table(
     name = "portfolios",
-    uniqueConstraints = @UniqueConstraint(
-        name = "ux_portfolios_user_name",
-        columnNames = {"user_id", "name"}
-    )
+    uniqueConstraints = {
+        @UniqueConstraint(
+            name = "ux_portfolios_user_name",
+            columnNames = {"user_id", "name"}
+        ),
+        @UniqueConstraint(
+            name = "ux_portfolios_user_share_slug",
+            columnNames = {"user_id", "share_slug"}
+        )
+    }
 )
 @Getter
 @Setter
@@ -37,7 +43,7 @@ public class PortfolioEntity {
     // P2-11: Default performance to 0.0 to avoid null
         private Double performance = 0.0;
     private boolean isPublic;
-    @Column(unique = true)
+    @Column(unique = false)
     private String shareSlug;
 
     @OneToMany(mappedBy = "portfolio", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)

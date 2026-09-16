@@ -100,15 +100,18 @@ public class PortfolioService implements PortfolioUseCase {
         portfolio.setPerformance(0.0);
         portfolio.setPublic(false);
 
-        // Generate shareSlug for all portfolios (clean URLs)
+        // Generate shareSlug for all portfolios (clean URLs per user)
+        String baseSlug = generateShareSlug(portfolio.getName());
+        String slug = baseSlug;
         for (int attempt = 0; attempt < MAX_SLUG_ATTEMPTS; attempt++) {
-            portfolio.setShareSlug(generateShareSlug(portfolio.getName()));
+            portfolio.setShareSlug(slug);
             try {
                 break;
             } catch (DataIntegrityViolationException e) {
                 if (attempt == MAX_SLUG_ATTEMPTS - 1) {
                     throw new IllegalStateException("No se pudo generar un shareSlug único", e);
                 }
+                slug = baseSlug + "-" + (attempt + 1);
             }
         }
 
@@ -476,14 +479,17 @@ public class PortfolioService implements PortfolioUseCase {
 
         portfolio.setPublic(isPublic);
         if (isPublic && (portfolio.getShareSlug() == null || portfolio.getShareSlug().isEmpty())) {
+            String baseSlug = generateShareSlug(portfolio.getName());
+            String slug = baseSlug;
             for (int attempt = 0; attempt < MAX_SLUG_ATTEMPTS; attempt++) {
-                portfolio.setShareSlug(generateShareSlug(portfolio.getName()));
+                portfolio.setShareSlug(slug);
                 try {
                     return portfolioRepository.save(portfolio);
                 } catch (DataIntegrityViolationException e) {
                     if (attempt == MAX_SLUG_ATTEMPTS - 1) {
                         throw new IllegalStateException("No se pudo generar un shareSlug único", e);
                     }
+                    slug = baseSlug + "-" + (attempt + 1);
                 }
             }
         }
@@ -499,7 +505,7 @@ public class PortfolioService implements PortfolioUseCase {
         if (base.isBlank()) {
             base = "portfolio";
         }
-        return base + "-" + UUID.randomUUID().toString().substring(0, 8);
+        return base;
     }
 
     @Override

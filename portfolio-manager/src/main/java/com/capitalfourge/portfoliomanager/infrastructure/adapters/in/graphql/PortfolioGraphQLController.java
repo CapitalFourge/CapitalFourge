@@ -713,7 +713,7 @@ public class PortfolioGraphQLController {
     public Boolean repairMyBalance() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UUID userId = getUserIdFromAuth(auth);
-        // userUseCase.repairBalance(userId);  // TODO: add this method to UserUseCase
+        userUseCase.repairBalance(userId);
         return true;
     }
 
@@ -782,7 +782,7 @@ public class PortfolioGraphQLController {
     @MutationMapping
     @PreAuthorize("hasRole('ADMIN')")
     public Boolean repairBalance(@Argument UUID userId) {
-        // userUseCase.repairBalance(userId);  // TODO: add this method to UserUseCase
+        userUseCase.repairBalance(userId);
         return true;
     }
 

@@ -43,4 +43,6 @@ public interface UserUseCase {
     void adminDeactivateUser(UUID userId);
 
     User dismissWelcome(UUID userId);
+
+    void repairBalance(UUID userId);
 }

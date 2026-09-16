@@ -30,6 +30,7 @@ import com.capitalfourge.portfoliomanager.application.ports.dto.auth.LoginComman
 import com.capitalfourge.portfoliomanager.application.ports.dto.auth.RefreshCommand;
 import com.capitalfourge.portfoliomanager.application.ports.dto.auth.RegisterCommand;
 import com.capitalfourge.portfoliomanager.application.ports.in.UserUseCase;
+import com.capitalfourge.portfoliomanager.application.ports.in.PortfolioUseCase;
 import com.capitalfourge.portfoliomanager.application.ports.out.TokenRepository;
 import com.capitalfourge.portfoliomanager.application.ports.out.TokenService;
 import com.capitalfourge.portfoliomanager.application.ports.out.UserRepository;
@@ -49,6 +50,7 @@ public class UserService implements UserUseCase {
     private final TokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailValidator emailValidator;
+    private final PortfolioUseCase portfolioUseCase;
 
     private static final long REFRESH_TTL_SECONDS = 60L * 60L * 24L * 7L;
     private static final int MAX_OPTIMISTIC_LOCK_RETRIES = 3;
@@ -311,5 +313,10 @@ public class UserService implements UserUseCase {
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
         user.setShowWelcome(false);
         return userRepository.save(user);
+    }
+
+    @Override
+    public void repairBalance(UUID userId) {
+        portfolioUseCase.repairUserBalance(userId);
     }
 }

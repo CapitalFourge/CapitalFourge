@@ -162,7 +162,7 @@ export default function PortfolioDetailPage() {
   const [selectedPosition, setSelectedPosition] = useState<Position | null>(null);
   const [positionActionDialogOpen, setPositionActionDialogOpen] = useState(false);
 
-  const portfolioName = Array.isArray(slug) ? slug[0] : slug;
+  const portfolioName = decodeURIComponent(Array.isArray(slug) ? slug[0] : slug);
   const { data, loading, error } = useQuery(PORTFOLIO_DETAIL_QUERY, {
     variables: { name: portfolioName },
     fetchPolicy: "network-only",

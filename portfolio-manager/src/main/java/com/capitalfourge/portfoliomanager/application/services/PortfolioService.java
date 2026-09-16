@@ -122,7 +122,11 @@ public class PortfolioService implements PortfolioUseCase {
         for (int attempt = 0; attempt < MAX_SLUG_ATTEMPTS; attempt++) {
             portfolio.setShareSlug(slug);
             try {
-                break;
+                if (portfolio.getUserId() != null) {
+                    metricRepository.recordUserActivity(portfolio.getUserId().toString());
+                }
+                metricRepository.incrementPortfolioCount();
+                return portfolioRepository.save(portfolio);
             } catch (DataIntegrityViolationException e) {
                 if (attempt == MAX_SLUG_ATTEMPTS - 1) {
                     throw new IllegalStateException("No se pudo generar un shareSlug único", e);
@@ -130,14 +134,7 @@ public class PortfolioService implements PortfolioUseCase {
                 slug = baseSlug + "-" + (attempt + 1);
             }
         }
-
-        if (portfolio.getUserId() != null) {
-            metricRepository.recordUserActivity(portfolio.getUserId().toString());
-        }
-
-        metricRepository.incrementPortfolioCount();
-
-        return portfolioRepository.save(portfolio);
+        throw new IllegalStateException("No se pudo generar un shareSlug único después de " + MAX_SLUG_ATTEMPTS + " intentos");
     }
 
     @Override

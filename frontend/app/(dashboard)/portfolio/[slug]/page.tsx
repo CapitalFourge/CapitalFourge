@@ -189,6 +189,8 @@ export default function PortfolioDetailPage() {
     return <div className="p-8 text-sm uppercase tracking-[0.26em] text-slate-400">Cargando portafolio...</div>;
   }
 
+  const portfolioName = data?.portfolioBySlug?.name;
+
   if (error || !portfolioName) {
     return (
       <div className="rounded-[1.75rem] border border-red-400/20 bg-red-500/10 p-8 text-red-200">

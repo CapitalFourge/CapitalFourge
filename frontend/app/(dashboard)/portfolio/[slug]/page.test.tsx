@@ -44,7 +44,7 @@ const PORTFOLIO_DETAIL_QUERY = gql`
 const mockResponse: MockedResponse = {
   request: {
     query: PORTFOLIO_DETAIL_QUERY,
-    variables: { slug: 'test-portfolio-abc12345' },
+    variables: { slug: 'Test Portfolio' },
   },
   result: {
     data: {
@@ -62,7 +62,7 @@ const mockResponse: MockedResponse = {
         description: 'Estrategia de prueba',
         performance: 10.5,
         isPublic: false,
-        shareSlug: 'test-portfolio-abc12345',
+        shareSlug: 'Test Portfolio',
         userId: 'user-1',
         positions: [
           {

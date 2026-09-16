@@ -95,6 +95,14 @@ public class PortfolioService implements PortfolioUseCase {
             portfolio.setTransactions(new ArrayList<>());
         }
 
+        // Check if user already has a portfolio with this name
+        if (portfolio.getUserId() != null) {
+            Optional<Portfolio> existing = portfolioRepository.findByUserIdAndName(portfolio.getUserId(), normalizedName);
+            if (existing.isPresent()) {
+                throw new IllegalArgumentException("Ya tienes un portafolio con este nombre");
+            }
+        }
+
         portfolio.setCumulativeDeposits(BigDecimal.ZERO);
         portfolio.setCumulativeWithdrawals(BigDecimal.ZERO);
         portfolio.setPerformance(0.0);

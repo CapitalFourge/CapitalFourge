@@ -17,6 +17,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 
+import com.capitalfourge.portfoliomanager.application.exception.InvalidCredentialsException;
+import com.capitalfourge.portfoliomanager.application.exception.OrderNotFoundException;
+import com.capitalfourge.portfoliomanager.application.exception.PortfolioNotFoundException;
+import com.capitalfourge.portfoliomanager.application.exception.UserNotFoundException;
 import com.capitalfourge.portfoliomanager.domain.Asset;
 import com.capitalfourge.portfoliomanager.domain.CryptoPricePoint;
 import com.capitalfourge.portfoliomanager.domain.CommodityPricePoint;
@@ -655,7 +659,7 @@ public class PortfolioGraphQLController {
         }
         Portfolio portfolio = portfolioUseCase.getPortfolio(id);
         if (!portfolio.getUserId().equals(userId)) {
-            throw new RuntimeException("Portfolio not found or access denied");
+            throw new PortfolioNotFoundException("Portfolio not found or access denied");
         }
         portfolioUseCase.deletePortfolio(id);
         return true;
@@ -832,11 +836,11 @@ public class PortfolioGraphQLController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UUID userId = getUserIdFromAuth(auth);
         if (userId == null) {
-            throw new RuntimeException("Unauthorized: authentication required");
+            throw new InvalidCredentialsException("Unauthorized: authentication required");
         }
         Portfolio portfolio = portfolioUseCase.getPortfolio(portfolioId);
         if (!portfolio.getUserId().equals(userId)) {
-            throw new RuntimeException("Portfolio not found or access denied");
+            throw new PortfolioNotFoundException("Portfolio not found or access denied");
         }
     }
 

@@ -105,7 +105,7 @@ class PortfolioServiceTest {
         Portfolio result = portfolioService.toggleVisibility(portfolioId, true);
 
         assertEquals(true, result.isPublic());
-        assertTrue(result.getShareSlug().matches("estrategia-global-[a-f0-9]{8}"));
+        assertTrue(result.getShareSlug().matches("estrategia-global(-\\d+)?"));
         verify(portfolioRepository, times(2)).save(any(Portfolio.class));
     }
 

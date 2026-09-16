@@ -1,5 +1,7 @@
 package com.capitalfourge.portfoliomanager.infrastructure.adapters.out.datacollector;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
@@ -15,6 +17,8 @@ import java.util.stream.Collectors;
 @Component
 public class DataCollectorClientImpl implements DataCollectorClient {
 
+    private static final Logger log = LoggerFactory.getLogger(DataCollectorClientImpl.class);
+    
     private final RestClient dataCollectorClient;
     private final RedisTemplate<String, Object> redisTemplate;
     private static final String MOVERS_CACHE_KEY = "assetMovers:";
@@ -194,12 +198,12 @@ public class DataCollectorClientImpl implements DataCollectorClient {
             @SuppressWarnings("unchecked")
             AssetMoversDTO cached = (AssetMoversDTO) redisTemplate.opsForValue().get(cacheKey);
             if (cached != null) {
-                System.out.println("CACHE HIT: " + cacheKey);
+                log.debug("CACHE HIT: {}", cacheKey);
                 return cached;
             }
-            System.out.println("CACHE MISS: " + cacheKey);
+            log.debug("CACHE MISS: {}", cacheKey);
         } catch (Exception e) {
-            System.out.println("CACHE ERROR (read): " + e.getMessage());
+            log.warn("CACHE ERROR (read): {}", e.getMessage());
         }
         
         try {
@@ -264,15 +268,14 @@ public class DataCollectorClientImpl implements DataCollectorClient {
             // Cache the result
             try {
                 redisTemplate.opsForValue().set(cacheKey, result, MOVERS_CACHE_TTL_SECONDS, TimeUnit.SECONDS);
-                System.out.println("CACHE WRITE: " + cacheKey);
+                log.debug("CACHE WRITE: {}", cacheKey);
             } catch (Exception e) {
-                System.out.println("CACHE ERROR (write): " + e.getMessage());
+                log.warn("CACHE ERROR (write): {}", e.getMessage());
             }
             
             return result;
         } catch (Exception e) {
-            System.out.println("DATA COLLECTOR ERROR: " + e.getMessage());
-            e.printStackTrace();
+            log.error("DATA COLLECTOR ERROR: {}", e.getMessage());
             return new AssetMoversDTO(List.of(), List.of(), List.of());
         }
     }

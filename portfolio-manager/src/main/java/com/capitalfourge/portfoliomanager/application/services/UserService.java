@@ -16,6 +16,13 @@ import java.util.UUID;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import com.capitalfourge.portfoliomanager.application.exception.AccountDisabledException;
+import com.capitalfourge.portfoliomanager.application.exception.ConcurrencyConflictException;
+import com.capitalfourge.portfoliomanager.application.exception.EmailAlreadyRegisteredException;
+import com.capitalfourge.portfoliomanager.application.exception.InsufficientBalanceException;
+import com.capitalfourge.portfoliomanager.application.exception.InvalidCredentialsException;
+import com.capitalfourge.portfoliomanager.application.exception.InvalidRefreshTokenException;
+import com.capitalfourge.portfoliomanager.application.exception.UserNotFoundException;
 import com.capitalfourge.portfoliomanager.application.ports.dto.auth.AuthResult;
 import com.capitalfourge.portfoliomanager.application.ports.dto.auth.ChangeEmailCommand;
 import com.capitalfourge.portfoliomanager.application.ports.dto.auth.ChangePasswordCommand;
@@ -98,17 +105,17 @@ public class UserService implements UserUseCase {
         User user = userRepository.findByEmail(command.getEmail())
                 .orElseThrow(() -> {
                     log.warn("User not found for email: {}", command.getEmail());
-                    return new RuntimeException("Invalid credentials");
+                    return new InvalidCredentialsException("Invalid credentials");
                 });
 
         if (!user.isActive()) {
             log.warn("Account disabled for email: {}", command.getEmail());
-            throw new RuntimeException("Account is disabled");
+            throw new AccountDisabledException("Account is disabled");
         }
 
         if (!passwordEncoder.matches(command.getPassword(), user.getPassword())) {
             log.warn("Invalid password for email: {}", command.getEmail());
-            throw new RuntimeException("Invalid credentials");
+            throw new InvalidCredentialsException("Invalid credentials");
         }
 
         user.setLastLoginAt(LocalDateTime.now());
@@ -132,7 +139,7 @@ public class UserService implements UserUseCase {
                 attempts++;
                 if (attempts >= MAX_OPTIMISTIC_LOCK_RETRIES) {
                     log.error("Optimistic lock failed after {} attempts", attempts);
-                    throw new RuntimeException("Conflicto de concurrencia, intente nuevamente");
+                    throw new ConcurrencyConflictException("Conflicto de concurrencia, intente nuevamente");
                 }
                 log.warn("Optimistic lock conflict on attempt {}, retrying...", attempts);
                 try {
@@ -150,23 +157,23 @@ public class UserService implements UserUseCase {
         String refreshToken = command.getRefreshToken();
 
         if (!tokenService.validateRefreshToken(refreshToken)) {
-            throw new RuntimeException("Invalid refresh token");
+            throw new InvalidRefreshTokenException("Invalid refresh token");
         }
 
         UUID userIdFromToken = tokenService.extractUserId(refreshToken);
 
         String stored = refreshTokenRepository.findByUserId(userIdFromToken)
-                .orElseThrow(() -> new RuntimeException("Refresh token not found"));
+                .orElseThrow(() -> new InvalidRefreshTokenException("Refresh token not found"));
 
         if (!stored.equals(refreshToken)) {
-            throw new RuntimeException("Refresh token revoked");
+            throw new InvalidRefreshTokenException("Refresh token revoked");
         }
 
         User user = userRepository.findById(userIdFromToken)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         if (!user.isActive()) {
-            throw new RuntimeException("Account is disabled");
+            throw new AccountDisabledException("Account is disabled");
         }
 
         String newAccess = tokenService.createAccessToken(user);
@@ -203,10 +210,10 @@ public class UserService implements UserUseCase {
     @Override
     public void changePassword(ChangePasswordCommand command) {
         User user = userRepository.findById(command.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         if (!passwordEncoder.matches(command.getCurrentPassword(), user.getPassword())) {
-            throw new RuntimeException("Current password is incorrect");
+            throw new InvalidCredentialsException("Current password is incorrect");
         }
 
         user.setPassword(passwordEncoder.encode(command.getNewPassword()));
@@ -222,10 +229,10 @@ public class UserService implements UserUseCase {
         }
 
         User user = userRepository.findById(command.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         if (userRepository.existsByEmail(command.getNewEmail())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Este correo ya está registrado");
+            throw new EmailAlreadyRegisteredException("Este correo ya está registrado");
         }
 
         user.setEmail(command.getNewEmail());
@@ -236,7 +243,7 @@ public class UserService implements UserUseCase {
     @Override
     public User updateProfile(UUID userId, String username, String email, String language) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         if (username != null && !username.isBlank()) {
             user.setUsername(username);
@@ -248,7 +255,7 @@ public class UserService implements UserUseCase {
             }
             // Only check for conflict if email is different from current user's email
             if (!email.equals(user.getEmail()) && userRepository.existsByEmail(email)) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "Este correo ya está registrado");
+                throw new EmailAlreadyRegisteredException("Este correo ya está registrado");
             }
             user.setEmail(email);
         }
@@ -261,7 +268,7 @@ public class UserService implements UserUseCase {
     @Override
     public User deposit(UUID userId, BigDecimal amount) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
         user.setCashBalance(user.getCashBalance().add(amount));
         return userRepository.save(user);
     }
@@ -269,9 +276,9 @@ public class UserService implements UserUseCase {
     @Override
     public User withdraw(UUID userId, BigDecimal amount) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
         if (user.getCashBalance().compareTo(amount) < 0) {
-            throw new RuntimeException("Insufficient balance");
+            throw new InsufficientBalanceException("Insufficient balance");
         }
         user.setCashBalance(user.getCashBalance().subtract(amount));
         return userRepository.save(user);
@@ -285,7 +292,7 @@ public class UserService implements UserUseCase {
     @Override
     public void adminSetRole(UUID userId, Role role) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
         user.setRole(role);
         userRepository.save(user);
     }
@@ -293,7 +300,7 @@ public class UserService implements UserUseCase {
     @Override
     public void adminDeactivateUser(UUID userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
         user.setActive(false);
         userRepository.save(user);
     }
@@ -301,7 +308,7 @@ public class UserService implements UserUseCase {
     @Override
     public User dismissWelcome(UUID userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
         user.setShowWelcome(false);
         return userRepository.save(user);
     }

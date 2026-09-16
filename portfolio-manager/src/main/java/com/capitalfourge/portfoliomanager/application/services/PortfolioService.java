@@ -20,6 +20,14 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
 
+import com.capitalfourge.portfoliomanager.application.exception.InvalidOrderStateException;
+import com.capitalfourge.portfoliomanager.application.exception.OrderNotFoundException;
+import com.capitalfourge.portfoliomanager.application.exception.DuplicatePortfolioNameException;
+import com.capitalfourge.portfoliomanager.application.exception.InsufficientAssetsException;
+import com.capitalfourge.portfoliomanager.application.exception.InsufficientBalanceException;
+import com.capitalfourge.portfoliomanager.application.exception.InvalidOrderParametersException;
+import com.capitalfourge.portfoliomanager.application.exception.PortfolioNotFoundException;
+import com.capitalfourge.portfoliomanager.application.exception.UserNotFoundException;
 import com.capitalfourge.portfoliomanager.application.ports.in.PortfolioUseCase;
 import com.capitalfourge.portfoliomanager.application.ports.out.MetricRepository;
 import com.capitalfourge.portfoliomanager.application.ports.out.OrderRepository;
@@ -99,7 +107,7 @@ public class PortfolioService implements PortfolioUseCase {
         if (portfolio.getUserId() != null) {
             Optional<Portfolio> existing = portfolioRepository.findByUserIdAndName(portfolio.getUserId(), normalizedName);
             if (existing.isPresent()) {
-                throw new IllegalArgumentException("Ya tienes un portafolio con este nombre");
+                throw new DuplicatePortfolioNameException("Ya tienes un portafolio con este nombre");
             }
         }
 
@@ -192,11 +200,11 @@ public class PortfolioService implements PortfolioUseCase {
 
         // Get user and check global cash balance
         User user = userRepository.findById(portfolio.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
         BigDecimal userCashBalance = user.getCashBalance() != null ? user.getCashBalance() : BigDecimal.ZERO;
 
         if (userCashBalance.compareTo(totalCost) < 0) {
-            throw new RuntimeException("Insufficient balance for trade");
+            throw new InsufficientBalanceException("Insufficient balance for trade");
         }
 
         // Deduct from user's global cash balance
@@ -249,15 +257,15 @@ public class PortfolioService implements PortfolioUseCase {
         Portfolio portfolio = getPortfolio(portfolioId);
         Position pos = portfolio.getPositions().stream()
                 .filter(p -> p.getSymbol().equals(symbol)).findFirst()
-                .orElseThrow(() -> new RuntimeException("Symbol not found in portfolio"));
+                .orElseThrow(() -> new IllegalArgumentException("Symbol not found in portfolio"));
         if (pos.getQuantity().compareTo(quantity) < 0) {
-            throw new RuntimeException("Not enough assets to sell");
+            throw new InsufficientAssetsException("Not enough assets to sell");
         }
         BigDecimal totalAmount = price.multiply(quantity);
 
         // Get user and add to global cash balance
         User user = userRepository.findById(portfolio.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
         BigDecimal userCashBalance = user.getCashBalance() != null ? user.getCashBalance() : BigDecimal.ZERO;
         user.setCashBalance(userCashBalance.add(totalAmount));
         userRepository.save(user);
@@ -294,15 +302,11 @@ public class PortfolioService implements PortfolioUseCase {
 
         // Get user and add to global cash balance
         User user = userRepository.findById(portfolio.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
         BigDecimal userCashBalance = user.getCashBalance() != null ? user.getCashBalance() : BigDecimal.ZERO;
-        System.out.println("💰 [addCash] BEFORE - User ID: " + user.getId() + ", Cash Balance: " + userCashBalance);
-        System.out.println("💰 [addCash] Depositing amount: " + amount);
 
         user.setCashBalance(userCashBalance.add(amount));
         userRepository.save(user);
-
-        System.out.println("💰 [addCash] AFTER - User Cash Balance: " + user.getCashBalance());
 
         // Update portfolio cumulative deposits
         portfolio.setCumulativeDeposits(portfolio.getCumulativeDeposits().add(amount));
@@ -327,11 +331,11 @@ public class PortfolioService implements PortfolioUseCase {
 
         // Get user and check global cash balance
         User user = userRepository.findById(portfolio.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
         BigDecimal userCashBalance = user.getCashBalance() != null ? user.getCashBalance() : BigDecimal.ZERO;
 
         if (userCashBalance.compareTo(amount) < 0) {
-            throw new RuntimeException("Insufficient cash balance");
+            throw new InsufficientBalanceException("Insufficient cash balance");
         }
 
         // Deduct from user's global cash balance
@@ -570,26 +574,26 @@ public class PortfolioService implements PortfolioUseCase {
     public Order createLimitOrder(UUID portfolioId, UUID userId, OrderType type, String symbol, BigDecimal targetPrice, BigDecimal quantity, BigDecimal usdAmount, String expiresAt) {
             // Validate inputs
             if (targetPrice == null || targetPrice.compareTo(BigDecimal.ZERO) <= 0) {
-                throw new RuntimeException("Target price must be positive");
+                throw new InvalidOrderParametersException("Target price must be positive");
             }
 
             BigDecimal finalQuantity = quantity;
             BigDecimal finalUsdAmount = usdAmount;
 
             if (finalQuantity == null && finalUsdAmount == null) {
-                throw new RuntimeException("Either quantity or usdAmount must be provided");
+                throw new InvalidOrderParametersException("Either quantity or usdAmount must be provided");
             }
 
             if (finalQuantity != null && finalUsdAmount != null) {
-                throw new RuntimeException("Provide either quantity or usdAmount, not both");
+                throw new InvalidOrderParametersException("Provide either quantity or usdAmount, not both");
             }
 
             if (finalQuantity != null && finalQuantity.compareTo(BigDecimal.ZERO) <= 0) {
-                throw new RuntimeException("Quantity must be positive");
+                throw new InvalidOrderParametersException("Quantity must be positive");
             }
 
             if (finalUsdAmount != null && finalUsdAmount.compareTo(BigDecimal.ZERO) <= 0) {
-                throw new RuntimeException("USD amount must be positive");
+                throw new InvalidOrderParametersException("USD amount must be positive");
             }
 
             // Calculate total amount to lock (for BUY_LIMIT)
@@ -600,13 +604,13 @@ public class PortfolioService implements PortfolioUseCase {
 
             // Verify user has enough cash balance to lock
             User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+                    .orElseThrow(() -> new UserNotFoundException("User not found"));
             BigDecimal userCashBalance = user.getCashBalance() != null ? user.getCashBalance() : BigDecimal.ZERO;
             BigDecimal userLockedBalance = user.getLockedBalance() != null ? user.getLockedBalance() : BigDecimal.ZERO;
             BigDecimal availableBalance = userCashBalance.subtract(userLockedBalance);
 
             if (availableBalance.compareTo(lockAmount) < 0) {
-                throw new RuntimeException("Insufficient available balance for limit order");
+                throw new InsufficientBalanceException("Insufficient available balance for limit order");
             }
 
             // Lock the balance
@@ -619,7 +623,7 @@ public class PortfolioService implements PortfolioUseCase {
                 Map<String, Double> prices = getBatchPrices(List.of(symbol));
                 Double currentPrice = prices.get(symbol);
                 if (currentPrice == null) {
-                    throw new RuntimeException("Could not fetch current price for " + symbol);
+                    throw new InvalidOrderParametersException("Could not fetch current price for " + symbol);
                 }
                 finalQuantity = finalUsdAmount.divide(BigDecimal.valueOf(currentPrice), 8, RoundingMode.HALF_UP);
             }
@@ -630,7 +634,7 @@ public class PortfolioService implements PortfolioUseCase {
                 try {
                     parsedExpiresAt = LocalDateTime.parse(expiresAt, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
                 } catch (Exception e) {
-                    throw new RuntimeException("Formato de fecha inválido. Use ISO 8601 (ej: 2024-12-31T23:59:59)");
+                    throw new InvalidOrderParametersException("Formato de fecha inválido. Use ISO 8601 (ej: 2024-12-31T23:59:59)");
                 }
             }
             Order order = new Order(
@@ -664,14 +668,14 @@ public class PortfolioService implements PortfolioUseCase {
     @Transactional
     public Order cancelOrder(UUID orderId, UUID userId) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+                .orElseThrow(() -> new OrderNotFoundException("Order not found"));
 
         if (!order.getUserId().equals(userId)) {
-            throw new RuntimeException("Order not found or access denied");
+            throw new OrderNotFoundException("Order not found or access denied");
         }
 
         if (order.getStatus() != OrderStatus.PENDING) {
-            throw new RuntimeException("Only PENDING orders can be cancelled");
+            throw new InvalidOrderStateException("Only PENDING orders can be cancelled");
         }
 
         // Calculate locked amount to release (for BUY_LIMIT)
@@ -683,7 +687,7 @@ public class PortfolioService implements PortfolioUseCase {
         // Release locked balance
         if (lockAmount.compareTo(BigDecimal.ZERO) > 0) {
             User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+                    .orElseThrow(() -> new UserNotFoundException("User not found"));
             BigDecimal userLockedBalance = user.getLockedBalance() != null ? user.getLockedBalance() : BigDecimal.ZERO;
             user.setLockedBalance(userLockedBalance.subtract(lockAmount));
             userRepository.save(user);
@@ -698,22 +702,22 @@ public class PortfolioService implements PortfolioUseCase {
     @Transactional
     public Order fillLimitOrder(UUID orderId, UUID userId, BigDecimal fillPrice) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+                .orElseThrow(() -> new OrderNotFoundException("Order not found"));
 
         // Skip ownership check for internal service (userId = all zeros)
         UUID internalServiceId = UUID.fromString("00000000-0000-0000-0000-000000000000");
         boolean isInternalService = userId.equals(internalServiceId);
         
         if (!isInternalService && !order.getUserId().equals(userId)) {
-            throw new RuntimeException("Order not found or access denied");
+            throw new OrderNotFoundException("Order not found or access denied");
         }
 
         if (order.getStatus() != OrderStatus.PENDING) {
-            throw new RuntimeException("Only PENDING orders can be filled");
+            throw new InvalidOrderStateException("Only PENDING orders can be filled");
         }
 
         if (order.getType() != OrderType.BUY_LIMIT) {
-            throw new RuntimeException("Only BUY_LIMIT orders can be filled by worker");
+            throw new InvalidOrderStateException("Only BUY_LIMIT orders can be filled by worker");
         }
 
         // Release locked balance (targetPrice * quantity)
@@ -721,7 +725,7 @@ public class PortfolioService implements PortfolioUseCase {
         User user = null;
         if (!isInternalService) {
             user = userRepository.findById(userId)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+                    .orElseThrow(() -> new UserNotFoundException("User not found"));
             BigDecimal userLockedBalance = user.getLockedBalance() != null ? user.getLockedBalance() : BigDecimal.ZERO;
             user.setLockedBalance(userLockedBalance.subtract(lockAmount));
             userRepository.save(user);
@@ -732,7 +736,7 @@ public class PortfolioService implements PortfolioUseCase {
         if (!isInternalService) {
             BigDecimal userCashBalance = user.getCashBalance() != null ? user.getCashBalance() : BigDecimal.ZERO;
             if (userCashBalance.compareTo(totalCost) < 0) {
-                throw new RuntimeException("Insufficient cash balance to fill order");
+                throw new InsufficientBalanceException("Insufficient cash balance to fill order");
             }
             user.setCashBalance(userCashBalance.subtract(totalCost));
             userRepository.save(user);
@@ -740,7 +744,7 @@ public class PortfolioService implements PortfolioUseCase {
 
         // Create/update position
         Portfolio portfolio = portfolioRepository.findById(order.getPortfolioId())
-                .orElseThrow(() -> new RuntimeException("Portfolio not found"));
+                .orElseThrow(() -> new PortfolioNotFoundException("Portfolio not found"));
         
         boolean positionExists = false;
         if (portfolio.getPositions() != null) {
@@ -804,18 +808,18 @@ public class PortfolioService implements PortfolioUseCase {
     @Transactional
     public Order expireLimitOrder(UUID orderId, UUID userId) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+                .orElseThrow(() -> new OrderNotFoundException("Order not found"));
 
         // Skip ownership check for internal service (userId = all zeros)
         UUID internalServiceId = UUID.fromString("00000000-0000-0000-0000-000000000000");
         boolean isInternalService = userId.equals(internalServiceId);
         
         if (!isInternalService && !order.getUserId().equals(userId)) {
-            throw new RuntimeException("Order not found or access denied");
+            throw new OrderNotFoundException("Order not found or access denied");
         }
 
         if (order.getStatus() != OrderStatus.PENDING) {
-            throw new RuntimeException("Only PENDING orders can be expired");
+            throw new InvalidOrderStateException("Only PENDING orders can be expired");
         }
 
         // Release locked balance (for BUY_LIMIT)
@@ -823,7 +827,7 @@ public class PortfolioService implements PortfolioUseCase {
             BigDecimal lockAmount = order.getTargetPrice().multiply(order.getQuantity());
             if (!isInternalService) {
                 User user = userRepository.findById(userId)
-                        .orElseThrow(() -> new RuntimeException("User not found"));
+                        .orElseThrow(() -> new UserNotFoundException("User not found"));
                 BigDecimal userLockedBalance = user.getLockedBalance() != null ? user.getLockedBalance() : BigDecimal.ZERO;
                 user.setLockedBalance(userLockedBalance.subtract(lockAmount));
                 userRepository.save(user);

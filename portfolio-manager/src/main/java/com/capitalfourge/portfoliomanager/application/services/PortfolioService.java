@@ -9,12 +9,14 @@ import java.util.ArrayList;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.Map;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
 
@@ -40,6 +42,7 @@ import lombok.RequiredArgsConstructor;
 public class PortfolioService implements PortfolioUseCase {
 
     private static final Logger log = LoggerFactory.getLogger(PortfolioService.class);
+    private static final int MAX_SLUG_ATTEMPTS = 3;
 
     private final PortfolioRepository portfolioRepository;
     private final MetricRepository metricRepository;
@@ -74,6 +77,14 @@ public class PortfolioService implements PortfolioUseCase {
     @Override
     @Transactional
     public Portfolio createPortfolio(Portfolio portfolio) {
+        String normalizedName = portfolio.getName() == null ? "" : portfolio.getName().trim();
+        if (normalizedName.isBlank()) {
+            throw new IllegalArgumentException("El nombre del portafolio es obligatorio");
+        }
+        if (normalizedName.contains("/")) {
+            throw new IllegalArgumentException("El nombre del portafolio no puede contener /");
+        }
+        portfolio.setName(normalizedName);
         if (portfolio.getId() == null) {
             portfolio.setId(UUID.randomUUID());
         }
@@ -453,25 +464,44 @@ public class PortfolioService implements PortfolioUseCase {
 
         portfolio.setPublic(isPublic);
         if (isPublic && (portfolio.getShareSlug() == null || portfolio.getShareSlug().isEmpty())) {
-            // Generate a unique slug based on portfolio name and a fragment of UUID
-            String base = portfolio.getName().toLowerCase().replaceAll("[^a-z0-9]", "-");
-            String slug = base + "-" + UUID.randomUUID().toString().substring(0, 8);
-            portfolio.setShareSlug(slug);
+            for (int attempt = 0; attempt < MAX_SLUG_ATTEMPTS; attempt++) {
+                portfolio.setShareSlug(generateShareSlug(portfolio.getName()));
+                try {
+                    return portfolioRepository.save(portfolio);
+                } catch (DataIntegrityViolationException e) {
+                    if (attempt == MAX_SLUG_ATTEMPTS - 1) {
+                        throw new IllegalStateException("No se pudo generar un shareSlug único", e);
+                    }
+                }
+            }
         }
 
         return portfolioRepository.save(portfolio);
     }
 
+    private String generateShareSlug(String name) {
+        String base = name.toLowerCase(Locale.ROOT)
+                .replaceAll("[^a-z0-9]", "-")
+                .replaceAll("-+", "-")
+                .replaceAll("^-|-$", "");
+        if (base.isBlank()) {
+            base = "portfolio";
+        }
+        return base + "-" + UUID.randomUUID().toString().substring(0, 8);
+    }
+
     @Override
     public List<Portfolio> getPublicLeaderboard() {
         List<Portfolio> topPortfolios = portfolioRepository.findPublicPortfolios(org.springframework.data.domain.Pageable.unpaged()).getContent();
-        // Ensure prices are fresh for the leaderboard
-        topPortfolios.forEach(p -> {
-            refreshPortfolioPrices(p);
-            updatePerformance(p);
-        });
+        topPortfolios.stream()
+                .filter(p -> p.getShareSlug() != null && !p.getShareSlug().isBlank())
+                .forEach(p -> {
+                    refreshPortfolioPrices(p);
+                    updatePerformance(p);
+                });
         // Sort again in case ROI changed after refresh
         return topPortfolios.stream()
+                .filter(p -> p.getShareSlug() != null && !p.getShareSlug().isBlank())
                 .sorted((p1, p2) -> Double.compare(p2.getPerformance(), p1.getPerformance()))
                 .limit(20)
                 .toList();
@@ -490,18 +520,6 @@ public class PortfolioService implements PortfolioUseCase {
         refreshPortfolioPrices(portfolio);
         updatePerformance(portfolio);
         return portfolio;
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Portfolio getPortfolioByName(String name) {
-        return portfolioRepository.findByName(name)
-                .map(portfolio -> {
-                    refreshPortfolioPrices(portfolio);
-                    updatePerformance(portfolio);
-                    return portfolio;
-                })
-                .orElse(null);
     }
 
     @Override

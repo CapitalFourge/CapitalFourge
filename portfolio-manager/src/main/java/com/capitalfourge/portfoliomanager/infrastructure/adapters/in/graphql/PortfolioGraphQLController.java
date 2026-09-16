@@ -96,6 +96,11 @@ public class PortfolioGraphQLController {
     }
 
     @QueryMapping
+    public List<Portfolio> leaderboard() {
+        return portfolioUseCase.getPublicLeaderboard();
+    }
+
+    @QueryMapping
     public List<Portfolio> portfoliosByIds(@Argument List<UUID> ids) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {

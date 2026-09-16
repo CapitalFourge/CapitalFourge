@@ -12,6 +12,7 @@ declare module 'vitest' {
 // Mock next/navigation
 vi.mock('next/navigation', () => ({
   usePathname: () => '/dashboard',
+  useParams: () => ({ slug: 'Test Portfolio' }),
   useRouter: () => ({
     push: vi.fn(),
     replace: vi.fn(),
@@ -42,8 +43,8 @@ vi.mock('lucide-react', async (importOriginal) => {
   }
   
   if (!icons.X) {
-    icons.X = () => <svg data-testid="X" />;
-    icons.X.displayName = 'X';
+    const XIcon = function X() { return <svg data-testid="X" />; };
+    icons.X = XIcon;
   }
   
   return {

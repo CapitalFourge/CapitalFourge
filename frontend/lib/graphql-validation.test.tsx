@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { parse, visit, Kind, DocumentNode } from 'graphql';
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 import { TypePolicies } from '@apollo/client';
 
@@ -48,7 +48,7 @@ function extractGraphQLDocuments(content: string): DocumentNode[] {
 }
 
 // Check if a selection set includes 'id' field
-function hasIdField(selectionSet: { selections?: readonly any[] } | null | undefined): boolean {
+function hasIdField(selectionSet: { selections?: ReadonlyArray<{ kind: string; name?: { value: string }; selectionSet?: unknown }> } | null | undefined): boolean {
   if (!selectionSet || !selectionSet.selections) return false;
   
   for (const selection of selectionSet.selections) {
@@ -76,12 +76,14 @@ function mutationReturnsTypeRequiringId(fieldName: string): boolean {
 
 describe('GraphQL Mutation Response Validation (FU-GQL-01)', () => {
   // When running from frontend directory, projectRoot is the frontend folder
-  const projectRoot = process.cwd().includes('/frontend') ? process.cwd().replace('/frontend', '') : process.cwd();
+  const projectRoot = process.cwd().includes('/frontend') 
+    ? process.cwd().replace('/frontend', '')
+    : process.cwd().replace('\\frontend', '');
   
   for (const filePath of MUTATION_FILES) {
     const fullPath = join(projectRoot, 'frontend', filePath);
     
-    if (!readFileSync(fullPath)) {
+    if (!existsSync(fullPath)) {
       continue; // Skip missing files
     }
     

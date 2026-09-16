@@ -349,7 +349,7 @@ export default function DashboardPage() {
                     {portfolios.map((portfolio) => (
                       <Link
                         key={portfolio.id}
-                        href={`/portfolio/${portfolio.name}`}
+                        href={`/portfolio/${encodeURIComponent(portfolio.name)}`}
                         className="flex items-center justify-between rounded-[1.2rem] border border-white/6 bg-slate-950/35 px-4 py-3 transition hover:bg-white/[0.04] hover:border-emerald-300/30"
                       >
                         <div>

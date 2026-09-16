@@ -9,7 +9,13 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "portfolios")
+@Table(
+    name = "portfolios",
+    uniqueConstraints = @UniqueConstraint(
+        name = "ux_portfolios_user_name",
+        columnNames = {"user_id", "name"}
+    )
+)
 @Getter
 @Setter
 @NamedEntityGraphs({

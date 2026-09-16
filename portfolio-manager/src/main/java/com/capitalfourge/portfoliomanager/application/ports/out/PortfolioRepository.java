@@ -18,8 +18,6 @@ public interface PortfolioRepository {
 
     Optional<Portfolio> findByShareSlug(String shareSlug);
 
-    Optional<Portfolio> findByName(String name);
-
     Optional<Portfolio> findByUserIdAndName(UUID userId, String name);
 
     Page<Portfolio> findPublicPortfolios(Pageable pageable);

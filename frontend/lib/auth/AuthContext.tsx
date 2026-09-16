@@ -213,7 +213,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Validate token on initial load
   useEffect(() => {
     if (typeof window === "undefined") {
-      setValidating(false);
+      queueMicrotask(() => setValidating(false));
       return;
     }
 

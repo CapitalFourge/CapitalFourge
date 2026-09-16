@@ -6,7 +6,7 @@ import { gql } from '@apollo/client';
 import DashboardPage from '@/app/(dashboard)/dashboard/page';
 
 const DASHBOARD_QUERY = gql`
-  query GetDashboardData($sort: String!, $limit: Int!) {
+  query GetDashboardData {
     me {
       id
       username
@@ -17,6 +17,7 @@ const DASHBOARD_QUERY = gql`
       id
       name
       performance
+      shareSlug
       positions {
         id
         symbol
@@ -25,6 +26,11 @@ const DASHBOARD_QUERY = gql`
         currentPrice
       }
     }
+  }
+`;
+
+const ASSET_MOVERS_QUERY = gql`
+  query GetAssetMovers($sort: String!, $limit: Int!) {
     assetMovers(sort: $sort, limit: $limit) {
       topGainers {
         symbol
@@ -68,6 +74,7 @@ const mockPortfolios = [
     id: 'portfolio-1',
     name: 'Test Portfolio',
     performance: 10.5,
+    shareSlug: 'test-portfolio-12345678',
     positions: [
       {
         __typename: 'Position',
@@ -81,37 +88,53 @@ const mockPortfolios = [
   },
 ];
 
-const mockAssetMovers = [
-  {
-    __typename: 'AssetMover',
-    symbol: 'TSLA',
-    name: 'Tesla Inc',
-    price: 250,
-    changePercent: 5.2,
-    changeValue: 12.5,
-    volume: 1000000,
-  },
-];
+const mockAssetMovers = {
+  __typename: 'AssetMovers',
+  topGainers: [
+    {
+      __typename: 'AssetMover',
+      symbol: 'TSLA',
+      name: 'Tesla Inc',
+      price: 250,
+      changePercent: 5.2,
+      changeValue: 12.5,
+      volume: 1000000,
+    },
+  ],
+  topLosers: [],
+  mostTraded: [],
+};
 
 const createMocks = (overrides: Partial<{
   me: typeof mockMe | null;
   portfolios: typeof mockPortfolios | null;
-  assetMovers: typeof mockAssetMovers | null;
-  error: Error | null;
+  assetMovers: typeof mockAssetMovers;
+  dashboardError: Error | null;
+  assetError: Error | null;
 }> = {}): MockedResponse[] => [
   {
     request: {
       query: DASHBOARD_QUERY,
-      variables: { sort: 'volatile', limit: 8 },
     },
     result: {
       data: {
         me: overrides.me ?? mockMe,
         portfolios: overrides.portfolios ?? mockPortfolios,
+      },
+    },
+    error: overrides.dashboardError ?? undefined,
+  },
+  {
+    request: {
+      query: ASSET_MOVERS_QUERY,
+      variables: { sort: 'volatile', limit: 20 },
+    },
+    result: {
+      data: {
         assetMovers: overrides.assetMovers ?? mockAssetMovers,
       },
     },
-    error: overrides.error ?? undefined,
+    error: overrides.assetError ?? undefined,
   },
 ];
 
@@ -126,20 +149,17 @@ describe('DashboardPage (FU-02, FU-03)', () => {
     render(
       <MockedProvider mocks={mocks} addTypename={false}>
         <DashboardPage />
-      </MockedProvider>
+      </MockedProvider>,
     );
 
-    // Should show loading or data
     await waitFor(() => {
       expect(screen.queryByText('Cargando')).not.toBeInTheDocument();
     });
 
-    // Should display user greeting
     await waitFor(() => {
       expect(screen.getByText('Hola, testuser.')).toBeInTheDocument();
     });
 
-    // Should display stats
     expect(screen.getByText('Patrimonio total')).toBeInTheDocument();
     expect(screen.getByText('Caja disponible')).toBeInTheDocument();
     expect(screen.getByText('Capital invertido')).toBeInTheDocument();
@@ -147,22 +167,18 @@ describe('DashboardPage (FU-02, FU-03)', () => {
   });
 
   it('should calculate totalBalance correctly (cash + locked + invested)', async () => {
-    // cashBalance = 5000, lockedBalance = 500, invested = 10 * 165 = 1650
-    // total = 5000 + 500 + 1650 = 7150
     const mocks = createMocks();
     
     render(
       <MockedProvider mocks={mocks} addTypename={false}>
         <DashboardPage />
-      </MockedProvider>
+      </MockedProvider>,
     );
 
     await waitFor(() => {
-      // Check for formatted currency values - the label and value are in same container
       const totalTile = screen.getByText('Patrimonio total').closest('.metric-tile');
       expect(totalTile).toBeInTheDocument();
-      // 5000 + 500 + 1650 = 7150 - check for the numeric value with flexible matching
-      expect(totalTile).toHaveTextContent(/7,150.00/);
+      expect(totalTile).toHaveTextContent(/7[.,]?150[,.]00/);
     });
   });
 
@@ -172,14 +188,12 @@ describe('DashboardPage (FU-02, FU-03)', () => {
     render(
       <MockedProvider mocks={mocks} addTypename={false}>
         <DashboardPage />
-      </MockedProvider>
+      </MockedProvider>,
     );
 
     await waitFor(() => {
-      // Use getAllByText and check the main display element
       const portfolioElements = screen.getAllByText('Test Portfolio');
       expect(portfolioElements.length).toBeGreaterThan(0);
-      // The main portfolio display is a <p> element with class font-medium
       const mainDisplay = portfolioElements.find(el => el.tagName === 'P');
       expect(mainDisplay || portfolioElements[0]).toBeInTheDocument();
       expect(screen.getByText('+10.50%')).toBeInTheDocument();
@@ -193,15 +207,14 @@ describe('DashboardPage (FU-02, FU-03)', () => {
     render(
       <MockedProvider mocks={mocks} addTypename={false}>
         <DashboardPage />
-      </MockedProvider>
+      </MockedProvider>,
     );
 
     await waitFor(() => {
       expect(screen.getByText('TSLA')).toBeInTheDocument();
       expect(screen.getByText('+5.20%')).toBeInTheDocument();
-      // Use regex for the currency value since it might be split
       expect(screen.getByText((content: string) => content.includes('$250') || content.includes('250'))).toBeInTheDocument();
-      expect(screen.getByText((content: string) => content.includes('$12.5') || content.includes('12.5'))).toBeInTheDocument();
+      expect(screen.getByText((content: string) => content.includes('$12,5') || content.includes('12,5') || content.includes('$12.5') || content.includes('12.5'))).toBeInTheDocument();
     });
   });
 
@@ -211,7 +224,7 @@ describe('DashboardPage (FU-02, FU-03)', () => {
     render(
       <MockedProvider mocks={mocks} addTypename={false}>
         <DashboardPage />
-      </MockedProvider>
+      </MockedProvider>,
     );
 
     await waitFor(() => {
@@ -221,14 +234,12 @@ describe('DashboardPage (FU-02, FU-03)', () => {
   });
 
   it('should have pollInterval of 60000ms', async () => {
-    // The pollInterval is set in the component, we can't directly test it
-    // but we verify the component renders correctly with polling
     const mocks = createMocks();
     
     render(
       <MockedProvider mocks={mocks} addTypename={false}>
         <DashboardPage />
-      </MockedProvider>
+      </MockedProvider>,
     );
 
     await waitFor(() => {
@@ -238,13 +249,13 @@ describe('DashboardPage (FU-02, FU-03)', () => {
 
   it('should handle error state', async () => {
     const mocks = createMocks({ 
-      error: new Error('Network error'),
+      dashboardError: new Error('Network error'),
     });
     
     render(
       <MockedProvider mocks={mocks} addTypename={false}>
         <DashboardPage />
-      </MockedProvider>
+      </MockedProvider>,
     );
 
     await waitFor(() => {
@@ -259,7 +270,7 @@ describe('DashboardPage (FU-02, FU-03)', () => {
     render(
       <MockedProvider mocks={mocks} addTypename={false}>
         <DashboardPage />
-      </MockedProvider>
+      </MockedProvider>,
     );
 
     await waitFor(() => {
@@ -275,7 +286,7 @@ describe('DashboardPage (FU-02, FU-03)', () => {
     render(
       <MockedProvider mocks={mocks} addTypename={false}>
         <DashboardPage />
-      </MockedProvider>
+      </MockedProvider>,
     );
 
     await waitFor(() => {

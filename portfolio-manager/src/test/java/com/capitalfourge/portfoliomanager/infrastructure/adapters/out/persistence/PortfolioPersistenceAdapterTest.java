@@ -101,12 +101,37 @@ class PortfolioPersistenceAdapterTest {
             Portfolio p = invocation.getArgument(0);
             PortfolioEntity e = new PortfolioEntity(p.getId(), p.getName(), p.getDescription(), p.getUserId(),
                 p.getCumulativeDeposits(), p.getCumulativeWithdrawals(), p.getPerformance(), p.isPublic(), p.getShareSlug());
+            if (p.getPositions() != null) {
+                List<PositionEntity> pos = p.getPositions().stream()
+                    .map(domainPos -> new PositionEntity(domainPos.getId(), e, domainPos.getSymbol(),
+                        domainPos.getQuantity(), domainPos.getAveragePurchasePrice(), domainPos.getCurrentPrice()))
+                    .toList();
+                e.setPositions(pos);
+            }
+            if (p.getTransactions() != null) {
+                List<TransactionEntity> txs = p.getTransactions().stream()
+                    .map(domainTx -> new TransactionEntity(domainTx.getId(), e, domainTx.getType(),
+                        domainTx.getSymbol(), domainTx.getQuantity(), domainTx.getPrice(),
+                        domainTx.getTimestamp(), domainTx.getBalanceTransaction()))
+                    .toList();
+                e.setTransactions(txs);
+            }
             return e;
         });
         when(mapper.toDomain(any(PortfolioEntity.class))).thenAnswer(invocation -> {
             PortfolioEntity e = invocation.getArgument(0);
+            List<Position> positions = e.getPositions() != null ? e.getPositions().stream()
+                .map(pe -> new Position(pe.getId(), e.getId(), pe.getSymbol(),
+                    pe.getQuantity(), pe.getAveragePurchasePrice(), pe.getCurrentPrice(), BigDecimal.ZERO))
+                .toList() : List.of();
+            List<Transaction> transactions = e.getTransactions() != null ? e.getTransactions().stream()
+                .map(te -> new Transaction(te.getId(), e.getId(), te.getType(), te.getSymbol(),
+                    te.getQuantity(), te.getPrice(),
+                    te.getPrice().multiply(te.getQuantity()),
+                    te.getTimestamp(), te.getBalanceTransaction()))
+                .toList() : List.of();
             Portfolio p = new Portfolio(e.getId(), e.getName(), e.getDescription(), e.getUserId(),
-                List.of(), List.of(), List.of(),
+                positions, transactions, List.of(),
                 e.getCumulativeDeposits(), e.getCumulativeWithdrawals(), e.getPerformance(), e.isPublic(), e.getShareSlug());
             return p;
         });
@@ -144,7 +169,7 @@ class PortfolioPersistenceAdapterTest {
         entity.setTransactions(List.of(transactionEntity));
 
         when(jpaRepository.save(any(PortfolioEntity.class))).thenReturn(entity);
-        when(jpaRepository.findByIdWithPositionsAndTransactions(portfolioId)).thenReturn(Optional.of(entity));
+        when(jpaRepository.findById(portfolioId)).thenReturn(Optional.of(entity));
 
         // When - Save
         Portfolio saved = adapter.save(portfolio);

@@ -50,11 +50,6 @@ public class PortfolioPersistenceAdapter implements PortfolioRepository {
     }
 
     @Override
-    public Optional<Portfolio> findByName(String name) {
-        return jpaRepository.findByName(name).map(this::toDomain);
-    }
-
-    @Override
     public Optional<Portfolio> findByUserIdAndName(UUID userId, String name) {
         return jpaRepository.findByUserIdAndName(userId, name).map(this::toDomain);
     }

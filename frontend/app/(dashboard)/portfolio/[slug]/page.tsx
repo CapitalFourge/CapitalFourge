@@ -198,7 +198,7 @@ export default function PortfolioDetailPage() {
     );
   }
 
-  if (!data?.portfolio) {
+  if (!data?.portfolioByName) {
     return (
       <div className="rounded-[1.75rem] border border-red-400/20 bg-red-500/10 p-8 text-red-200">
         <h2 className="text-lg font-semibold">Portafolio no encontrado</h2>
@@ -207,7 +207,7 @@ export default function PortfolioDetailPage() {
     );
   }
 
-  const portfolio = data.portfolio as Portfolio;
+  const portfolio = data.portfolioByName as Portfolio;
   const userCashBalance = data?.me?.cashBalance || 0;
   const userLockedBalance = data?.me?.lockedBalance || 0;
 

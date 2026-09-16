@@ -14,6 +14,7 @@ import { useMemo } from "react";
 
 import { Button as UIButton } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const GET_SHARED_PORTFOLIO = gql`
   query GetSharedPortfolio($slug: String!) {
@@ -30,6 +31,15 @@ const GET_SHARED_PORTFOLIO = gql`
         averagePurchasePrice
         currentPrice
       }
+      transactions {
+        id
+        symbol
+        type
+        quantity
+        price
+        totalAmount
+        timestamp
+      }
     }
   }
 `;
@@ -41,6 +51,16 @@ interface SharedPosition {
   currentPrice: number;
 }
 
+interface SharedTransaction {
+  id: string;
+  symbol: string;
+  type: string;
+  quantity: number;
+  price: number;
+  totalAmount: number;
+  timestamp: string;
+}
+
 interface SharedPortfolio {
   id: string;
   name: string;
@@ -48,6 +68,7 @@ interface SharedPortfolio {
   performance: number;
   isPublic: boolean;
   positions: SharedPosition[];
+  transactions: SharedTransaction[];
 }
 
 export default function SharedPortfolioPage() {
@@ -64,6 +85,14 @@ export default function SharedPortfolioPage() {
     if (!portfolio?.positions) return 0;
     return portfolio.positions.reduce((sum: number, pos: SharedPosition) => sum + (pos.quantity * pos.currentPrice), 0);
   }, [portfolio]);
+
+  const formatCurrency = (value: number) =>
+    new Intl.NumberFormat("es-ES", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value);
 
   if (loading) return (
     <div className="flex min-h-screen items-center justify-center bg-dashboard">
@@ -153,6 +182,42 @@ export default function SharedPortfolioPage() {
               ))}
             </div>
           </div>
+
+          <section className="space-y-6">
+            <h2 className="text-2xl font-bold text-white">Movimientos</h2>
+            {portfolio.transactions.length === 0 ? (
+              <div className="panel p-8 text-center text-sm text-slate-400">No hay movimientos públicos.</div>
+            ) : (
+              <div className="panel overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Fecha</TableHead>
+                      <TableHead>Operación</TableHead>
+                      <TableHead>Símbolo</TableHead>
+                      <TableHead className="text-right">Cantidad</TableHead>
+                      <TableHead className="text-right">Precio</TableHead>
+                      <TableHead className="text-right">Total</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {portfolio.transactions.map((transaction: SharedTransaction) => (
+                      <TableRow key={transaction.id}>
+                        <TableCell>{new Date(transaction.timestamp).toLocaleDateString("es-ES")}</TableCell>
+                        <TableCell>
+                          {transaction.type === "BUY" ? "Compra" : transaction.type === "SELL" ? "Venta" : transaction.type}
+                        </TableCell>
+                        <TableCell>{transaction.symbol}</TableCell>
+                        <TableCell className="text-right">{transaction.quantity}</TableCell>
+                        <TableCell className="text-right">{formatCurrency(transaction.price)}</TableCell>
+                        <TableCell className="text-right font-medium">{formatCurrency(transaction.totalAmount)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </section>
 
           <aside className="space-y-8">
             <div className="panel p-7 space-y-6 border-white/5 bg-white/[0.02]">

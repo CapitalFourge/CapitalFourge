@@ -117,12 +117,17 @@ export function CreatePortfolioDialog() {
     });
 
     const handleCreate = async () => {
-        if (!name) {
-            toast.error("El nombre del workspace es obligatorio.");
+        const normalizedName = name.trim();
+        if (!normalizedName) {
+            toast.error("El nombre del portafolio es obligatorio.");
+            return;
+        }
+        if (normalizedName.includes("/")) {
+            toast.error("El nombre del portafolio no puede contener /.");
             return;
         }
         await createPortfolio({
-            variables: { name, description }
+            variables: { name: normalizedName, description }
         });
     };
 

@@ -67,6 +67,11 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/public-portfolios" className="transition hover:text-white">
+                  Portafolios Públicos
+                </Link>
+              </li>
+              <li>
                 <Link href="/explorer" className="transition hover:text-white">
                   Mercados
                 </Link>

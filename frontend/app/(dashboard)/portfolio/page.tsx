@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { gql, useQuery } from "@apollo/client";
 import { motion } from "framer-motion";
-import { Activity, ArrowUpRight, BriefcaseBusiness, Wallet } from "lucide-react";
+import { Activity, ArrowUpRight, BriefcaseBusiness, Globe, Lock, Wallet } from "lucide-react";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 import { CreatePortfolioDialog } from "@/components/trading/create-portfolio-dialog";
@@ -16,6 +16,7 @@ const PORTFOLIOS_QUERY = gql`
       id
       name
       performance
+      isPublic
       shareSlug
       positions {
         id
@@ -39,6 +40,7 @@ interface Portfolio {
   id: string;
   name: string;
   performance: number;
+  isPublic: boolean;
   shareSlug: string;
   positions: Position[];
 }
@@ -117,6 +119,19 @@ export default function PortfoliosPage() {
                       <CardTitle className="mt-3 text-2xl font-semibold tracking-[-0.03em] text-white">
                         {portfolio.name || `Estrategia ${portfolio.id.slice(0, 4)}`}
                       </CardTitle>
+                      <div className="mt-2 flex items-center gap-1.5">
+                        {portfolio.isPublic ? (
+                          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300/30 bg-emerald-300/10 px-2.5 py-0.5 text-xs font-medium text-emerald-300">
+                            <Globe className="h-3 w-3" />
+                            Público
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-0.5 text-xs font-medium text-slate-400">
+                            <Lock className="h-3 w-3" />
+                            Privado
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     <div className="flex items-center gap-2">

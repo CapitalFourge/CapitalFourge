@@ -72,7 +72,7 @@ type Mutation {
   updateProfile(username: String, email: String, language: String): User
   changePassword(currentPassword: String!, newPassword: String!): Boolean
   repairMyBalance: Boolean
-  createPortfolio(name: String!, description: String): Portfolio
+  createPortfolio(name: String!, description: String, isPublic: Boolean): Portfolio
   buyAsset(portfolioId: ID!, symbol: String!, quantity: Float!, price: Float!): Portfolio
   sellAsset(portfolioId: ID!, symbol: String!, quantity: Float!, price: Float!): Portfolio
   buyAssetByUSD(portfolioId: ID!, symbol: String!, usdAmount: Float!, price: Float!): Portfolio

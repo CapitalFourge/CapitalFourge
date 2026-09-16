@@ -114,7 +114,6 @@ public class PortfolioService implements PortfolioUseCase {
         portfolio.setCumulativeDeposits(BigDecimal.ZERO);
         portfolio.setCumulativeWithdrawals(BigDecimal.ZERO);
         portfolio.setPerformance(0.0);
-        portfolio.setPublic(false);
 
         // Generate shareSlug for all portfolios (clean URLs per user)
         String baseSlug = generateShareSlug(portfolio.getName());

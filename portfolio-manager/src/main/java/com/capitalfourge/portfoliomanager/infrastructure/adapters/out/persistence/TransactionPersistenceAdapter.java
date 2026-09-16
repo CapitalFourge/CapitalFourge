@@ -1,5 +1,6 @@
 package com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistence;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -34,6 +35,11 @@ public class TransactionPersistenceAdapter implements TransactionRepository {
     @Override
     public Page<Transaction> findByPortfolioId(UUID portfolioId, Pageable pageable) {
         return jpaRepository.findByPortfolioId(portfolioId, pageable).map(this::toDomain);
+    }
+
+    @Override
+    public Page<Transaction> findByUserIdAndTimestampBetween(UUID userId, LocalDateTime startDate, LocalDateTime endDate, Pageable pageable) {
+        return jpaRepository.findByUserIdAndTimestampBetween(userId, startDate, endDate, pageable).map(this::toDomain);
     }
 
     @Override

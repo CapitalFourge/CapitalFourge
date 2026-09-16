@@ -27,6 +27,14 @@ type Query {
   pendingLimitOrders: [Order!]!
   # Public shared portfolio
   sharedPortfolio(slug: String!): Portfolio
+  transactions(startDate: String, endDate: String, page: Int, size: Int): TransactionPage!
+}
+
+type TransactionPage {
+  content: [Transaction!]!
+  totalElements: Long!
+  totalPages: Int!
+  number: Int!
 }
 
 type Feedback {
@@ -139,6 +147,7 @@ type Transaction {
   totalAmount: Float!
   timestamp: String!
   balanceTransaction: Float!
+  portfolioName: String
 }
 
 enum OrderType {

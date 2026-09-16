@@ -2,7 +2,8 @@
 
 import { gql, useQuery } from "@apollo/client";
 import { motion } from "framer-motion";
-import { History, AlertCircle } from "lucide-react";
+import { History, AlertCircle, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,12 +11,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 
 const TRANSACTIONS_QUERY = gql`
-  query GetTransactions {
-    portfolios {
-      id
-      name
-      shareSlug
-      transactions {
+  query GetTransactions($startDate: String, $endDate: String, $page: Int, $size: Int) {
+    transactions(startDate: $startDate, endDate: $endDate, page: $page, size: $size) {
+      content {
         id
         symbol
         type
@@ -24,7 +22,11 @@ const TRANSACTIONS_QUERY = gql`
         totalAmount
         timestamp
         balanceTransaction
+        portfolioName
       }
+      totalElements
+      totalPages
+      number
     }
   }
 `;
@@ -68,6 +70,13 @@ interface Order {
   expiresAt: string;
 }
 
+interface TransactionPage {
+  content: Transaction[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+}
+
 interface Portfolio {
   id: string;
   name: string;
@@ -75,8 +84,42 @@ interface Portfolio {
 }
 
 export default function TransactionsPage() {
-  const { data, loading, error } = useQuery(TRANSACTIONS_QUERY);
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
+  const [page, setPage] = useState(0);
+  const [pageSize] = useState(50);
+
+  const { data, loading, error, refetch, variables } = useQuery(TRANSACTIONS_QUERY, {
+    variables: {
+      startDate: startDate || undefined,
+      endDate: endDate || undefined,
+      page,
+      size: pageSize,
+    },
+  });
   const { data: ordersData, loading: ordersLoading } = useQuery(PENDING_LIMIT_ORDERS_QUERY);
+
+  const handleFilter = () => {
+    setPage(0);
+    refetch({
+      startDate: startDate || undefined,
+      endDate: endDate || undefined,
+      page: 0,
+      size: pageSize,
+    });
+  };
+
+  const handleClear = () => {
+    setStartDate("");
+    setEndDate("");
+    setPage(0);
+    refetch({
+      startDate: undefined,
+      endDate: undefined,
+      page: 0,
+      size: pageSize,
+    });
+  };
 
   if (loading || ordersLoading) {
     return <div className="p-8 text-sm uppercase tracking-[0.26em] text-slate-400">Cargando movimientos...</div>;
@@ -91,15 +134,11 @@ export default function TransactionsPage() {
     );
   }
 
-  const allTransactions =
-    data?.portfolios
-      ?.flatMap((portfolio: Portfolio) =>
-        portfolio.transactions.map((transaction: Transaction) => ({
-          ...transaction,
-          portfolioName: portfolio.name,
-        }))
-      )
-      .sort((a: Transaction, b: Transaction) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()) || [];
+  const txData = data?.transactions;
+  const allTransactions = txData?.content || [];
+  const totalElements = txData?.totalElements || 0;
+  const totalPages = txData?.totalPages || 0;
+  const currentPage = txData?.number || 0;
 
   // Add pending limit orders as "pending transactions"
   const pendingOrders = ordersData?.pendingLimitOrders
@@ -162,15 +201,48 @@ export default function TransactionsPage() {
       </div>
 
       <Card className="panel border-white/10 py-0">
-        <CardHeader className="flex flex-row items-center justify-between px-6 pt-6">
+        <CardHeader className="flex flex-col gap-4 px-6 pt-6 sm:flex-row sm:items-center sm:justify-between">
           <CardTitle className="flex items-center gap-2 text-xl font-semibold text-white">
             <History className="h-5 w-5 text-slate-400" />
             Historial reciente
           </CardTitle>
-          <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs uppercase tracking-[0.22em] text-slate-400">
-            {allItems.length} registros
-          </span>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2">
+              <label className="text-xs uppercase tracking-[0.22em] text-slate-400">Desde</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-1.5 text-sm text-white focus:border-emerald-400/40 focus:outline-none"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-xs uppercase tracking-[0.22em] text-slate-400">Hasta</label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-1.5 text-sm text-white focus:border-emerald-400/40 focus:outline-none"
+              />
+            </div>
+            <button
+              onClick={handleFilter}
+              className="rounded-lg bg-emerald-500/20 px-4 py-1.5 text-sm font-medium text-emerald-200 transition hover:bg-emerald-500/30"
+            >
+              Filtrar
+            </button>
+            <button
+              onClick={handleClear}
+              className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/[0.03] px-4 py-1.5 text-sm text-slate-300 transition hover:bg-white/[0.05]"
+            >
+              <X className="h-3 w-3" />
+              Limpiar
+            </button>
+          </div>
         </CardHeader>
+        <span className="px-6 text-xs uppercase tracking-[0.22em] text-slate-400">
+          {totalElements} registros
+        </span>
         <CardContent className="px-0 pb-4 pt-2">
           <div className="overflow-x-auto">
             <Table>
@@ -221,6 +293,37 @@ export default function TransactionsPage() {
               </TableBody>
             </Table>
           </div>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between border-t border-white/10 px-6 py-4">
+              <span className="text-xs text-slate-400">
+                Página {currentPage + 1} de {totalPages}
+              </span>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    const newPage = currentPage - 1;
+                    setPage(newPage);
+                    refetch({ ...variables, page: newPage });
+                  }}
+                  disabled={currentPage === 0}
+                  className="rounded-lg border border-white/10 bg-white/[0.03] p-2 text-slate-300 transition hover:bg-white/[0.05] disabled:opacity-50"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => {
+                    const newPage = currentPage + 1;
+                    setPage(newPage);
+                    refetch({ ...variables, page: newPage });
+                  }}
+                  disabled={currentPage >= totalPages - 1}
+                  className="rounded-lg border border-white/10 bg-white/[0.03] p-2 text-slate-300 transition hover:bg-white/[0.05] disabled:opacity-50"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </motion.div>

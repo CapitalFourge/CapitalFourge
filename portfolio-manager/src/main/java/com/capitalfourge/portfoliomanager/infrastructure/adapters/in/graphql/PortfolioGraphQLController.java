@@ -1,6 +1,7 @@
 package com.capitalfourge.portfoliomanager.infrastructure.adapters.in.graphql;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -8,6 +9,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
@@ -174,6 +178,36 @@ public class PortfolioGraphQLController {
             }
         }
         return portfolio;
+    }
+
+    @QueryMapping
+    public TransactionPage transactions(
+            @Argument String startDate,
+            @Argument String endDate,
+            @Argument Integer page,
+            @Argument Integer size
+    ) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UUID userId = getUserIdFromAuth(auth);
+        if (userId == null) {
+            return new TransactionPage(List.of(), 0, 0, 0);
+        }
+
+        LocalDateTime start = startDate != null ? LocalDateTime.parse(startDate, DateTimeFormatter.ISO_DATE_TIME) : LocalDateTime.now().minusYears(1);
+        LocalDateTime end = endDate != null ? LocalDateTime.parse(endDate, DateTimeFormatter.ISO_DATE_TIME) : LocalDateTime.now();
+        
+        int pageNum = page != null ? page : 0;
+        int pageSize = size != null ? size : 50;
+        Pageable pageable = PageRequest.of(pageNum, pageSize);
+
+        Page<Transaction> txPage = portfolioUseCase.getTransactionsByUser(userId, start, end, pageable);
+
+        return new TransactionPage(
+                txPage.getContent(),
+                txPage.getTotalElements(),
+                txPage.getTotalPages(),
+                txPage.getNumber()
+        );
     }
 
     @QueryMapping
@@ -477,6 +511,13 @@ public class PortfolioGraphQLController {
     @SchemaMapping(typeName = "Transaction")
     public Float balanceTransaction(Transaction transaction) {
         return transaction.getBalanceTransaction() != null ? transaction.getBalanceTransaction().floatValue() : 0.0f;
+    }
+
+    @SchemaMapping(typeName = "Transaction")
+    public String portfolioName(Transaction transaction) {
+        if (transaction.getPortfolioId() == null) return "";
+        Portfolio portfolio = portfolioUseCase.getPortfolio(transaction.getPortfolioId());
+        return portfolio != null ? portfolio.getName() : "";
     }
 
     @SchemaMapping(typeName = "User")
@@ -861,5 +902,12 @@ public class PortfolioGraphQLController {
         List<AssetMover> topGainers,
         List<AssetMover> topLosers,
         List<AssetMover> mostTraded
+    ) {}
+
+    public record TransactionPage(
+        List<Transaction> content,
+        long totalElements,
+        int totalPages,
+        int number
     ) {}
 }

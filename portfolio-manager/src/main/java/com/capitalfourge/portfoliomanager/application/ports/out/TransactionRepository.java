@@ -1,5 +1,6 @@
 package com.capitalfourge.portfoliomanager.application.ports.out;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -13,6 +14,8 @@ public interface TransactionRepository {
     Transaction save(Transaction transaction);
 
     Page<Transaction> findByPortfolioId(UUID portfolioId, Pageable pageable);
+
+    Page<Transaction> findByUserIdAndTimestampBetween(UUID userId, LocalDateTime startDate, LocalDateTime endDate, Pageable pageable);
 
     // Legacy method (for backward compatibility)
     List<Transaction> findByPortfolioId(UUID portfolioId);

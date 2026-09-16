@@ -12,6 +12,9 @@ import java.util.Map;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -839,5 +842,11 @@ public class PortfolioService implements PortfolioUseCase {
     @Transactional(readOnly = true)
     public List<Order> getPendingLimitOrders() {
         return orderRepository.findByStatus(OrderStatus.PENDING);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<Transaction> getTransactionsByUser(UUID userId, LocalDateTime startDate, LocalDateTime endDate, Pageable pageable) {
+        return transactionRepository.findByUserIdAndTimestampBetween(userId, startDate, endDate, pageable);
     }
 }

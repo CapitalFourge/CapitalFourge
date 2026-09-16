@@ -1,12 +1,16 @@
 package com.capitalfourge.portfoliomanager.application.ports.in;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+
+import org.springframework.data.domain.Page;
 
 import com.capitalfourge.portfoliomanager.domain.Order;
 import com.capitalfourge.portfoliomanager.domain.OrderType;
 import com.capitalfourge.portfoliomanager.domain.Portfolio;
+import com.capitalfourge.portfoliomanager.domain.Transaction;
 
 public interface PortfolioUseCase {
 
@@ -55,4 +59,6 @@ public interface PortfolioUseCase {
     Order expireLimitOrder(UUID orderId, UUID userId);
 
     List<Order> getPendingLimitOrders();
+
+    Page<Transaction> getTransactionsByUser(UUID userId, LocalDateTime startDate, LocalDateTime endDate, org.springframework.data.domain.Pageable pageable);
 }

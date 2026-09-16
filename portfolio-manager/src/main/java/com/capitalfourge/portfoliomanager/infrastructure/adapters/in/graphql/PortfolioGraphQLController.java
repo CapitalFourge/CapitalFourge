@@ -563,7 +563,7 @@ public class PortfolioGraphQLController {
 
     @MutationMapping
     @PreAuthorize("hasRole('USER')")
-    public Portfolio createPortfolio(@Argument("name") String name, @Argument("description") String description) {
+    public Portfolio createPortfolio(@Argument("name") String name, @Argument("description") String description, @Argument("isPublic") Boolean isPublic) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UUID userId = getUserIdFromAuth(auth);
         return portfolioUseCase.createPortfolio(new Portfolio(
@@ -574,7 +574,7 @@ public class PortfolioGraphQLController {
             null, null, null,
             null, null,
             0.0,
-            false,
+            isPublic != null && isPublic,
             null
         ));
     }

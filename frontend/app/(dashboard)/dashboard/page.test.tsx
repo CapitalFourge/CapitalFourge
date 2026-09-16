@@ -26,6 +26,16 @@ const DASHBOARD_QUERY = gql`
         currentPrice
       }
     }
+    leaderboard {
+      id
+      name
+      performance
+      shareSlug
+      positions {
+        id
+        symbol
+      }
+    }
   }
 `;
 
@@ -88,6 +98,30 @@ const mockPortfolios = [
   },
 ];
 
+const mockLeaderboard = [
+  {
+    __typename: 'Portfolio',
+    id: 'leaderboard-1',
+    name: 'Top Portfolio',
+    performance: 25.5,
+    shareSlug: 'top-portfolio-abc',
+    positions: [
+      { __typename: 'Position', id: 'pos-1', symbol: 'AAPL' },
+      { __typename: 'Position', id: 'pos-2', symbol: 'MSFT' },
+    ],
+  },
+  {
+    __typename: 'Portfolio',
+    id: 'leaderboard-2',
+    name: 'Runner Up',
+    performance: 18.2,
+    shareSlug: 'runner-up-xyz',
+    positions: [
+      { __typename: 'Position', id: 'pos-3', symbol: 'GOOGL' },
+    ],
+  },
+];
+
 const mockAssetMovers = {
   __typename: 'AssetMovers',
   topGainers: [
@@ -108,6 +142,7 @@ const mockAssetMovers = {
 const createMocks = (overrides: Partial<{
   me: typeof mockMe | null;
   portfolios: typeof mockPortfolios | null;
+  leaderboard: typeof mockLeaderboard | null;
   assetMovers: typeof mockAssetMovers;
   dashboardError: Error | null;
   assetError: Error | null;
@@ -120,6 +155,7 @@ const createMocks = (overrides: Partial<{
       data: {
         me: overrides.me ?? mockMe,
         portfolios: overrides.portfolios ?? mockPortfolios,
+        leaderboard: overrides.leaderboard ?? mockLeaderboard,
       },
     },
     error: overrides.dashboardError ?? undefined,

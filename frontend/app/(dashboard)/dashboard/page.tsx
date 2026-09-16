@@ -32,6 +32,16 @@ const DASHBOARD_QUERY = gql`
         currentPrice
       }
     }
+    leaderboard {
+      id
+      name
+      performance
+      shareSlug
+      positions {
+        id
+        symbol
+      }
+    }
   }
 `;
 
@@ -107,6 +117,14 @@ const formatCurrency = (value: number) =>
 const formatSignedPercent = (value: number) => `${value >= 0 ? "+" : ""}${value.toFixed(2)}%`;
 const formatSignedCurrency = (value: number) => `${value >= 0 ? "+" : "-"}${formatCurrency(Math.abs(value))}`;
 
+interface LeaderboardEntry {
+  id: string;
+  name: string;
+  performance: number;
+  shareSlug: string;
+  positions: { symbol: string }[];
+}
+
 export default function DashboardPage() {
   const [volatilitySort, setVolatilitySort] = useState<"volatile" | "gain" | "loss">("volatile");
 
@@ -122,6 +140,7 @@ export default function DashboardPage() {
   });
 
   const portfolios = useMemo(() => ((data?.portfolios as Portfolio[] | undefined) ?? []), [data?.portfolios]);
+  const leaderboard = useMemo(() => ((data?.leaderboard as LeaderboardEntry[] | undefined) ?? []), [data?.leaderboard]);
   
   // Combine all movers into a flat array for filtering/sorting
   const allMovers = useMemo(() => {
@@ -374,18 +393,54 @@ export default function DashboardPage() {
                     ))}
                   </div>
 
-                  {/* Right: Leaderboard - Próximamente */}
-                  <div className="flex min-h-[220px] flex-col items-center justify-center rounded-[1.6rem] border border-dashed border-white/10 bg-white/[0.03] px-5 py-6">
+                  {/* Right: Leaderboard */}
+                  <div className="flex min-h-[220px] flex-col rounded-[1.6rem] border border-white/8 bg-white/[0.03] px-5 py-6">
                     <div className="flex items-center gap-2 mb-4">
                       <Trophy className="h-5 w-5 text-emerald-300" />
                       <p className="text-lg font-semibold text-white">Leaderboard</p>
                     </div>
-                    <p className="text-sm text-slate-400 text-center max-w-xs">
-                      Ranking público de portafolios con mejor rendimiento. Disponible próximamente.
-                    </p>
-                    <span className="mt-4 text-xs uppercase tracking-[0.2em] text-emerald-300 bg-emerald-300/10 px-3 py-1 rounded-full">
-                      Próximamente
-                    </span>
+                    {leaderboard.length > 0 ? (
+                      <div className="space-y-3">
+                        {leaderboard.slice(0, 5).map((entry, index) => (
+                          <Link
+                            key={entry.id}
+                            href={`/share/${entry.shareSlug}`}
+                            className="flex items-center justify-between rounded-[1rem] border border-white/6 bg-slate-950/35 px-4 py-3 transition hover:bg-white/[0.04] hover:border-emerald-300/30"
+                          >
+                            <div className="flex items-center gap-3">
+                              <span className={`flex h-6 w-6 items-center justify-center rounded font-bold text-xs ${
+                                index === 0 ? "bg-amber-300 text-amber-950" :
+                                index === 1 ? "bg-slate-300 text-slate-950" :
+                                index === 2 ? "bg-orange-400 text-orange-950" :
+                                "bg-white/5 text-slate-400"
+                              }`}>
+                                {index + 1}
+                              </span>
+                              <div>
+                                <p className="font-medium text-white truncate max-w-[160px]">{entry.name}</p>
+                                <p className="text-xs text-slate-500 flex gap-1">
+                                  {entry.positions?.slice(0, 3).map((pos) => (
+                                    <span key={pos.symbol} className="text-[10px] uppercase bg-white/5 px-1.5 py-0.5 rounded">{pos.symbol}</span>
+                                  ))}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className={`text-sm font-semibold ${entry.performance >= 0 ? "text-emerald-300" : "text-rose-300"}`}>
+                                {formatSignedPercent(entry.performance)}
+                              </p>
+                              <p className="text-xs text-slate-500">Rendimiento</p>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center text-center h-full py-6">
+                        <Trophy className="h-8 w-8 text-slate-500 mb-2" />
+                        <p className="text-sm text-slate-400">No hay portafolios públicos aún</p>
+                        <p className="text-xs text-slate-500 mt-1">Crea uno público para aparecer aquí</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               ) : (

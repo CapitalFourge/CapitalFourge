@@ -9,8 +9,8 @@ import { Plus } from "lucide-react";
 import { toast } from "sonner";
 
 const CREATE_PORTFOLIO_MUTATION = gql`
-  mutation CreatePortfolio($name: String!, $description: String) {
-    createPortfolio(name: $name, description: $description) {
+  mutation CreatePortfolio($name: String!, $description: String, $isPublic: Boolean) {
+    createPortfolio(name: $name, description: $description, isPublic: $isPublic) {
       id
       name
     }
@@ -99,6 +99,7 @@ export function CreatePortfolioDialog() {
     const [open, setOpen] = useState(false);
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
+    const [isPublic, setIsPublic] = useState(false);
 
     const [createPortfolio, { loading }] = useMutation(CREATE_PORTFOLIO_MUTATION, {
         refetchQueries: [
@@ -127,7 +128,7 @@ export function CreatePortfolioDialog() {
             return;
         }
         await createPortfolio({
-            variables: { name: normalizedName, description }
+            variables: { name: normalizedName, description, isPublic }
         });
     };
 
@@ -162,6 +163,18 @@ export function CreatePortfolioDialog() {
                             onChange={(e) => setDescription(e.target.value)}
                             className="bg-black/40 border-white/10 text-white placeholder:text-slate-700 rounded-xl"
                         />
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            id="isPublic"
+                            checked={isPublic}
+                            onChange={(e) => setIsPublic(e.target.checked)}
+                            className="h-4 w-4 rounded border-white/20 bg-black/40 text-emerald-300 focus:ring-emerald-300"
+                        />
+                        <label htmlFor="isPublic" className="text-sm text-slate-300 cursor-pointer">
+                            Hacer portafolio público (visible en leaderboard)
+                        </label>
                     </div>
                 </div>
                 <DialogFooter>

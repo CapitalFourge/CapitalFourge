@@ -6,14 +6,14 @@ import { describe, it, expect } from 'vitest';
 import PortfolioDetailPage from '@/app/(dashboard)/portfolio/[slug]/page';
 
 const PORTFOLIO_DETAIL_QUERY = gql`
-  query GetPortfolioDetail($name: String!) {
+  query GetPortfolioDetail($slug: String!) {
     me {
       id
       username
       cashBalance
       lockedBalance
     }
-    portfolioByName(name: $name) {
+    portfolioBySlug(slug: $slug) {
       id
       name
       description
@@ -44,7 +44,7 @@ const PORTFOLIO_DETAIL_QUERY = gql`
 const mockResponse: MockedResponse = {
   request: {
     query: PORTFOLIO_DETAIL_QUERY,
-    variables: { name: 'Test Portfolio' },
+    variables: { slug: 'test-portfolio-abc12345' },
   },
   result: {
     data: {
@@ -55,14 +55,14 @@ const mockResponse: MockedResponse = {
         cashBalance: 5000,
         lockedBalance: 500,
       },
-      portfolioByName: {
+      portfolioBySlug: {
         __typename: 'Portfolio',
         id: 'portfolio-1',
         name: 'Cartera de prueba',
         description: 'Estrategia de prueba',
         performance: 10.5,
         isPublic: false,
-        shareSlug: null,
+        shareSlug: 'test-portfolio-abc12345',
         userId: 'user-1',
         positions: [
           {
@@ -92,7 +92,7 @@ const mockResponse: MockedResponse = {
 };
 
 describe('PortfolioDetailPage', () => {
-  it('renders the portfolioByName response for the authenticated owner', async () => {
+  it('renders the portfolioBySlug response for the authenticated owner', async () => {
     render(
       <MockedProvider mocks={[mockResponse]} addTypename={false}>
         <PortfolioDetailPage />

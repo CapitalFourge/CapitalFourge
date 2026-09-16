@@ -100,6 +100,18 @@ public class PortfolioService implements PortfolioUseCase {
         portfolio.setPerformance(0.0);
         portfolio.setPublic(false);
 
+        // Generate shareSlug for all portfolios (clean URLs)
+        for (int attempt = 0; attempt < MAX_SLUG_ATTEMPTS; attempt++) {
+            portfolio.setShareSlug(generateShareSlug(portfolio.getName()));
+            try {
+                break;
+            } catch (DataIntegrityViolationException e) {
+                if (attempt == MAX_SLUG_ATTEMPTS - 1) {
+                    throw new IllegalStateException("No se pudo generar un shareSlug único", e);
+                }
+            }
+        }
+
         if (portfolio.getUserId() != null) {
             metricRepository.recordUserActivity(portfolio.getUserId().toString());
         }

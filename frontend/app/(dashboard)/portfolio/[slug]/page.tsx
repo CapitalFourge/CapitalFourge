@@ -82,14 +82,14 @@ const DASHBOARD_QUERY = gql`
 `;
 
 const PORTFOLIO_DETAIL_QUERY = gql`
-  query GetPortfolioDetail($name: String!) {
+  query GetPortfolioDetail($slug: String!) {
     me {
       id
       username
       cashBalance
       lockedBalance
     }
-    portfolioByName(name: $name) {
+    portfolioBySlug(slug: $slug) {
       id
       name
       description
@@ -162,9 +162,9 @@ export default function PortfolioDetailPage() {
   const [selectedPosition, setSelectedPosition] = useState<Position | null>(null);
   const [positionActionDialogOpen, setPositionActionDialogOpen] = useState(false);
 
-  const portfolioName = decodeURIComponent(Array.isArray(slug) ? slug[0] : slug);
+  const portfolioSlug = Array.isArray(slug) ? slug[0] : slug;
   const { data, loading, error } = useQuery(PORTFOLIO_DETAIL_QUERY, {
-    variables: { name: portfolioName },
+    variables: { slug: portfolioSlug },
     fetchPolicy: "network-only",
   });
 
@@ -178,7 +178,7 @@ export default function PortfolioDetailPage() {
 
   const [toggleVisibility] = useMutation(TOGGLE_VISIBILITY, {
     refetchQueries: [
-      { query: PORTFOLIO_DETAIL_QUERY, variables: { name: portfolioName } },
+      { query: PORTFOLIO_DETAIL_QUERY, variables: { slug: portfolioSlug } },
       { query: PORTFOLIOS_QUERY },
       { query: DASHBOARD_QUERY, variables: { sort: "volatile", limit: 8 } },
     ],
@@ -198,7 +198,7 @@ export default function PortfolioDetailPage() {
     );
   }
 
-  if (!data?.portfolioByName) {
+  if (!data?.portfolioBySlug) {
     return (
       <div className="rounded-[1.75rem] border border-red-400/20 bg-red-500/10 p-8 text-red-200">
         <h2 className="text-lg font-semibold">Portafolio no encontrado</h2>
@@ -207,7 +207,7 @@ export default function PortfolioDetailPage() {
     );
   }
 
-  const portfolio = data.portfolioByName as Portfolio;
+  const portfolio = data.portfolioBySlug as Portfolio;
   const userCashBalance = data?.me?.cashBalance || 0;
   const userLockedBalance = data?.me?.lockedBalance || 0;
 

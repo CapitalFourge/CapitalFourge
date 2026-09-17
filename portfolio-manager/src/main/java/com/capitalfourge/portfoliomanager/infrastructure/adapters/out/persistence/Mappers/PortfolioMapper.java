@@ -48,7 +48,11 @@ public class PortfolioMapper {
 
         if (domain.getTransactions() != null) {
             List<TransactionEntity> transactionEntities = domain.getTransactions().stream()
-                    .map(this::toEntity)
+                    .map(t -> {
+                        TransactionEntity te = toEntity(t);
+                        te.setPortfolio(entity);
+                        return te;
+                    })
                     .toList();
             entity.setTransactions(transactionEntities);
         }
@@ -76,9 +80,9 @@ public class PortfolioMapper {
         domain.setShareSlug(entity.getShareSlug());
 
         if (entity.getPositions() != null) {
-            List<Position> positions = entity.getPositions().stream()
+            List<Position> positions = new ArrayList<>(entity.getPositions().stream()
                     .map(this::toDomain)
-                    .toList();
+                    .toList());
             domain.setPositions(positions);
         }
 

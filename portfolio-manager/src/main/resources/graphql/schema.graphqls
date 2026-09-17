@@ -32,7 +32,7 @@ type Query {
 
 type TransactionPage {
   content: [Transaction!]!
-  totalElements: Long!
+  totalElements: Int!
   totalPages: Int!
   number: Int!
 }

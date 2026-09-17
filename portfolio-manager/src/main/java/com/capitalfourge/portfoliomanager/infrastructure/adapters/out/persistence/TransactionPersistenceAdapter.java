@@ -15,6 +15,7 @@ import com.capitalfourge.portfoliomanager.domain.Transaction;
 import com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistence.Entities.PortfolioEntity;
 import com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistence.Entities.TransactionEntity;
 import com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistence.Repositories.JpaTransactionRepository;
+import com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistence.Repositories.JpaPortfolioRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -23,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 public class TransactionPersistenceAdapter implements TransactionRepository {
 
     private final JpaTransactionRepository jpaRepository;
+    private final JpaPortfolioRepository jpaPortfolioRepository;
 
     @Override
     @Transactional
@@ -51,9 +53,11 @@ public class TransactionPersistenceAdapter implements TransactionRepository {
     }
 
     private TransactionEntity toEntity(Transaction transaction) {
+        PortfolioEntity portfolioEntity = jpaPortfolioRepository.findById(transaction.getPortfolioId())
+                .orElseThrow(() -> new IllegalArgumentException("Portfolio not found: " + transaction.getPortfolioId()));
         return new TransactionEntity(
                 transaction.getId(),
-                new PortfolioEntity(transaction.getPortfolioId(), null, null, null, null, null, null, false, null),
+                portfolioEntity,
                 transaction.getType(),
                 transaction.getSymbol(),
                 transaction.getQuantity(),

@@ -442,6 +442,15 @@ public class PortfolioGraphQLController {
 
     // Type resolvers
     @SchemaMapping(typeName = "Portfolio")
+    public Float cashBalance(Portfolio portfolio) {
+        User user = userRepository.findById(portfolio.getUserId()).orElse(null);
+        if (user != null && user.getCashBalance() != null) {
+            return user.getCashBalance().floatValue();
+        }
+        return 0.0f;
+    }
+
+    @SchemaMapping(typeName = "Portfolio")
     public List<Position> positions(Portfolio portfolio) {
         return portfolio.getPositions();
     }

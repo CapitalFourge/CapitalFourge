@@ -120,7 +120,7 @@ interface Order {
     usdAmount?: number;
     status: string;
     createdAt: string;
-    expiresAt: string;
+    expiresAt?: string;
 }
 
 interface OrdersDialogProps {
@@ -215,7 +215,7 @@ export function OrdersDialog({ portfolioId, open, onOpenChange }: OrdersDialogPr
                                     </div>
                                     <div>
                                         <span className="text-slate-500">Expira:</span>
-                                        <span className="ml-2">{new Date(order.expiresAt).toLocaleDateString()}</span>
+                                        <span className="ml-2">{order.expiresAt ? new Date(order.expiresAt).toLocaleDateString() : "Nunca"}</span>
                                     </div>
                                 </div>
 

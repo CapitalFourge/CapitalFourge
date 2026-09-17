@@ -609,7 +609,7 @@ export function TradeDialog({
                   className="border-white/10 bg-black/40 text-white"
                 />
                 <p className="text-[11px] text-slate-500">
-                  Si no se especifica, la orden expira en 30 días. Deja vacío para que nunca expire.
+                  Si se deja vacío, la orden nunca expira.
                 </p>
               </div>
             )}

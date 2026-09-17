@@ -119,11 +119,6 @@ public class OrderService {
                     order.getPortfolioId());
         }
 
-        // Set default expiration (30 days)
-        if (order.getExpiresAt() == null) {
-            order.setExpiresAt(LocalDateTime.now().plusDays(30));
-        }
-
         // Set initial status
         order.setStatus(OrderStatus.PENDING);
         order.setCreatedAt(LocalDateTime.now());

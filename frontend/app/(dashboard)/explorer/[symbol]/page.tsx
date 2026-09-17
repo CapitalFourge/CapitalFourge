@@ -39,7 +39,7 @@ interface Order {
   quantity: number;
   status: string;
   createdAt: string;
-  expiresAt: string;
+  expiresAt?: string | null;
 }
 
 const formatCurrency = (value: number) =>
@@ -268,7 +268,7 @@ function LimitOrdersDialog({ symbol, orders, open, onOpenChange }: {
                   </div>
                   <div>
                     <span className="text-slate-500">Expira:</span>
-                    <span className="ml-2">{new Date(order.expiresAt).toLocaleDateString()}</span>
+                    <span className="ml-2">{order.expiresAt ? new Date(order.expiresAt).toLocaleDateString() : "Nunca"}</span>
                   </div>
                 </div>
                 <Button

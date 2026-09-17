@@ -111,6 +111,37 @@ class OrderServiceTest {
         }
 
         @Test
+        void createLimitOrder_NoExpiresAt_ShouldNeverExpire() {
+                // Given - order with no expiration date
+                Order noExpiryOrder = new Order(
+                        UUID.randomUUID(),
+                        portfolioId,
+                        userId,
+                        OrderType.BUY_LIMIT,
+                        "AAPL",
+                        new BigDecimal("150"),
+                        new BigDecimal("1"),
+                        new BigDecimal("150"),
+                        com.capitalfourge.portfoliomanager.domain.OrderStatus.PENDING,
+                        java.time.LocalDateTime.now(),
+                        null,
+                        null,
+                        null,
+                        null,
+                        null
+                );
+                when(portfolioRepository.findById(any())).thenReturn(Optional.of(portfolio));
+                when(userRepository.findById(any())).thenReturn(Optional.of(user));
+                when(orderRepository.save(any())).thenAnswer(i -> i.getArguments()[0]);
+
+                // When
+                Order result = orderService.createLimitOrder(noExpiryOrder);
+
+                // Then - expiresAt should remain null (never expires)
+                assertNull(result.getExpiresAt());
+        }
+
+        @Test
         void cancelOrder_BuyLimit_ShouldUnlockCashAndRecordTransaction() {
                 // Given
                 when(orderRepository.findById(any())).thenReturn(Optional.of(order));

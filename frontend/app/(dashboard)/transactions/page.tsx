@@ -67,7 +67,7 @@ interface Order {
   quantity: number;
   status: string;
   createdAt: string;
-  expiresAt: string;
+  expiresAt?: string;
 }
 
 interface TransactionPage {

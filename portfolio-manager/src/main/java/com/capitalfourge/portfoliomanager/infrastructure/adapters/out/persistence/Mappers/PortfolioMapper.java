@@ -41,7 +41,11 @@ public class PortfolioMapper {
 
         if (domain.getPositions() != null) {
             List<PositionEntity> positionEntities = domain.getPositions().stream()
-                    .map(this::toEntity)
+                    .map(pos -> {
+                        PositionEntity pe = toEntity(pos);
+                        pe.setPortfolio(entity);
+                        return pe;
+                    })
                     .toList();
             entity.setPositions(positionEntities);
         }
@@ -156,6 +160,7 @@ public class PortfolioMapper {
         OrderEntity entity = new OrderEntity();
         entity.setId(domain.getId());
         entity.setPortfolioId(domain.getPortfolioId());
+        entity.setPortfolioName(domain.getPortfolioName()); // Map portfolio name
         entity.setUserId(domain.getUserId());
         entity.setType(domain.getType());
         entity.setSymbol(domain.getSymbol());
@@ -176,6 +181,7 @@ public class PortfolioMapper {
         Order domain = new Order();
         domain.setId(entity.getId());
         domain.setPortfolioId(entity.getPortfolioId());
+        domain.setPortfolioName(entity.getPortfolioName()); // Map portfolio name
         domain.setUserId(entity.getUserId());
         domain.setType(entity.getType());
         domain.setSymbol(entity.getSymbol());

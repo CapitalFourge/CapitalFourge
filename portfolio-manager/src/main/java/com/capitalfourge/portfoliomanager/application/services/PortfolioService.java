@@ -570,6 +570,7 @@ public class PortfolioService implements PortfolioUseCase {
     }
 
     @Override
+    @Transactional
     public Order createLimitOrder(UUID portfolioId, UUID userId, OrderType type, String symbol, BigDecimal targetPrice, BigDecimal quantity, BigDecimal usdAmount, String expiresAt) {
             // Validate inputs
             if (targetPrice == null || targetPrice.compareTo(BigDecimal.ZERO) <= 0) {
@@ -616,6 +617,10 @@ public class PortfolioService implements PortfolioUseCase {
             user.setLockedBalance(userLockedBalance.add(lockAmount));
             userRepository.save(user);
 
+            // Fetch portfolio for name
+            Portfolio portfolio = portfolioRepository.findById(portfolioId)
+                    .orElseThrow(() -> new PortfolioNotFoundException("Portfolio not found"));
+
             // Calculate quantity from USD if needed
             if (finalQuantity == null) {
                 // Fetch current price to calculate quantity
@@ -639,6 +644,7 @@ public class PortfolioService implements PortfolioUseCase {
             Order order = new Order(
                 UUID.randomUUID(),
                 portfolioId,
+                portfolio.getName(), // portfolioName
                 userId,
                 type,
                 symbol,

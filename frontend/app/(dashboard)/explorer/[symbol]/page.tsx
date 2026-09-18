@@ -40,6 +40,7 @@ interface Order {
   status: string;
   createdAt: string;
   expiresAt?: string | null;
+  portfolioName?: string;
 }
 
 const formatCurrency = (value: number) =>
@@ -91,6 +92,7 @@ const PENDING_LIMIT_ORDERS_QUERY = gql`
       status
       createdAt
       expiresAt
+      portfolioName
     }
   }
 `;
@@ -263,12 +265,16 @@ function LimitOrdersDialog({ symbol, orders, open, onOpenChange }: {
                     <span className="ml-2">{order.quantity}</span>
                   </div>
                   <div>
+                    <span className="text-slate-500">Portafolio:</span>
+                    <span className="ml-2 font-medium">{order.portfolioName || 'Desconocido'}</span>
+                  </div>
+                  <div>
                     <span className="text-slate-500">Creada:</span>
                     <span className="ml-2">{new Date(order.createdAt).toLocaleDateString()}</span>
                   </div>
                   <div>
                     <span className="text-slate-500">Expira:</span>
-                    <span className="ml-2">{order.expiresAt ? new Date(order.expiresAt).toLocaleDateString() : "Nunca"}</span>
+                    <span className="ml-2">{order.expiresAt ? new Date(order.expiresAt).toLocaleDateString() : 'Nunca'}</span>
                   </div>
                 </div>
                 <Button

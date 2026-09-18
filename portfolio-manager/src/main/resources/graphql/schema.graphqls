@@ -158,6 +158,7 @@ enum OrderType {
 type Order {
   id: ID!
   portfolioId: ID!
+  portfolioName: String
   userId: ID!
   type: OrderType!
   symbol: String!

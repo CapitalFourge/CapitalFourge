@@ -25,6 +25,10 @@ public class OrderEntity {
     @Column(name = "portfolio_id", nullable = false)
     private UUID portfolioId;
 
+    // Portfolio name for display (transient, not stored in DB)
+    @Transient
+    private String portfolioName;
+
     @Column(name = "user_id", nullable = false)
     private UUID userId;
 
@@ -73,6 +77,8 @@ public class OrderEntity {
     public void setPortfolio(PortfolioEntity portfolio) { this.portfolio = portfolio; }
     public UUID getPortfolioId() { return portfolioId; }
     public void setPortfolioId(UUID portfolioId) { this.portfolioId = portfolioId; }
+    public String getPortfolioName() { return portfolioName; }
+    public void setPortfolioName(String portfolioName) { this.portfolioName = portfolioName; }
     public UUID getUserId() { return userId; }
     public void setUserId(UUID userId) { this.userId = userId; }
     public OrderType getType() { return type; }

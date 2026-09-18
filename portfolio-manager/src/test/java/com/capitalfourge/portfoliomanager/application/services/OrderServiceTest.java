@@ -49,11 +49,13 @@ class OrderServiceTest {
         private User user;
         private Portfolio portfolio;
         private Order order;
+        private UUID userId;
+        private UUID portfolioId;
 
         @BeforeEach
         void setUp() {
-                UUID userId = UUID.randomUUID();
-                UUID portfolioId = UUID.randomUUID();
+                userId = UUID.randomUUID();
+                portfolioId = UUID.randomUUID();
 
                 user = new User();
                 user.setId(userId);
@@ -77,6 +79,7 @@ class OrderServiceTest {
                 order = new Order(
                     UUID.randomUUID(),
                     portfolioId,
+                    "Test Portfolio", // portfolioName
                     userId,
                     OrderType.BUY_LIMIT,
                     "AAPL",
@@ -116,6 +119,7 @@ class OrderServiceTest {
                 Order noExpiryOrder = new Order(
                         UUID.randomUUID(),
                         portfolioId,
+                        "Test Portfolio", // portfolioName
                         userId,
                         OrderType.BUY_LIMIT,
                         "AAPL",

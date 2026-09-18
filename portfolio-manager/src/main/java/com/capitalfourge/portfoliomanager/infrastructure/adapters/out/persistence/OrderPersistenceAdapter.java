@@ -98,7 +98,7 @@ public class OrderPersistenceAdapter implements OrderRepository {
     }
 
     private OrderEntity toEntity(Order order) {
-        return new OrderEntity(
+        OrderEntity entity = new OrderEntity(
             order.getId(),
             null,
             order.getPortfolioId(),
@@ -116,15 +116,19 @@ public class OrderPersistenceAdapter implements OrderRepository {
             order.getFilledQuantity(),
             order.getRejectionReason()
         );
+        entity.setPortfolioName(order.getPortfolioName());
+        return entity;
     }
 
     private Order toDomain(OrderEntity entity) {
         if (entity == null) {
             return null;
         }
+        String portfolioName = entity.getPortfolio() != null ? entity.getPortfolio().getName() : entity.getPortfolioName();
         return new Order(
             entity.getId(),
             entity.getPortfolioId(),
+            portfolioName, // Map portfolio name from loaded relationship
             entity.getUserId(),
             entity.getType(),
             entity.getSymbol(),

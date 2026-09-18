@@ -15,6 +15,7 @@ public class Order {
 
     private UUID id;
     private UUID portfolioId;
+    private String portfolioName;
     private UUID userId;
     private OrderType type;
     private String symbol;
@@ -37,6 +38,8 @@ public class Order {
         public void setId(UUID id) { this.id = id; }
         public UUID getPortfolioId() { return portfolioId; }
         public void setPortfolioId(UUID portfolioId) { this.portfolioId = portfolioId; }
+        public String getPortfolioName() { return portfolioName; }
+        public void setPortfolioName(String portfolioName) { this.portfolioName = portfolioName; }
         public UUID getUserId() { return userId; }
         public void setUserId(UUID userId) { this.userId = userId; }
         public OrderType getType() { return type; }
@@ -68,12 +71,13 @@ public class Order {
         public Order() {}
 
         // Explicit all-args constructor for Lombok compatibility
-        public Order(UUID id, UUID portfolioId, UUID userId, OrderType type, String symbol,
+        public Order(UUID id, UUID portfolioId, String portfolioName, UUID userId, OrderType type, String symbol,
                  BigDecimal targetPrice, BigDecimal quantity, BigDecimal usdAmount, OrderStatus status,
                  LocalDateTime createdAt, LocalDateTime filledAt, LocalDateTime expiresAt,
                  BigDecimal filledPrice, BigDecimal filledQuantity, String rejectionReason) {
         this.id = id;
         this.portfolioId = portfolioId;
+        this.portfolioName = portfolioName;
         this.userId = userId;
         this.type = type;
         this.symbol = symbol;

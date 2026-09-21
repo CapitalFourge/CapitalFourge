@@ -361,29 +361,60 @@ public class PortfolioService implements PortfolioUseCase {
         if (portfolio == null)
             return;
 
-        // 1. Get all orders for this portfolio and cancel pending ones
-        List<Order> orders = orderRepository.findByPortfolioId(id);
         User user = userRepository.findById(portfolio.getUserId()).orElse(null);
+        if (user == null)
+            return;
 
-        if (user != null) {
-            for (Order order : orders) {
-                if (order.getStatus() == OrderStatus.PENDING) {
-                    BigDecimal amountToReturn = BigDecimal.ZERO;
-                    if (order.getType() == OrderType.BUY_LIMIT) {
-                        amountToReturn = order.getUsdAmount() != null ? order.getUsdAmount()
-                                : order.getQuantity().multiply(order.getTargetPrice());
+        // 1. Cancel pending orders and return locked balance
+        List<Order> orders = orderRepository.findByPortfolioId(id);
+        for (Order order : orders) {
+            if (order.getStatus() == OrderStatus.PENDING) {
+                BigDecimal amountToReturn = BigDecimal.ZERO;
+                if (order.getType() == OrderType.BUY_LIMIT) {
+                    amountToReturn = order.getUsdAmount() != null ? order.getUsdAmount()
+                            : order.getQuantity().multiply(order.getTargetPrice());
 
-                        user.setCashBalance(user.getCashBalance().add(amountToReturn));
-                        user.setLockedBalance(user.getLockedBalance().subtract(amountToReturn));
-                    }
-                    order.setStatus(OrderStatus.CANCELLED);
-                    orderRepository.save(order);
+                    user.setCashBalance(user.getCashBalance().add(amountToReturn));
+                    user.setLockedBalance(user.getLockedBalance().subtract(amountToReturn));
                 }
+                order.setStatus(OrderStatus.CANCELLED);
+                orderRepository.save(order);
             }
-            userRepository.save(user);
         }
 
-        // 2. Delete the portfolio (cascade will handle positions/transactions)
+        // 2. Sell all positions (liquidate portfolio) and return proceeds to user cash balance
+        for (Position position : new ArrayList<>(portfolio.getPositions())) {
+            BigDecimal quantity = position.getQuantity();
+            if (quantity.compareTo(BigDecimal.ZERO) > 0) {
+                // Use current price if available, otherwise average purchase price
+                BigDecimal price = position.getCurrentPrice() != null && position.getCurrentPrice().compareTo(BigDecimal.ZERO) > 0
+                        ? position.getCurrentPrice()
+                        : position.getAveragePurchasePrice();
+                if (price == null || price.compareTo(BigDecimal.ZERO) <= 0) {
+                    price = BigDecimal.ZERO; // fallback
+                }
+                BigDecimal totalAmount = price.multiply(quantity);
+                
+                user.setCashBalance(user.getCashBalance().add(totalAmount));
+                portfolio.setCumulativeWithdrawals(portfolio.getCumulativeWithdrawals().add(totalAmount));
+
+                Transaction transaction = new Transaction(
+                        UUID.randomUUID(), id, TransactionType.SELL,
+                        position.getSymbol(), quantity, price, totalAmount, LocalDateTime.now(),
+                        user.getCashBalance()
+                );
+                transactionRepository.save(transaction);
+                portfolio.getTransactions().add(transaction);
+                
+                // Remove position
+                portfolio.getPositions().remove(position);
+            }
+        }
+
+        userRepository.save(user);
+        portfolioRepository.save(portfolio); // save portfolio with updated positions/transactions
+
+        // 3. Delete the portfolio (cascade will handle remaining positions/transactions)
         portfolioRepository.deleteById(id);
     }
 

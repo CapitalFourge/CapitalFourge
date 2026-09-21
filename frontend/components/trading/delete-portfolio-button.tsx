@@ -107,7 +107,16 @@ export function DeletePortfolioButton({ id }: { id: string }) {
         e.preventDefault();
         e.stopPropagation();
 
-        if (!confirm("¿Estás seguro de que deseas desmantelar esta estrategia? Se perderán todos los datos.")) return;
+        const confirmMessage = 
+            "⚠️ ATENCIÓN: Al desmantelar esta estrategia ocurrirá lo siguiente:\n\n" +
+            "1. Se venderán TODOS los activos del portafolio al precio actual (o precio promedio de compra si no hay precio actual)\n" +
+            "2. Se cancelarán TODAS las órdenes límite pendientes (BUY_LIMIT), liberando el saldo bloqueado\n" +
+            "3. El saldo resultante se devolverá a tu balance global (cashBalance)\n" +
+            "4. Se registrarán las transacciones de venta en el historial\n" +
+            "5. La estrategia y todos sus datos se eliminarán PERMANENTEMENTE\n\n" +
+            "¿Estás seguro de que deseas continuar?";
+
+        if (!confirm(confirmMessage)) return;
 
         await deletePortfolio({
             variables: { id }

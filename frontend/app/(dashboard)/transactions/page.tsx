@@ -91,8 +91,8 @@ export default function TransactionsPage() {
 
   const { data, loading, error, refetch, variables } = useQuery(TRANSACTIONS_QUERY, {
     variables: {
-      startDate: startDate || undefined,
-      endDate: endDate || undefined,
+      startDate: startDate ? `${startDate}T00:00:00` : undefined,
+      endDate: endDate ? `${endDate}T23:59:59` : undefined,
       page,
       size: pageSize,
     },
@@ -102,8 +102,8 @@ export default function TransactionsPage() {
   const handleFilter = () => {
     setPage(0);
     refetch({
-      startDate: startDate || undefined,
-      endDate: endDate || undefined,
+      startDate: startDate ? `${startDate}T00:00:00` : undefined,
+      endDate: endDate ? `${endDate}T23:59:59` : undefined,
       page: 0,
       size: pageSize,
     });

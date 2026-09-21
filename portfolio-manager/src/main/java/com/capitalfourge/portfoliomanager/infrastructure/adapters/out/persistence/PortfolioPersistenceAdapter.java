@@ -45,6 +45,7 @@ public class PortfolioPersistenceAdapter implements PortfolioRepository {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<Portfolio> findByShareSlug(String shareSlug) {
         return jpaRepository.findByShareSlug(shareSlug).map(this::toDomain);
     }

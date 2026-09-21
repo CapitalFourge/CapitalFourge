@@ -15,7 +15,7 @@ import com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistenc
 
 public interface JpaPortfolioRepository extends JpaRepository<PortfolioEntity, UUID> {
 
-    @EntityGraph(attributePaths = {"transactions"})
+    @EntityGraph(attributePaths = {"transactions"}, type = EntityGraph.EntityGraphType.FETCH)
     Optional<PortfolioEntity> findByShareSlug(String shareSlug);
 
     @EntityGraph(attributePaths = {"positions"})

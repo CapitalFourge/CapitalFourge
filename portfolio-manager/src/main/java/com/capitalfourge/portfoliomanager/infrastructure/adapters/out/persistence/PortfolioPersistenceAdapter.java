@@ -80,6 +80,12 @@ public class PortfolioPersistenceAdapter implements PortfolioRepository {
     }
 
     @Override
+    @Transactional
+    public Optional<PortfolioEntity> findEntityById(UUID id) {
+        return jpaRepository.findById(id);
+    }
+
+    @Override
     public List<Portfolio> findByIds(List<UUID> ids) {
         return jpaRepository.findByIds(ids).stream().map(this::toDomain).collect(Collectors.toList());
     }

@@ -32,4 +32,7 @@ public interface PortfolioRepository {
     List<Portfolio> findByUserId(UUID userId);
 
     List<Portfolio> findPublicPortfolios();
+    
+    // For direct entity operations (e.g., cascade delete)
+    Optional<com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistence.Entities.PortfolioEntity> findEntityById(UUID id);
 }

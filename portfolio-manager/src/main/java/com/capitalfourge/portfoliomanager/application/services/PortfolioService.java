@@ -45,6 +45,10 @@ import com.capitalfourge.portfoliomanager.domain.User;
 import com.capitalfourge.portfoliomanager.domain.Order;
 import com.capitalfourge.portfoliomanager.domain.OrderStatus;
 import com.capitalfourge.portfoliomanager.domain.OrderType;
+import com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistence.Entities.PortfolioEntity;
+import com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistence.Entities.PositionEntity;
+import com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistence.Entities.TransactionEntity;
+import com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistence.Repositories.JpaPortfolioRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -56,6 +60,7 @@ public class PortfolioService implements PortfolioUseCase {
     private static final int MAX_SLUG_ATTEMPTS = 3;
 
     private final PortfolioRepository portfolioRepository;
+    private final JpaPortfolioRepository jpaRepository;
     private final MetricRepository metricRepository;
     private final TransactionRepository transactionRepository;
     private final OrderRepository orderRepository;
@@ -357,11 +362,15 @@ public class PortfolioService implements PortfolioUseCase {
     @Override
     @Transactional
     public void deletePortfolio(UUID id) {
-        Portfolio portfolio = portfolioRepository.findById(id).orElse(null);
-        if (portfolio == null)
+        // Fetch the managed JPA entity to leverage cascade/orphanRemoval
+        Optional<PortfolioEntity> portfolioEntityOpt = portfolioRepository.findEntityById(id);
+        if (portfolioEntityOpt.isEmpty())
             return;
 
-        User user = userRepository.findById(portfolio.getUserId()).orElse(null);
+        PortfolioEntity portfolioEntity = portfolioEntityOpt.get();
+        UUID userId = portfolioEntity.getUserId();
+
+        User user = userRepository.findById(userId).orElse(null);
         if (user == null)
             return;
 
@@ -383,39 +392,41 @@ public class PortfolioService implements PortfolioUseCase {
         }
 
         // 2. Sell all positions (liquidate portfolio) and return proceeds to user cash balance
-        for (Position position : new ArrayList<>(portfolio.getPositions())) {
-            BigDecimal quantity = position.getQuantity();
+        // Use the managed entity's positions so orphanRemoval works
+        for (PositionEntity positionEntity : new ArrayList<>(portfolioEntity.getPositions())) {
+            BigDecimal quantity = positionEntity.getQuantity();
             if (quantity.compareTo(BigDecimal.ZERO) > 0) {
                 // Use current price if available, otherwise average purchase price
-                BigDecimal price = position.getCurrentPrice() != null && position.getCurrentPrice().compareTo(BigDecimal.ZERO) > 0
-                        ? position.getCurrentPrice()
-                        : position.getAveragePurchasePrice();
+                BigDecimal price = positionEntity.getCurrentPrice() != null && positionEntity.getCurrentPrice().compareTo(BigDecimal.ZERO) > 0
+                        ? positionEntity.getCurrentPrice()
+                        : positionEntity.getAveragePurchasePrice();
                 if (price == null || price.compareTo(BigDecimal.ZERO) <= 0) {
                     price = BigDecimal.ZERO; // fallback
                 }
                 BigDecimal totalAmount = price.multiply(quantity);
                 
                 user.setCashBalance(user.getCashBalance().add(totalAmount));
-                portfolio.setCumulativeWithdrawals(portfolio.getCumulativeWithdrawals().add(totalAmount));
+                portfolioEntity.setCumulativeWithdrawals(portfolioEntity.getCumulativeWithdrawals().add(totalAmount));
 
-                Transaction transaction = new Transaction(
-                        UUID.randomUUID(), id, TransactionType.SELL,
-                        position.getSymbol(), quantity, price, totalAmount, LocalDateTime.now(),
-                        user.getCashBalance()
+                TransactionEntity transactionEntity = new TransactionEntity(
+                        UUID.randomUUID(), portfolioEntity, TransactionType.SELL,
+                        positionEntity.getSymbol(), quantity, price,
+                        LocalDateTime.now(), user.getCashBalance()
                 );
-                transactionRepository.save(transaction);
-                portfolio.getTransactions().add(transaction);
+                transactionRepository.save(transactionEntity);
+                portfolioEntity.getTransactions().add(transactionEntity);
                 
-                // Remove position
-                portfolio.getPositions().remove(position);
+                // Remove position from managed entity - orphanRemoval will delete from DB
+                portfolioEntity.getPositions().remove(positionEntity);
             }
         }
 
         userRepository.save(user);
-        portfolioRepository.save(portfolio); // save portfolio with updated positions/transactions
+        // Save the managed entity to persist transaction additions and position removals
+        jpaRepository.save(portfolioEntity);
 
         // 3. Delete the portfolio (cascade will handle remaining positions/transactions)
-        portfolioRepository.deleteById(id);
+        jpaRepository.deleteById(id);
     }
 
     public Portfolio buyAssetByUSD(UUID portfolioId, String symbol, BigDecimal usdAmount, BigDecimal price) {

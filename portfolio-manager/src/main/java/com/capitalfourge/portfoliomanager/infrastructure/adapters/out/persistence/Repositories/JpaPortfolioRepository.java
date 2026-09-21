@@ -15,7 +15,7 @@ import com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistenc
 
 public interface JpaPortfolioRepository extends JpaRepository<PortfolioEntity, UUID> {
 
-    @EntityGraph(attributePaths = {"positions", "transactions"})
+    @EntityGraph(attributePaths = {"transactions"})
     Optional<PortfolioEntity> findByShareSlug(String shareSlug);
 
     @EntityGraph(attributePaths = {"positions"})
@@ -23,7 +23,7 @@ public interface JpaPortfolioRepository extends JpaRepository<PortfolioEntity, U
     Optional<PortfolioEntity> findByUserIdAndName(@Param("userId") UUID userId, @Param("name") String name);
 
     @Query("SELECT p FROM PortfolioEntity p WHERE p.id = :id")
-    @EntityGraph(value = "Portfolio.withPositionsAndTransactions", type = EntityGraph.EntityGraphType.FETCH)
+    @EntityGraph(value = "Portfolio.withPositions", type = EntityGraph.EntityGraphType.FETCH)
     Optional<PortfolioEntity> findByIdWithPositionsAndTransactions(@Param("id") UUID id);
 
     @EntityGraph(attributePaths = {"positions"}, type = EntityGraph.EntityGraphType.FETCH)

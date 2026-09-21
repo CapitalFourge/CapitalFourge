@@ -32,9 +32,8 @@ import lombok.*;
         }
     ),
     @NamedEntityGraph(
-        name = "Portfolio.withPositionsAndTransactions",
+        name = "Portfolio.withTransactions",
         attributeNodes = {
-            @NamedAttributeNode("positions"),
             @NamedAttributeNode("transactions")
         }
     )

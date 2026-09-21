@@ -30,6 +30,13 @@ import lombok.*;
         attributeNodes = {
             @NamedAttributeNode("positions")
         }
+    ),
+    @NamedEntityGraph(
+        name = "Portfolio.withPositionsAndTransactions",
+        attributeNodes = {
+            @NamedAttributeNode("positions"),
+            @NamedAttributeNode("transactions")
+        }
     )
 })
 public class PortfolioEntity {

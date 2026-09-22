@@ -50,7 +50,7 @@ const CREATE_LIMIT_ORDER_MUTATION = gql`
     $targetPrice: Float!
     $quantity: Float
     $usdAmount: Float
-    $expiresAt: DateTime
+    $expiresAt: String
   ) {
     createLimitOrder(
       portfolioId: $portfolioId

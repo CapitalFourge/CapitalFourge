@@ -14,6 +14,7 @@ import { useMemo } from "react";
 import { Button as UIButton } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useAuth } from "@/lib/auth/AuthContext";
 
 const GET_SHARED_PORTFOLIO = gql`
   query GetSharedPortfolio($slug: String!) {
@@ -73,6 +74,7 @@ interface SharedPortfolio {
 export default function SharedPortfolioPage() {
   const params = useParams();
   const slug = params.slug as string;
+  const { isAuthenticated } = useAuth();
 
   const { data, loading, error } = useQuery(GET_SHARED_PORTFOLIO, {
     variables: { slug },
@@ -104,7 +106,7 @@ export default function SharedPortfolioPage() {
       <h1 className="text-4xl font-bold text-white">404 - Cartera no encontrada</h1>
       <p className="mt-4 text-slate-400">Este portafolio no existe o ya no es público.</p>
       <UIButton asChild className="mt-8 rounded-full bg-emerald-300 text-slate-950">
-        <Link href="/">Volver al inicio</Link>
+        <Link href={isAuthenticated ? "/dashboard" : "/"}>Volver al inicio</Link>
       </UIButton>
     </div>
   );
@@ -116,7 +118,7 @@ export default function SharedPortfolioPage() {
       <div className="relative mx-auto max-w-6xl space-y-10">
         <header className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div className="space-y-2">
-            <Link href="/" className="mb-4 inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white">
+            <Link href={isAuthenticated ? "/dashboard" : "/"} className="mb-4 inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white">
               <ArrowLeft className="h-4 w-4" />
               Ver mercado global
             </Link>

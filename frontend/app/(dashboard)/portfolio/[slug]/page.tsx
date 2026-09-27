@@ -387,10 +387,10 @@ export default function PortfolioDetailPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {portfolio.transactions.map((transaction: Transaction) => (
+                  {[...portfolio.transactions].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).map((transaction: Transaction) => (
                     <TableRow key={transaction.id} className="border-white/10 hover:bg-white/[0.03]">
                       <TableCell className="px-6 text-xs text-slate-400">
-                        {new Date(transaction.timestamp).toLocaleDateString("es-ES")}
+                        {new Date(transaction.timestamp).toLocaleString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                       </TableCell>
                       <TableCell>
                         <Badge

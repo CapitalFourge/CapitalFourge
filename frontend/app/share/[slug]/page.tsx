@@ -5,8 +5,7 @@ import {
   ArrowLeft, 
   Coins, 
   ExternalLink, 
-  Landmark, 
-  TrendingUp, 
+  Landmark,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -218,29 +217,6 @@ export default function SharedPortfolioPage() {
               </div>
             )}
           </section>
-
-          <aside className="space-y-8">
-            <div className="panel p-7 space-y-6 border-white/5 bg-white/[0.02]">
-              <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-emerald-300" />
-                Copiar estrategia
-              </h3>
-              <p className="text-sm leading-7 text-slate-400">
-                Puedes comprar estos mismos activos en nuestros partners verificados para replicar este rendimiento.
-              </p>
-              
-              <div className="space-y-3">
-                {Array.from(new Set(portfolio.positions.map((p: SharedPosition) => p.symbol))).map((symbol) => (
-                  <UIButton key={symbol} asChild variant="outline" className="w-full justify-between rounded-xl border-white/10 py-6 text-slate-200">
-                    <a href="https://www.binance.com/register?ref=REFERRAL" target="_blank" className="flex items-center gap-2">
-                      <span>Operar {symbol} en Binance</span>
-                      <ExternalLink className="h-4 w-4" />
-                    </a>
-                  </UIButton>
-                ))}
-              </div>
-            </div>
-          </aside>
         </section>
       </div>
     </main>

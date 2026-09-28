@@ -71,6 +71,7 @@ class OrderServiceTest {
                     java.util.List.of(),
                     new BigDecimal("0"),
                     new BigDecimal("0"),
+                    new BigDecimal("0"),
                     0.0,
                     false,
                     null

@@ -49,6 +49,7 @@ class PortfolioGraphQLControllerTest {
                 List.of(),
                 BigDecimal.ZERO,
                 BigDecimal.ZERO,
+                BigDecimal.ZERO,
                 10.0,
                 true,
                 "publica-12345678");

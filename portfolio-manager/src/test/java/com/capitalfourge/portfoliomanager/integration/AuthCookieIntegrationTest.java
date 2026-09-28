@@ -143,7 +143,7 @@ class AuthCookieIntegrationTest {
             "Test portfolio for cookie auth",
             user.getId(),
             List.of(), List.of(), List.of(),
-            BigDecimal.ZERO, BigDecimal.ZERO,
+            BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
             0.0, false, null
         );
         portfolioRepository.save(portfolio);
@@ -295,7 +295,7 @@ class AuthCookieIntegrationTest {
             "Private test",
             user.getId(),
             List.of(), List.of(), List.of(),
-            BigDecimal.ZERO, BigDecimal.ZERO,
+            BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
             0.0, false, null
         );
         portfolioRepository.save(privatePortfolio);

@@ -33,8 +33,9 @@ public class PortfolioMapper {
         entity.setName(domain.getName());
         entity.setDescription(domain.getDescription());
         entity.setUserId(domain.getUserId());
-        entity.setCumulativeDeposits(domain.getCumulativeDeposits());
-        entity.setCumulativeWithdrawals(domain.getCumulativeWithdrawals());
+        entity.setAllocatedCash(domain.getAllocatedCash());
+        entity.setTotalAssigned(domain.getTotalAssigned());
+        entity.setTotalWithdrawn(domain.getTotalWithdrawn());
         entity.setPerformance(domain.getPerformance());
         entity.setPublic(domain.isPublic());
         entity.setShareSlug(domain.getShareSlug());
@@ -77,8 +78,9 @@ public class PortfolioMapper {
         domain.setName(entity.getName());
         domain.setDescription(entity.getDescription());
         domain.setUserId(entity.getUserId());
-        domain.setCumulativeDeposits(entity.getCumulativeDeposits());
-        domain.setCumulativeWithdrawals(entity.getCumulativeWithdrawals());
+        domain.setAllocatedCash(entity.getAllocatedCash());
+        domain.setTotalAssigned(entity.getTotalAssigned());
+        domain.setTotalWithdrawn(entity.getTotalWithdrawn());
         domain.setPerformance(entity.getPerformance());
         domain.setPublic(entity.isPublic());
         domain.setShareSlug(entity.getShareSlug());

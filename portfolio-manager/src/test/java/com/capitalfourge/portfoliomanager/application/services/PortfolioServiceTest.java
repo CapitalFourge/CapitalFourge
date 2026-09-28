@@ -120,6 +120,7 @@ class PortfolioServiceTest {
                 List.of(),
                 BigDecimal.ZERO,
                 BigDecimal.ZERO,
+                BigDecimal.ZERO,
                 0.0,
                 false,
                 null);

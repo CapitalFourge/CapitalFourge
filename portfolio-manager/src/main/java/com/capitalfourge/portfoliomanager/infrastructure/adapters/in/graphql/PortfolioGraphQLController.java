@@ -442,12 +442,33 @@ public class PortfolioGraphQLController {
 
     // Type resolvers
     @SchemaMapping(typeName = "Portfolio")
-    public Float cashBalance(Portfolio portfolio) {
-        User user = userRepository.findById(portfolio.getUserId()).orElse(null);
-        if (user != null && user.getCashBalance() != null) {
-            return user.getCashBalance().floatValue();
-        }
-        return 0.0f;
+    public Float allocatedCash(Portfolio portfolio) {
+        BigDecimal cash = portfolio.getAllocatedCash();
+        return cash != null ? cash.floatValue() : 0.0f;
+    }
+
+    @SchemaMapping(typeName = "Portfolio")
+    public Float totalAssigned(Portfolio portfolio) {
+        BigDecimal assigned = portfolio.getTotalAssigned();
+        return assigned != null ? assigned.floatValue() : 0.0f;
+    }
+
+    @SchemaMapping(typeName = "Portfolio")
+    public Float totalWithdrawn(Portfolio portfolio) {
+        BigDecimal withdrawn = portfolio.getTotalWithdrawn();
+        return withdrawn != null ? withdrawn.floatValue() : 0.0f;
+    }
+
+    @SchemaMapping(typeName = "Portfolio")
+    public Float positionsValue(Portfolio portfolio) {
+        BigDecimal val = portfolio.getPositionsValue();
+        return val != null ? val.floatValue() : 0.0f;
+    }
+
+    @SchemaMapping(typeName = "Portfolio")
+    public Float totalValue(Portfolio portfolio) {
+        BigDecimal val = portfolio.getTotalValue();
+        return val != null ? val.floatValue() : 0.0f;
     }
 
     @SchemaMapping(typeName = "Portfolio")
@@ -622,7 +643,7 @@ public class PortfolioGraphQLController {
             description,
             userId,
             null, null, null,
-            null, null,
+            BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
             0.0,
             isPublic != null && isPublic,
             null
@@ -663,16 +684,16 @@ public class PortfolioGraphQLController {
 
     @MutationMapping
     @PreAuthorize("hasRole('USER')")
-    public Portfolio addCash(@Argument("portfolioId") UUID portfolioId, @Argument("amount") BigDecimal amount) {
+    public Portfolio assignCash(@Argument("portfolioId") UUID portfolioId, @Argument("amount") BigDecimal amount) {
         verifyPortfolioOwnership(portfolioId);
-        return portfolioUseCase.addCash(portfolioId, amount);
+        return portfolioUseCase.assignCash(portfolioId, amount);
     }
 
     @MutationMapping
     @PreAuthorize("hasRole('USER')")
-    public Portfolio withdrawCash(@Argument("portfolioId") UUID portfolioId, @Argument("amount") BigDecimal amount) {
+    public Portfolio withdrawAssignedCash(@Argument("portfolioId") UUID portfolioId, @Argument("amount") BigDecimal amount) {
         verifyPortfolioOwnership(portfolioId);
-        return portfolioUseCase.withdrawCash(portfolioId, amount);
+        return portfolioUseCase.withdrawAssignedCash(portfolioId, amount);
     }
 
     @MutationMapping

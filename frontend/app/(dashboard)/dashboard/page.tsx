@@ -7,6 +7,7 @@ import { Clock3, ExternalLink, Landmark, RefreshCcw, TrendingUp, Trophy, Wallet 
 import { useMemo, useState } from "react";
 
 import { CashActionDialog } from "@/components/trading/cash-action-dialog";
+import { GlobalCashActionDialog } from "@/components/trading/global-cash-action-dialog";
 import { TradeDialog } from "@/components/trading/trade-dialog";
 import { Button } from "@/components/ui/button";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
@@ -24,6 +25,10 @@ const DASHBOARD_QUERY = gql`
       name
       performance
       shareSlug
+      allocatedCash
+      totalAssigned
+      totalWithdrawn
+      totalValue
       positions {
         id
         symbol
@@ -88,6 +93,10 @@ interface Portfolio {
   name: string;
   performance: number;
   shareSlug: string;
+  allocatedCash?: number;
+  totalAssigned?: number;
+  totalWithdrawn?: number;
+  totalValue?: number;
   positions: Position[];
 }
 
@@ -276,24 +285,24 @@ export default function DashboardPage() {
 
             <div className="flex flex-col items-stretch gap-3 xl:items-end">
               <div className="flex flex-wrap items-center gap-3">
-                <CashActionDialog initialType="deposit">
+                <GlobalCashActionDialog initialType="deposit">
                   <Button className="h-11 rounded-full border border-emerald-300/30 bg-emerald-300/8 px-5 text-sm font-semibold text-emerald-200 shadow-[0_0_0_1px_rgba(110,231,183,0.08)] hover:bg-emerald-400/14 hover:text-emerald-100">
                     <RefreshCcw className="h-4 w-4" />
-                    Recarga
+                    Recargar cuenta
                   </Button>
-                </CashActionDialog>
-                <CashActionDialog initialType="withdraw">
+                </GlobalCashActionDialog>
+                <GlobalCashActionDialog initialType="withdraw">
                   <Button className="h-11 rounded-full border border-rose-300/30 bg-rose-300/8 px-5 text-sm font-semibold text-rose-200 shadow-[0_0_0_1px_rgba(251,113,133,0.08)] hover:bg-rose-400/14 hover:text-rose-100">
                     <Wallet className="h-4 w-4" />
-                    Retiro
+                    Retirar de cuenta
                   </Button>
-                </CashActionDialog>
+                </GlobalCashActionDialog>
               </div>
 
               <div className="flex items-center gap-2 self-end">
                 <InfoTooltip
-                  title="Panel principal"
-                  description="Aquí ves tu patrimonio total, caja disponible, capital invertido y saldo retenido. Usa 'Recarga' para agregar dinero de papel sin límites y 'Retiro' para mover fondos entre cuentas."
+                  title="Billetera global"
+                  description="Tu saldo de efectivo disponible (no asignado a portafolios). 'Recargar cuenta' agrega dinero de prueba. 'Retirar de cuenta' saca dinero del sistema. Para invertir, usa 'Asignar fondos' dentro de cada portafolio."
                 />
                 <div className="panel-muted flex items-center gap-3 px-4 py-3">
                   <span className="status-dot" />

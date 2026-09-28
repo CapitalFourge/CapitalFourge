@@ -39,7 +39,7 @@ public class PythonReportGeneratorAdapter implements ReportGeneratorPort {
             Path resolvedScriptPath = findScriptPath();
 
             List<String> command = List.of(
-                    "python",
+                    "python3",
                     resolvedScriptPath.toString(),
                     tempJson.toAbsolutePath().toString(),
                     pdfPath.toAbsolutePath().toString());

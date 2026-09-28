@@ -26,9 +26,10 @@ public interface PortfolioUseCase {
 
     Portfolio sellAsset(UUID portfolioId, String symbol, BigDecimal quantity, BigDecimal price);
 
-    Portfolio addCash(UUID portfolioId, BigDecimal amount);
+    // Cash allocation per portfolio
+    Portfolio assignCash(UUID portfolioId, BigDecimal amount);
 
-    Portfolio withdrawCash(UUID portfolioId, BigDecimal amount);
+    Portfolio withdrawAssignedCash(UUID portfolioId, BigDecimal amount);
 
     Portfolio buyAssetByUSD(UUID portfolioId, String symbol, BigDecimal usdAmount, BigDecimal price);
 

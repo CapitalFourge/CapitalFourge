@@ -50,14 +50,14 @@ public class PortfolioController {
         return portfolioUseCase.getPortfoliosByUser(userId);
     }
 
-    @PostMapping("/{id}/cash/deposit")
-    public Portfolio deposit(@PathVariable UUID id, @RequestParam BigDecimal amount) {
-        return portfolioUseCase.addCash(id, amount);
+    @PostMapping("/{id}/cash/assign")
+    public Portfolio assignCash(@PathVariable UUID id, @RequestParam BigDecimal amount) {
+        return portfolioUseCase.assignCash(id, amount);
     }
 
-    @PostMapping("/{id}/cash/withdraw")
-    public Portfolio withdraw(@PathVariable UUID id, @RequestParam BigDecimal amount) {
-        return portfolioUseCase.withdrawCash(id, amount);
+    @PostMapping("/{id}/cash/withdraw-assigned")
+    public Portfolio withdrawAssignedCash(@PathVariable UUID id, @RequestParam BigDecimal amount) {
+        return portfolioUseCase.withdrawAssignedCash(id, amount);
     }
 
     @PostMapping("/{id}/trade/buy")

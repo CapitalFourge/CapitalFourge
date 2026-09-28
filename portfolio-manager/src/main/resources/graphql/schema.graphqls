@@ -83,10 +83,10 @@ type Mutation {
   createPortfolio(name: String!, description: String, isPublic: Boolean): Portfolio
   buyAsset(portfolioId: ID!, symbol: String!, quantity: Float!, price: Float!): Portfolio
   sellAsset(portfolioId: ID!, symbol: String!, quantity: Float!, price: Float!): Portfolio
+  assignCash(portfolioId: ID!, amount: Float!): Portfolio
+  withdrawAssignedCash(portfolioId: ID!, amount: Float!): Portfolio
   buyAssetByUSD(portfolioId: ID!, symbol: String!, usdAmount: Float!, price: Float!): Portfolio
   sellAssetByUSD(portfolioId: ID!, symbol: String!, usdAmount: Float!, price: Float!): Portfolio
-  addCash(portfolioId: ID!, amount: Float!): Portfolio
-  withdrawCash(portfolioId: ID!, amount: Float!): Portfolio
   deposit(amount: Float!): User
   withdraw(amount: Float!): User
   deletePortfolio(id: ID!): Boolean
@@ -125,7 +125,10 @@ type Portfolio {
   name: String!
   description: String
   totalValue: Float!
-  cashBalance: Float!
+  allocatedCash: Float!
+  totalAssigned: Float!
+  totalWithdrawn: Float!
+  positionsValue: Float!
   currency: String!
   isDefault: Boolean!
   performance: Float!

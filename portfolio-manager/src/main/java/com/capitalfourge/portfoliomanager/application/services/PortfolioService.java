@@ -121,8 +121,9 @@ public class PortfolioService implements PortfolioUseCase {
             }
         }
 
-        portfolio.setCumulativeDeposits(BigDecimal.ZERO);
-        portfolio.setCumulativeWithdrawals(BigDecimal.ZERO);
+        portfolio.setAllocatedCash(BigDecimal.ZERO);
+        portfolio.setTotalAssigned(BigDecimal.ZERO);
+        portfolio.setTotalWithdrawn(BigDecimal.ZERO);
         portfolio.setPerformance(0.0);
 
         // Generate shareSlug for all portfolios (clean URLs per user)
@@ -204,18 +205,14 @@ public class PortfolioService implements PortfolioUseCase {
         Portfolio portfolio = getPortfolio(portfolioId);
         BigDecimal totalCost = price.multiply(quantity);
 
-        // Get user and check global cash balance
-        User user = userRepository.findById(portfolio.getUserId())
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
-        BigDecimal userCashBalance = user.getCashBalance() != null ? user.getCashBalance() : BigDecimal.ZERO;
-
-        if (userCashBalance.compareTo(totalCost) < 0) {
-            throw new InsufficientBalanceException("Insufficient balance for trade");
+        // Check portfolio allocated cash (not user global cash)
+        BigDecimal allocatedCash = portfolio.getAllocatedCash() != null ? portfolio.getAllocatedCash() : BigDecimal.ZERO;
+        if (allocatedCash.compareTo(totalCost) < 0) {
+            throw new InsufficientBalanceException("Insufficient allocated cash in portfolio for trade");
         }
 
-        // Deduct from user's global cash balance
-        user.setCashBalance(userCashBalance.subtract(totalCost));
-        userRepository.save(user);
+        // Deduct from portfolio allocated cash
+        portfolio.setAllocatedCash(allocatedCash.subtract(totalCost));
 
         // Update portfolio positions
         Optional<Position> existing = portfolio.getPositions()
@@ -245,14 +242,11 @@ public class PortfolioService implements PortfolioUseCase {
         Transaction transaction = new Transaction(
                 UUID.randomUUID(), portfolioId, TransactionType.BUY,
                 symbol, quantity, price, totalCost, LocalDateTime.now(),
-                user.getCashBalance()
+                portfolio.getAllocatedCash()
         );
 
         transactionRepository.save(transaction);
         portfolio.getTransactions().add(transaction);
-
-        // Implicitly fund the portfolio from global cash for performance tracking
-        portfolio.setCumulativeDeposits(portfolio.getCumulativeDeposits().add(totalCost));
 
         metricRepository.incrementAssetVolume(symbol, quantity.doubleValue());
         updatePerformance(portfolio);
@@ -272,13 +266,6 @@ public class PortfolioService implements PortfolioUseCase {
         }
         BigDecimal totalAmount = price.multiply(quantity);
 
-        // Get user and add to global cash balance
-        User user = userRepository.findById(portfolio.getUserId())
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
-        BigDecimal userCashBalance = user.getCashBalance() != null ? user.getCashBalance() : BigDecimal.ZERO;
-        user.setCashBalance(userCashBalance.add(totalAmount));
-        userRepository.save(user);
-
         // Update portfolio positions
         pos.setQuantity(pos.getQuantity().subtract(quantity));
         // Use transaction price for immediate performance calculation
@@ -291,15 +278,15 @@ public class PortfolioService implements PortfolioUseCase {
         Transaction transaction = new Transaction(
                 UUID.randomUUID(), portfolioId, TransactionType.SELL,
                 symbol, quantity, price, totalAmount, LocalDateTime.now(),
-                user.getCashBalance()
+                portfolio.getAllocatedCash()
         );
 
         transactionRepository.save(transaction);
         portfolio.getTransactions().add(transaction);
 
-        // Implicitly withdraw funds from the portfolio to global cash for performance
-        // tracking
-        portfolio.setCumulativeWithdrawals(portfolio.getCumulativeWithdrawals().add(totalAmount));
+        // Add proceeds to portfolio allocated cash
+        BigDecimal currentAllocated = portfolio.getAllocatedCash() != null ? portfolio.getAllocatedCash() : BigDecimal.ZERO;
+        portfolio.setAllocatedCash(currentAllocated.add(totalAmount));
 
         metricRepository.incrementAssetVolume(symbol, quantity.doubleValue());
         updatePerformance(portfolio);
@@ -309,24 +296,31 @@ public class PortfolioService implements PortfolioUseCase {
 
     @Override
     @Transactional
-    public Portfolio addCash(UUID portfolioId, BigDecimal amount) {
+    public Portfolio assignCash(UUID portfolioId, BigDecimal amount) {
         Portfolio portfolio = getPortfolio(portfolioId);
 
-        // Get user and add to global cash balance
+        // Get user and check global cash balance
         User user = userRepository.findById(portfolio.getUserId())
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
         BigDecimal userCashBalance = user.getCashBalance() != null ? user.getCashBalance() : BigDecimal.ZERO;
 
-        user.setCashBalance(userCashBalance.add(amount));
+        if (userCashBalance.compareTo(amount) < 0) {
+            throw new InsufficientBalanceException("Insufficient cash balance to assign");
+        }
+
+        // Move from user global cash to portfolio allocated cash
+        user.setCashBalance(userCashBalance.subtract(amount));
         userRepository.save(user);
 
-        // Update portfolio cumulative deposits
-        portfolio.setCumulativeDeposits(portfolio.getCumulativeDeposits().add(amount));
+        BigDecimal currentAllocated = portfolio.getAllocatedCash() != null ? portfolio.getAllocatedCash() : BigDecimal.ZERO;
+        BigDecimal currentAssigned = portfolio.getTotalAssigned() != null ? portfolio.getTotalAssigned() : BigDecimal.ZERO;
+        portfolio.setAllocatedCash(currentAllocated.add(amount));
+        portfolio.setTotalAssigned(currentAssigned.add(amount));
 
         Transaction transaction = new Transaction(
                 UUID.randomUUID(), portfolioId, TransactionType.DEPOSIT, "USD",
                 BigDecimal.ONE, amount, amount, LocalDateTime.now(),
-                user.getCashBalance()
+                portfolio.getAllocatedCash()
         );
 
         transactionRepository.save(transaction);
@@ -338,32 +332,37 @@ public class PortfolioService implements PortfolioUseCase {
 
     @Override
     @Transactional
-    public Portfolio withdrawCash(UUID portfolioId, BigDecimal amount) {
+    public Portfolio withdrawAssignedCash(UUID portfolioId, BigDecimal amount) {
         Portfolio portfolio = getPortfolio(portfolioId);
 
-        // Get user and check global cash balance
+        BigDecimal currentAllocated = portfolio.getAllocatedCash() != null ? portfolio.getAllocatedCash() : BigDecimal.ZERO;
+        if (currentAllocated.compareTo(amount) < 0) {
+            throw new InsufficientBalanceException("Insufficient allocated cash in portfolio");
+        }
+
+        // Move from portfolio allocated cash to user global cash
         User user = userRepository.findById(portfolio.getUserId())
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
         BigDecimal userCashBalance = user.getCashBalance() != null ? user.getCashBalance() : BigDecimal.ZERO;
-
-        if (userCashBalance.compareTo(amount) < 0) {
-            throw new InsufficientBalanceException("Insufficient cash balance");
-        }
-
-        // Deduct from user's global cash balance
-        user.setCashBalance(userCashBalance.subtract(amount));
+        user.setCashBalance(userCashBalance.add(amount));
         userRepository.save(user);
 
-        // Update portfolio cumulative withdrawals
-        portfolio.setCumulativeWithdrawals(portfolio.getCumulativeWithdrawals().add(amount));
+        portfolio.setAllocatedCash(currentAllocated.subtract(amount));
+
+        // Track total withdrawn (only increases) - does NOT affect totalAssigned
+        BigDecimal currentWithdrawn = portfolio.getTotalWithdrawn() != null ? portfolio.getTotalWithdrawn() : BigDecimal.ZERO;
+        portfolio.setTotalWithdrawn(currentWithdrawn.add(amount));
 
         Transaction transaction = new Transaction(
                 UUID.randomUUID(), portfolioId, TransactionType.WITHDRAWAL, "USD",
                 BigDecimal.ONE, amount, amount, LocalDateTime.now(),
-                user.getCashBalance()
+                portfolio.getAllocatedCash()
         );
+
         transactionRepository.save(transaction);
         portfolio.getTransactions().add(transaction);
+
+        updatePerformance(portfolio);
         return portfolioRepository.save(portfolio);
     }
 
@@ -414,12 +413,12 @@ public class PortfolioService implements PortfolioUseCase {
                 BigDecimal totalAmount = price.multiply(quantity);
                 
                 user.setCashBalance(user.getCashBalance().add(totalAmount));
-                portfolioEntity.setCumulativeWithdrawals(portfolioEntity.getCumulativeWithdrawals().add(totalAmount));
+                portfolioEntity.setAllocatedCash(portfolioEntity.getAllocatedCash().add(totalAmount));
 
                 TransactionEntity transactionEntity = new TransactionEntity(
                         UUID.randomUUID(), portfolioEntity, TransactionType.SELL,
                         positionEntity.getSymbol(), quantity, price,
-                        LocalDateTime.now(), user.getCashBalance()
+                        LocalDateTime.now(), portfolioEntity.getAllocatedCash()
                 );
                 jpaTransactionRepository.save(transactionEntity);
                 portfolioEntity.getTransactions().add(transactionEntity);
@@ -523,11 +522,13 @@ public class PortfolioService implements PortfolioUseCase {
     }
 
     private void updatePerformance(Portfolio portfolio) {
-        double currentVal = portfolio.getTotalAccountValue().doubleValue();
-        double totalIn = portfolio.getCumulativeDeposits().doubleValue();
-        double totalOut = portfolio.getCumulativeWithdrawals().doubleValue();
-        double profit = (currentVal + totalOut) - totalIn;
-        double roi = (totalIn > 0) ? (profit / totalIn) * 100 : 0;
+        double currentVal = portfolio.getTotalValue().doubleValue();
+        double totalAssigned = portfolio.getTotalAssigned() != null ? portfolio.getTotalAssigned().doubleValue() : 0;
+        double totalWithdrawn = portfolio.getTotalWithdrawn() != null ? portfolio.getTotalWithdrawn().doubleValue() : 0;
+        // ROI = (current value + withdrawn - assigned) / assigned
+        // This reflects trading P&L only, independent of cash movements
+        double profit = currentVal + totalWithdrawn - totalAssigned;
+        double roi = (totalAssigned > 0) ? (profit / totalAssigned) * 100 : 0;
 
         portfolio.setPerformance(roi);
         metricRepository.updatePortfolioPerformance(portfolio.getId().toString(), roi);
@@ -837,12 +838,15 @@ public class PortfolioService implements PortfolioUseCase {
                     fillPrice,
                     totalCost,
                     LocalDateTime.now(),
-                    totalCost.negate()
+                    portfolio.getAllocatedCash()
             );
             portfolio.addTransaction(transaction);
 
-            // Update cumulative deposits for performance tracking (same as buyAsset)
-            portfolio.setCumulativeDeposits(portfolio.getCumulativeDeposits().add(totalCost));
+            // Update allocated cash for performance tracking (same as buyAsset)
+            BigDecimal currentAllocated = portfolio.getAllocatedCash() != null ? portfolio.getAllocatedCash() : BigDecimal.ZERO;
+            portfolio.setAllocatedCash(currentAllocated.subtract(totalCost));
+            BigDecimal currentAssigned = portfolio.getTotalAssigned() != null ? portfolio.getTotalAssigned() : BigDecimal.ZERO;
+            portfolio.setTotalAssigned(currentAssigned.add(totalCost));
 
             portfolioRepository.save(portfolio);
 

@@ -44,8 +44,9 @@ public class PortfolioEntity {
     private String name;
     private String description;
     private UUID userId;
-    private BigDecimal cumulativeDeposits;
-    private BigDecimal cumulativeWithdrawals;
+    private BigDecimal allocatedCash;      // Cash available in this portfolio for trading
+    private BigDecimal totalAssigned;      // Total historically assigned to this portfolio (only increases)
+    private BigDecimal totalWithdrawn;     // Total historically withdrawn from this portfolio (only increases)
     // P2-11: Default performance to 0.0 to avoid null
         private Double performance = 0.0;
     private boolean isPublic;
@@ -55,7 +56,7 @@ public class PortfolioEntity {
     @OneToMany(mappedBy = "portfolio", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
         private List<PositionEntity> positions = new ArrayList<>();
 
-    @OneToMany(mappedBy = "portfolio", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "portfolio", fetch = FetchType.LAZY)
         private List<TransactionEntity> transactions = new ArrayList<>();
 
     @OneToMany(mappedBy = "portfolio", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
@@ -70,10 +71,12 @@ public class PortfolioEntity {
     public void setDescription(String description) { this.description = description; }
     public UUID getUserId() { return userId; }
     public void setUserId(UUID userId) { this.userId = userId; }
-    public BigDecimal getCumulativeDeposits() { return cumulativeDeposits; }
-    public void setCumulativeDeposits(BigDecimal cumulativeDeposits) { this.cumulativeDeposits = cumulativeDeposits; }
-    public BigDecimal getCumulativeWithdrawals() { return cumulativeWithdrawals; }
-    public void setCumulativeWithdrawals(BigDecimal cumulativeWithdrawals) { this.cumulativeWithdrawals = cumulativeWithdrawals; }
+    public BigDecimal getAllocatedCash() { return allocatedCash; }
+    public void setAllocatedCash(BigDecimal allocatedCash) { this.allocatedCash = allocatedCash; }
+    public BigDecimal getTotalAssigned() { return totalAssigned; }
+    public void setTotalAssigned(BigDecimal totalAssigned) { this.totalAssigned = totalAssigned; }
+    public BigDecimal getTotalWithdrawn() { return totalWithdrawn; }
+    public void setTotalWithdrawn(BigDecimal totalWithdrawn) { this.totalWithdrawn = totalWithdrawn; }
     public Double getPerformance() { return performance; }
     public void setPerformance(Double performance) { this.performance = performance; }
     public boolean isPublic() { return isPublic; }
@@ -96,14 +99,15 @@ public class PortfolioEntity {
     
     // Explicit all-args constructor for Lombok compatibility
     public PortfolioEntity(UUID id, String name, String description, UUID userId,
-                           BigDecimal cumulativeDeposits, BigDecimal cumulativeWithdrawals,
+                           BigDecimal allocatedCash, BigDecimal totalAssigned, BigDecimal totalWithdrawn,
                            Double performance, boolean isPublic, String shareSlug) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.userId = userId;
-        this.cumulativeDeposits = cumulativeDeposits;
-        this.cumulativeWithdrawals = cumulativeWithdrawals;
+        this.allocatedCash = allocatedCash;
+        this.totalAssigned = totalAssigned;
+        this.totalWithdrawn = totalWithdrawn;
         this.performance = performance;
         this.isPublic = isPublic;
         this.shareSlug = shareSlug;

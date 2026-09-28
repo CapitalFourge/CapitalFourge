@@ -89,8 +89,9 @@ class PortfolioPersistenceAdapterTest {
             List.of(position),
             List.of(transaction),
             List.of(),
-            new BigDecimal("1500"),
-            BigDecimal.ZERO,
+            new BigDecimal("1500"),  // allocatedCash
+            new BigDecimal("1500"),  // totalAssigned
+            BigDecimal.ZERO,         // totalWithdrawn
             10.0,
             false,
             "test-portfolio-abc123"
@@ -100,7 +101,7 @@ class PortfolioPersistenceAdapterTest {
         when(mapper.toEntity(any(Portfolio.class))).thenAnswer(invocation -> {
             Portfolio p = invocation.getArgument(0);
             PortfolioEntity e = new PortfolioEntity(p.getId(), p.getName(), p.getDescription(), p.getUserId(),
-                p.getCumulativeDeposits(), p.getCumulativeWithdrawals(), p.getPerformance(), p.isPublic(), p.getShareSlug());
+                p.getAllocatedCash(), p.getTotalAssigned(), p.getTotalWithdrawn(), p.getPerformance(), p.isPublic(), p.getShareSlug());
             if (p.getPositions() != null) {
                 List<PositionEntity> pos = p.getPositions().stream()
                     .map(domainPos -> new PositionEntity(domainPos.getId(), e, domainPos.getSymbol(),
@@ -132,7 +133,7 @@ class PortfolioPersistenceAdapterTest {
                 .toList() : List.of();
             Portfolio p = new Portfolio(e.getId(), e.getName(), e.getDescription(), e.getUserId(),
                 positions, transactions, List.of(),
-                e.getCumulativeDeposits(), e.getCumulativeWithdrawals(), e.getPerformance(), e.isPublic(), e.getShareSlug());
+                e.getAllocatedCash(), e.getTotalAssigned(), e.getTotalWithdrawn(), e.getPerformance(), e.isPublic(), e.getShareSlug());
             return p;
         });
     }
@@ -142,7 +143,7 @@ class PortfolioPersistenceAdapterTest {
     void save_AndFindById_ShouldMaintainAllFields() {
         // Given
         PortfolioEntity entity = new PortfolioEntity(portfolioId, "Test Portfolio", "Test Description", userId,
-            new BigDecimal("1500"), BigDecimal.ZERO, 10.0, false, "test-portfolio-abc123");
+            new BigDecimal("1500"), new BigDecimal("1500"), BigDecimal.ZERO, 10.0, false, "test-portfolio-abc123");
 
         PositionEntity positionEntity = new PositionEntity(
             positionId,
@@ -175,27 +176,27 @@ class PortfolioPersistenceAdapterTest {
         Portfolio saved = adapter.save(portfolio);
 
         // Then - Save
-        assertEquals(portfolioId, saved.getId());
-        assertEquals("Test Portfolio", saved.getName());
-        assertEquals(userId, saved.getUserId());
-        assertEquals(new BigDecimal("1500"), saved.getCumulativeDeposits());
-        assertEquals(10.0, saved.getPerformance(), 0.01);
+                assertEquals(portfolioId, saved.getId());
+                assertEquals("Test Portfolio", saved.getName());
+                assertEquals(userId, saved.getUserId());
+                assertEquals(new BigDecimal("1500"), saved.getAllocatedCash());
+                assertEquals(10.0, saved.getPerformance(), 0.01);
 
-        // When - Find by ID
-        Optional<Portfolio> found = adapter.findById(portfolioId);
+                // When - Find by ID
+                Optional<Portfolio> found = adapter.findById(portfolioId);
 
-        // Then - Find by ID
-        assertTrue(found.isPresent());
-        Portfolio result = found.get();
-        
-        // Verify all fields persisted correctly
-        assertEquals(portfolioId, result.getId());
-        assertEquals("Test Portfolio", result.getName());
-        assertEquals("Test Description", result.getDescription());
-        assertEquals(userId, result.getUserId());
-        assertEquals(new BigDecimal("1500"), result.getCumulativeDeposits());
-        assertEquals(BigDecimal.ZERO, result.getCumulativeWithdrawals());
-        assertEquals(10.0, result.getPerformance(), 0.01);
+                // Then - Find by ID
+                assertTrue(found.isPresent());
+                Portfolio result = found.get();
+
+                // Verify all fields persisted correctly
+                assertEquals(portfolioId, result.getId());
+                assertEquals("Test Portfolio", result.getName());
+                assertEquals("Test Description", result.getDescription());
+                assertEquals(userId, result.getUserId());
+                assertEquals(new BigDecimal("1500"), result.getAllocatedCash());
+                assertEquals(new BigDecimal("1500"), result.getTotalAssigned());
+                assertEquals(10.0, result.getPerformance(), 0.01);
         assertFalse(result.isPublic());
         assertEquals("test-portfolio-abc123", result.getShareSlug());
         
@@ -234,7 +235,7 @@ class PortfolioPersistenceAdapterTest {
     void findByUserId_ShouldReturnUserPortfolios() {
         // Given
         PortfolioEntity entity = new PortfolioEntity(portfolioId, "Test Portfolio", null, userId,
-            BigDecimal.ZERO, BigDecimal.ZERO, 0.0, false, null);
+            new BigDecimal("1500"), new BigDecimal("1500"), BigDecimal.ZERO, 0.0, false, null);
 
         Page<PortfolioEntity> page = new PageImpl<>(List.of(entity));
         when(jpaRepository.findByUserId(eq(userId), any(Pageable.class))).thenReturn(page);
@@ -253,7 +254,7 @@ class PortfolioPersistenceAdapterTest {
         // Given
         String slug = "test-portfolio-abc123";
         PortfolioEntity entity = new PortfolioEntity(portfolioId, "Test Portfolio", null, userId,
-            BigDecimal.ZERO, BigDecimal.ZERO, 0.0, false, slug);
+            new BigDecimal("1500"), new BigDecimal("1500"), BigDecimal.ZERO, 0.0, false, slug);
 
         when(jpaRepository.findByShareSlug(slug)).thenReturn(Optional.of(entity));
 
@@ -269,10 +270,10 @@ class PortfolioPersistenceAdapterTest {
     void findPublicPortfolios_ShouldReturnSortedByPerformance() {
         // Given
         PortfolioEntity p1 = new PortfolioEntity(UUID.randomUUID(), "Portfolio 1", null, userId,
-            BigDecimal.ZERO, BigDecimal.ZERO, 15.0, true, null);
+            new BigDecimal("1500"), new BigDecimal("1500"), BigDecimal.ZERO, 15.0, true, null);
 
         PortfolioEntity p2 = new PortfolioEntity(UUID.randomUUID(), "Portfolio 2", null, userId,
-            BigDecimal.ZERO, BigDecimal.ZERO, 10.0, true, null);
+            new BigDecimal("1500"), new BigDecimal("1500"), BigDecimal.ZERO, 10.0, true, null);
 
         Page<PortfolioEntity> page = new PageImpl<>(List.of(p1, p2));
         when(jpaRepository.findByIsPublicTrueOrderByPerformanceDesc(any(Pageable.class))).thenReturn(page);
@@ -300,11 +301,11 @@ class PortfolioPersistenceAdapterTest {
         // Given
         UUID id1 = UUID.randomUUID();
         UUID id2 = UUID.randomUUID();
-        
+
         PortfolioEntity e1 = new PortfolioEntity(id1, "P1", null, userId,
-            BigDecimal.ZERO, BigDecimal.ZERO, 0.0, false, null);
+            new BigDecimal("1500"), new BigDecimal("1500"), BigDecimal.ZERO, 0.0, false, null);
         PortfolioEntity e2 = new PortfolioEntity(id2, "P2", null, userId,
-            BigDecimal.ZERO, BigDecimal.ZERO, 0.0, false, null);
+            new BigDecimal("1500"), new BigDecimal("1500"), BigDecimal.ZERO, 0.0, false, null);
 
         when(jpaRepository.findByIds(List.of(id1, id2))).thenReturn(List.of(e1, e2));
 

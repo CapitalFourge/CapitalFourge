@@ -5,31 +5,23 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useMutation, gql } from "@apollo/client";
-import { Banknote } from "lucide-react";
+import { Banknote, Wallet } from "lucide-react";
 import { toast } from "sonner";
 
-const ASSIGN_CASH_MUTATION = gql`
-  mutation AssignCash($portfolioId: ID!, $amount: Float!) {
-    assignCash(portfolioId: $portfolioId, amount: $amount) {
+const DEPOSIT_MUTATION = gql`
+  mutation Deposit($amount: Float!) {
+    deposit(amount: $amount) {
       id
-      allocatedCash
-      totalAssigned
-      totalWithdrawn
-      performance
-      totalValue
+      cashBalance
     }
   }
 `;
 
-const WITHDRAW_ASSIGNED_CASH_MUTATION = gql`
-  mutation WithdrawAssignedCash($portfolioId: ID!, $amount: Float!) {
-    withdrawAssignedCash(portfolioId: $portfolioId, amount: $amount) {
+const WITHDRAW_MUTATION = gql`
+  mutation Withdraw($amount: Float!) {
+    withdraw(amount: $amount) {
       id
-      allocatedCash
-      totalAssigned
-      totalWithdrawn
-      performance
-      totalValue
+      cashBalance
     }
   }
 `;
@@ -120,20 +112,18 @@ const DASHBOARD_QUERY = gql`
   }
 `;
 
-export function CashActionDialog({
+export function GlobalCashActionDialog({
     initialType = "deposit",
     children,
-    portfolioId,
 }: {
     initialType?: "deposit" | "withdraw";
     children?: React.ReactNode;
-    portfolioId: string;
 }) {
     const [open, setOpen] = useState(false);
     const [type, setType] = useState<"deposit" | "withdraw">(initialType);
     const [amount, setAmount] = useState("");
 
-    const [assignCash, { loading: assignLoading }] = useMutation(ASSIGN_CASH_MUTATION, {
+    const [deposit, { loading: depositLoading }] = useMutation(DEPOSIT_MUTATION, {
         refetchQueries: [
           { query: ME_QUERY },
           { query: PORTFOLIOS_QUERY },
@@ -141,14 +131,14 @@ export function CashActionDialog({
         ],
         awaitRefetchQueries: true,
         onCompleted: () => {
-            toast.success("¡Fondos asignados al portafolio con éxito!");
+            toast.success("¡Recarga global realizada con éxito!");
             setOpen(false);
             setAmount("");
         },
-        onError: (err) => toast.error(`Error al asignar fondos: ${err.message}`)
+        onError: (err) => toast.error(`Error en recarga: ${err.message}`)
     });
 
-    const [withdrawAssignedCash, { loading: withdrawLoading }] = useMutation(WITHDRAW_ASSIGNED_CASH_MUTATION, {
+    const [withdraw, { loading: withdrawLoading }] = useMutation(WITHDRAW_MUTATION, {
         refetchQueries: [
           { query: ME_QUERY },
           { query: PORTFOLIOS_QUERY },
@@ -156,14 +146,14 @@ export function CashActionDialog({
         ],
         awaitRefetchQueries: true,
         onCompleted: () => {
-            toast.success("¡Fondos retirados del portafolio con éxito!");
+            toast.success("¡Retiro global realizado con éxito!");
             setOpen(false);
             setAmount("");
         },
-        onError: (err) => toast.error(`Error al retirar fondos: ${err.message}`)
+        onError: (err) => toast.error(`Error en retiro: ${err.message}`)
     });
 
-    const loading = assignLoading || withdrawLoading;
+    const loading = depositLoading || withdrawLoading;
 
     const handleAction = async () => {
         if (!amount || Number(amount) <= 0) {
@@ -172,14 +162,13 @@ export function CashActionDialog({
         }
 
         const variables = {
-            portfolioId,
             amount: parseFloat(amount)
         };
 
         if (type === "deposit") {
-            await assignCash({ variables });
+            await deposit({ variables });
         } else {
-            await withdrawAssignedCash({ variables });
+            await withdraw({ variables });
         }
     };
 
@@ -190,14 +179,14 @@ export function CashActionDialog({
                     children
                 ) : (
                     <Button variant="outline" className="h-16 rounded-2xl border-white/10 text-white hover:bg-white/5 gap-2 uppercase font-bold">
-                        <Banknote className="w-4 h-4" /> {initialType === "deposit" ? "ASIGNAR" : "RETIRAR"}
+                        <Banknote className="w-4 h-4" /> {initialType === "deposit" ? "RECARGAR" : "RETIRAR"}
                     </Button>
                 )}
                 </DialogTrigger>
             <DialogContent className="glass border-none text-white sm:max-w-md">
                 <DialogHeader>
                     <DialogTitle className="text-2xl font-bold tracking-tighter uppercase italic">
-                        Gestionar Fondos del Portafolio
+                        Billetera Global
                     </DialogTitle>
                 </DialogHeader>
 
@@ -206,7 +195,7 @@ export function CashActionDialog({
                         onClick={() => setType("deposit")}
                         className={`flex-1 py-2 rounded-md transition-all text-sm font-bold ${type === "deposit" ? "bg-white text-black" : "text-slate-400 hover:text-white"}`}
                     >
-                        ASIGNAR
+                        RECARGAR
                     </button>
                     <button
                         onClick={() => setType("withdraw")}
@@ -218,7 +207,7 @@ export function CashActionDialog({
 
                 <div className="space-y-4 py-4">
                     <p className="text-[10px] text-slate-500 uppercase tracking-widest text-center mb-2">
-                        Asigna o retira fondos de este portafolio desde tu saldo global
+                        Los fondos se gestionan a nivel de cuenta global
                     </p>
                     <div className="space-y-2">
                         <label className="text-xs uppercase tracking-[0.2em] text-slate-500">Monto (USD)</label>
@@ -238,7 +227,7 @@ export function CashActionDialog({
                         disabled={loading}
                         className="w-full bg-white text-black hover:bg-slate-200 font-bold uppercase tracking-widest"
                     >
-                        {loading ? "PROCESANDO..." : `CONFIRMAR ${type === "deposit" ? "ASIGNACIÓN" : "RETIRO"}`}
+                        {loading ? "PROCESANDO..." : `CONFIRMAR ${type === "deposit" ? "RECARGA" : "RETIRO"}`}
                     </Button>
                 </DialogFooter>
             </DialogContent>

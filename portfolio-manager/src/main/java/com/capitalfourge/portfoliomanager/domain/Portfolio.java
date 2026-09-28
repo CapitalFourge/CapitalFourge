@@ -20,16 +20,21 @@ public class Portfolio {
     private List<Position> positions;
     private List<Transaction> transactions;
     private List<Order> orders;
-    private BigDecimal cumulativeDeposits;
-    private BigDecimal cumulativeWithdrawals;
+    private BigDecimal allocatedCash;      // Cash available in this portfolio for trading
+    private BigDecimal totalAssigned;      // Total historically assigned to this portfolio (only increases)
+    private BigDecimal totalWithdrawn;     // Total historically withdrawn from this portfolio (only increases)
         private Double performance = 0.0;
     private boolean isPublic;
     private String shareSlug;
 
-    public BigDecimal getTotalAccountValue() {
+    public BigDecimal getPositionsValue() {
         return positions == null ? BigDecimal.ZERO
                 : positions.stream().map(Position::getTotalValue)
                         .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    public BigDecimal getTotalValue() {
+        return getPositionsValue().add(allocatedCash != null ? allocatedCash : BigDecimal.ZERO);
     }
     
     // Explicit getters/setters for Lombok compatibility
@@ -47,10 +52,12 @@ public class Portfolio {
     public void setTransactions(List<Transaction> transactions) { this.transactions = transactions; }
     public List<Order> getOrders() { return orders; }
     public void setOrders(List<Order> orders) { this.orders = orders; }
-    public BigDecimal getCumulativeDeposits() { return cumulativeDeposits; }
-    public void setCumulativeDeposits(BigDecimal cumulativeDeposits) { this.cumulativeDeposits = cumulativeDeposits; }
-    public BigDecimal getCumulativeWithdrawals() { return cumulativeWithdrawals; }
-    public void setCumulativeWithdrawals(BigDecimal cumulativeWithdrawals) { this.cumulativeWithdrawals = cumulativeWithdrawals; }
+    public BigDecimal getAllocatedCash() { return allocatedCash; }
+    public void setAllocatedCash(BigDecimal allocatedCash) { this.allocatedCash = allocatedCash; }
+    public BigDecimal getTotalAssigned() { return totalAssigned; }
+    public void setTotalAssigned(BigDecimal totalAssigned) { this.totalAssigned = totalAssigned; }
+    public BigDecimal getTotalWithdrawn() { return totalWithdrawn; }
+    public void setTotalWithdrawn(BigDecimal totalWithdrawn) { this.totalWithdrawn = totalWithdrawn; }
     public Double getPerformance() { return performance; }
     public void setPerformance(Double performance) { this.performance = performance; }
     public boolean getIsPublic() { return isPublic; }
@@ -83,22 +90,23 @@ public class Portfolio {
         }
 
         // Explicit all-args constructor for Lombok compatibility
-    public Portfolio(UUID id, String name, String description, UUID userId,
-                         List<Position> positions, List<Transaction> transactions,
-                         List<Order> orders,
-                         BigDecimal cumulativeDeposits, BigDecimal cumulativeWithdrawals,
-                         Double performance, boolean isPublic, String shareSlug) {
-            this.id = id;
-            this.name = name;
-            this.description = description;
-            this.userId = userId;
-            this.positions = positions;
-            this.transactions = transactions;
-            this.orders = orders;
-            this.cumulativeDeposits = cumulativeDeposits;
-            this.cumulativeWithdrawals = cumulativeWithdrawals;
-            this.performance = performance;
-            this.isPublic = isPublic;
-            this.shareSlug = shareSlug;
-        }
+            public Portfolio(UUID id, String name, String description, UUID userId,
+                                 List<Position> positions, List<Transaction> transactions,
+                                 List<Order> orders,
+                                 BigDecimal allocatedCash, BigDecimal totalAssigned, BigDecimal totalWithdrawn,
+                                 Double performance, boolean isPublic, String shareSlug) {
+                this.id = id;
+                this.name = name;
+                this.description = description;
+                this.userId = userId;
+                this.positions = positions;
+                this.transactions = transactions;
+                this.orders = orders;
+                this.allocatedCash = allocatedCash;
+                this.totalAssigned = totalAssigned;
+                this.totalWithdrawn = totalWithdrawn;
+                this.performance = performance;
+                this.isPublic = isPublic;
+                this.shareSlug = shareSlug;
+            }
     }

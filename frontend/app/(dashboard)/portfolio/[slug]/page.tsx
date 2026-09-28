@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { gql, useQuery } from "@apollo/client";
-import { Copy, Globe, History, List, PieChart, Share2, ShoppingCart } from "lucide-react";
+import { Copy, Globe, History, List, PieChart, RefreshCcw, Share2, ShoppingCart, Wallet } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { useMutation } from "@apollo/client";
 import { toast } from "sonner";
 
+import { CashActionDialog } from "@/components/trading/cash-action-dialog";
 import { OrdersDialog } from "@/components/trading/orders-dialog";
 import { PositionActionDialog } from "@/components/trading/position-action-dialog";
 import { Badge } from "@/components/ui/badge";
@@ -97,6 +98,10 @@ const PORTFOLIO_DETAIL_QUERY = gql`
       isPublic
       shareSlug
       userId
+      allocatedCash
+      totalAssigned
+      totalWithdrawn
+      totalValue
       positions {
         id
         symbol
@@ -152,6 +157,10 @@ interface Portfolio {
   isPublic: boolean;
   shareSlug?: string;
   userId: string;
+  allocatedCash?: number;
+  totalAssigned?: number;
+  totalWithdrawn?: number;
+  totalValue?: number;
   positions: Position[];
   transactions: Transaction[];
 }
@@ -215,13 +224,13 @@ export default function PortfolioDetailPage() {
 
   const isOwner = data?.me?.id === portfolio.userId;
 
-  const positionsUsdValue =
-    portfolio?.positions?.reduce((total: number, position: Position) => {
-      return total + position.quantity * (position.currentPrice || 0);
-    }, 0) || 0;
+  // Use backend-provided fields for accurate portfolio metrics
+  const allocatedCash = portfolio?.allocatedCash ?? 0;
+  const totalAssigned = portfolio?.totalAssigned ?? 0;
+  const totalValue = portfolio?.totalValue ?? 0;
+  const positionsUsdValue = totalValue > 0 ? totalValue - allocatedCash : 0;
 
-  const totalPortfolioValue = userCashBalance + userLockedBalance + positionsUsdValue;
-  // Use backend performance (based on deposits/withdrawals) consistently
+  // Use backend performance (based on totalAssigned vs totalValue)
   const totalPerformance = portfolio?.performance ?? 0;
   return (
     <div className="space-y-6">
@@ -266,6 +275,20 @@ export default function PortfolioDetailPage() {
              </Button>
           )}
 
+          <CashActionDialog portfolioId={portfolio.id} initialType="deposit">
+            <Button className="h-11 rounded-2xl border border-emerald-300/30 bg-emerald-300/8 px-5 text-sm font-semibold text-emerald-200 shadow-[0_0_0_1px_rgba(110,231,183,0.08)] hover:bg-emerald-400/14 hover:text-emerald-100">
+              <RefreshCcw className="h-4 w-4" />
+              Asignar fondos
+            </Button>
+          </CashActionDialog>
+
+          <CashActionDialog portfolioId={portfolio.id} initialType="withdraw">
+            <Button className="h-11 rounded-2xl border border-rose-300/30 bg-rose-300/8 px-5 text-sm font-semibold text-rose-200 shadow-[0_0_0_1px_rgba(251,113,133,0.08)] hover:bg-rose-400/14 hover:text-rose-100">
+              <Wallet className="h-4 w-4" />
+              Retirar fondos
+            </Button>
+          </CashActionDialog>
+
           <Button
             onClick={() => setOrdersDialogOpen(true)}
             variant="outline"
@@ -287,7 +310,7 @@ export default function PortfolioDetailPage() {
         <div className="metric-tile">
           <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Valor total</p>
           <p className="mt-4 text-3xl font-semibold text-white">
-            {formatCurrency(totalPortfolioValue)}
+            {formatCurrency(totalValue)}
           </p>
         </div>
         <div className="metric-tile">

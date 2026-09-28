@@ -4,8 +4,8 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useMutation, gql } from "@apollo/client";
-import { Banknote } from "lucide-react";
+import { useMutation, gql, useQuery } from "@apollo/client";
+import { Banknote, AlertCircle, Info } from "lucide-react";
 import { toast } from "sonner";
 
 const ASSIGN_CASH_MUTATION = gql`
@@ -133,6 +133,16 @@ export function CashActionDialog({
     const [type, setType] = useState<"deposit" | "withdraw">(initialType);
     const [amount, setAmount] = useState("");
 
+    // Fetch user's global cash balance
+    const { data: meData, refetch: refetchMe } = useQuery(ME_QUERY);
+    // Fetch portfolio data including allocatedCash
+    const { data: portfoliosData, refetch: refetchPortfolios } = useQuery(PORTFOLIOS_QUERY);
+
+    const globalCashBalance = meData?.me?.cashBalance ?? 0;
+    const portfolio = portfoliosData?.portfolios?.find((p: any) => p.id === portfolioId);
+    const availableToWithdraw = portfolio?.allocatedCash ?? 0;
+    const availableToAssign = globalCashBalance;
+
     const [assignCash, { loading: assignLoading }] = useMutation(ASSIGN_CASH_MUTATION, {
         refetchQueries: [
           { query: ME_QUERY },
@@ -168,6 +178,12 @@ export function CashActionDialog({
     const handleAction = async () => {
         if (!amount || Number(amount) <= 0) {
             toast.error("Por favor, ingresa un monto válido.");
+            return;
+        }
+
+        const maxAllowed = type === "deposit" ? availableToAssign : availableToWithdraw;
+        if (Number(amount) > maxAllowed) {
+            toast.error(`${type === "deposit" ? "Saldo global insuficiente" : "Fondos disponibles insuficientes en portafolio"}. Máx: $${maxAllowed.toFixed(2)}`);
             return;
         }
 
@@ -220,6 +236,29 @@ export function CashActionDialog({
                     <p className="text-[10px] text-slate-500 uppercase tracking-widest text-center mb-2">
                         Asigna o retira fondos de este portafolio desde tu saldo global
                     </p>
+                    
+                    {/* Available balance info */}
+                    <div className="grid grid-cols-2 gap-3 mb-2">
+                        <div className="bg-white/5 p-3 rounded-lg border border-white/10">
+                            <div className="flex items-center gap-1 text-xs text-slate-400 mb-1">
+                                <Info className="w-3 h-3" />
+                                <span>Disponible para {type === "deposit" ? "asignar" : "retirar"}</span>
+                            </div>
+                            <div className="text-lg font-bold text-white">
+                                ${type === "deposit" ? availableToAssign : availableToWithdraw}.toFixed(2)
+                            </div>
+                        </div>
+                        <div className="bg-white/5 p-3 rounded-lg border border-white/10">
+                            <div className="flex items-center gap-1 text-xs text-slate-400 mb-1">
+                                <Info className="w-3 h-3" />
+                                <span>{type === "deposit" ? "Saldo global" : "Caja en portafolio"}</span>
+                            </div>
+                            <div className="text-lg font-bold text-white">
+                                ${type === "deposit" ? globalCashBalance : availableToWithdraw}.toFixed(2)
+                            </div>
+                        </div>
+                    </div>
+
                     <div className="space-y-2">
                         <label className="text-xs uppercase tracking-[0.2em] text-slate-500">Monto (USD)</label>
                         <Input
@@ -228,7 +267,15 @@ export function CashActionDialog({
                             value={amount}
                             onChange={(e) => setAmount(e.target.value)}
                             className="bg-black/40 border-white/10 text-white placeholder:text-slate-700"
+                            max={type === "deposit" ? availableToAssign : availableToWithdraw}
+                            step="0.01"
                         />
+                        {Number(amount) > (type === "deposit" ? availableToAssign : availableToWithdraw) && (
+                            <p className="text-xs text-red-400 flex items-center gap-1">
+                                <AlertCircle className="w-3 h-3" />
+                                Excede el máximo disponible (${(type === "deposit" ? availableToAssign : availableToWithdraw).toFixed(2)})
+                            </p>
+                        )}
                     </div>
                 </div>
 

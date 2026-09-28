@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { gql, useMutation, useQuery } from "@apollo/client";
-import { ShoppingCart, TrendingDown } from "lucide-react";
+import { ShoppingCart, TrendingDown, Wallet } from "lucide-react";
 import { toast } from "sonner";
 
 import { SymbolAutocomplete } from "@/components/trading/symbol-autocomplete";
@@ -96,6 +96,7 @@ const PORTFOLIOS_QUERY = gql`
       name
       performance
       shareSlug
+      allocatedCash
       positions {
         id
         symbol
@@ -167,6 +168,7 @@ interface Position {
 interface Portfolio {
   id: string;
   name: string;
+  allocatedCash?: number;
   positions: Position[];
 }
 
@@ -474,6 +476,11 @@ export function TradeDialog({
                   </option>
                 ))}
               </select>
+              {/* Show available cash for selected portfolio */}
+              <p className="text-[11px] text-slate-500 flex items-center gap-1">
+                <Wallet className="h-3 w-3" />
+                Caja disponible en este portafolio: ${portfolios.find(p => p.id === portfolioId)?.allocatedCash?.toFixed(2) ?? '0.00'}
+              </p>
             </div>
 
             <div className="space-y-2">

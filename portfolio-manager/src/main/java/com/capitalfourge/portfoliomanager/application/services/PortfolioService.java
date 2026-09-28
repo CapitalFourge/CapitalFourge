@@ -647,30 +647,29 @@ public class PortfolioService implements PortfolioUseCase {
                 throw new InvalidOrderParametersException("USD amount must be positive");
             }
 
-            // Calculate total amount to lock (for BUY_LIMIT)
-            BigDecimal lockAmount = BigDecimal.ZERO;
-            if (type == OrderType.BUY_LIMIT) {
-                lockAmount = targetPrice.multiply(finalQuantity);
-            }
-
-            // Verify user has enough cash balance to lock
-            User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new UserNotFoundException("User not found"));
-            BigDecimal userCashBalance = user.getCashBalance() != null ? user.getCashBalance() : BigDecimal.ZERO;
-            BigDecimal userLockedBalance = user.getLockedBalance() != null ? user.getLockedBalance() : BigDecimal.ZERO;
-            BigDecimal availableBalance = userCashBalance.subtract(userLockedBalance);
-
-            if (availableBalance.compareTo(lockAmount) < 0) {
-                throw new InsufficientBalanceException("Insufficient available balance for limit order");
-            }
-
-            // Lock the balance
-            user.setLockedBalance(userLockedBalance.add(lockAmount));
-            userRepository.save(user);
-
-            // Fetch portfolio for name
+            // Verify PORTFOLIO has enough allocated cash to lock (for BUY_LIMIT)
             Portfolio portfolio = portfolioRepository.findById(portfolioId)
                     .orElseThrow(() -> new PortfolioNotFoundException("Portfolio not found"));
+            BigDecimal portfolioAllocatedCash = portfolio.getAllocatedCash() != null ? portfolio.getAllocatedCash() : BigDecimal.ZERO;
+
+            if (type == OrderType.BUY_LIMIT) {
+                // Calculate lock amount based on targetPrice * quantity
+                BigDecimal lockAmount = BigDecimal.ZERO;
+                if (finalQuantity != null) {
+                    lockAmount = targetPrice.multiply(finalQuantity);
+                } else if (finalUsdAmount != null) {
+                    // If quantity calculated from USD, lock the USD amount
+                    lockAmount = finalUsdAmount;
+                }
+                
+                if (portfolioAllocatedCash.compareTo(lockAmount) < 0) {
+                    throw new InsufficientBalanceException("Insufficient allocated cash in portfolio for limit order");
+                }
+                
+                // Lock the balance in portfolio
+                portfolio.setAllocatedCash(portfolioAllocatedCash.subtract(lockAmount));
+                portfolioRepository.save(portfolio);
+            }
 
             // Calculate quantity from USD if needed
             if (finalQuantity == null) {
@@ -776,27 +775,23 @@ public class PortfolioService implements PortfolioUseCase {
                 throw new InvalidOrderStateException("Only BUY_LIMIT orders can be filled by worker");
             }
 
-            // Always fetch the user who owns the order to update their balances
-            User user = userRepository.findById(order.getUserId())
-                    .orElseThrow(() -> new UserNotFoundException("User not found"));
-
-            // Release locked balance (targetPrice * quantity)
-            BigDecimal lockAmount = order.getTargetPrice().multiply(order.getQuantity());
-            BigDecimal userLockedBalance = user.getLockedBalance() != null ? user.getLockedBalance() : BigDecimal.ZERO;
-            user.setLockedBalance(userLockedBalance.subtract(lockAmount));
-
-            // Execute the buy at fillPrice (use cash balance)
-            BigDecimal totalCost = fillPrice.multiply(order.getQuantity());
-            BigDecimal userCashBalance = user.getCashBalance() != null ? user.getCashBalance() : BigDecimal.ZERO;
-            if (userCashBalance.compareTo(totalCost) < 0) {
-                throw new InsufficientBalanceException("Insufficient cash balance to fill order");
-            }
-            user.setCashBalance(userCashBalance.subtract(totalCost));
-            userRepository.save(user);
-
-            // Create/update position
+            // Release locked balance from PORTFOLIO (targetPrice * quantity was locked at creation)
             Portfolio portfolio = portfolioRepository.findById(order.getPortfolioId())
                     .orElseThrow(() -> new PortfolioNotFoundException("Portfolio not found"));
+            BigDecimal lockAmount = order.getTargetPrice().multiply(order.getQuantity());
+            BigDecimal portfolioAllocatedCash = portfolio.getAllocatedCash() != null ? portfolio.getAllocatedCash() : BigDecimal.ZERO;
+            // Return the locked amount back to portfolio allocated cash
+            portfolio.setAllocatedCash(portfolioAllocatedCash.add(lockAmount));
+            portfolioRepository.save(portfolio);
+
+            // Execute the buy at fillPrice using portfolio allocated cash
+            BigDecimal totalCost = fillPrice.multiply(order.getQuantity());
+            BigDecimal currentAllocated = portfolio.getAllocatedCash() != null ? portfolio.getAllocatedCash() : BigDecimal.ZERO;
+            if (currentAllocated.compareTo(totalCost) < 0) {
+                throw new InsufficientBalanceException("Insufficient allocated cash in portfolio to fill order");
+            }
+            portfolio.setAllocatedCash(currentAllocated.subtract(totalCost));
+            portfolioRepository.save(portfolio);
 
             boolean positionExists = false;
             if (portfolio.getPositions() != null) {
@@ -843,7 +838,6 @@ public class PortfolioService implements PortfolioUseCase {
             portfolio.addTransaction(transaction);
 
             // Update allocated cash for performance tracking (same as buyAsset)
-            BigDecimal currentAllocated = portfolio.getAllocatedCash() != null ? portfolio.getAllocatedCash() : BigDecimal.ZERO;
             portfolio.setAllocatedCash(currentAllocated.subtract(totalCost));
             BigDecimal currentAssigned = portfolio.getTotalAssigned() != null ? portfolio.getTotalAssigned() : BigDecimal.ZERO;
             portfolio.setTotalAssigned(currentAssigned.add(totalCost));
@@ -877,16 +871,15 @@ public class PortfolioService implements PortfolioUseCase {
                 throw new InvalidOrderStateException("Only PENDING orders can be expired");
             }
 
-            // Always fetch the user who owns the order to update their balances
-            User user = userRepository.findById(order.getUserId())
-                    .orElseThrow(() -> new UserNotFoundException("User not found"));
-
-            // Release locked balance (for BUY_LIMIT)
+            // Release locked balance from PORTFOLIO (for BUY_LIMIT)
             if (order.getType() == OrderType.BUY_LIMIT) {
+                Portfolio portfolio = portfolioRepository.findById(order.getPortfolioId())
+                        .orElseThrow(() -> new PortfolioNotFoundException("Portfolio not found"));
                 BigDecimal lockAmount = order.getTargetPrice().multiply(order.getQuantity());
-                BigDecimal userLockedBalance = user.getLockedBalance() != null ? user.getLockedBalance() : BigDecimal.ZERO;
-                user.setLockedBalance(userLockedBalance.subtract(lockAmount));
-                userRepository.save(user);
+                BigDecimal portfolioAllocatedCash = portfolio.getAllocatedCash() != null ? portfolio.getAllocatedCash() : BigDecimal.ZERO;
+                // Return the locked amount back to portfolio allocated cash
+                portfolio.setAllocatedCash(portfolioAllocatedCash.add(lockAmount));
+                portfolioRepository.save(portfolio);
             }
 
             // Update order status

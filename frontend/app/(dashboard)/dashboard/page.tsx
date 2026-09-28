@@ -272,7 +272,7 @@ export default function DashboardPage() {
     <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
       <motion.section variants={item} className="panel overflow-hidden p-6 sm:p-7">
         <div className="space-y-6">
-          <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+          <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
             <div className="max-w-3xl">
               <p className="eyebrow">Resumen ejecutivo</p>
               <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] text-white sm:text-5xl">
@@ -283,7 +283,7 @@ export default function DashboardPage() {
               </p>
             </div>
 
-            <div className="flex flex-col items-stretch gap-3 xl:items-end">
+            <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:gap-4 w-full xl:w-auto">
               <div className="flex flex-wrap items-center gap-3">
                 <GlobalCashActionDialog initialType="deposit">
                   <Button className="h-11 rounded-full border border-emerald-300/30 bg-emerald-300/8 px-5 text-sm font-semibold text-emerald-200 shadow-[0_0_0_1px_rgba(110,231,183,0.08)] hover:bg-emerald-400/14 hover:text-emerald-100">
@@ -299,12 +299,12 @@ export default function DashboardPage() {
                 </GlobalCashActionDialog>
               </div>
 
-              <div className="flex items-center gap-2 self-end">
+              <div className="flex items-center gap-3">
                 <InfoTooltip
                   title="Billetera global"
                   description="Tu saldo de efectivo disponible (no asignado a portafolios). 'Recargar cuenta' agrega dinero de prueba. 'Retirar de cuenta' saca dinero del sistema. Para invertir, usa 'Asignar fondos' dentro de cada portafolio."
                 />
-                <div className="panel-muted flex items-center gap-3 px-4 py-3">
+                <div className="panel-muted flex items-center gap-3 px-4 py-3 whitespace-nowrap">
                   <span className="status-dot" />
                   <div>
                     <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Sistema</p>

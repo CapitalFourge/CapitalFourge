@@ -170,6 +170,7 @@ interface Portfolio {
   id: string;
   name: string;
   allocatedCash?: number;
+  lockedCash?: number;
   positions: Position[];
 }
 

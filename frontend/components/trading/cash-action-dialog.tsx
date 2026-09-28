@@ -52,6 +52,7 @@ const PORTFOLIOS_QUERY = gql`
       performance
       shareSlug
       allocatedCash
+      lockedCash
       totalAssigned
       totalWithdrawn
       totalValue
@@ -135,12 +136,14 @@ export function CashActionDialog({
 
     // Fetch user's global cash balance
     const { data: meData, refetch: refetchMe } = useQuery(ME_QUERY);
-    // Fetch portfolio data including allocatedCash
+    // Fetch portfolio data including allocatedCash and lockedCash
     const { data: portfoliosData, refetch: refetchPortfolios } = useQuery(PORTFOLIOS_QUERY);
 
     const globalCashBalance = meData?.me?.cashBalance ?? 0;
     const portfolio = portfoliosData?.portfolios?.find((p: any) => p.id === portfolioId);
-    const availableToWithdraw = portfolio?.allocatedCash ?? 0;
+    const allocatedCash = portfolio?.allocatedCash ?? 0;
+    const lockedCash = portfolio?.lockedCash ?? 0;
+    const availableToWithdraw = allocatedCash - lockedCash; // Available = allocated - locked in pending orders
     const availableToAssign = globalCashBalance;
 
     const [assignCash, { loading: assignLoading }] = useMutation(ASSIGN_CASH_MUTATION, {
@@ -249,7 +252,7 @@ export function CashActionDialog({
                         <p className="mt-1 text-xs text-slate-500">
                             {type === "deposit" 
                                 ? `Saldo global: $${globalCashBalance.toFixed(2)}`
-                                : `Caja libre en portafolio: $${availableToWithdraw.toFixed(2)}`}
+                                : `Caja en portafolio: $${allocatedCash.toFixed(2)} (bloqueado en órdenes: $${lockedCash.toFixed(2)})`}
                         </p>
                     </div>
 

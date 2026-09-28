@@ -74,6 +74,13 @@ public class OrderPersistenceAdapter implements OrderRepository {
     }
 
     @Override
+    public List<Order> findByUserIdAndStatus(UUID userId, OrderStatus status, Pageable pageable) {
+        return jpaRepository.findByUserIdAndStatus(userId, status, pageable).stream()
+                .map(this::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public List<Order> findPendingOrdersBySymbol(String symbol) {
         return jpaRepository.findByStatusAndSymbol(OrderStatus.PENDING, symbol).stream()
                 .map(this::toDomain)

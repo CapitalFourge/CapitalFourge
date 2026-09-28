@@ -49,6 +49,7 @@ import com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistenc
 import com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistence.Entities.PositionEntity;
 import com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistence.Entities.TransactionEntity;
 import com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistence.Repositories.JpaPortfolioRepository;
+import com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistence.Repositories.JpaTransactionRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -61,6 +62,7 @@ public class PortfolioService implements PortfolioUseCase {
 
     private final PortfolioRepository portfolioRepository;
     private final JpaPortfolioRepository jpaRepository;
+    private final JpaTransactionRepository jpaTransactionRepository;
     private final MetricRepository metricRepository;
     private final TransactionRepository transactionRepository;
     private final OrderRepository orderRepository;
@@ -413,7 +415,7 @@ public class PortfolioService implements PortfolioUseCase {
                         positionEntity.getSymbol(), quantity, price,
                         LocalDateTime.now(), user.getCashBalance()
                 );
-                transactionRepository.save(transactionEntity);
+                jpaTransactionRepository.save(transactionEntity);
                 portfolioEntity.getTransactions().add(transactionEntity);
                 
                 // Remove position from managed entity - orphanRemoval will delete from DB
@@ -746,150 +748,152 @@ public class PortfolioService implements PortfolioUseCase {
     }
 
     @Override
-    @Transactional
-    public Order fillLimitOrder(UUID orderId, UUID userId, BigDecimal fillPrice) {
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new OrderNotFoundException("Order not found"));
+        @Transactional
+        public Order fillLimitOrder(UUID orderId, UUID userId, BigDecimal fillPrice) {
+            Order order = orderRepository.findById(orderId)
+                    .orElseThrow(() -> new OrderNotFoundException("Order not found"));
 
-        // Skip ownership check for internal service (userId = all zeros)
-        UUID internalServiceId = UUID.fromString("00000000-0000-0000-0000-000000000000");
-        boolean isInternalService = userId.equals(internalServiceId);
-        
-        if (!isInternalService && !order.getUserId().equals(userId)) {
-            throw new OrderNotFoundException("Order not found or access denied");
-        }
+            // Skip ownership check for internal service (userId = all zeros)
+            UUID internalServiceId = UUID.fromString("00000000-0000-0000-0000-000000000000");
+            boolean isInternalService = userId.equals(internalServiceId);
 
-        if (order.getStatus() != OrderStatus.PENDING) {
-            throw new InvalidOrderStateException("Only PENDING orders can be filled");
-        }
+            if (!isInternalService && !order.getUserId().equals(userId)) {
+                throw new OrderNotFoundException("Order not found or access denied");
+            }
 
-        if (order.getType() != OrderType.BUY_LIMIT) {
-            throw new InvalidOrderStateException("Only BUY_LIMIT orders can be filled by worker");
-        }
+            if (order.getStatus() != OrderStatus.PENDING) {
+                throw new InvalidOrderStateException("Only PENDING orders can be filled");
+            }
 
-        // Release locked balance (targetPrice * quantity)
-        BigDecimal lockAmount = order.getTargetPrice().multiply(order.getQuantity());
-        User user = null;
-        if (!isInternalService) {
-            user = userRepository.findById(userId)
+            if (order.getType() != OrderType.BUY_LIMIT) {
+                throw new InvalidOrderStateException("Only BUY_LIMIT orders can be filled by worker");
+            }
+
+            // Always fetch the user who owns the order to update their balances
+            User user = userRepository.findById(order.getUserId())
                     .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+            // Release locked balance (targetPrice * quantity)
+            BigDecimal lockAmount = order.getTargetPrice().multiply(order.getQuantity());
             BigDecimal userLockedBalance = user.getLockedBalance() != null ? user.getLockedBalance() : BigDecimal.ZERO;
             user.setLockedBalance(userLockedBalance.subtract(lockAmount));
-            userRepository.save(user);
-        }
 
-        // Execute the buy at fillPrice (use cash balance)
-        BigDecimal totalCost = fillPrice.multiply(order.getQuantity());
-        if (!isInternalService) {
+            // Execute the buy at fillPrice (use cash balance)
+            BigDecimal totalCost = fillPrice.multiply(order.getQuantity());
             BigDecimal userCashBalance = user.getCashBalance() != null ? user.getCashBalance() : BigDecimal.ZERO;
             if (userCashBalance.compareTo(totalCost) < 0) {
                 throw new InsufficientBalanceException("Insufficient cash balance to fill order");
             }
             user.setCashBalance(userCashBalance.subtract(totalCost));
             userRepository.save(user);
-        }
 
-        // Create/update position
-        Portfolio portfolio = portfolioRepository.findById(order.getPortfolioId())
-                .orElseThrow(() -> new PortfolioNotFoundException("Portfolio not found"));
-        
-        boolean positionExists = false;
-        if (portfolio.getPositions() != null) {
-            for (Position pos : portfolio.getPositions()) {
-                if (pos.getSymbol().equals(order.getSymbol())) {
-                    // Update existing position - recalculate average price
-                    BigDecimal totalQty = pos.getQuantity().add(order.getQuantity());
-                    BigDecimal totalValue = pos.getQuantity().multiply(pos.getAveragePurchasePrice())
-                            .add(order.getQuantity().multiply(fillPrice));
-                    pos.setQuantity(totalQty);
-                    pos.setAveragePurchasePrice(totalValue.divide(totalQty, 8, RoundingMode.HALF_UP));
-                    pos.setCurrentPrice(fillPrice);
-                    positionExists = true;
-                    break;
+            // Create/update position
+            Portfolio portfolio = portfolioRepository.findById(order.getPortfolioId())
+                    .orElseThrow(() -> new PortfolioNotFoundException("Portfolio not found"));
+
+            boolean positionExists = false;
+            if (portfolio.getPositions() != null) {
+                for (Position pos : portfolio.getPositions()) {
+                    if (pos.getSymbol().equals(order.getSymbol())) {
+                        // Update existing position - recalculate average price
+                        BigDecimal totalQty = pos.getQuantity().add(order.getQuantity());
+                        BigDecimal totalValue = pos.getQuantity().multiply(pos.getAveragePurchasePrice())
+                                .add(order.getQuantity().multiply(fillPrice));
+                        pos.setQuantity(totalQty);
+                        pos.setAveragePurchasePrice(totalValue.divide(totalQty, 8, RoundingMode.HALF_UP));
+                        pos.setCurrentPrice(fillPrice);
+                        positionExists = true;
+                        break;
+                    }
                 }
             }
-        }
-        
-        if (!positionExists) {
-            Position newPos = new Position(
+
+            if (!positionExists) {
+                Position newPos = new Position(
+                        UUID.randomUUID(),
+                        order.getPortfolioId(),
+                        order.getSymbol(),
+                        order.getQuantity(),
+                        fillPrice,
+                        fillPrice,
+                        BigDecimal.ZERO
+                );
+                portfolio.addPosition(newPos);
+            }
+
+            // Create transaction record
+            Transaction transaction = new Transaction(
                     UUID.randomUUID(),
                     order.getPortfolioId(),
+                    TransactionType.BUY,
                     order.getSymbol(),
                     order.getQuantity(),
                     fillPrice,
-                    fillPrice,
-                    BigDecimal.ZERO
+                    totalCost,
+                    LocalDateTime.now(),
+                    totalCost.negate()
             );
-            portfolio.addPosition(newPos);
+            portfolio.addTransaction(transaction);
+
+            // Update cumulative deposits for performance tracking (same as buyAsset)
+            portfolio.setCumulativeDeposits(portfolio.getCumulativeDeposits().add(totalCost));
+
+            portfolioRepository.save(portfolio);
+
+            // Update order status to FILLED
+            order.setStatus(OrderStatus.FILLED);
+            order.setFilledAt(LocalDateTime.now());
+            order.setFilledPrice(fillPrice);
+            order.setFilledQuantity(order.getQuantity());
+
+            return orderRepository.save(order);
         }
-
-        // Create transaction record
-        Transaction transaction = new Transaction(
-                UUID.randomUUID(),
-                order.getPortfolioId(),
-                TransactionType.BUY,
-                order.getSymbol(),
-                order.getQuantity(),
-                fillPrice,
-                totalCost,
-                LocalDateTime.now(),
-                totalCost.negate()
-        );
-        portfolio.addTransaction(transaction);
-
-        // Update cumulative deposits for performance tracking (same as buyAsset)
-        portfolio.setCumulativeDeposits(portfolio.getCumulativeDeposits().add(totalCost));
-
-        portfolioRepository.save(portfolio);
-
-        // Update order status to FILLED
-        order.setStatus(OrderStatus.FILLED);
-        order.setFilledAt(LocalDateTime.now());
-        order.setFilledPrice(fillPrice);
-        order.setFilledQuantity(order.getQuantity());
-
-        return orderRepository.save(order);
-    }
 
     @Override
-    @Transactional
-    public Order expireLimitOrder(UUID orderId, UUID userId) {
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new OrderNotFoundException("Order not found"));
+        @Transactional
+        public Order expireLimitOrder(UUID orderId, UUID userId) {
+            Order order = orderRepository.findById(orderId)
+                    .orElseThrow(() -> new OrderNotFoundException("Order not found"));
 
-        // Skip ownership check for internal service (userId = all zeros)
-        UUID internalServiceId = UUID.fromString("00000000-0000-0000-0000-000000000000");
-        boolean isInternalService = userId.equals(internalServiceId);
-        
-        if (!isInternalService && !order.getUserId().equals(userId)) {
-            throw new OrderNotFoundException("Order not found or access denied");
-        }
+            // Skip ownership check for internal service (userId = all zeros)
+            UUID internalServiceId = UUID.fromString("00000000-0000-0000-0000-000000000000");
+            boolean isInternalService = userId.equals(internalServiceId);
 
-        if (order.getStatus() != OrderStatus.PENDING) {
-            throw new InvalidOrderStateException("Only PENDING orders can be expired");
-        }
+            if (!isInternalService && !order.getUserId().equals(userId)) {
+                throw new OrderNotFoundException("Order not found or access denied");
+            }
 
-        // Release locked balance (for BUY_LIMIT)
-        if (order.getType() == OrderType.BUY_LIMIT) {
-            BigDecimal lockAmount = order.getTargetPrice().multiply(order.getQuantity());
-            if (!isInternalService) {
-                User user = userRepository.findById(userId)
-                        .orElseThrow(() -> new UserNotFoundException("User not found"));
+            if (order.getStatus() != OrderStatus.PENDING) {
+                throw new InvalidOrderStateException("Only PENDING orders can be expired");
+            }
+
+            // Always fetch the user who owns the order to update their balances
+            User user = userRepository.findById(order.getUserId())
+                    .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+            // Release locked balance (for BUY_LIMIT)
+            if (order.getType() == OrderType.BUY_LIMIT) {
+                BigDecimal lockAmount = order.getTargetPrice().multiply(order.getQuantity());
                 BigDecimal userLockedBalance = user.getLockedBalance() != null ? user.getLockedBalance() : BigDecimal.ZERO;
                 user.setLockedBalance(userLockedBalance.subtract(lockAmount));
                 userRepository.save(user);
             }
-        }
 
-        // Update order status
-        order.setStatus(OrderStatus.EXPIRED);
-        return orderRepository.save(order);
-    }
+            // Update order status
+            order.setStatus(OrderStatus.EXPIRED);
+            return orderRepository.save(order);
+        }
 
     @Override
     @Transactional(readOnly = true)
     public List<Order> getPendingLimitOrders() {
         return orderRepository.findByStatus(OrderStatus.PENDING);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Order> getPendingLimitOrdersByUser(UUID userId) {
+        return orderRepository.findByUserIdAndStatus(userId, OrderStatus.PENDING, org.springframework.data.domain.Pageable.unpaged());
     }
 
     @Override

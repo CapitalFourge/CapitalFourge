@@ -97,8 +97,8 @@ type Mutation {
   dismissWelcome: User
   createLimitOrder(portfolioId: ID!, type: OrderType!, symbol: String!, targetPrice: Float!, quantity: Float, usdAmount: Float, expiresAt: String): Order
   cancelOrder(orderId: ID!): Order
-  fillLimitOrder(orderId: ID!, fillPrice: Float!): Order
-  expireLimitOrder(orderId: ID!): Order
+  fillLimitOrder(orderId: ID!, fillPrice: Float!, userId: ID): Order
+  expireLimitOrder(orderId: ID!, userId: ID): Order
 }
 
 type AuthResult {

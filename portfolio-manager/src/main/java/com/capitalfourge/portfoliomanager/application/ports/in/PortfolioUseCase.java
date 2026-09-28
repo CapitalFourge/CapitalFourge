@@ -60,5 +60,7 @@ public interface PortfolioUseCase {
 
     List<Order> getPendingLimitOrders();
 
+    List<Order> getPendingLimitOrdersByUser(UUID userId);
+
     Page<Transaction> getTransactionsByUser(UUID userId, LocalDateTime startDate, LocalDateTime endDate, org.springframework.data.domain.Pageable pageable);
 }

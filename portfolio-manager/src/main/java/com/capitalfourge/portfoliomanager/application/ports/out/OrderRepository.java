@@ -29,6 +29,8 @@ public interface OrderRepository {
 
     List<Order> findByStatus(OrderStatus status);
 
+    List<Order> findByUserIdAndStatus(UUID userId, OrderStatus status, Pageable pageable);
+
     List<Order> findPendingOrdersBySymbol(String symbol);
 
     void deleteById(UUID id);

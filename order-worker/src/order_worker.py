@@ -166,15 +166,15 @@ class OrderFillEngine:
     def fill_order(self, order: Order, fill_price: float) -> bool:
         """Execute order fill via GraphQL mutation."""
         mutation = """
-        mutation FillLimitOrder($orderId: ID!, $fillPrice: Float!) {
-            fillLimitOrder(orderId: $orderId, fillPrice: $fillPrice) {
+        mutation FillLimitOrder($orderId: ID!, $fillPrice: Float!, $userId: ID!) {
+            fillLimitOrder(orderId: $orderId, fillPrice: $fillPrice, userId: $userId) {
                 id
                 status
             }
         }
         """
         try:
-            self.gql.execute(mutation, {"orderId": order.id, "fillPrice": fill_price})
+            self.gql.execute(mutation, {"orderId": order.id, "fillPrice": fill_price, "userId": order.user_id})
             logger.info(f"✅ Filled order {order.id}: {order.quantity} {order.symbol} @ ${fill_price}")
             return True
         except Exception as e:
@@ -261,15 +261,15 @@ class OrderExpiryJob:
     def expire_order(self, order: Order) -> bool:
         """Mark order as EXPIRED via GraphQL mutation."""
         mutation = """
-        mutation ExpireLimitOrder($orderId: ID!) {
-            expireLimitOrder(orderId: $orderId) {
+        mutation ExpireLimitOrder($orderId: ID!, $userId: ID!) {
+            expireLimitOrder(orderId: $orderId, userId: $userId) {
                 id
                 status
             }
         }
         """
         try:
-            self.gql.execute(mutation, {"orderId": order.id})
+            self.gql.execute(mutation, {"orderId": order.id, "userId": order.user_id})
             logger.info(f"⏰ Expired order {order.id}: {order.quantity} {order.symbol} (was ${order.target_price})")
             return True
         except Exception as e:

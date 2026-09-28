@@ -816,17 +816,19 @@ public class PortfolioGraphQLController {
     }
 
     @MutationMapping
-    public Order fillLimitOrder(@Argument UUID orderId, @Argument BigDecimal fillPrice) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UUID userId = getUserIdFromAuth(auth);
-        return portfolioUseCase.fillLimitOrder(orderId, userId, fillPrice);
+    public Order fillLimitOrder(@Argument UUID orderId, @Argument BigDecimal fillPrice, @Argument UUID userId) {
+        // If userId not provided (internal service), use internal service ID
+        UUID internalServiceId = UUID.fromString("00000000-0000-0000-0000-000000000000");
+        UUID effectiveUserId = userId != null ? userId : internalServiceId;
+        return portfolioUseCase.fillLimitOrder(orderId, effectiveUserId, fillPrice);
     }
 
     @MutationMapping
-    public Order expireLimitOrder(@Argument UUID orderId) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UUID userId = getUserIdFromAuth(auth);
-        return portfolioUseCase.expireLimitOrder(orderId, userId);
+    public Order expireLimitOrder(@Argument UUID orderId, @Argument UUID userId) {
+        // If userId not provided (internal service), use internal service ID
+        UUID internalServiceId = UUID.fromString("00000000-0000-0000-0000-000000000000");
+        UUID effectiveUserId = userId != null ? userId : internalServiceId;
+        return portfolioUseCase.expireLimitOrder(orderId, effectiveUserId);
     }
 
     @MutationMapping
@@ -838,7 +840,20 @@ public class PortfolioGraphQLController {
 
     @QueryMapping
     public List<Order> pendingLimitOrders() {
-        return portfolioUseCase.getPendingLimitOrders();
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return List.of();
+        }
+        UUID userId = getUserIdFromAuth(auth);
+        if (userId == null) {
+            return List.of();
+        }
+        // Filter by current user - only show their pending orders
+        UUID internalServiceId = UUID.fromString("00000000-0000-0000-0000-000000000000");
+        if (userId.equals(internalServiceId)) {
+            return List.of(); // Internal service shouldn't query this
+        }
+        return portfolioUseCase.getPendingLimitOrdersByUser(userId);
     }
 
     @QueryMapping

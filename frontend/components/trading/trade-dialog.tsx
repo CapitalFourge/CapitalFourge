@@ -219,6 +219,7 @@ export function TradeDialog({
   const [usdAmount, setUsdAmount] = useState("");
   const [price, setPrice] = useState("");
   const [expiresAt, setExpiresAt] = useState("");
+  const [hasExpiration, setHasExpiration] = useState(false);
 
   const controlledOpen = isOpen ?? open;
   const dialogOpen = controlledOpen ?? internalOpen;
@@ -609,14 +610,30 @@ export function TradeDialog({
                 <label className="text-xs uppercase tracking-[0.2em] text-slate-500">
                   Fecha de expiración (opcional)
                 </label>
-                <Input
-                  type="datetime-local"
-                  value={expiresAt}
-                  onChange={(event) => setExpiresAt(event.target.value)}
-                  className="border-white/10 bg-black/40 text-white"
-                />
+                <div className="flex items-center gap-3">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={hasExpiration}
+                      onChange={(e) => {
+                        setHasExpiration(e.target.checked);
+                        if (!e.target.checked) setExpiresAt("");
+                      }}
+                      className="rounded border-white/20 bg-black/40 text-emerald-400 focus:ring-emerald-400"
+                    />
+                    <span className="text-sm text-slate-300">Establecer fecha de expiración</span>
+                  </label>
+                </div>
+                {hasExpiration && (
+                  <Input
+                    type="datetime-local"
+                    value={expiresAt}
+                    onChange={(event) => setExpiresAt(event.target.value)}
+                    className="border-white/10 bg-black/40 text-white"
+                  />
+                )}
                 <p className="text-[11px] text-slate-500">
-                  Si se deja vacío, la orden nunca expira.
+                  {hasExpiration ? "La orden expirará en la fecha indicada." : "Sin fecha = la orden nunca expira."}
                 </p>
               </div>
             )}

@@ -237,26 +237,20 @@ export function CashActionDialog({
                         Asigna o retira fondos de este portafolio desde tu saldo global
                     </p>
                     
-                    {/* Available balance info */}
-                    <div className="grid grid-cols-2 gap-3 mb-2">
-                        <div className="bg-white/5 p-3 rounded-lg border border-white/10">
-                            <div className="flex items-center gap-1 text-xs text-slate-400 mb-1">
-                                <Info className="w-3 h-3" />
-                                <span>Disponible para {type === "deposit" ? "asignar" : "retirar"}</span>
-                            </div>
-                            <div className="text-lg font-bold text-white">
-                                ${type === "deposit" ? availableToAssign : availableToWithdraw}.toFixed(2)
-                            </div>
+                    {/* Available balance info - single card */}
+                    <div className="bg-white/5 p-4 rounded-lg border border-white/10 mb-2">
+                        <div className="flex items-center gap-1 text-xs text-slate-400 mb-1">
+                            <Info className="w-3 h-3" />
+                            <span>Disponible para {type === "deposit" ? "asignar" : "retirar"}</span>
                         </div>
-                        <div className="bg-white/5 p-3 rounded-lg border border-white/10">
-                            <div className="flex items-center gap-1 text-xs text-slate-400 mb-1">
-                                <Info className="w-3 h-3" />
-                                <span>{type === "deposit" ? "Saldo global" : "Caja en portafolio"}</span>
-                            </div>
-                            <div className="text-lg font-bold text-white">
-                                ${type === "deposit" ? globalCashBalance : availableToWithdraw}.toFixed(2)
-                            </div>
+                        <div className="text-2xl font-bold text-white">
+                            ${(type === "deposit" ? availableToAssign : availableToWithdraw).toFixed(2)}
                         </div>
+                        <p className="mt-1 text-xs text-slate-500">
+                            {type === "deposit" 
+                                ? `Saldo global: $${globalCashBalance.toFixed(2)}`
+                                : `Caja libre en portafolio: $${availableToWithdraw.toFixed(2)}`}
+                        </p>
                     </div>
 
                     <div className="space-y-2">

@@ -34,6 +34,7 @@ public class PortfolioMapper {
         entity.setDescription(domain.getDescription());
         entity.setUserId(domain.getUserId());
         entity.setAllocatedCash(domain.getAllocatedCash());
+        entity.setLockedCash(domain.getLockedCash());
         entity.setTotalAssigned(domain.getTotalAssigned());
         entity.setTotalWithdrawn(domain.getTotalWithdrawn());
         entity.setPerformance(domain.getPerformance());
@@ -79,6 +80,7 @@ public class PortfolioMapper {
         domain.setDescription(entity.getDescription());
         domain.setUserId(entity.getUserId());
         domain.setAllocatedCash(entity.getAllocatedCash());
+        domain.setLockedCash(entity.getLockedCash());
         domain.setTotalAssigned(entity.getTotalAssigned());
         domain.setTotalWithdrawn(entity.getTotalWithdrawn());
         domain.setPerformance(entity.getPerformance());

@@ -126,6 +126,7 @@ type Portfolio {
   description: String
   totalValue: Float!
   allocatedCash: Float!
+  lockedCash: Float!
   totalAssigned: Float!
   totalWithdrawn: Float!
   positionsValue: Float!

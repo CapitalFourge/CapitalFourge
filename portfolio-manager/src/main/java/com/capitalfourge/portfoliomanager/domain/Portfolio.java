@@ -21,6 +21,7 @@ public class Portfolio {
     private List<Transaction> transactions;
     private List<Order> orders;
     private BigDecimal allocatedCash;      // Cash available in this portfolio for trading
+    private BigDecimal lockedCash;        // Cash locked in pending limit orders
     private BigDecimal totalAssigned;      // Total historically assigned to this portfolio (only increases)
     private BigDecimal totalWithdrawn;     // Total historically withdrawn from this portfolio (only increases)
         private Double performance = 0.0;
@@ -34,7 +35,9 @@ public class Portfolio {
     }
 
     public BigDecimal getTotalValue() {
-        return getPositionsValue().add(allocatedCash != null ? allocatedCash : BigDecimal.ZERO);
+        return getPositionsValue()
+                .add(allocatedCash != null ? allocatedCash : BigDecimal.ZERO)
+                .add(lockedCash != null ? lockedCash : BigDecimal.ZERO);
     }
     
     // Explicit getters/setters for Lombok compatibility
@@ -54,6 +57,8 @@ public class Portfolio {
     public void setOrders(List<Order> orders) { this.orders = orders; }
     public BigDecimal getAllocatedCash() { return allocatedCash; }
     public void setAllocatedCash(BigDecimal allocatedCash) { this.allocatedCash = allocatedCash; }
+    public BigDecimal getLockedCash() { return lockedCash; }
+    public void setLockedCash(BigDecimal lockedCash) { this.lockedCash = lockedCash; }
     public BigDecimal getTotalAssigned() { return totalAssigned; }
     public void setTotalAssigned(BigDecimal totalAssigned) { this.totalAssigned = totalAssigned; }
     public BigDecimal getTotalWithdrawn() { return totalWithdrawn; }

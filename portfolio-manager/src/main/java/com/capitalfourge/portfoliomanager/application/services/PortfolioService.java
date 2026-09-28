@@ -666,8 +666,10 @@ public class PortfolioService implements PortfolioUseCase {
                     throw new InsufficientBalanceException("Insufficient allocated cash in portfolio for limit order");
                 }
                 
-                // Lock the balance in portfolio
+                // Lock the balance in portfolio: move from allocatedCash to lockedCash
                 portfolio.setAllocatedCash(portfolioAllocatedCash.subtract(lockAmount));
+                BigDecimal currentLockedCash = portfolio.getLockedCash() != null ? portfolio.getLockedCash() : BigDecimal.ZERO;
+                portfolio.setLockedCash(currentLockedCash.add(lockAmount));
                 portfolioRepository.save(portfolio);
             }
 
@@ -743,8 +745,11 @@ public class PortfolioService implements PortfolioUseCase {
         if (lockAmount.compareTo(BigDecimal.ZERO) > 0) {
             Portfolio portfolio = portfolioRepository.findById(order.getPortfolioId())
                     .orElseThrow(() -> new PortfolioNotFoundException("Portfolio not found"));
-            BigDecimal portfolioAllocatedCash = portfolio.getAllocatedCash() != null ? portfolio.getAllocatedCash() : BigDecimal.ZERO;
-            portfolio.setAllocatedCash(portfolioAllocatedCash.add(lockAmount));
+            BigDecimal currentLockedCash = portfolio.getLockedCash() != null ? portfolio.getLockedCash() : BigDecimal.ZERO;
+            // Return the locked amount from lockedCash back to allocatedCash
+            portfolio.setLockedCash(currentLockedCash.subtract(lockAmount));
+            BigDecimal currentAllocated = portfolio.getAllocatedCash() != null ? portfolio.getAllocatedCash() : BigDecimal.ZERO;
+            portfolio.setAllocatedCash(currentAllocated.add(lockAmount));
             portfolioRepository.save(portfolio);
         }
 
@@ -779,14 +784,16 @@ public class PortfolioService implements PortfolioUseCase {
             Portfolio portfolio = portfolioRepository.findById(order.getPortfolioId())
                     .orElseThrow(() -> new PortfolioNotFoundException("Portfolio not found"));
             BigDecimal lockAmount = order.getTargetPrice().multiply(order.getQuantity());
-            BigDecimal portfolioAllocatedCash = portfolio.getAllocatedCash() != null ? portfolio.getAllocatedCash() : BigDecimal.ZERO;
-            // Return the locked amount back to portfolio allocated cash
-            portfolio.setAllocatedCash(portfolioAllocatedCash.add(lockAmount));
+            BigDecimal currentLockedCash = portfolio.getLockedCash() != null ? portfolio.getLockedCash() : BigDecimal.ZERO;
+            // Return the locked amount from lockedCash back to allocatedCash
+            portfolio.setLockedCash(currentLockedCash.subtract(lockAmount));
+            BigDecimal currentAllocated = portfolio.getAllocatedCash() != null ? portfolio.getAllocatedCash() : BigDecimal.ZERO;
+            portfolio.setAllocatedCash(currentAllocated.add(lockAmount));
             portfolioRepository.save(portfolio);
 
             // Execute the buy at fillPrice using portfolio allocated cash
             BigDecimal totalCost = fillPrice.multiply(order.getQuantity());
-            BigDecimal currentAllocated = portfolio.getAllocatedCash() != null ? portfolio.getAllocatedCash() : BigDecimal.ZERO;
+            currentAllocated = portfolio.getAllocatedCash() != null ? portfolio.getAllocatedCash() : BigDecimal.ZERO;
             if (currentAllocated.compareTo(totalCost) < 0) {
                 throw new InsufficientBalanceException("Insufficient allocated cash in portfolio to fill order");
             }
@@ -876,9 +883,11 @@ public class PortfolioService implements PortfolioUseCase {
                 Portfolio portfolio = portfolioRepository.findById(order.getPortfolioId())
                         .orElseThrow(() -> new PortfolioNotFoundException("Portfolio not found"));
                 BigDecimal lockAmount = order.getTargetPrice().multiply(order.getQuantity());
-                BigDecimal portfolioAllocatedCash = portfolio.getAllocatedCash() != null ? portfolio.getAllocatedCash() : BigDecimal.ZERO;
-                // Return the locked amount back to portfolio allocated cash
-                portfolio.setAllocatedCash(portfolioAllocatedCash.add(lockAmount));
+                BigDecimal currentLockedCash = portfolio.getLockedCash() != null ? portfolio.getLockedCash() : BigDecimal.ZERO;
+                // Return the locked amount from lockedCash back to allocatedCash
+                portfolio.setLockedCash(currentLockedCash.subtract(lockAmount));
+                BigDecimal currentAllocated = portfolio.getAllocatedCash() != null ? portfolio.getAllocatedCash() : BigDecimal.ZERO;
+                portfolio.setAllocatedCash(currentAllocated.add(lockAmount));
                 portfolioRepository.save(portfolio);
             }
 

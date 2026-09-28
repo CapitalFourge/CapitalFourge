@@ -241,12 +241,6 @@ export default function DashboardPage() {
       icon: Wallet,
     },
     {
-      label: "Caja en portafolios",
-      value: allocatedCashTotal,
-      accent: "text-sky-300",
-      icon: TrendingUp,
-    },
-    {
       label: "Capital invertido",
       value: investedTotal,
       accent: "text-blue-300",

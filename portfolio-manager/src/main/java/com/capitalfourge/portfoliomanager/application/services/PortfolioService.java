@@ -739,13 +739,13 @@ public class PortfolioService implements PortfolioUseCase {
             lockAmount = order.getTargetPrice().multiply(order.getQuantity());
         }
 
-        // Release locked balance
+        // Release locked balance from PORTFOLIO (for BUY_LIMIT)
         if (lockAmount.compareTo(BigDecimal.ZERO) > 0) {
-            User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new UserNotFoundException("User not found"));
-            BigDecimal userLockedBalance = user.getLockedBalance() != null ? user.getLockedBalance() : BigDecimal.ZERO;
-            user.setLockedBalance(userLockedBalance.subtract(lockAmount));
-            userRepository.save(user);
+            Portfolio portfolio = portfolioRepository.findById(order.getPortfolioId())
+                    .orElseThrow(() -> new PortfolioNotFoundException("Portfolio not found"));
+            BigDecimal portfolioAllocatedCash = portfolio.getAllocatedCash() != null ? portfolio.getAllocatedCash() : BigDecimal.ZERO;
+            portfolio.setAllocatedCash(portfolioAllocatedCash.add(lockAmount));
+            portfolioRepository.save(portfolio);
         }
 
         // Update order status

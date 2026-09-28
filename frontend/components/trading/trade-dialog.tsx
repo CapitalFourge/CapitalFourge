@@ -121,6 +121,7 @@ const DASHBOARD_QUERY = gql`
       name
       performance
       shareSlug
+      allocatedCash
       positions {
         id
         symbol

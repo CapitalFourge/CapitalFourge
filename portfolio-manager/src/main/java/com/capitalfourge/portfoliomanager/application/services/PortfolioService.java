@@ -227,6 +227,9 @@ public class PortfolioService implements PortfolioUseCase {
                     .multiply(pos.getAveragePurchasePrice()).add(totalCost);
             pos.setAveragePurchasePrice(totalSpent.divide(newQty, 8, RoundingMode.HALF_UP));
             pos.setQuantity(newQty);
+            // Use transaction price for immediate performance calculation
+            // (data collector price will be applied on next portfolio view)
+            pos.setCurrentPrice(price);
         } else {
             portfolio.getPositions().add(new Position(
                     UUID.randomUUID(),
@@ -278,6 +281,9 @@ public class PortfolioService implements PortfolioUseCase {
 
         // Update portfolio positions
         pos.setQuantity(pos.getQuantity().subtract(quantity));
+        // Use transaction price for immediate performance calculation
+        // (data collector price will be applied on next portfolio view)
+        pos.setCurrentPrice(price);
         if (pos.getQuantity().compareTo(BigDecimal.ZERO) == 0) {
             portfolio.getPositions().remove(pos);
         }

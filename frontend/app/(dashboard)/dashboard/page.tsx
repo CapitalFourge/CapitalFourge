@@ -209,7 +209,13 @@ export default function DashboardPage() {
     }, 0);
   }, [portfolios]);
 
-  const totalBalance = userCashBalance + userLockedBalance + investedTotal;
+  const allocatedCashTotal = useMemo(() => {
+    return portfolios.reduce((total, portfolio) => {
+      return total + (portfolio.allocatedCash ?? 0);
+    }, 0);
+  }, [portfolios]);
+
+  const totalBalance = userCashBalance + userLockedBalance + investedTotal + allocatedCashTotal;
 
   const portfolioPositions = useMemo(() => {
     const map = new Map<string, Position[]>();
@@ -235,9 +241,15 @@ export default function DashboardPage() {
       icon: Wallet,
     },
     {
+      label: "Caja en portafolios",
+      value: allocatedCashTotal,
+      accent: "text-sky-300",
+      icon: TrendingUp,
+    },
+    {
       label: "Capital invertido",
       value: investedTotal,
-      accent: "text-sky-300",
+      accent: "text-blue-300",
       icon: TrendingUp,
     },
     {

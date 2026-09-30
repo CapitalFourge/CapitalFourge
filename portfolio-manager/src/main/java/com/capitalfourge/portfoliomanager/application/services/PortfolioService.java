@@ -713,7 +713,23 @@ public class PortfolioService implements PortfolioUseCase {
                 null  // rejectionReason
             );
 
-            return orderRepository.save(order);
+            Order savedOrder = orderRepository.save(order);
+
+            // Create PENDING transaction for the limit order
+            Transaction pendingTransaction = new Transaction(
+                UUID.randomUUID(),
+                portfolioId,
+                TransactionType.PENDING,
+                symbol,
+                finalQuantity,
+                targetPrice,
+                targetPrice.multiply(finalQuantity),
+                LocalDateTime.now(),
+                BigDecimal.ZERO // balanceTransaction: no cash movement yet
+            );
+            transactionRepository.save(pendingTransaction);
+
+            return savedOrder;
         }
 
     @Override
@@ -756,7 +772,23 @@ public class PortfolioService implements PortfolioUseCase {
 
         // Update order status
         order.setStatus(OrderStatus.CANCELLED);
-        return orderRepository.save(order);
+        Order cancelledOrder = orderRepository.save(order);
+
+        // Create CANCELLED transaction
+        Transaction cancelledTransaction = new Transaction(
+            UUID.randomUUID(),
+            order.getPortfolioId(),
+            TransactionType.CANCELLED,
+            order.getSymbol(),
+            order.getQuantity(),
+            order.getTargetPrice(),
+            order.getTargetPrice().multiply(order.getQuantity()),
+            LocalDateTime.now(),
+            BigDecimal.ZERO
+        );
+        transactionRepository.save(cancelledTransaction);
+
+        return cancelledOrder;
     }
 
     @Override
@@ -894,7 +926,23 @@ public class PortfolioService implements PortfolioUseCase {
 
             // Update order status
             order.setStatus(OrderStatus.EXPIRED);
-            return orderRepository.save(order);
+            Order expiredOrder = orderRepository.save(order);
+
+            // Create EXPIRED transaction
+            Transaction expiredTransaction = new Transaction(
+                UUID.randomUUID(),
+                order.getPortfolioId(),
+                TransactionType.EXPIRED,
+                order.getSymbol(),
+                order.getQuantity(),
+                order.getTargetPrice(),
+                order.getTargetPrice().multiply(order.getQuantity()),
+                LocalDateTime.now(),
+                BigDecimal.ZERO
+            );
+            transactionRepository.save(expiredTransaction);
+
+            return expiredOrder;
         }
 
     @Override

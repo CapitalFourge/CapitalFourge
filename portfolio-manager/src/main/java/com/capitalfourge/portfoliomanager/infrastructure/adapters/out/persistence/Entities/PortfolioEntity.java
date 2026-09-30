@@ -44,10 +44,10 @@ public class PortfolioEntity {
     private String name;
     private String description;
     private UUID userId;
-    private BigDecimal allocatedCash;      // Cash available in this portfolio for trading
-    private BigDecimal lockedCash;        // Cash locked in pending limit orders
-    private BigDecimal totalAssigned;      // Total historically assigned to this portfolio (only increases)
-    private BigDecimal totalWithdrawn;     // Total historically withdrawn from this portfolio (only increases)
+    private BigDecimal allocatedCash = BigDecimal.ZERO;      // Cash available in this portfolio for trading
+    private BigDecimal lockedCash = BigDecimal.ZERO;        // Cash locked in pending limit orders
+    private BigDecimal totalAssigned = BigDecimal.ZERO;      // Total historically assigned to this portfolio (only increases)
+    private BigDecimal totalWithdrawn = BigDecimal.ZERO;     // Total historically withdrawn from this portfolio (only increases)
     // P2-11: Default performance to 0.0 to avoid null
         private Double performance = 0.0;
     private boolean isPublic;

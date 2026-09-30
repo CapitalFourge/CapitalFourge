@@ -819,7 +819,7 @@ public class PortfolioGraphQLController {
         
         // Skip ownership check for internal service (userId = all zeros)
         UUID internalServiceId = UUID.fromString("00000000-0000-0000-0000-000000000000");
-        boolean isInternalService = userId.equals(internalServiceId);
+        boolean isInternalService = userId != null && userId.equals(internalServiceId);
         
         if (!isInternalService) {
             verifyPortfolioOwnership(portfolioId);

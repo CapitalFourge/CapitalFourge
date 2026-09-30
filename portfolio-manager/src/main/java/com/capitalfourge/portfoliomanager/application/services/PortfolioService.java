@@ -122,6 +122,7 @@ public class PortfolioService implements PortfolioUseCase {
         }
 
         portfolio.setAllocatedCash(BigDecimal.ZERO);
+        portfolio.setLockedCash(BigDecimal.ZERO);
         portfolio.setTotalAssigned(BigDecimal.ZERO);
         portfolio.setTotalWithdrawn(BigDecimal.ZERO);
         portfolio.setPerformance(0.0);

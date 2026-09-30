@@ -53,8 +53,9 @@ public class OrderPersistenceAdapter implements OrderRepository {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Order> findByPortfolioId(UUID portfolioId) {
-        return jpaRepository.findByPortfolioId(portfolioId, org.springframework.data.domain.Pageable.unpaged()).stream()
+        return jpaRepository.findByPortfolioIdCustom(portfolioId).stream()
                 .map(this::toDomain)
                 .collect(Collectors.toList());
     }

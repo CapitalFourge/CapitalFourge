@@ -423,7 +423,8 @@ public class PortfolioService implements PortfolioUseCase {
                 TransactionEntity transactionEntity = new TransactionEntity(
                         UUID.randomUUID(), portfolioEntity, TransactionType.SELL,
                         positionEntity.getSymbol(), quantity, price,
-                        LocalDateTime.now(), portfolioEntity.getAllocatedCash()
+                        LocalDateTime.now(), portfolioEntity.getAllocatedCash(),
+                        portfolioEntity.getTotalValue()
                 );
                 jpaTransactionRepository.save(transactionEntity);
                 portfolioEntity.getTransactions().add(transactionEntity);

@@ -113,7 +113,8 @@ class PortfolioPersistenceAdapterTest {
                 List<TransactionEntity> txs = p.getTransactions().stream()
                     .map(domainTx -> new TransactionEntity(domainTx.getId(), e, domainTx.getType(),
                         domainTx.getSymbol(), domainTx.getQuantity(), domainTx.getPrice(),
-                        domainTx.getTimestamp(), domainTx.getBalanceTransaction()))
+                        domainTx.getTimestamp(), domainTx.getBalanceTransaction(),
+                        domainTx.getTotalValue()))
                     .toList();
                 e.setTransactions(txs);
             }
@@ -129,7 +130,8 @@ class PortfolioPersistenceAdapterTest {
                 .map(te -> new Transaction(te.getId(), e.getId(), te.getType(), te.getSymbol(),
                     te.getQuantity(), te.getPrice(),
                     te.getPrice().multiply(te.getQuantity()),
-                    te.getTimestamp(), te.getBalanceTransaction()))
+                    te.getTimestamp(), te.getBalanceTransaction(),
+                    te.getTotalValue()))
                 .toList() : List.of();
             Portfolio p = new Portfolio(e.getId(), e.getName(), e.getDescription(), e.getUserId(),
                 positions, transactions, List.of(),
@@ -164,7 +166,8 @@ class PortfolioPersistenceAdapterTest {
             new BigDecimal("10"),
             new BigDecimal("150"),
             LocalDateTime.now(),
-            new BigDecimal("10000")
+            new BigDecimal("10000"),
+            BigDecimal.ZERO
         );
 
         entity.setTransactions(List.of(transactionEntity));

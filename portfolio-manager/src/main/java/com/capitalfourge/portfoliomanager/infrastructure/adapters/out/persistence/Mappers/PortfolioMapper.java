@@ -134,31 +134,33 @@ public class PortfolioMapper {
     }
 
     private TransactionEntity toEntity(Transaction domain) {
-        TransactionEntity entity = new TransactionEntity();
-        entity.setId(domain.getId());
-        entity.setType(domain.getType());
-        entity.setSymbol(domain.getSymbol());
-        entity.setQuantity(domain.getQuantity());
-        entity.setPrice(domain.getPrice());
-        entity.setTimestamp(domain.getTimestamp());
-        entity.setBalanceTransaction(domain.getBalanceTransaction());
-        return entity;
-    }
+            TransactionEntity entity = new TransactionEntity();
+            entity.setId(domain.getId());
+            entity.setType(domain.getType());
+            entity.setSymbol(domain.getSymbol());
+            entity.setQuantity(domain.getQuantity());
+            entity.setPrice(domain.getPrice());
+            entity.setTimestamp(domain.getTimestamp());
+            entity.setBalanceTransaction(domain.getBalanceTransaction());
+            entity.setTotalValue(domain.getTotalValue());
+            return entity;
+        }
 
-    private Transaction toDomain(TransactionEntity entity) {
-        Transaction domain = new Transaction();
-        domain.setId(entity.getId());
-        domain.setPortfolioId(entity.getPortfolio() != null ? entity.getPortfolio().getId() : null);
-        domain.setType(entity.getType());
-        domain.setSymbol(entity.getSymbol());
-        domain.setQuantity(entity.getQuantity());
-        domain.setPrice(entity.getPrice());
-        domain.setTotalAmount(entity.getPrice() != null && entity.getQuantity() != null 
-                ? entity.getPrice().multiply(entity.getQuantity()) : BigDecimal.ZERO);
-        domain.setTimestamp(entity.getTimestamp());
-        domain.setBalanceTransaction(entity.getBalanceTransaction());
-        return domain;
-    }
+        private Transaction toDomain(TransactionEntity entity) {
+            Transaction domain = new Transaction();
+            domain.setId(entity.getId());
+            domain.setPortfolioId(entity.getPortfolio() != null ? entity.getPortfolio().getId() : null);
+            domain.setType(entity.getType());
+            domain.setSymbol(entity.getSymbol());
+            domain.setQuantity(entity.getQuantity());
+            domain.setPrice(entity.getPrice());
+            domain.setTotalAmount(entity.getPrice() != null && entity.getQuantity() != null
+                    ? entity.getPrice().multiply(entity.getQuantity()) : BigDecimal.ZERO);
+            domain.setTimestamp(entity.getTimestamp());
+            domain.setBalanceTransaction(entity.getBalanceTransaction());
+            domain.setTotalValue(entity.getTotalValue());
+            return domain;
+        }
 
     private OrderEntity toEntity(Order domain) {
         OrderEntity entity = new OrderEntity();

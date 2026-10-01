@@ -669,7 +669,8 @@ public class PortfolioService implements PortfolioUseCase {
                         BigDecimal portfolioAllocatedCash = portfolio.getAllocatedCash() != null ? portfolio.getAllocatedCash() : BigDecimal.ZERO;
 
                         // Get managed portfolio entity early for order persistence (needed for both BUY and SELL limit)
-                        PortfolioEntity portfolioEntity = portfolioRepository.findEntityById(portfolioId)
+                        // Use jpaRepository.findById() within this transaction to get a MANAGED entity
+                        PortfolioEntity portfolioEntity = jpaRepository.findById(portfolioId)
                                 .orElseThrow(() -> new PortfolioNotFoundException("Portfolio not found"));
 
                         if (type == OrderType.BUY_LIMIT) {

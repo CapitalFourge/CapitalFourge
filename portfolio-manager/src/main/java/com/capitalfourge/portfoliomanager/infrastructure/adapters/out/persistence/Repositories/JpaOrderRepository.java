@@ -31,6 +31,6 @@ public interface JpaOrderRepository extends JpaRepository<OrderEntity, UUID> {
 
     List<OrderEntity> findByStatusAndSymbol(OrderStatus status, String symbol);
 
-    @Query("SELECT o FROM OrderEntity o WHERE o.portfolio.id = :portfolioId")
+    @Query("SELECT o FROM OrderEntity o WHERE o.portfolioId = :portfolioId")
     List<OrderEntity> findByPortfolioIdCustom(@Param("portfolioId") UUID portfolioId);
 }

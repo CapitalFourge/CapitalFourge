@@ -52,16 +52,8 @@ public class PortfolioMapper {
             entity.setPositions(positionEntities);
         }
 
-        if (domain.getTransactions() != null) {
-            List<TransactionEntity> transactionEntities = domain.getTransactions().stream()
-                    .map(t -> {
-                        TransactionEntity te = toEntity(t);
-                        te.setPortfolio(entity);
-                        return te;
-                    })
-                    .toList();
-            entity.setTransactions(transactionEntities);
-        }
+        // Don't map transactions here - they are managed separately by TransactionPersistenceAdapter
+        // Mapping them here causes orphanRemoval to delete existing transactions when portfolio is saved
 
         if (domain.getOrders() != null) {
             List<OrderEntity> orderEntities = domain.getOrders().stream()
@@ -95,16 +87,16 @@ public class PortfolioMapper {
         }
 
         if (entity.getTransactions() != null && Hibernate.isInitialized(entity.getTransactions()) && entity.getTransactions().size() > 0) {
-            List<Transaction> transactions = entity.getTransactions().stream()
+            List<Transaction> transactions = new ArrayList<>(entity.getTransactions().stream()
                     .map(this::toDomain)
-                    .toList();
+                    .toList());
             domain.setTransactions(transactions);
         }
 
         if (entity.getOrders() != null && Hibernate.isInitialized(entity.getOrders()) && entity.getOrders().size() > 0) {
-            List<Order> orders = entity.getOrders().stream()
+            List<Order> orders = new ArrayList<>(entity.getOrders().stream()
                     .map(this::toDomain)
-                    .toList();
+                    .toList());
             domain.setOrders(orders);
         }
 

@@ -760,6 +760,10 @@ public class PortfolioService implements PortfolioUseCase {
             throw new InvalidOrderStateException("Only PENDING orders can be cancelled");
         }
 
+        // Fetch portfolio (needed for both BUY_LIMIT balance release and transaction totalValue)
+        Portfolio portfolio = portfolioRepository.findById(order.getPortfolioId())
+                .orElseThrow(() -> new PortfolioNotFoundException("Portfolio not found"));
+
         // Calculate locked amount to release (for BUY_LIMIT)
         BigDecimal lockAmount = BigDecimal.ZERO;
         if (order.getType() == OrderType.BUY_LIMIT) {
@@ -768,8 +772,6 @@ public class PortfolioService implements PortfolioUseCase {
 
         // Release locked balance from PORTFOLIO (for BUY_LIMIT)
         if (lockAmount.compareTo(BigDecimal.ZERO) > 0) {
-            Portfolio portfolio = portfolioRepository.findById(order.getPortfolioId())
-                    .orElseThrow(() -> new PortfolioNotFoundException("Portfolio not found"));
             BigDecimal currentLockedCash = portfolio.getLockedCash() != null ? portfolio.getLockedCash() : BigDecimal.ZERO;
             // Return the locked amount from lockedCash back to allocatedCash
             portfolio.setLockedCash(currentLockedCash.subtract(lockAmount));

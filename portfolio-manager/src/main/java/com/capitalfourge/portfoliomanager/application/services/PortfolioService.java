@@ -921,10 +921,12 @@ public class PortfolioService implements PortfolioUseCase {
                 throw new InvalidOrderStateException("Only PENDING orders can be expired");
             }
 
+            // Fetch portfolio (needed for both BUY_LIMIT balance release and transaction totalValue)
+            Portfolio portfolio = portfolioRepository.findById(order.getPortfolioId())
+                    .orElseThrow(() -> new PortfolioNotFoundException("Portfolio not found"));
+
             // Release locked balance from PORTFOLIO (for BUY_LIMIT)
             if (order.getType() == OrderType.BUY_LIMIT) {
-                Portfolio portfolio = portfolioRepository.findById(order.getPortfolioId())
-                        .orElseThrow(() -> new PortfolioNotFoundException("Portfolio not found"));
                 BigDecimal lockAmount = order.getTargetPrice().multiply(order.getQuantity());
                 BigDecimal currentLockedCash = portfolio.getLockedCash() != null ? portfolio.getLockedCash() : BigDecimal.ZERO;
                 // Return the locked amount from lockedCash back to allocatedCash

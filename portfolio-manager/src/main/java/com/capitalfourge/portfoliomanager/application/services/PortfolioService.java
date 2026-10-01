@@ -45,9 +45,11 @@ import com.capitalfourge.portfoliomanager.domain.User;
 import com.capitalfourge.portfoliomanager.domain.Order;
 import com.capitalfourge.portfoliomanager.domain.OrderStatus;
 import com.capitalfourge.portfoliomanager.domain.OrderType;
+import com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistence.Entities.OrderEntity;
 import com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistence.Entities.PortfolioEntity;
 import com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistence.Entities.PositionEntity;
 import com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistence.Entities.TransactionEntity;
+import com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistence.OrderPersistenceAdapter;
 import com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistence.Repositories.JpaPortfolioRepository;
 import com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistence.Repositories.JpaTransactionRepository;
 
@@ -66,6 +68,7 @@ public class PortfolioService implements PortfolioUseCase {
     private final MetricRepository metricRepository;
     private final TransactionRepository transactionRepository;
     private final OrderRepository orderRepository;
+    private final OrderPersistenceAdapter orderPersistenceAdapter;
     private final UserRepository userRepository;
     @Qualifier("dataCollectorClient")
     private final RestClient dataCollectorClient;
@@ -655,29 +658,36 @@ public class PortfolioService implements PortfolioUseCase {
 
             // Verify PORTFOLIO has enough allocated cash to lock (for BUY_LIMIT)
             Portfolio portfolio = portfolioRepository.findById(portfolioId)
-                    .orElseThrow(() -> new PortfolioNotFoundException("Portfolio not found"));
-            BigDecimal portfolioAllocatedCash = portfolio.getAllocatedCash() != null ? portfolio.getAllocatedCash() : BigDecimal.ZERO;
+                                .orElseThrow(() -> new PortfolioNotFoundException("Portfolio not found"));
+                        BigDecimal portfolioAllocatedCash = portfolio.getAllocatedCash() != null ? portfolio.getAllocatedCash() : BigDecimal.ZERO;
 
-            if (type == OrderType.BUY_LIMIT) {
-                // Calculate lock amount based on targetPrice * quantity
-                BigDecimal lockAmount = BigDecimal.ZERO;
-                if (finalQuantity != null) {
-                    lockAmount = targetPrice.multiply(finalQuantity);
-                } else if (finalUsdAmount != null) {
-                    // If quantity calculated from USD, lock the USD amount
-                    lockAmount = finalUsdAmount;
-                }
-                
-                if (portfolioAllocatedCash.compareTo(lockAmount) < 0) {
-                    throw new InsufficientBalanceException("Insufficient allocated cash in portfolio for limit order");
-                }
-                
-                // Lock the balance in portfolio: move from allocatedCash to lockedCash
-                portfolio.setAllocatedCash(portfolioAllocatedCash.subtract(lockAmount));
-                BigDecimal currentLockedCash = portfolio.getLockedCash() != null ? portfolio.getLockedCash() : BigDecimal.ZERO;
-                portfolio.setLockedCash(currentLockedCash.add(lockAmount));
-                portfolioRepository.save(portfolio);
-            }
+                        // Get managed portfolio entity early for order persistence (needed for both BUY and SELL limit)
+                        PortfolioEntity portfolioEntity = portfolioRepository.findEntityById(portfolioId)
+                                .orElseThrow(() -> new PortfolioNotFoundException("Portfolio not found"));
+
+                        if (type == OrderType.BUY_LIMIT) {
+                            // Calculate lock amount based on targetPrice * quantity
+                            BigDecimal lockAmount = BigDecimal.ZERO;
+                            if (finalQuantity != null) {
+                                lockAmount = targetPrice.multiply(finalQuantity);
+                            } else if (finalUsdAmount != null) {
+                                // If quantity calculated from USD, lock the USD amount
+                                lockAmount = finalUsdAmount;
+                            }
+
+                            if (portfolioAllocatedCash.compareTo(lockAmount) < 0) {
+                                throw new InsufficientBalanceException("Insufficient allocated cash in portfolio for limit order");
+                            }
+
+                            // Lock the balance in portfolio: move from allocatedCash to lockedCash
+                            portfolio.setAllocatedCash(portfolioAllocatedCash.subtract(lockAmount));
+                            BigDecimal currentLockedCash = portfolio.getLockedCash() != null ? portfolio.getLockedCash() : BigDecimal.ZERO;
+                            portfolio.setLockedCash(currentLockedCash.add(lockAmount));
+                            // Save the managed entity directly
+                            portfolioEntity.setAllocatedCash(portfolio.getAllocatedCash());
+                            portfolioEntity.setLockedCash(portfolio.getLockedCash());
+                            portfolioRepository.saveEntity(portfolioEntity);
+                        }
 
             // Calculate quantity from USD if needed
             if (finalQuantity == null) {
@@ -718,10 +728,16 @@ public class PortfolioService implements PortfolioUseCase {
                 null  // rejectionReason
             );
 
-            Order savedOrder = orderRepository.save(order);
+            OrderEntity savedOrderEntity = orderPersistenceAdapter.saveAndReturnEntity(order, portfolioEntity);
 
             // Add order to portfolio's orders collection to prevent orphanRemoval deletion
-            portfolio.getOrders().add(savedOrder);
+            // Use the SAME portfolio entity to maintain consistency
+            // Ensure the order entity references this portfolio entity
+            savedOrderEntity.setPortfolio(portfolioEntity);
+            portfolioEntity.getOrders().add(savedOrderEntity);
+            portfolioRepository.saveEntity(portfolioEntity); // Persist the collection change on managed entity
+
+            Order savedOrder = orderPersistenceAdapter.toDomain(savedOrderEntity);
 
             // Create PENDING transaction for the limit order
             Transaction pendingTransaction = new Transaction(
@@ -821,79 +837,129 @@ public class PortfolioService implements PortfolioUseCase {
                 throw new InvalidOrderStateException("Only PENDING orders can be filled");
             }
 
-            if (order.getType() != OrderType.BUY_LIMIT) {
-                throw new InvalidOrderStateException("Only BUY_LIMIT orders can be filled by worker");
-            }
-
             // Release locked balance from PORTFOLIO (targetPrice * quantity was locked at creation)
             Portfolio portfolio = portfolioRepository.findById(order.getPortfolioId())
                     .orElseThrow(() -> new PortfolioNotFoundException("Portfolio not found"));
             BigDecimal lockAmount = order.getTargetPrice().multiply(order.getQuantity());
             BigDecimal currentLockedCash = portfolio.getLockedCash() != null ? portfolio.getLockedCash() : BigDecimal.ZERO;
-            // Return the locked amount from lockedCash back to allocatedCash
-            portfolio.setLockedCash(currentLockedCash.subtract(lockAmount));
-            BigDecimal currentAllocated = portfolio.getAllocatedCash() != null ? portfolio.getAllocatedCash() : BigDecimal.ZERO;
-            portfolio.setAllocatedCash(currentAllocated.add(lockAmount));
-            portfolioRepository.save(portfolio);
 
-            // Execute the buy at fillPrice using portfolio allocated cash
-            BigDecimal totalCost = fillPrice.multiply(order.getQuantity());
-            currentAllocated = portfolio.getAllocatedCash() != null ? portfolio.getAllocatedCash() : BigDecimal.ZERO;
-            if (currentAllocated.compareTo(totalCost) < 0) {
-                throw new InsufficientBalanceException("Insufficient allocated cash in portfolio to fill order");
-            }
-            portfolio.setAllocatedCash(currentAllocated.subtract(totalCost));
-            portfolioRepository.save(portfolio);
+            if (order.getType() == OrderType.BUY_LIMIT) {
+                // BUY_LIMIT: targetPrice * quantity was locked, return to allocatedCash
+                portfolio.setLockedCash(currentLockedCash.subtract(lockAmount));
+                BigDecimal currentAllocated = portfolio.getAllocatedCash() != null ? portfolio.getAllocatedCash() : BigDecimal.ZERO;
+                portfolio.setAllocatedCash(currentAllocated.add(lockAmount));
+                portfolioRepository.save(portfolio);
 
-            boolean positionExists = false;
-            if (portfolio.getPositions() != null) {
-                for (Position pos : portfolio.getPositions()) {
-                    if (pos.getSymbol().equals(order.getSymbol())) {
-                        // Update existing position - recalculate average price
-                        BigDecimal totalQty = pos.getQuantity().add(order.getQuantity());
-                        BigDecimal totalValue = pos.getQuantity().multiply(pos.getAveragePurchasePrice())
-                                .add(order.getQuantity().multiply(fillPrice));
-                        pos.setQuantity(totalQty);
-                        pos.setAveragePurchasePrice(totalValue.divide(totalQty, 8, RoundingMode.HALF_UP));
-                        pos.setCurrentPrice(fillPrice);
-                        positionExists = true;
-                        break;
+                // Execute the buy at fillPrice using portfolio allocated cash
+                BigDecimal totalCost = fillPrice.multiply(order.getQuantity());
+                currentAllocated = portfolio.getAllocatedCash() != null ? portfolio.getAllocatedCash() : BigDecimal.ZERO;
+                if (currentAllocated.compareTo(totalCost) < 0) {
+                    throw new InsufficientBalanceException("Insufficient allocated cash in portfolio to fill order");
+                }
+                portfolio.setAllocatedCash(currentAllocated.subtract(totalCost));
+                portfolioRepository.save(portfolio);
+
+                boolean positionExists = false;
+                if (portfolio.getPositions() != null) {
+                    for (Position pos : portfolio.getPositions()) {
+                        if (pos.getSymbol().equals(order.getSymbol())) {
+                            // Update existing position - recalculate average price
+                            BigDecimal totalQty = pos.getQuantity().add(order.getQuantity());
+                            BigDecimal totalValue = pos.getQuantity().multiply(pos.getAveragePurchasePrice())
+                                    .add(order.getQuantity().multiply(fillPrice));
+                            pos.setQuantity(totalQty);
+                            pos.setAveragePurchasePrice(totalValue.divide(totalQty, 8, RoundingMode.HALF_UP));
+                            pos.setCurrentPrice(fillPrice);
+                            positionExists = true;
+                            break;
+                        }
                     }
                 }
-            }
 
-            if (!positionExists) {
-                Position newPos = new Position(
+                if (!positionExists) {
+                    Position newPos = new Position(
+                            UUID.randomUUID(),
+                            order.getPortfolioId(),
+                            order.getSymbol(),
+                            order.getQuantity(),
+                            fillPrice,
+                            fillPrice,
+                            BigDecimal.ZERO
+                    );
+                    portfolio.addPosition(newPos);
+                }
+
+                // Create transaction record
+                Transaction transaction = new Transaction(
                         UUID.randomUUID(),
                         order.getPortfolioId(),
+                        TransactionType.BUY,
                         order.getSymbol(),
                         order.getQuantity(),
                         fillPrice,
-                        fillPrice,
-                        BigDecimal.ZERO
+                        totalCost,
+                        LocalDateTime.now(),
+                        portfolio.getAllocatedCash(),
+                        portfolio.getTotalValue()
                 );
-                portfolio.addPosition(newPos);
+                portfolio.addTransaction(transaction);
+
+                // Update allocated cash for performance tracking (same as buyAsset)
+                portfolio.setAllocatedCash(currentAllocated.subtract(totalCost));
+                BigDecimal currentAssigned = portfolio.getTotalAssigned() != null ? portfolio.getTotalAssigned() : BigDecimal.ZERO;
+                portfolio.setTotalAssigned(currentAssigned.add(totalCost));
+
+            } else if (order.getType() == OrderType.SELL_LIMIT) {
+                // SELL_LIMIT: locked position quantity (not cash), release position
+                // For SELL_LIMIT, the position should have been "locked" - we need to verify position exists
+                Position positionToSell = null;
+                if (portfolio.getPositions() != null) {
+                    for (Position pos : portfolio.getPositions()) {
+                        if (pos.getSymbol().equals(order.getSymbol())) {
+                            positionToSell = pos;
+                            break;
+                        }
+                    }
+                }
+                if (positionToSell == null || positionToSell.getQuantity().compareTo(order.getQuantity()) < 0) {
+                    throw new InsufficientAssetsException("Insufficient " + order.getSymbol() + " position to fill SELL_LIMIT order");
+                }
+
+                // Execute the sell at fillPrice - add cash to allocatedCash
+                BigDecimal totalProceeds = fillPrice.multiply(order.getQuantity());
+                BigDecimal currentAllocated = portfolio.getAllocatedCash() != null ? portfolio.getAllocatedCash() : BigDecimal.ZERO;
+                portfolio.setAllocatedCash(currentAllocated.add(totalProceeds));
+                portfolioRepository.save(portfolio);
+
+                // Update position - reduce quantity
+                BigDecimal newQty = positionToSell.getQuantity().subtract(order.getQuantity());
+                if (newQty.compareTo(BigDecimal.ZERO) == 0) {
+                    // Remove position entirely
+                    portfolio.getPositions().remove(positionToSell);
+                } else {
+                    positionToSell.setQuantity(newQty);
+                    positionToSell.setCurrentPrice(fillPrice);
+                }
+
+                // Create transaction record
+                Transaction transaction = new Transaction(
+                        UUID.randomUUID(),
+                        order.getPortfolioId(),
+                        TransactionType.SELL,
+                        order.getSymbol(),
+                        order.getQuantity(),
+                        fillPrice,
+                        totalProceeds,
+                        LocalDateTime.now(),
+                        portfolio.getAllocatedCash(),
+                        portfolio.getTotalValue()
+                );
+                portfolio.addTransaction(transaction);
+
+                // Update totalWithdrawn for performance tracking
+                BigDecimal currentWithdrawn = portfolio.getTotalWithdrawn() != null ? portfolio.getTotalWithdrawn() : BigDecimal.ZERO;
+                portfolio.setTotalWithdrawn(currentWithdrawn.add(totalProceeds));
             }
-
-            // Create transaction record
-            Transaction transaction = new Transaction(
-                    UUID.randomUUID(),
-                    order.getPortfolioId(),
-                    TransactionType.BUY,
-                    order.getSymbol(),
-                    order.getQuantity(),
-                    fillPrice,
-                    totalCost,
-                    LocalDateTime.now(),
-                    portfolio.getAllocatedCash(),
-                    portfolio.getTotalValue()
-            );
-            portfolio.addTransaction(transaction);
-
-            // Update allocated cash for performance tracking (same as buyAsset)
-            portfolio.setAllocatedCash(currentAllocated.subtract(totalCost));
-            BigDecimal currentAssigned = portfolio.getTotalAssigned() != null ? portfolio.getTotalAssigned() : BigDecimal.ZERO;
-            portfolio.setTotalAssigned(currentAssigned.add(totalCost));
 
             portfolioRepository.save(portfolio);
 

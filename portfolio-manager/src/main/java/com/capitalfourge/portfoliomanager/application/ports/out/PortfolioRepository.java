@@ -35,4 +35,7 @@ public interface PortfolioRepository {
     
     // For direct entity operations (e.g., cascade delete)
     Optional<com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistence.Entities.PortfolioEntity> findEntityById(UUID id);
+
+    // Save entity directly (to avoid orphanRemoval issues)
+    Portfolio saveEntity(com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistence.Entities.PortfolioEntity entity);
 }

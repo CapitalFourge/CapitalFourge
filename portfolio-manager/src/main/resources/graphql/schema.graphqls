@@ -24,8 +24,10 @@ type Query {
   priceHistory(symbol: String!, range: String, days: Int): [PricePointUnion!]!
   ordersByPortfolio(portfolioId: ID!): [Order!]!
   # Internal query for order worker - returns all PENDING limit orders
-  pendingLimitOrders: [Order!]!
-  # Public shared portfolio
+    pendingLimitOrders: [Order]!
+    # Internal query for order worker using API key
+    internalPendingLimitOrders(apiKey: String!): [Order]!
+    # Public shared portfolio
   sharedPortfolio(slug: String!): Portfolio
   transactions(startDate: String, endDate: String, page: Int, size: Int): TransactionPage!
 }

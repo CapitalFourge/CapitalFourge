@@ -21,6 +21,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.capitalfourge.portfoliomanager.application.exception.InvalidCredentialsException;
 import com.capitalfourge.portfoliomanager.application.exception.OrderNotFoundException;
 import com.capitalfourge.portfoliomanager.application.exception.PortfolioNotFoundException;
@@ -56,6 +59,8 @@ import lombok.RequiredArgsConstructor;
 @Controller
 @RequiredArgsConstructor
 public class PortfolioGraphQLController {
+
+    private static final Logger log = LoggerFactory.getLogger(PortfolioGraphQLController.class);
 
     private final UserUseCase userUseCase;
     private final PortfolioUseCase portfolioUseCase;
@@ -869,12 +874,24 @@ public class PortfolioGraphQLController {
         if (userId == null) {
             return List.of();
         }
-        // Filter by current user - only show their pending orders
+        // Allow internal service (X-API-Key) to query ALL pending orders for worker
         UUID internalServiceId = UUID.fromString("00000000-0000-0000-0000-000000000000");
         if (userId.equals(internalServiceId)) {
-            return List.of(); // Internal service shouldn't query this
+            return portfolioUseCase.getPendingLimitOrders(); // All pending orders for worker
         }
+        // Regular user - only their pending orders
         return portfolioUseCase.getPendingLimitOrdersByUser(userId);
+    }
+
+    @QueryMapping
+    public List<Order> internalPendingLimitOrders(@Argument String apiKey) {
+        // Internal endpoint for order-worker using X-API-Key
+        String expectedApiKey = System.getenv("DATA_COLLECTOR_API_KEY");
+        if (expectedApiKey == null || !expectedApiKey.equals(apiKey)) {
+            log.warn("Invalid API key for internalPendingLimitOrders");
+            return List.of();
+        }
+        return portfolioUseCase.getPendingLimitOrders();
     }
 
     @QueryMapping

@@ -22,7 +22,8 @@ public interface JpaOrderRepository extends JpaRepository<OrderEntity, UUID> {
     @EntityGraph(attributePaths = {"portfolio"}, type = EntityGraph.EntityGraphType.FETCH)
     Page<OrderEntity> findByUserId(UUID userId, Pageable pageable);
 
-    @EntityGraph(attributePaths = {"portfolio"}, type = EntityGraph.EntityGraphType.FETCH)
+    // Direct query without JOIN to avoid portfolio relationship issues
+    @Query("SELECT o FROM OrderEntity o WHERE o.status = :status")
     Page<OrderEntity> findByStatus(OrderStatus status, Pageable pageable);
 
     List<OrderEntity> findByUserIdAndStatus(UUID userId, OrderStatus status, Pageable pageable);

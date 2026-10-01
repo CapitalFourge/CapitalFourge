@@ -30,6 +30,12 @@ public class PortfolioPersistenceAdapter implements PortfolioRepository {
     @Override
     public Portfolio save(Portfolio portfolio) {
         PortfolioEntity entity = mapper.toEntity(portfolio);
+        return saveEntity(entity);
+    }
+
+    @Override
+    @Transactional
+    public Portfolio saveEntity(PortfolioEntity entity) {
         entity = jpaRepository.save(entity);
         return mapper.toDomain(entity);
     }

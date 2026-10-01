@@ -105,16 +105,16 @@ class GraphQLClient:
 
 
 class OrderFillEngine:
-    """Monitors market prices and fills BUY_LIMIT orders when conditions are met."""
+    """Monitors market prices and fills BUY_LIMIT and SELL_LIMIT orders when conditions are met."""
 
     def __init__(self, gql_client: GraphQLClient):
         self.gql = gql_client
 
-    def get_pending_buy_orders(self) -> List[Order]:
-        """Fetch all PENDING BUY_LIMIT orders."""
+    def get_pending_orders(self) -> List[Order]:
+        """Fetch all PENDING limit orders (both BUY and SELL) using internal API key."""
         query = """
-        query GetPendingBuyOrders {
-            pendingLimitOrders {
+        query GetPendingOrders($apiKey: String!) {
+            internalPendingLimitOrders(apiKey: $apiKey) {
                 id
                 portfolioId
                 userId
@@ -128,10 +128,10 @@ class OrderFillEngine:
             }
         }
         """
-        data = self.gql.execute(query)
+        data = self.gql.execute(query, {"apiKey": SERVICE_API_KEY})
         orders = []
-        for order_data in data.get("pendingLimitOrders", []):
-            if order_data.get("type") == "BUY_LIMIT" and order_data.get("status") == "PENDING":
+        for order_data in data.get("internalPendingLimitOrders", []):
+            if order_data.get("status") == "PENDING":
                 orders.append(Order(
                     id=order_data["id"],
                     portfolio_id=order_data["portfolioId"],
@@ -183,14 +183,14 @@ class OrderFillEngine:
 
     def run_fill_check(self):
         """Main fill check loop."""
-        logger.info("🔍 Checking for fillable BUY_LIMIT orders...")
+        logger.info("🔍 Checking for fillable limit orders...")
 
-        orders = self.get_pending_buy_orders()
+        orders = self.get_pending_orders()
         if not orders:
-            logger.info("   No pending BUY_LIMIT orders")
+            logger.info("   No pending limit orders")
             return
 
-        logger.info(f"   Found {len(orders)} pending BUY_LIMIT orders")
+        logger.info(f"   Found {len(orders)} pending limit orders")
 
         for order in orders:
             current_price = self.get_current_price(order.symbol)
@@ -200,13 +200,27 @@ class OrderFillEngine:
 
             logger.info(f"   {order.symbol}: target=${order.target_price:.2f}, current=${current_price:.2f}")
 
-            # BUY_LIMIT fills when market price <= target price (price dropped to target)
-            if current_price <= order.target_price:
-                logger.info(f"   🎯 TRIGGER: {order.symbol} @ ${current_price:.2f} <= ${order.target_price:.2f}")
+            should_fill = False
+            fill_price = order.target_price
+
+            if order.type == "BUY_LIMIT":
+                # BUY_LIMIT fills when market price <= target price (price dropped to target)
+                if current_price <= order.target_price:
+                    should_fill = True
+                    logger.info(f"   🎯 TRIGGER BUY: {order.symbol} @ ${current_price:.2f} <= ${order.target_price:.2f}")
+                else:
+                    logger.info(f"   ⏳ Waiting BUY: {order.symbol} @ ${current_price:.2f} > ${order.target_price:.2f}")
+            elif order.type == "SELL_LIMIT":
+                # SELL_LIMIT fills when market price >= target price (price rose to target)
+                if current_price >= order.target_price:
+                    should_fill = True
+                    logger.info(f"   🎯 TRIGGER SELL: {order.symbol} @ ${current_price:.2f} >= ${order.target_price:.2f}")
+                else:
+                    logger.info(f"   ⏳ Waiting SELL: {order.symbol} @ ${current_price:.2f} < ${order.target_price:.2f}")
+
+            if should_fill:
                 # Paper trading: execute at exact limit price (target_price), not market price
-                self.fill_order(order, order.target_price)
-            else:
-                logger.info(f"   ⏳ Waiting: {order.symbol} @ ${current_price:.2f} > ${order.target_price:.2f}")
+                self.fill_order(order, fill_price)
 
 
 class OrderExpiryJob:
@@ -218,8 +232,8 @@ class OrderExpiryJob:
     def get_expired_orders(self) -> List[Order]:
         """Fetch all PENDING orders past their expiresAt."""
         query = """
-        query GetPendingOrders {
-            pendingLimitOrders {
+        query GetPendingOrders($apiKey: String!) {
+            internalPendingLimitOrders(apiKey: $apiKey) {
                 id
                 portfolioId
                 userId
@@ -233,11 +247,11 @@ class OrderExpiryJob:
             }
         }
         """
-        data = self.gql.execute(query)
+        data = self.gql.execute(query, {"apiKey": SERVICE_API_KEY})
         orders = []
         now = datetime.now(timezone.utc)
 
-        for order_data in data.get("pendingLimitOrders", []):
+        for order_data in data.get("internalPendingLimitOrders", []):
             if order_data["status"] == "PENDING" and order_data.get("expiresAt"):
                 expires_str = order_data["expiresAt"].replace("Z", "+00:00")
                 expires = datetime.fromisoformat(expires_str)

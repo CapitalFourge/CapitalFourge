@@ -91,7 +91,8 @@ public class TransactionEntity {
     // Explicit all-args constructor for Lombok compatibility
     public TransactionEntity(UUID id, PortfolioEntity portfolio, TransactionType type,
                              String symbol, BigDecimal quantity, BigDecimal price,
-                             LocalDateTime timestamp, BigDecimal balanceTransaction) {
+                             LocalDateTime timestamp, BigDecimal balanceTransaction,
+                             BigDecimal totalValue) {
         this.id = id;
         this.portfolio = portfolio;
         this.type = type;
@@ -100,6 +101,6 @@ public class TransactionEntity {
         this.price = price;
         this.timestamp = timestamp;
         this.balanceTransaction = balanceTransaction;
-        this.totalValue = BigDecimal.ZERO;
+        this.totalValue = totalValue != null ? totalValue : BigDecimal.ZERO;
     }
 }

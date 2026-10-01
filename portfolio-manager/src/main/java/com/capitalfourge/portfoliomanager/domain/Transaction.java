@@ -51,7 +51,8 @@ public class Transaction {
         // Explicit all-args constructor for Lombok compatibility
         public Transaction(UUID id, UUID portfolioId, TransactionType type, String symbol,
                        BigDecimal quantity, BigDecimal price, BigDecimal totalAmount,
-                       LocalDateTime timestamp, BigDecimal balanceTransaction) {
+                       LocalDateTime timestamp, BigDecimal balanceTransaction,
+                       BigDecimal totalValue) {
         this.id = id;
         this.portfolioId = portfolioId;
         this.type = type;
@@ -61,6 +62,6 @@ public class Transaction {
         this.totalAmount = totalAmount;
         this.timestamp = timestamp;
         this.balanceTransaction = balanceTransaction;
-        this.totalValue = BigDecimal.ZERO;
+        this.totalValue = totalValue != null ? totalValue : BigDecimal.ZERO;
     }
 }

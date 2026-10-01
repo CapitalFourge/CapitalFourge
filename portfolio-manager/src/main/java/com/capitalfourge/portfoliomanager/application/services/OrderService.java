@@ -347,7 +347,8 @@ public class OrderService {
                     order.getSymbol(),
                     order.getQuantity() != null ? order.getQuantity() : BigDecimal.ONE,
                     order.getTargetPrice(), orderAmount, LocalDateTime.now(),
-                    user.getCashBalance()
+                    user.getCashBalance(),
+                    portfolio.getTotalValue()
             );
             transactionRepository.save(transaction);
 

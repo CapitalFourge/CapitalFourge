@@ -389,7 +389,7 @@ public class PortfolioService implements PortfolioUseCase {
         if (user == null)
             return;
 
-        // 1. Cancel pending orders and return locked balance
+        // 1. Cancel pending orders and return locked balance to user
         List<Order> orders = orderRepository.findByPortfolioId(id);
         for (Order order : orders) {
             if (order.getStatus() == OrderStatus.PENDING) {
@@ -406,22 +406,19 @@ public class PortfolioService implements PortfolioUseCase {
             }
         }
 
-        // 2. Sell all positions (liquidate portfolio) and return proceeds to user cash balance
-        // Use the managed entity's positions so orphanRemoval works
+        // 2. Liquidate all positions at current price and return proceeds to user
         for (PositionEntity positionEntity : new ArrayList<>(portfolioEntity.getPositions())) {
             BigDecimal quantity = positionEntity.getQuantity();
             if (quantity.compareTo(BigDecimal.ZERO) > 0) {
-                // Use current price if available, otherwise average purchase price
                 BigDecimal price = positionEntity.getCurrentPrice() != null && positionEntity.getCurrentPrice().compareTo(BigDecimal.ZERO) > 0
                         ? positionEntity.getCurrentPrice()
                         : positionEntity.getAveragePurchasePrice();
                 if (price == null || price.compareTo(BigDecimal.ZERO) <= 0) {
-                    price = BigDecimal.ZERO; // fallback
+                    price = BigDecimal.ZERO;
                 }
                 BigDecimal totalAmount = price.multiply(quantity);
-                
+
                 user.setCashBalance(user.getCashBalance().add(totalAmount));
-                portfolioEntity.setAllocatedCash(portfolioEntity.getAllocatedCash().add(totalAmount));
 
                 TransactionEntity transactionEntity = new TransactionEntity(
                         UUID.randomUUID(), portfolioEntity, TransactionType.SELL,
@@ -431,17 +428,27 @@ public class PortfolioService implements PortfolioUseCase {
                 );
                 jpaTransactionRepository.save(transactionEntity);
                 portfolioEntity.getTransactions().add(transactionEntity);
-                
+
                 // Remove position from managed entity - orphanRemoval will delete from DB
                 portfolioEntity.getPositions().remove(positionEntity);
             }
         }
 
+        // 3. Return ALL remaining portfolio cash (allocatedCash + lockedCash) to user
+        BigDecimal portfolioAllocatedCash = portfolioEntity.getAllocatedCash() != null ? portfolioEntity.getAllocatedCash() : BigDecimal.ZERO;
+        BigDecimal portfolioLockedCash = portfolioEntity.getLockedCash() != null ? portfolioEntity.getLockedCash() : BigDecimal.ZERO;
+        BigDecimal portfolioCash = portfolioAllocatedCash.add(portfolioLockedCash);
+        
+        if (portfolioCash.compareTo(BigDecimal.ZERO) > 0) {
+            user.setCashBalance(user.getCashBalance().add(portfolioCash));
+        }
+
         userRepository.save(user);
-        // Save the managed entity to persist transaction additions and position removals
+        
+        // 4. Save the managed entity to persist transaction additions and position removals
         jpaRepository.save(portfolioEntity);
 
-        // 3. Delete the portfolio (cascade will handle remaining positions/transactions)
+        // 5. Delete the portfolio (cascade will handle remaining positions/transactions)
         jpaRepository.deleteById(id);
     }
 

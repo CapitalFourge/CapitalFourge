@@ -151,7 +151,8 @@ class PortfolioIntegrationTest {
                     new BigDecimal("150"),
                     new BigDecimal("1500"),
                     java.time.LocalDateTime.now(),
-                    new BigDecimal("1500")
+                    new BigDecimal("1500"),
+                    BigDecimal.ZERO
                 )
             ),
             java.util.List.of(),

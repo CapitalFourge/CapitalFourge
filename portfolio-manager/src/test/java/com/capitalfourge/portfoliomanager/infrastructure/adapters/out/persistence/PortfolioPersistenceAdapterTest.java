@@ -78,7 +78,8 @@ class PortfolioPersistenceAdapterTest {
             new BigDecimal("150"),
             new BigDecimal("1500"),
             LocalDateTime.now(),
-            new BigDecimal("10000")
+            new BigDecimal("10000"),
+            BigDecimal.ZERO
         );
 
         portfolio = new Portfolio(

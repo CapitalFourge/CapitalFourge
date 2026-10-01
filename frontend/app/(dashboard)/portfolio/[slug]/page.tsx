@@ -100,6 +100,7 @@ const PORTFOLIO_DETAIL_QUERY = gql`
       shareSlug
       userId
       allocatedCash
+      lockedCash
       totalAssigned
       totalWithdrawn
       totalValue
@@ -161,6 +162,7 @@ interface Portfolio {
   shareSlug?: string;
   userId: string;
   allocatedCash?: number;
+  lockedCash?: number;
   totalAssigned?: number;
   totalWithdrawn?: number;
   totalValue?: number;
@@ -229,9 +231,11 @@ export default function PortfolioDetailPage() {
 
   // Use backend-provided fields for accurate portfolio metrics
   const allocatedCash = portfolio?.allocatedCash ?? 0;
+  const lockedCash = portfolio?.lockedCash ?? 0;
   const totalAssigned = portfolio?.totalAssigned ?? 0;
   const totalValue = portfolio?.totalValue ?? 0;
-  const positionsUsdValue = totalValue > 0 ? totalValue - allocatedCash : 0;
+  const availableCash = allocatedCash - lockedCash;  // Dinero disponible para invertir
+  const positionsUsdValue = totalValue - allocatedCash;  // Valor en activos (totalValue = positions + allocatedCash + lockedCash)
 
   // Use backend performance (based on totalAssigned vs totalValue)
   const totalPerformance = portfolio?.performance ?? 0;
@@ -326,7 +330,7 @@ export default function PortfolioDetailPage() {
         <div className="metric-tile">
           <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Caja</p>
           <p className="mt-4 text-3xl font-semibold text-white">
-            {formatCurrency(userCashBalance)}
+            {formatCurrency(availableCash)}
           </p>
         </div>
         <div className="metric-tile">

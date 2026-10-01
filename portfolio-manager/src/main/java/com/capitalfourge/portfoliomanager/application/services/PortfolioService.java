@@ -280,6 +280,10 @@ public class PortfolioService implements PortfolioUseCase {
             portfolio.getPositions().remove(pos);
         }
 
+        // Add proceeds to portfolio allocated cash FIRST
+        BigDecimal currentAllocated = portfolio.getAllocatedCash() != null ? portfolio.getAllocatedCash() : BigDecimal.ZERO;
+        portfolio.setAllocatedCash(currentAllocated.add(totalAmount));
+
         Transaction transaction = new Transaction(
                 UUID.randomUUID(), portfolioId, TransactionType.SELL,
                 symbol, quantity, price, totalAmount, LocalDateTime.now(),
@@ -289,10 +293,6 @@ public class PortfolioService implements PortfolioUseCase {
 
         transactionRepository.save(transaction);
         portfolio.getTransactions().add(transaction);
-
-        // Add proceeds to portfolio allocated cash
-        BigDecimal currentAllocated = portfolio.getAllocatedCash() != null ? portfolio.getAllocatedCash() : BigDecimal.ZERO;
-        portfolio.setAllocatedCash(currentAllocated.add(totalAmount));
 
         metricRepository.incrementAssetVolume(symbol, quantity.doubleValue());
         updatePerformance(portfolio);

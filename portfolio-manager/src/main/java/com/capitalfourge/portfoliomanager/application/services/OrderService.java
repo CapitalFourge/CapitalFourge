@@ -172,7 +172,8 @@ public class OrderService {
                     order.getSymbol(),
                     order.getQuantity() != null ? order.getQuantity() : BigDecimal.ONE,
                     order.getTargetPrice(), orderAmount, LocalDateTime.now(),
-                    user.getCashBalance()
+                    user.getCashBalance(),
+                    portfolio.getTotalValue()
             );
             transactionRepository.save(transaction);
 
@@ -201,7 +202,8 @@ public class OrderService {
                         UUID.randomUUID(), portfolio.getId(), TransactionType.CANCELLED,
                         order.getSymbol(), quantityToUnlock, order.getTargetPrice(),
                         BigDecimal.ZERO, LocalDateTime.now(),
-                        user.getCashBalance()
+                        user.getCashBalance(),
+                        portfolio.getTotalValue()
                 );
                 transactionRepository.save(transaction);
 

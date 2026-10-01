@@ -53,6 +53,9 @@ public class TransactionEntity {
     @Column(nullable = false, precision = 20, scale = 8)
     private BigDecimal balanceTransaction;
 
+    @Column(name = "total_value", precision = 20, scale = 8)
+    private BigDecimal totalValue;
+
     @PrePersist
     protected void onCreate() {
         if (timestamp == null) {
@@ -79,6 +82,8 @@ public class TransactionEntity {
     public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
     public BigDecimal getBalanceTransaction() { return balanceTransaction; }
     public void setBalanceTransaction(BigDecimal balanceTransaction) { this.balanceTransaction = balanceTransaction; }
+    public BigDecimal getTotalValue() { return totalValue; }
+    public void setTotalValue(BigDecimal totalValue) { this.totalValue = totalValue; }
     
     // Explicit no-args constructor for JPA/Hibernate
     public TransactionEntity() {}
@@ -95,5 +100,6 @@ public class TransactionEntity {
         this.price = price;
         this.timestamp = timestamp;
         this.balanceTransaction = balanceTransaction;
+        this.totalValue = BigDecimal.ZERO;
     }
 }

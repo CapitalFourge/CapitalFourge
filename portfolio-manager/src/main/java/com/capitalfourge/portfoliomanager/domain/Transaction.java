@@ -21,6 +21,7 @@ public class Transaction {
     private BigDecimal totalAmount;
     private LocalDateTime timestamp;
     private BigDecimal balanceTransaction;
+    private BigDecimal totalValue;        // Total portfolio value at transaction moment (for charts)
     
     // Explicit getters/setters for Lombok compatibility
         public UUID getId() { return id; }
@@ -41,6 +42,8 @@ public class Transaction {
         public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
         public BigDecimal getBalanceTransaction() { return balanceTransaction; }
         public void setBalanceTransaction(BigDecimal balanceTransaction) { this.balanceTransaction = balanceTransaction; }
+        public BigDecimal getTotalValue() { return totalValue; }
+        public void setTotalValue(BigDecimal totalValue) { this.totalValue = totalValue; }
 
         // Explicit no-args constructor for mapping
         public Transaction() {}
@@ -58,5 +61,6 @@ public class Transaction {
         this.totalAmount = totalAmount;
         this.timestamp = timestamp;
         this.balanceTransaction = balanceTransaction;
+        this.totalValue = BigDecimal.ZERO;
     }
 }

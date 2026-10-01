@@ -151,6 +151,7 @@ type Transaction {
   totalAmount: Float!
   timestamp: String!
   balanceTransaction: Float!
+  totalValue: Float!
   portfolioName: String
 }
 

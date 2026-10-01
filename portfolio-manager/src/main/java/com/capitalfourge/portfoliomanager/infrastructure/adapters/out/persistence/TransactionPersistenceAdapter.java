@@ -55,7 +55,7 @@ public class TransactionPersistenceAdapter implements TransactionRepository {
     private TransactionEntity toEntity(Transaction transaction) {
         PortfolioEntity portfolioEntity = jpaPortfolioRepository.findById(transaction.getPortfolioId())
                 .orElseThrow(() -> new IllegalArgumentException("Portfolio not found: " + transaction.getPortfolioId()));
-        return new TransactionEntity(
+        TransactionEntity entity = new TransactionEntity(
                 transaction.getId(),
                 portfolioEntity,
                 transaction.getType(),
@@ -65,6 +65,8 @@ public class TransactionPersistenceAdapter implements TransactionRepository {
                 transaction.getTimestamp(),
                 transaction.getBalanceTransaction()
         );
+        entity.setTotalValue(transaction.getTotalValue());
+        return entity;
     }
 
     private Transaction toDomain(TransactionEntity entity) {
@@ -80,7 +82,8 @@ public class TransactionPersistenceAdapter implements TransactionRepository {
                 entity.getPrice(),
                 entity.getPrice().multiply(entity.getQuantity()),
                 entity.getTimestamp(),
-                entity.getBalanceTransaction()
+                entity.getBalanceTransaction(),
+                entity.getTotalValue()
         );
     }
 

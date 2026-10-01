@@ -243,7 +243,8 @@ public class PortfolioService implements PortfolioUseCase {
         Transaction transaction = new Transaction(
                 UUID.randomUUID(), portfolioId, TransactionType.BUY,
                 symbol, quantity, price, totalCost, LocalDateTime.now(),
-                portfolio.getAllocatedCash()
+                portfolio.getAllocatedCash(),
+                portfolio.getTotalValue()
         );
 
         transactionRepository.save(transaction);
@@ -279,7 +280,8 @@ public class PortfolioService implements PortfolioUseCase {
         Transaction transaction = new Transaction(
                 UUID.randomUUID(), portfolioId, TransactionType.SELL,
                 symbol, quantity, price, totalAmount, LocalDateTime.now(),
-                portfolio.getAllocatedCash()
+                portfolio.getAllocatedCash(),
+                portfolio.getTotalValue()
         );
 
         transactionRepository.save(transaction);
@@ -321,7 +323,8 @@ public class PortfolioService implements PortfolioUseCase {
         Transaction transaction = new Transaction(
                 UUID.randomUUID(), portfolioId, TransactionType.DEPOSIT, "USD",
                 BigDecimal.ONE, amount, amount, LocalDateTime.now(),
-                portfolio.getAllocatedCash()
+                portfolio.getAllocatedCash(),
+                portfolio.getTotalValue()
         );
 
         transactionRepository.save(transaction);
@@ -357,7 +360,8 @@ public class PortfolioService implements PortfolioUseCase {
         Transaction transaction = new Transaction(
                 UUID.randomUUID(), portfolioId, TransactionType.WITHDRAWAL, "USD",
                 BigDecimal.ONE, amount, amount, LocalDateTime.now(),
-                portfolio.getAllocatedCash()
+                portfolio.getAllocatedCash(),
+                portfolio.getTotalValue()
         );
 
         transactionRepository.save(transaction);
@@ -728,7 +732,8 @@ public class PortfolioService implements PortfolioUseCase {
                 targetPrice,
                 targetPrice.multiply(finalQuantity),
                 LocalDateTime.now(),
-                BigDecimal.ZERO // balanceTransaction: no cash movement yet
+                BigDecimal.ZERO, // balanceTransaction: no cash movement yet
+                portfolio.getTotalValue()
             );
             transactionRepository.save(pendingTransaction);
 
@@ -787,7 +792,8 @@ public class PortfolioService implements PortfolioUseCase {
             order.getTargetPrice(),
             order.getTargetPrice().multiply(order.getQuantity()),
             LocalDateTime.now(),
-            BigDecimal.ZERO
+            BigDecimal.ZERO,
+            portfolio.getTotalValue()
         );
         transactionRepository.save(cancelledTransaction);
 
@@ -876,7 +882,8 @@ public class PortfolioService implements PortfolioUseCase {
                     fillPrice,
                     totalCost,
                     LocalDateTime.now(),
-                    portfolio.getAllocatedCash()
+                    portfolio.getAllocatedCash(),
+                    portfolio.getTotalValue()
             );
             portfolio.addTransaction(transaction);
 
@@ -941,7 +948,8 @@ public class PortfolioService implements PortfolioUseCase {
                 order.getTargetPrice(),
                 order.getTargetPrice().multiply(order.getQuantity()),
                 LocalDateTime.now(),
-                BigDecimal.ZERO
+                BigDecimal.ZERO,
+                portfolio.getTotalValue()
             );
             transactionRepository.save(expiredTransaction);
 

@@ -715,6 +715,9 @@ public class PortfolioService implements PortfolioUseCase {
 
             Order savedOrder = orderRepository.save(order);
 
+            // Add order to portfolio's orders collection to prevent orphanRemoval deletion
+            portfolio.getOrders().add(savedOrder);
+
             // Create PENDING transaction for the limit order
             Transaction pendingTransaction = new Transaction(
                 UUID.randomUUID(),

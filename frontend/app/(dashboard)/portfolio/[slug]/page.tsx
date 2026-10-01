@@ -342,7 +342,7 @@ export default function PortfolioDetailPage() {
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold text-white">Evolución del Valor del Portafolio</h2>
         </div>
-        <PortfolioValueChart transactions={portfolio.transactions} className="h-80" />
+        <PortfolioValueChart transactions={portfolio.transactions} currentTotalValue={totalValue} className="h-80" />
       </section>
 
       <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
@@ -421,33 +421,52 @@ export default function PortfolioDetailPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {[...portfolio.transactions].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).map((transaction: Transaction) => (
-                    <TableRow key={transaction.id} className="border-white/10 hover:bg-white/[0.03]">
-                      <TableCell className="px-6 text-xs text-slate-400">
-                        {new Date(transaction.timestamp).toLocaleString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          className={`rounded-full px-3 py-1 text-xs ${
-                            transaction.type === "BUY"
-                              ? "border-red-400/20 bg-red-500/10 text-red-100"
-                              : "border-emerald-300/20 bg-emerald-300/10 text-emerald-100"
-                          }`}
-                        >
-                          {transaction.type === "BUY" ? "Compra" : transaction.type === "SELL" ? "Venta" : transaction.type}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="font-medium text-white">{transaction.symbol}</TableCell>
-                      <TableCell className="font-mono text-sm text-slate-300">{transaction.quantity}</TableCell>
-                      <TableCell className="font-mono text-sm text-slate-300">{formatCurrency(transaction.price)}</TableCell>
-                      <TableCell className="pr-6 font-mono text-sm font-semibold text-white">
-                        {formatCurrency(transaction.totalAmount)}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {(() => {
+                    const sortedTxs = [...portfolio.transactions].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+                    const displayTxs = sortedTxs.slice(0, 5);
+                    return displayTxs.map((transaction: Transaction) => (
+                      <TableRow key={transaction.id} className="border-white/10 hover:bg-white/[0.03]">
+                        <TableCell className="px-6 text-xs text-slate-400">
+                          {new Date(transaction.timestamp).toLocaleString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            className={`rounded-full px-3 py-1 text-xs ${
+                              transaction.type === "BUY"
+                                ? "border-red-400/20 bg-red-500/10 text-red-100"
+                                : "border-emerald-300/20 bg-emerald-300/10 text-emerald-100"
+                            }`}
+                          >
+                            {transaction.type === "BUY" ? "Compra" : transaction.type === "SELL" ? "Venta" : transaction.type}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="font-medium text-white">{transaction.symbol}</TableCell>
+                        <TableCell className="font-mono text-sm text-slate-300">{transaction.quantity}</TableCell>
+                        <TableCell className="font-mono text-sm text-slate-300">{formatCurrency(transaction.price)}</TableCell>
+                        <TableCell className="pr-6 font-mono text-sm font-semibold text-white">
+                          {formatCurrency(transaction.totalAmount)}
+                        </TableCell>
+                      </TableRow>
+                    ));
+                  })()}
                 </TableBody>
               </Table>
             </div>
+            {portfolio.transactions.length > 5 && (
+              <div className="mt-4 text-center">
+                <a
+                  href="/transactions"
+                  className="inline-flex items-center gap-2 text-sm font-medium text-emerald-300 hover:text-emerald-200 transition"
+                >
+                  Ver todas las transacciones
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-external-link">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                    <polyline points="15 3 21 3 21 9"></polyline>
+                    <line x1="10" x2="21" y1="14" y2="3"></line>
+                  </svg>
+                </a>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

@@ -20,33 +20,39 @@ interface Transaction {
 
 interface DashboardTotalValueChartProps {
   transactions: Transaction[];
+  currentTotalValue?: number;
   className?: string;
 }
 
-export function DashboardTotalValueChart({ transactions, className = "h-80" }: DashboardTotalValueChartProps) {
-  if (!transactions || transactions.length === 0) {
-    return (
-      <div className={`flex items-center justify-center ${className} text-slate-400`}>
-        <p>No hay datos de transacciones para mostrar la evolución</p>
-      </div>
-    );
+export function DashboardTotalValueChart({ transactions, currentTotalValue = 0, className = "h-80" }: DashboardTotalValueChartProps) {
+  // Ordenar transacciones por fecha ascendente
+  const sortedTransactions = transactions && transactions.length > 0
+    ? [...transactions].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+    : [];
+
+  // Preparar datos para el gráfico: empezar en 0, luego cada transacción
+  const chartData = [
+    { date: "Inicio", fullDate: "Inicio", value: 0, label: "0" },
+    ...sortedTransactions.map((tx, index) => ({
+      date: format(new Date(tx.timestamp), "dd/MM", { locale: es }),
+      fullDate: format(new Date(tx.timestamp), "dd/MM/yyyy HH:mm", { locale: es }),
+      value: tx.totalValue,
+      label: `${tx.totalValue >= 0 ? "+" : ""}${tx.totalValue}`,
+    }))
+  ];
+
+  // Si no hay transacciones, solo mostramos el punto inicial y el valor actual
+  if (sortedTransactions.length === 0 && currentTotalValue > 0) {
+    chartData.push({
+      date: "Actual",
+      fullDate: "Actual",
+      value: currentTotalValue,
+      label: `${currentTotalValue >= 0 ? "+" : ""}${currentTotalValue}`,
+    });
   }
 
-  // Ordenar transacciones por fecha ascendente
-  const sortedTransactions = [...transactions].sort(
-    (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-  );
-
-  // Preparar datos para el gráfico: usar totalValue acumulado por fecha
-  const chartData = sortedTransactions.map((tx, index) => ({
-    date: format(new Date(tx.timestamp), "dd/MM", { locale: es }),
-    fullDate: format(new Date(tx.timestamp), "dd/MM/yyyy HH:mm", { locale: es }),
-    value: tx.totalValue,
-    label: index === 0 ? "Inicial" : `${tx.totalValue >= 0 ? "+" : ""}${tx.totalValue}`,
-  }));
-
-  const minValue = Math.min(...chartData.map((d) => d.value));
-  const maxValue = Math.max(...chartData.map((d) => d.value));
+  const minValue = Math.min(0, ...chartData.map((d) => d.value));
+  const maxValue = Math.max(currentTotalValue, ...chartData.map((d) => d.value));
   const padding = (maxValue - minValue) * 0.1 || 1000;
 
   return (
@@ -89,7 +95,7 @@ export function DashboardTotalValueChart({ transactions, className = "h-80" }: D
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
               }).format(value),
-              "Valor total",
+              "Patrimonio total",
             ]}
             labelFormatter={(label) => label}
           />

@@ -376,9 +376,9 @@ export default function DashboardPage() {
       {/* Dashboard Total Value Evolution Chart */}
       <motion.section variants={item} className="panel border-white/10 p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-white">Evolución del Valor Total (Transacciones)</h2>
+          <h2 className="text-xl font-semibold text-white">Patrimonio Total</h2>
         </div>
-        <DashboardTotalValueChart transactions={transactions} className="h-80" />
+        <DashboardTotalValueChart transactions={transactions} currentTotalValue={totalBalance} className="h-80" />
       </motion.section>
 
       <div className="space-y-6">

@@ -91,9 +91,24 @@ public class PortfolioEntity {
     public List<TransactionEntity> getTransactions() { return transactions; }
     public void setTransactions(List<TransactionEntity> transactions) { this.transactions = transactions; }
     public List<OrderEntity> getOrders() { return orders; }
-    public void setOrders(List<OrderEntity> orders) { this.orders = orders; }
-    
-    // Explicit no-args constructor for Lombok compatibility
+        public void setOrders(List<OrderEntity> orders) { this.orders = orders; }
+
+        // Calculate total portfolio value (positions value + allocatedCash + lockedCash)
+        public BigDecimal getTotalValue() {
+            BigDecimal positionsValue = BigDecimal.ZERO;
+            if (positions != null) {
+                for (PositionEntity pos : positions) {
+                    if (pos.getTotalValue() != null) {
+                        positionsValue = positionsValue.add(pos.getTotalValue());
+                    }
+                }
+            }
+            BigDecimal allocated = allocatedCash != null ? allocatedCash : BigDecimal.ZERO;
+            BigDecimal locked = lockedCash != null ? lockedCash : BigDecimal.ZERO;
+            return positionsValue.add(allocated).add(locked);
+        }
+
+        // Explicit no-args constructor for Lombok compatibility
     public PortfolioEntity() {
         this.positions = new ArrayList<>();
         this.transactions = new ArrayList<>();

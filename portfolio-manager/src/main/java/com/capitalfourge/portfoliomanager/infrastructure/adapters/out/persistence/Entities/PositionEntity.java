@@ -39,6 +39,13 @@ public class PositionEntity {
     public BigDecimal getCurrentPrice() { return currentPrice; }
     public void setCurrentPrice(BigDecimal currentPrice) { this.currentPrice = currentPrice; }
 
+    public BigDecimal getTotalValue() {
+        if (quantity != null && currentPrice != null) {
+            return quantity.multiply(currentPrice);
+        }
+        return BigDecimal.ZERO;
+    }
+
     // Explicit no-args constructor for JPA/Hibernate
     public PositionEntity() {}
 

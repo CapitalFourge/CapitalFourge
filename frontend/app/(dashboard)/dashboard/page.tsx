@@ -11,6 +11,7 @@ import { GlobalCashActionDialog } from "@/components/trading/global-cash-action-
 import { TradeDialog } from "@/components/trading/trade-dialog";
 import { Button } from "@/components/ui/button";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
+import { DashboardTotalValueChart } from "@/components/charts/DashboardTotalValueChart";
 
 const DASHBOARD_QUERY = gql`
   query GetDashboardData {
@@ -45,6 +46,22 @@ const DASHBOARD_QUERY = gql`
       positions {
         id
         symbol
+      }
+    }
+  }
+`;
+
+const TRANSACTIONS_QUERY = gql`
+  query GetTransactions {
+    transactions {
+      content {
+        id
+        symbol
+        type
+        quantity
+        price
+        totalValue
+        timestamp
       }
     }
   }
@@ -86,6 +103,16 @@ interface Position {
   quantity: number;
   averagePurchasePrice: number;
   currentPrice?: number;
+}
+
+interface Transaction {
+  id: string;
+  symbol: string;
+  type: string;
+  quantity: number;
+  price: number;
+  totalValue: number;
+  timestamp: string;
 }
 
 interface Portfolio {
@@ -142,6 +169,10 @@ export default function DashboardPage() {
     fetchPolicy: "cache-and-network",
   });
 
+  const { data: transactionsData } = useQuery(TRANSACTIONS_QUERY, {
+    fetchPolicy: "cache-and-network",
+  });
+
   const { data: moversData, loading: moversLoading } = useQuery(ASSET_MOVERS_QUERY, {
     variables: { sort: volatilitySort, limit: 20 },
     pollInterval: 60000,
@@ -150,6 +181,7 @@ export default function DashboardPage() {
 
   const portfolios = useMemo(() => ((data?.portfolios as Portfolio[] | undefined) ?? []), [data?.portfolios]);
   const leaderboard = useMemo(() => ((data?.leaderboard as LeaderboardEntry[] | undefined) ?? []), [data?.leaderboard]);
+  const transactions = useMemo(() => ((transactionsData?.transactions?.content as Transaction[] | undefined) ?? []), [transactionsData?.transactions?.content]);
   
   // Combine all movers into a flat array for filtering/sorting
   const allMovers = useMemo(() => {
@@ -339,6 +371,14 @@ export default function DashboardPage() {
             })}
           </div>
         </div>
+      </motion.section>
+
+      {/* Dashboard Total Value Evolution Chart */}
+      <motion.section variants={item} className="panel border-white/10 p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold text-white">Evolución del Valor Total (Transacciones)</h2>
+        </div>
+        <DashboardTotalValueChart transactions={transactions} className="h-80" />
       </motion.section>
 
       <div className="space-y-6">

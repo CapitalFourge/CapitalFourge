@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { PortfolioValueChart } from "@/components/charts/PortfolioValueChart";
 
 const PORTFOLIOS_QUERY = gql`
   query GetPortfolios {
@@ -117,6 +118,7 @@ const PORTFOLIO_DETAIL_QUERY = gql`
         price
         totalAmount
         timestamp
+        totalValue
       }
     }
   }
@@ -147,6 +149,7 @@ interface Transaction {
   price: number;
   totalAmount: number;
   timestamp: string;
+  totalValue: number;
 }
 
 interface Portfolio {
@@ -332,6 +335,14 @@ export default function PortfolioDetailPage() {
             {formatCurrency(positionsUsdValue)}
           </p>
         </div>
+      </section>
+
+      {/* Portfolio Value Evolution Chart */}
+      <section className="panel border-white/10 p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold text-white">Evolución del Valor del Portafolio</h2>
+        </div>
+        <PortfolioValueChart transactions={portfolio.transactions} className="h-80" />
       </section>
 
       <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">

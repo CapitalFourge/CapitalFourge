@@ -1,6 +1,7 @@
 package com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistence.Repositories;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -17,6 +18,7 @@ import com.capitalfourge.portfoliomanager.domain.OrderStatus;
 @Repository
 public interface JpaOrderRepository extends JpaRepository<OrderEntity, UUID> {
 
+    @EntityGraph(attributePaths = {"portfolio"}, type = EntityGraph.EntityGraphType.FETCH)
     Page<OrderEntity> findByPortfolioId(UUID portfolioId, Pageable pageable);
 
     @EntityGraph(attributePaths = {"portfolio"}, type = EntityGraph.EntityGraphType.FETCH)
@@ -32,6 +34,9 @@ public interface JpaOrderRepository extends JpaRepository<OrderEntity, UUID> {
 
     List<OrderEntity> findByStatusAndSymbol(OrderStatus status, String symbol);
 
-    @Query("SELECT o FROM OrderEntity o WHERE o.portfolioId = :portfolioId")
-    List<OrderEntity> findByPortfolioIdCustom(@Param("portfolioId") UUID portfolioId);
+    @EntityGraph(attributePaths = {"portfolio"}, type = EntityGraph.EntityGraphType.FETCH)
+    List<OrderEntity> findByPortfolioId(UUID portfolioId);
+
+    @Query("SELECT o.portfolioId FROM OrderEntity o WHERE o.id = :orderId")
+    Optional<UUID> findPortfolioIdByOrderId(@Param("orderId") UUID orderId);
 }

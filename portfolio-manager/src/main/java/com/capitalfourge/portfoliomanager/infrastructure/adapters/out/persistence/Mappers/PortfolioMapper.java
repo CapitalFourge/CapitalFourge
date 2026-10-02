@@ -55,12 +55,14 @@ public class PortfolioMapper {
         // Don't map transactions here - they are managed separately by TransactionPersistenceAdapter
         // Mapping them here causes orphanRemoval to delete existing transactions when portfolio is saved
 
-        if (domain.getOrders() != null) {
-            List<OrderEntity> orderEntities = domain.getOrders().stream()
-                    .map(this::toEntity)
-                    .toList();
-            entity.setOrders(orderEntities);
-        }
+        // Don't map orders here either - they are managed separately by OrderPersistenceAdapter
+        // Mapping them here causes orphanRemoval to delete existing orders when portfolio is saved
+        // if (domain.getOrders() != null) {
+        //     List<OrderEntity> orderEntities = domain.getOrders().stream()
+        //             .map(this::toEntity)
+        //             .toList();
+        //     entity.setOrders(orderEntities);
+        // }
 
         return entity;
     }

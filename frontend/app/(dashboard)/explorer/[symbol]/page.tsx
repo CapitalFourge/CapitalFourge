@@ -15,6 +15,7 @@ import { TradeDialog } from '@/components/trading/trade-dialog';
 import { FundamentalPricePoint } from '@/lib/types/fundamental-price-point';
 import { useIndicators } from '@/app/(dashboard)/explorer/[symbol]/components/useIndicators';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { toast } from 'sonner';
 
 interface Position {
   symbol: string;
@@ -219,6 +220,10 @@ function LimitOrdersDialog({ symbol, orders, open, onOpenChange }: {
   const [cancelOrder] = useMutation(CANCEL_ORDER_MUTATION, {
     refetchQueries: [{ query: PENDING_LIMIT_ORDERS_QUERY }],
     awaitRefetchQueries: true,
+    onCompleted: () => {
+      toast.success("Orden cancelada");
+    },
+    onError: (err) => toast.error(`Error al cancelar: ${err.message}`)
   });
 
   const symbolOrders = orders.filter(o => o.symbol === symbol && o.status === 'PENDING');

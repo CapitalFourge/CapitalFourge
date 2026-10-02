@@ -249,38 +249,21 @@ export default function PortfolioDetailPage() {
         </div>
 
         <div className="flex flex-wrap gap-3">
-          <Button
-            onClick={async () => {
-              try {
-                await toggleVisibility({
-                  variables: { portfolioId: portfolio.id, isPublic: !portfolio.isPublic }
-                });
-                toast.success(portfolio.isPublic ? "Cartera ahora es privada" : "Cartera ahora es pública");
-              } catch (e) {
-                toast.error(e instanceof Error ? e.message : "Error desconocido");
-              }
-            }}
-            variant="outline"
-            className={`h-11 rounded-2xl border-white/10 transition ${portfolio.isPublic ? "bg-emerald-300/10 text-emerald-300 border-emerald-300/30" : "bg-white/[0.03] text-slate-400"}`}
-          >
-            {portfolio.isPublic ? <Share2 className="h-4 w-4" /> : <Globe className="h-4 w-4" />}
-            {portfolio.isPublic ? "Hacer Privada" : "Hacer Pública"}
+          <Button asChild className="h-11 rounded-2xl bg-emerald-300 text-slate-950 hover:bg-emerald-200 font-semibold">
+            <Link href="/explorer">
+              <ShoppingCart className="h-4 w-4" />
+              Comprar activos
+            </Link>
           </Button>
 
-          {portfolio.isPublic && (
-             <Button
-               onClick={() => {
-                 const url = `${window.location.origin}/share/${portfolio.shareSlug}`;
-                 navigator.clipboard.writeText(url);
-                 toast.success("Link copiado al portapapeles");
-               }}
-               variant="outline"
-               className="h-11 rounded-2xl border-white/10 bg-white/[0.03] text-slate-200"
-             >
-               <Copy className="h-4 w-4" />
-               Copiar Link
-             </Button>
-          )}
+          <Button
+            onClick={() => setOrdersDialogOpen(true)}
+            variant="outline"
+            className="h-11 rounded-2xl border-white/10 bg-white/[0.03] text-slate-200 hover:bg-white/[0.06] font-medium"
+          >
+            <List className="h-4 w-4" />
+            Ver órdenes
+          </Button>
 
           <CashActionDialog portfolioId={portfolio.id} initialType="deposit">
             <Button className="h-11 rounded-2xl border border-emerald-300/30 bg-emerald-300/8 px-5 text-sm font-semibold text-emerald-200 shadow-[0_0_0_1px_rgba(110,231,183,0.08)] hover:bg-emerald-400/14 hover:text-emerald-100">
@@ -296,20 +279,40 @@ export default function PortfolioDetailPage() {
             </Button>
           </CashActionDialog>
 
-          <Button
-            onClick={() => setOrdersDialogOpen(true)}
-            variant="outline"
-            className="h-11 rounded-2xl border-white/10 bg-white/[0.03] text-slate-200 hover:bg-white/[0.06]"
-          >
-            <List className="h-4 w-4" />
-            Ver órdenes
-          </Button>
-          <Button asChild className="h-11 rounded-2xl bg-emerald-300 text-slate-950 hover:bg-emerald-200">
-            <Link href="/explorer">
-              <ShoppingCart className="h-4 w-4" />
-              Comprar activos
-            </Link>
-          </Button>
+          {portfolio.isPublic && (
+            <>
+              <Button
+                onClick={() => {
+                  const url = `${window.location.origin}/share/${portfolio.shareSlug}`;
+                  navigator.clipboard.writeText(url);
+                  toast.success("Link copiado al portapapeles");
+                }}
+                variant="outline"
+                className="h-11 rounded-2xl border-white/10 bg-white/[0.03] text-slate-400 hover:text-slate-200"
+              >
+                <Copy className="h-4 w-4" />
+                Copiar Link
+              </Button>
+
+              <Button
+                onClick={async () => {
+                  try {
+                    await toggleVisibility({
+                      variables: { portfolioId: portfolio.id, isPublic: !portfolio.isPublic }
+                    });
+                    toast.success(portfolio.isPublic ? "Cartera ahora es privada" : "Cartera ahora es pública");
+                  } catch (e) {
+                    toast.error(e instanceof Error ? e.message : "Error desconocido");
+                  }
+                }}
+                variant="outline"
+                className={`h-11 rounded-2xl border-white/10 transition ${portfolio.isPublic ? "bg-emerald-300/10 text-emerald-300 border-emerald-300/30" : "bg-white/[0.03] text-slate-400"}`}
+              >
+                {portfolio.isPublic ? <Share2 className="h-4 w-4" /> : <Globe className="h-4 w-4" />}
+                {portfolio.isPublic ? "Hacer Privada" : "Hacer Pública"}
+              </Button>
+            </>
+          )}
         </div>
       </section>
 

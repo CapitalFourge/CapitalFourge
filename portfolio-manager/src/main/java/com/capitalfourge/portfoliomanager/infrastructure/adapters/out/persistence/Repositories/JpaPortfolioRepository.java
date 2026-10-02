@@ -32,6 +32,9 @@ public interface JpaPortfolioRepository extends JpaRepository<PortfolioEntity, U
     @EntityGraph(attributePaths = {"positions"}, type = EntityGraph.EntityGraphType.FETCH)
     Page<PortfolioEntity> findByIsPublicTrueOrderByPerformanceDesc(Pageable pageable);
 
+    @Query("SELECT p FROM PortfolioEntity p LEFT JOIN FETCH p.orders WHERE p.id = :id")
+    Optional<PortfolioEntity> findByIdWithOrders(@Param("id") UUID id);
+
     @EntityGraph(attributePaths = {"positions"}, type = EntityGraph.EntityGraphType.FETCH)
     Optional<PortfolioEntity> findById(UUID id);
 
@@ -40,4 +43,7 @@ public interface JpaPortfolioRepository extends JpaRepository<PortfolioEntity, U
 
     @Query("SELECT COUNT(p) FROM PortfolioEntity p WHERE p.name = :name AND p.isPublic = true")
     Integer countPublicByName(@Param("name") String name);
+
+    @Query("SELECT COUNT(p) > 0 FROM PortfolioEntity p WHERE p.id = :portfolioId AND p.userId = :userId")
+    boolean checkPortfolioOwnership(@Param("portfolioId") UUID portfolioId, @Param("userId") UUID userId);
 }

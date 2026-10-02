@@ -101,7 +101,7 @@ public class OrderPersistenceAdapter implements OrderRepository {
     @Override
     @Transactional(readOnly = true)
     public List<Order> findByPortfolioId(UUID portfolioId) {
-        return jpaRepository.findByPortfolioIdCustom(portfolioId).stream()
+        return jpaRepository.findByPortfolioId(portfolioId).stream()
                 .map(this::toDomain)
                 .collect(Collectors.toList());
     }
@@ -184,11 +184,13 @@ public class OrderPersistenceAdapter implements OrderRepository {
         if (entity == null) {
             return null;
         }
-        String portfolioName = entity.getPortfolio() != null ? entity.getPortfolio().getName() : entity.getPortfolioName();
+        // Use portfolioName field (transient, set at creation) to avoid lazy loading issues
+        // The portfolio relationship may be a proxy that fails to initialize outside transaction
+        String portfolioName = entity.getPortfolioName();
         return new Order(
             entity.getId(),
             entity.getPortfolioId(),
-            portfolioName, // Map portfolio name from loaded relationship
+            portfolioName,
             entity.getUserId(),
             entity.getType(),
             entity.getSymbol(),

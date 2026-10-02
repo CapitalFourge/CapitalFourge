@@ -36,7 +36,7 @@ logger = logging.getLogger("order-worker")
 # Configuration
 GRAPHQL_ENDPOINT = os.getenv("ORDER_WORKER_GRAPHQL_ENDPOINT", "http://api.capitalfourge.com/graphql")
 SERVICE_API_KEY = os.getenv("SERVICE_API_KEY", "internal-service-key")
-ORDER_FILL_INTERVAL = int(os.getenv("ORDER_FILL_INTERVAL_SECONDS", "30"))  # Check every 30s
+ORDER_FILL_INTERVAL = int(os.getenv("ORDER_FILL_INTERVAL_SECONDS", "3600"))  # Check every hour (avoid filling newly created orders)
 ORDER_EXPIRY_INTERVAL = int(os.getenv("ORDER_EXPIRY_INTERVAL_SECONDS", "60"))  # Check every 60s
 
 # FastAPI app for health checks
@@ -130,8 +130,19 @@ class OrderFillEngine:
         """
         data = self.gql.execute(query, {"apiKey": SERVICE_API_KEY})
         orders = []
+        now = datetime.now(timezone.utc)
         for order_data in data.get("internalPendingLimitOrders", []):
             if order_data.get("status") == "PENDING":
+                # Skip orders created less than 5 minutes ago (avoid filling newly created orders)
+                created_at_str = order_data.get("createdAt")
+                if created_at_str:
+                    created_str = created_at_str.replace("Z", "+00:00")
+                    created = datetime.fromisoformat(created_str)
+                    if created.tzinfo is None:
+                        created = created.replace(tzinfo=timezone.utc)
+                    if (now - created).total_seconds() < 300:  # 5 minutes
+                        logger.info(f"   ⏳ Skipping recently created order {order_data['id']} (created {created_at_str})")
+                        continue
                 orders.append(Order(
                     id=order_data["id"],
                     portfolio_id=order_data["portfolioId"],

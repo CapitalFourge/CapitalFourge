@@ -60,7 +60,7 @@ public class PortfolioEntity {
     @OneToMany(mappedBy = "portfolio", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
         private List<TransactionEntity> transactions = new ArrayList<>();
 
-    @OneToMany(mappedBy = "portfolio", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "portfolio", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
         private List<OrderEntity> orders = new ArrayList<>();
     
     // Explicit getters/setters for Lombok compatibility

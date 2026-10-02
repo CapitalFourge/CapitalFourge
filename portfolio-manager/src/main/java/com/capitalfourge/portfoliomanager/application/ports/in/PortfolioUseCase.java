@@ -3,6 +3,7 @@ package com.capitalfourge.portfoliomanager.application.ports.in;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -48,6 +49,10 @@ public interface PortfolioUseCase {
     Portfolio getPortfolioBySlug(String slug);
 
     Portfolio getPortfolioByName(UUID userId, String name);
+
+    Optional<Portfolio> getPortfolioByIdLightweight(UUID id);
+
+    boolean checkPortfolioOwnership(UUID portfolioId, UUID userId);
 
     Order createLimitOrder(UUID portfolioId, UUID userId, OrderType type, String symbol, BigDecimal targetPrice, BigDecimal quantity, BigDecimal usdAmount, String expiresAt);
 

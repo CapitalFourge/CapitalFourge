@@ -152,6 +152,18 @@ public class PortfolioService implements PortfolioUseCase {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public boolean checkPortfolioOwnership(UUID portfolioId, UUID userId) {
+        return portfolioRepository.checkPortfolioOwnership(portfolioId, userId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<Portfolio> getPortfolioByIdLightweight(UUID id) {
+        return portfolioRepository.findById(id);
+    }
+
+    @Override
     @Transactional
     public Portfolio getPortfolio(UUID id) {
         Portfolio portfolio = portfolioRepository.findById(id)
@@ -830,51 +842,102 @@ public class PortfolioService implements PortfolioUseCase {
     @Override
         @Transactional
         public Order fillLimitOrder(UUID orderId, UUID userId, BigDecimal fillPrice) {
-            Order order = orderRepository.findById(orderId)
-                    .orElseThrow(() -> new OrderNotFoundException("Order not found"));
-
             // Skip ownership check for internal service (userId = all zeros)
             UUID internalServiceId = UUID.fromString("00000000-0000-0000-0000-000000000000");
             boolean isInternalService = userId.equals(internalServiceId);
 
-            if (!isInternalService && !order.getUserId().equals(userId)) {
-                throw new OrderNotFoundException("Order not found or access denied");
+            // Load portfolio with orders to find the order and get portfolioId
+            // We need to find which portfolio contains this order
+            // Query all portfolios with orders and find the one containing this orderId
+            // For efficiency, we'll use a custom query, but for now use findAll
+            // Actually, let's use a simpler approach - get the order from repository first (read-only)
+            // but NOT keep it in persistence context
+            UUID portfolioId = null;
+            Order order = null;
+            try {
+                Optional<Order> orderOpt = orderRepository.findById(orderId);
+                if (orderOpt.isPresent()) {
+                    order = orderOpt.get();
+                    portfolioId = order.getPortfolioId();
+                }
+            } catch (Exception e) {
+                // Ignore, we'll try the other way
             }
-
-            if (order.getStatus() != OrderStatus.PENDING) {
-                throw new InvalidOrderStateException("Only PENDING orders can be filled");
+            
+            if (portfolioId == null) {
+                // Fallback: query via internalPendingLimitOrders logic
+                List<Order> pendingOrders = orderRepository.findByStatus(OrderStatus.PENDING);
+                for (Order o : pendingOrders) {
+                    if (o.getId().equals(orderId)) {
+                        portfolioId = o.getPortfolioId();
+                        order = o;
+                        break;
+                    }
+                }
+            }
+            
+            if (portfolioId == null) {
+                throw new OrderNotFoundException("Order not found");
             }
 
             // Release locked balance from PORTFOLIO (targetPrice * quantity was locked at creation)
-            Portfolio portfolio = portfolioRepository.findById(order.getPortfolioId())
-                    .orElseThrow(() -> new PortfolioNotFoundException("Portfolio not found"));
-            BigDecimal lockAmount = order.getTargetPrice().multiply(order.getQuantity());
-            BigDecimal currentLockedCash = portfolio.getLockedCash() != null ? portfolio.getLockedCash() : BigDecimal.ZERO;
+            // Use managed entity with orders loaded to avoid orphanRemoval deleting orders
+            Optional<PortfolioEntity> portfolioEntityOpt = portfolioRepository.findEntityByIdWithOrders(portfolioId);
+            PortfolioEntity portfolioEntity = portfolioEntityOpt.orElseThrow(() -> new PortfolioNotFoundException("Portfolio not found"));
 
-            if (order.getType() == OrderType.BUY_LIMIT) {
+            // Find the order in the portfolio's orders collection
+            OrderEntity orderEntity = null;
+            if (portfolioEntity.getOrders() != null) {
+                for (OrderEntity oe : portfolioEntity.getOrders()) {
+                    if (oe.getId().equals(orderId)) {
+                        orderEntity = oe;
+                        break;
+                    }
+                }
+            }
+            if (orderEntity == null) {
+                throw new OrderNotFoundException("Order not found");
+            }
+
+            // Check ownership using the managed entity
+            if (!isInternalService && !orderEntity.getUserId().equals(userId)) {
+                throw new OrderNotFoundException("Order not found or access denied");
+            }
+
+            if (orderEntity.getStatus() != OrderStatus.PENDING) {
+                throw new InvalidOrderStateException("Only PENDING orders can be filled");
+            }
+            
+            BigDecimal lockAmount = orderEntity.getTargetPrice().multiply(orderEntity.getQuantity());
+            BigDecimal currentLockedCash = portfolioEntity.getLockedCash() != null ? portfolioEntity.getLockedCash() : BigDecimal.ZERO;
+            BigDecimal currentAllocatedCash = portfolioEntity.getAllocatedCash() != null ? portfolioEntity.getAllocatedCash() : BigDecimal.ZERO;
+            BigDecimal currentTotalAssigned = portfolioEntity.getTotalAssigned() != null ? portfolioEntity.getTotalAssigned() : BigDecimal.ZERO;
+            BigDecimal currentTotalWithdrawn = portfolioEntity.getTotalWithdrawn() != null ? portfolioEntity.getTotalWithdrawn() : BigDecimal.ZERO;
+
+            if (orderEntity.getType() == OrderType.BUY_LIMIT) {
                 // BUY_LIMIT: targetPrice * quantity was locked, return to allocatedCash
-                portfolio.setLockedCash(currentLockedCash.subtract(lockAmount));
-                BigDecimal currentAllocated = portfolio.getAllocatedCash() != null ? portfolio.getAllocatedCash() : BigDecimal.ZERO;
-                portfolio.setAllocatedCash(currentAllocated.add(lockAmount));
-                portfolioRepository.save(portfolio);
-
+                portfolioEntity.setLockedCash(currentLockedCash.subtract(lockAmount));
+                portfolioEntity.setAllocatedCash(currentAllocatedCash.add(lockAmount));
+                
                 // Execute the buy at fillPrice using portfolio allocated cash
-                BigDecimal totalCost = fillPrice.multiply(order.getQuantity());
-                currentAllocated = portfolio.getAllocatedCash() != null ? portfolio.getAllocatedCash() : BigDecimal.ZERO;
-                if (currentAllocated.compareTo(totalCost) < 0) {
+                BigDecimal totalCost = fillPrice.multiply(orderEntity.getQuantity());
+                if (portfolioEntity.getAllocatedCash().compareTo(totalCost) < 0) {
                     throw new InsufficientBalanceException("Insufficient allocated cash in portfolio to fill order");
                 }
-                portfolio.setAllocatedCash(currentAllocated.subtract(totalCost));
-                portfolioRepository.save(portfolio);
-
+                portfolioEntity.setAllocatedCash(portfolioEntity.getAllocatedCash().subtract(totalCost));
+                portfolioEntity.setTotalAssigned(currentTotalAssigned.add(totalCost));
+                
+                // Create position
+                // Need to load positions to check if exists
+                // We'll use the entity's positions collection which should be loaded
                 boolean positionExists = false;
-                if (portfolio.getPositions() != null) {
-                    for (Position pos : portfolio.getPositions()) {
-                        if (pos.getSymbol().equals(order.getSymbol())) {
+                if (portfolioEntity.getPositions() != null) {
+                    for (PositionEntity pos : portfolioEntity.getPositions()) {
+                        if (pos.getSymbol().equals(orderEntity.getSymbol())) {
                             // Update existing position - recalculate average price
-                            BigDecimal totalQty = pos.getQuantity().add(order.getQuantity());
+                            BigDecimal totalQty = pos.getQuantity().add(orderEntity.getQuantity());
                             BigDecimal totalValue = pos.getQuantity().multiply(pos.getAveragePurchasePrice())
-                                    .add(order.getQuantity().multiply(fillPrice));
+                                    .add(orderEntity.getQuantity().multiply(fillPrice));
                             pos.setQuantity(totalQty);
                             pos.setAveragePurchasePrice(totalValue.divide(totalQty, 8, RoundingMode.HALF_UP));
                             pos.setCurrentPrice(fillPrice);
@@ -883,101 +946,92 @@ public class PortfolioService implements PortfolioUseCase {
                         }
                     }
                 }
-
+                
                 if (!positionExists) {
-                    Position newPos = new Position(
+                    PositionEntity newPos = new PositionEntity(
                             UUID.randomUUID(),
-                            order.getPortfolioId(),
-                            order.getSymbol(),
-                            order.getQuantity(),
+                            portfolioEntity,
+                            orderEntity.getSymbol(),
+                            orderEntity.getQuantity(),
                             fillPrice,
-                            fillPrice,
-                            BigDecimal.ZERO
+                            fillPrice
                     );
-                    portfolio.addPosition(newPos);
+                    portfolioEntity.getPositions().add(newPos);
                 }
-
-                // Create transaction record
-                Transaction transaction = new Transaction(
+                
+                // Create transaction entity
+                TransactionEntity transaction = new TransactionEntity(
                         UUID.randomUUID(),
-                        order.getPortfolioId(),
+                        portfolioEntity,
                         TransactionType.BUY,
-                        order.getSymbol(),
-                        order.getQuantity(),
+                        orderEntity.getSymbol(),
+                        orderEntity.getQuantity(),
                         fillPrice,
-                        totalCost,
                         LocalDateTime.now(),
-                        portfolio.getAllocatedCash(),
-                        portfolio.getTotalValue()
+                        portfolioEntity.getAllocatedCash(),
+                        portfolioEntity.getTotalValue()
                 );
-                portfolio.addTransaction(transaction);
-
-                // Update allocated cash for performance tracking (same as buyAsset)
-                portfolio.setAllocatedCash(currentAllocated.subtract(totalCost));
-                BigDecimal currentAssigned = portfolio.getTotalAssigned() != null ? portfolio.getTotalAssigned() : BigDecimal.ZERO;
-                portfolio.setTotalAssigned(currentAssigned.add(totalCost));
-
-            } else if (order.getType() == OrderType.SELL_LIMIT) {
-                // SELL_LIMIT: locked position quantity (not cash), release position
-                // For SELL_LIMIT, the position should have been "locked" - we need to verify position exists
-                Position positionToSell = null;
-                if (portfolio.getPositions() != null) {
-                    for (Position pos : portfolio.getPositions()) {
-                        if (pos.getSymbol().equals(order.getSymbol())) {
+                portfolioEntity.getTransactions().add(transaction);
+                
+            } else if (orderEntity.getType() == OrderType.SELL_LIMIT) {
+                // SELL_LIMIT: execute the sell at fillPrice - add cash to allocatedCash
+                BigDecimal totalProceeds = fillPrice.multiply(orderEntity.getQuantity());
+                portfolioEntity.setAllocatedCash(portfolioEntity.getAllocatedCash().add(totalProceeds));
+                portfolioEntity.setTotalWithdrawn(currentTotalWithdrawn.add(totalProceeds));
+                
+                // Update position - reduce quantity
+                if (portfolioEntity.getPositions() != null) {
+                    PositionEntity positionToSell = null;
+                    for (PositionEntity pos : portfolioEntity.getPositions()) {
+                        if (pos.getSymbol().equals(orderEntity.getSymbol())) {
                             positionToSell = pos;
                             break;
                         }
                     }
+                    if (positionToSell == null || positionToSell.getQuantity().compareTo(orderEntity.getQuantity()) < 0) {
+                        throw new InsufficientAssetsException("Insufficient " + orderEntity.getSymbol() + " position to fill SELL_LIMIT order");
+                    }
+                    
+                    BigDecimal newQty = positionToSell.getQuantity().subtract(orderEntity.getQuantity());
+                    if (newQty.compareTo(BigDecimal.ZERO) == 0) {
+                        portfolioEntity.getPositions().remove(positionToSell);
+                    } else {
+                        positionToSell.setQuantity(newQty);
+                        positionToSell.setCurrentPrice(fillPrice);
+                    }
                 }
-                if (positionToSell == null || positionToSell.getQuantity().compareTo(order.getQuantity()) < 0) {
-                    throw new InsufficientAssetsException("Insufficient " + order.getSymbol() + " position to fill SELL_LIMIT order");
-                }
-
-                // Execute the sell at fillPrice - add cash to allocatedCash
-                BigDecimal totalProceeds = fillPrice.multiply(order.getQuantity());
-                BigDecimal currentAllocated = portfolio.getAllocatedCash() != null ? portfolio.getAllocatedCash() : BigDecimal.ZERO;
-                portfolio.setAllocatedCash(currentAllocated.add(totalProceeds));
-                portfolioRepository.save(portfolio);
-
-                // Update position - reduce quantity
-                BigDecimal newQty = positionToSell.getQuantity().subtract(order.getQuantity());
-                if (newQty.compareTo(BigDecimal.ZERO) == 0) {
-                    // Remove position entirely
-                    portfolio.getPositions().remove(positionToSell);
-                } else {
-                    positionToSell.setQuantity(newQty);
-                    positionToSell.setCurrentPrice(fillPrice);
-                }
-
-                // Create transaction record
-                Transaction transaction = new Transaction(
+                
+                // Create transaction entity
+                TransactionEntity transaction = new TransactionEntity(
                         UUID.randomUUID(),
-                        order.getPortfolioId(),
+                        portfolioEntity,
                         TransactionType.SELL,
-                        order.getSymbol(),
-                        order.getQuantity(),
+                        orderEntity.getSymbol(),
+                        orderEntity.getQuantity(),
                         fillPrice,
-                        totalProceeds,
                         LocalDateTime.now(),
-                        portfolio.getAllocatedCash(),
-                        portfolio.getTotalValue()
+                        portfolioEntity.getAllocatedCash(),
+                        portfolioEntity.getTotalValue()
                 );
-                portfolio.addTransaction(transaction);
-
-                // Update totalWithdrawn for performance tracking
-                BigDecimal currentWithdrawn = portfolio.getTotalWithdrawn() != null ? portfolio.getTotalWithdrawn() : BigDecimal.ZERO;
-                portfolio.setTotalWithdrawn(currentWithdrawn.add(totalProceeds));
+                portfolioEntity.getTransactions().add(transaction);
             }
-
-            portfolioRepository.save(portfolio);
-
-            // Update order status to FILLED
+            
+            // Update order status to FILLED in the entity
+            orderEntity.setStatus(OrderStatus.FILLED);
+            orderEntity.setFilledAt(LocalDateTime.now());
+            orderEntity.setFilledPrice(fillPrice);
+            orderEntity.setFilledQuantity(orderEntity.getQuantity());
+            
+            // Update domain object for return
             order.setStatus(OrderStatus.FILLED);
             order.setFilledAt(LocalDateTime.now());
             order.setFilledPrice(fillPrice);
             order.setFilledQuantity(order.getQuantity());
-
-            return orderRepository.save(order);
+            
+            // Save the managed portfolio entity (cascades to orders collection with updated status)
+            portfolioRepository.saveEntity(portfolioEntity);
+            
+            return order;
         }
 
     @Override

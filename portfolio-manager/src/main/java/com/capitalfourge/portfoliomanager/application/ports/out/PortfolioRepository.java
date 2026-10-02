@@ -38,4 +38,10 @@ public interface PortfolioRepository {
 
     // Save entity directly (to avoid orphanRemoval issues)
     Portfolio saveEntity(com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistence.Entities.PortfolioEntity entity);
+
+    // Check ownership without loading entity (avoids orphanRemoval)
+    boolean checkPortfolioOwnership(UUID portfolioId, UUID userId);
+
+    // Find entity with orders loaded (to avoid orphanRemoval when saving)
+    Optional<com.capitalfourge.portfoliomanager.infrastructure.adapters.out.persistence.Entities.PortfolioEntity> findEntityByIdWithOrders(UUID id);
 }

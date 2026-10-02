@@ -163,6 +163,9 @@ export default function TransactionsPage() {
     if (type === "SELL") return "bg-emerald-300/10 text-emerald-100 border-emerald-300/20";
     if (type === "BUY_LIMIT") return "bg-amber-500/10 text-amber-200 border-amber-400/20";
     if (type === "SELL_LIMIT") return "bg-orange-500/10 text-orange-200 border-orange-400/20";
+    if (type === "PENDING") return "bg-blue-500/10 text-blue-200 border-blue-400/20";
+    if (type === "CANCELLED") return "bg-red-500/10 text-red-200 border-red-400/20";
+    if (type === "EXPIRED") return "bg-gray-500/10 text-gray-200 border-gray-400/20";
     return "bg-sky-300/10 text-sky-100 border-sky-300/20";
   };
 
@@ -179,6 +182,9 @@ export default function TransactionsPage() {
     if (type === "SELL") return "Venta";
     if (type === "BUY_LIMIT") return "Compra límite";
     if (type === "SELL_LIMIT") return "Venta límite";
+    if (type === "PENDING") return "Pendiente";
+    if (type === "CANCELLED") return "Cancelada";
+    if (type === "EXPIRED") return "Expirada";
     return "Efectivo";
   };
 

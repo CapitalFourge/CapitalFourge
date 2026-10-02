@@ -168,11 +168,8 @@ export function OrdersDialog({ portfolioId, open, onOpenChange }: OrdersDialogPr
     };
 
     const pendingOrders = data?.ordersByPortfolio?.filter((o: Order) => o.status === "PENDING") || [];
-    const filledOrders = data?.ordersByPortfolio?.filter((o: Order) => o.status === "FILLED") || [];
-    const cancelledOrders = data?.ordersByPortfolio?.filter((o: Order) => o.status === "CANCELLED") || [];
-    const expiredOrders = data?.ordersByPortfolio?.filter((o: Order) => o.status === "EXPIRED") || [];
-    const allOrders = data?.ordersByPortfolio || [];
-    const hasOrders = allOrders.length > 0;
+    // Only show pending orders in "Ver órdenes" dialog - others go to transaction history
+    const hasPendingOrders = pendingOrders.length > 0;
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -184,141 +181,59 @@ export function OrdersDialog({ portfolioId, open, onOpenChange }: OrdersDialogPr
                 </DialogHeader>
 
                 <div className="space-y-4">
-                    {!hasOrders ? (
+                    {!hasPendingOrders ? (
                         <p className="text-center text-slate-400 py-8">
-                            No hay órdenes en este portafolio
+                            No hay órdenes pendientes en este portafolio
                         </p>
                     ) : (
-                        <>
-                            {pendingOrders.length > 0 && (
-                                <div>
-                                    <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Pendientes</h3>
-                                    {pendingOrders.map((order: Order) => (
-                                        <div key={order.id} className="bg-black/40 border border-white/10 rounded-lg p-4 mb-3">
-                                            <div className="flex justify-between items-start mb-2">
-                                                <div>
-                                                    <span className={`text-xs font-bold px-2 py-1 rounded ${order.type === "BUY_LIMIT" ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"
-                                                        }`}>
-                                                        {order.type === "BUY_LIMIT" ? "COMPRA" : "VENTA"}
-                                                    </span>
-                                                    <span className="ml-2 font-bold">{order.symbol}</span>
-                                                </div>
-                                                <Badge className={getStatusColor(order.status)}>
-                                                    {order.status}
-                                                </Badge>
-                                            </div>
-
-                                            <div className="grid grid-cols-2 gap-2 text-sm">
-                                                <div>
-                                                    <span className="text-slate-500">Precio objetivo:</span>
-                                                    <span className="ml-2">${order.targetPrice?.toLocaleString()}</span>
-                                                </div>
-                                                <div>
-                                                    <span className="text-slate-500">Cantidad:</span>
-                                                    <span className="ml-2">{order.quantity || order.usdAmount}</span>
-                                                </div>
-                                                <div>
-                                                    <span className="text-slate-500">Creada:</span>
-                                                    <span className="ml-2">{new Date(order.createdAt).toLocaleDateString()}</span>
-                                                </div>
-                                                <div>
-                                                    <span className="text-slate-500">Expira:</span>
-                                                    <span className="ml-2">{order.expiresAt ? new Date(order.expiresAt).toLocaleDateString() : "Nunca"}</span>
-                                                </div>
-                                            </div>
-
-                                            {order.status === "PENDING" && (
-                                                <Button
-                                                    onClick={() => handleCancel(order.id)}
-                                                    variant="outline"
-                                                    className="mt-3 w-full border-red-500/50 text-red-400 hover:bg-red-500/10"
-                                                >
-                                                    Cancelar Orden
-                                                </Button>
-                                            )}
+                        <div>
+                            <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Pendientes</h3>
+                            {pendingOrders.map((order: Order) => (
+                                <div key={order.id} className="bg-black/40 border border-white/10 rounded-lg p-4 mb-3">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div>
+                                            <span className={`text-xs font-bold px-2 py-1 rounded ${order.type === "BUY_LIMIT" ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"
+                                                }`}>
+                                                {order.type === "BUY_LIMIT" ? "COMPRA" : "VENTA"}
+                                            </span>
+                                            <span className="ml-2 font-bold">{order.symbol}</span>
                                         </div>
-                                    ))}
-                                </div>
-                            )}
+                                        <Badge className={getStatusColor(order.status)}>
+                                            {order.status}
+                                        </Badge>
+                                    </div>
 
-                            {filledOrders.length > 0 && (
-                                <div>
-                                    <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Ejecutadas</h3>
-                                    {filledOrders.map((order: Order) => (
-                                        <div key={order.id} className="bg-black/40 border border-white/10 rounded-lg p-4 mb-3">
-                                            <div className="flex justify-between items-start mb-2">
-                                                <div>
-                                                    <span className={`text-xs font-bold px-2 py-1 rounded ${order.type === "BUY_LIMIT" ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"
-                                                        }`}>
-                                                        {order.type === "BUY_LIMIT" ? "COMPRA" : "VENTA"}
-                                                    </span>
-                                                    <span className="ml-2 font-bold">{order.symbol}</span>
-                                                </div>
-                                                <Badge className={getStatusColor(order.status)}>
-                                                    {order.status}
-                                                </Badge>
-                                            </div>
-
-                                            <div className="grid grid-cols-2 gap-2 text-sm">
-                                                <div>
-                                                    <span className="text-slate-500">Precio objetivo:</span>
-                                                    <span className="ml-2">${order.targetPrice?.toLocaleString()}</span>
-                                                </div>
-                                                <div>
-                                                    <span className="text-slate-500">Precio ejecución:</span>
-                                                    <span className="ml-2">${order.filledPrice?.toLocaleString()}</span>
-                                                </div>
-                                                <div>
-                                                    <span className="text-slate-500">Cantidad:</span>
-                                                    <span className="ml-2">{order.filledQuantity || order.quantity}</span>
-                                                </div>
-                                                <div>
-                                                    <span className="text-slate-500">Ejecutada:</span>
-                                                    <span className="ml-2">{order.filledAt ? new Date(order.filledAt).toLocaleDateString() : "-"}</span>
-                                                </div>
-                                            </div>
+                                    <div className="grid grid-cols-2 gap-2 text-sm">
+                                        <div>
+                                            <span className="text-slate-500">Precio objetivo:</span>
+                                            <span className="ml-2">${order.targetPrice?.toLocaleString()}</span>
                                         </div>
-                                    ))}
-                                </div>
-                            )}
-
-                            {(cancelledOrders.length > 0 || expiredOrders.length > 0) && (
-                                <div>
-                                    <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Canceladas / Expiradas</h3>
-                                    {[...cancelledOrders, ...expiredOrders].map((order: Order) => (
-                                        <div key={order.id} className="bg-black/40 border border-white/10 rounded-lg p-4 mb-3 opacity-60">
-                                            <div className="flex justify-between items-start mb-2">
-                                                <div>
-                                                    <span className={`text-xs font-bold px-2 py-1 rounded ${order.type === "BUY_LIMIT" ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"
-                                                        }`}>
-                                                        {order.type === "BUY_LIMIT" ? "COMPRA" : "VENTA"}
-                                                    </span>
-                                                    <span className="ml-2 font-bold">{order.symbol}</span>
-                                                </div>
-                                                <Badge className={getStatusColor(order.status)}>
-                                                    {order.status}
-                                                </Badge>
-                                            </div>
-
-                                            <div className="grid grid-cols-2 gap-2 text-sm">
-                                                <div>
-                                                    <span className="text-slate-500">Precio objetivo:</span>
-                                                    <span className="ml-2">${order.targetPrice?.toLocaleString()}</span>
-                                                </div>
-                                                <div>
-                                                    <span className="text-slate-500">Cantidad:</span>
-                                                    <span className="ml-2">{order.quantity || order.usdAmount}</span>
-                                                </div>
-                                                <div>
-                                                    <span className="text-slate-500">Creada:</span>
-                                                    <span className="ml-2">{new Date(order.createdAt).toLocaleDateString()}</span>
-                                                </div>
-                                            </div>
+                                        <div>
+                                            <span className="text-slate-500">Cantidad:</span>
+                                            <span className="ml-2">{order.quantity || order.usdAmount}</span>
                                         </div>
-                                    ))}
+                                        <div>
+                                            <span className="text-slate-500">Creada:</span>
+                                            <span className="ml-2">{new Date(order.createdAt).toLocaleDateString()}</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-slate-500">Expira:</span>
+                                            <span className="ml-2">{order.expiresAt ? new Date(order.expiresAt).toLocaleDateString() : "Nunca"}</span>
+                                        </div>
+                                    </div>
+
+                                    {order.status === "PENDING" && (
+                                        <Button
+                                            onClick={() => handleCancel(order.id)}
+                                            variant="outline"
+                                            className="mt-3 w-full border-red-500/50 text-red-400 hover:bg-red-500/10"
+                                        >
+                                            Cancelar Orden
+                                        </Button>
+                                    )}
                                 </div>
-                            )}
-                        </>
+                            ))}
+                        </div>
                     )}
                 </div>
             </DialogContent>

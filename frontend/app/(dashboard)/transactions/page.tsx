@@ -141,6 +141,8 @@ export default function TransactionsPage() {
   const currentPage = txData?.number || 0;
 
   // Add pending limit orders as "pending transactions"
+  // Filter out PENDING transactions from backend to avoid duplicates
+  const backendTransactions = allTransactions.filter((t: Transaction) => t.type !== 'PENDING');
   const pendingOrders = ordersData?.pendingLimitOrders
     ?.filter((o: Order) => o.status === 'PENDING')
     ?.map((o: Order) => ({
@@ -155,7 +157,7 @@ export default function TransactionsPage() {
       isPending: true,
     })) || [];
 
-  const allItems = [...allTransactions, ...pendingOrders]
+  const allItems = [...backendTransactions, ...pendingOrders]
     .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
   const badgeClass = (type: string) => {

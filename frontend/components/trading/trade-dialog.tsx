@@ -247,6 +247,8 @@ export function TradeDialog({
     fetchPolicy: "network-only",
   });
 
+  const currentMarketPrice = useMemo(() => priceData?.asset?.price ?? null, [priceData?.asset?.price]);
+
   const effectivePrice = useMemo(() => {
     if (orderType === "market" && priceData?.asset?.price) {
       return String(priceData.asset.price);
@@ -385,6 +387,17 @@ export function TradeDialog({
     }
 
     if (orderType === "limit") {
+      // Validate limit order price vs current market price
+      if (currentMarketPrice) {
+        if (type === "buy" && parsedPrice > currentMarketPrice) {
+          toast.error(`BUY_LIMIT: El precio objetivo (${parsedPrice}) no puede ser mayor al precio actual (${currentMarketPrice}). Use una orden de mercado o un precio menor/igual.`);
+          return;
+        }
+        if (type === "sell" && parsedPrice < currentMarketPrice) {
+          toast.error(`SELL_LIMIT: El precio objetivo (${parsedPrice}) no puede ser menor al precio actual (${currentMarketPrice}). Use una orden de mercado o un precio mayor/igual.`);
+          return;
+        }
+      }
       variables.type = type === "buy" ? "BUY_LIMIT" : "SELL_LIMIT";
       variables.targetPrice = parsedPrice;
       variables.expiresAt = expiresAt || undefined;

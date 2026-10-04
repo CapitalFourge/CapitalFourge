@@ -24,7 +24,7 @@ api.local.capitalfourge.com:10000 {
 
 # API Backend (Spring Boot) - Production
 api.capitalfourge.com {
-    reverse_proxy portfolio-manager:10000 {
+    reverse_proxy cf-portfolio-manager:10000 {
         header_up Host {host}
         header_up X-Real-IP {remote_host}
         header_up X-Forwarded-For {remote_host}

@@ -126,7 +126,7 @@ services:
       # Render/Cloud detection
       RENDER: "false"
       # Java
-      JAVA_OPTS: "-Xms512m -Xmx1g -XX:MaxMetaspaceSize=128m -XX:CompressedClassSpaceSize=16m -XX:+UseZGC -XX:MaxDirectMemorySize=256m -Dserver.address=0.0.0.0 -Dspring.datasource.hikari.maximum-pool-size=10 -Dspring.datasource.hikari.minimum-idle=2 -Dspring.redis.lettuce.pool.max-active=10 -Djdk.net.URLClassPath.disableClassPathURLCheck=true -XX:+ExitOnOutOfMemoryError"
+      JAVA_OPTS: "-Xms1g -Xmx2g -XX:MaxMetaspaceSize=256m -XX:CompressedClassSpaceSize=32m -XX:+UseZGC -XX:MaxDirectMemorySize=512m -Dserver.address=0.0.0.0 -Dspring.datasource.hikari.maximum-pool-size=15 -Dspring.datasource.hikari.minimum-idle=5 -Dspring.redis.lettuce.pool.max-active=15 -Djdk.net.URLClassPath.disableClassPathURLCheck=true -XX:+ExitOnOutOfMemoryError"
     ports:
       - "10000:10000"
     depends_on:
@@ -145,9 +145,9 @@ services:
     deploy:
       resources:
         limits:
-          memory: 2G
+          memory: 3G
         reservations:
-          memory: 1G
+          memory: 1.5G
 
   # ─────────────────────────────────────────────────────────────
   # DATA COLLECTOR - Python FastAPI
